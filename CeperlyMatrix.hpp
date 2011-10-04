@@ -6,6 +6,7 @@
 
 // O(N^2) algorithm for finding ratio of new to previous determinant
 // This class acts as a finite state machine.  See next_step.
+template <typename T>
 class CeperlyMatrix
 {
 private:
@@ -15,23 +16,26 @@ private:
 	FINISH_ROW_UPDATE
     };
 
-    Eigen::MatrixXd mat, invmat;
-    double detrat;
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat;
+    T detrat;
     int pending_index;
     NextStep next_step;
 
 public:
-    CeperlyMatrix (const Eigen::MatrixXd &initial_mat)
+    CeperlyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
 	: mat(initial_mat),
 	  invmat(mat.inverse()),
 	  next_step(UPDATE_ROW)
 	{
+	    // if invmat.inverse() is not close to mat it probably means our
+	    // orbitals are probably not linearly independent!
+	    BOOST_ASSERT((mat - invmat.inverse()).array().abs().sum() < .00000001);
 	}
 
-    void update_row (int r, const Eigen::VectorXd &row)
+    void update_row (int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)
 	{
-	    BOOST_ASSERT(r >= 0 && r < mat.cols());
-	    BOOST_ASSERT(row.rows() == mat.rows());
+	    BOOST_ASSERT(r >= 0 && r < mat.rows());
+	    BOOST_ASSERT(row.rows() == mat.cols());
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
 
 	    mat.row(r) = row;
@@ -40,7 +44,7 @@ public:
 	    next_step = CALCULATE_DETERMINANT_RATIO;
 	}
 
-    double calculate_determinant_ratio (void)
+    T calculate_determinant_ratio (void)
 	{
 	    BOOST_ASSERT(next_step == CALCULATE_DETERMINANT_RATIO);
 
@@ -56,7 +60,7 @@ public:
 
 	    // implement equation (12) of Ceperly et al, correctly given as eqn (4.22)
 	    // of Kent's thesis http://www.ornl.gov/~pk7/thesis/thesis.ps.gz
-	    Eigen::VectorXd oldcol(invmat.col(pending_index));
+	    Eigen::Matrix<T, Eigen::Dynamic, 1> oldcol(invmat.col(pending_index));
 	    invmat -= (invmat.col(pending_index) / detrat * mat.row(pending_index) * invmat).eval();
 	    invmat.col(pending_index) = oldcol / detrat;
 
@@ -69,20 +73,20 @@ public:
 	    invmat = mat.inverse();
 	}
 
-    double compute_inverse_matrix_error (void) const
+    T compute_inverse_matrix_error (void) const
 	{
 	    // there is surely a more informative way to do this
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
-	    Eigen::MatrixXd m(mat.inverse() - invmat);
+	    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> m(mat.inverse() - invmat);
 	    return m.array().abs().sum();
 	}
 
-    Eigen::MatrixXd get (void) const
+    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get (void) const
 	{
 	    return mat;
 	}
 
-    Eigen::MatrixXd get_inverse (void) const
+    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_inverse (void) const
 	{
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
 	    return invmat;

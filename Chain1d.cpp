@@ -75,7 +75,7 @@ void Chain1dWalk::finalize_transition (void)
 {
     BOOST_ASSERT(transition_in_progress);
 
-    for (int i = 0; i < r.size(); ++i)
+    for (unsigned int i = 0; i < r.size(); ++i)
 	std::cerr << r[i] << ' ';
     std::cerr << std::endl;
 

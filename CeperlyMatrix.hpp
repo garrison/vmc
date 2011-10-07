@@ -35,8 +35,8 @@ public:
 	}
 
     CeperlyMatrix (void)
+	: next_step(INITIALIZE)
 	{
-	    next_step = INITIALIZE;
 	}
 
     void update_row (int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)

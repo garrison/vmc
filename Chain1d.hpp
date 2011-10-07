@@ -69,11 +69,12 @@ private:
     CeperlyMatrix<amplitude_t> cmat;
     bool transition_in_progress;
 public:
-    static std::auto_ptr<Chain1dWalk> random_initial_state (const Chain1d &wf_);
+    Chain1dWalk (const Chain1d &wf_);
+    Chain1dWalk (const Chain1d &wf_, const std::vector<Chain1d::position_t> &r);
     probability_t compute_probability_ratio_of_random_transition (void);
     void finalize_transition (void);
 private:
-    Chain1dWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<Chain1d::position_t> &r_);
+    void initialize_cmat (void);
     // disable the default constructor
     Chain1dWalk (void);
 };

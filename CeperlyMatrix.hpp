@@ -11,6 +11,7 @@ class CeperlyMatrix
 {
 private:
     enum NextStep {
+	INITIALIZE,
 	UPDATE_ROW,
 	CALCULATE_DETERMINANT_RATIO,
 	FINISH_ROW_UPDATE
@@ -31,6 +32,11 @@ public:
 	    // orbitals are probably not linearly independent!
 	    if ((mat - invmat.inverse()).array().abs().sum() > .00000001)
 		std::cerr << "Warning: inverse matrix error of " << (mat - invmat.inverse()).array().abs().sum() << std::endl;
+	}
+
+    CeperlyMatrix (void)
+	{
+	    next_step = INITIALIZE;
 	}
 
     void update_row (int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)
@@ -92,10 +98,6 @@ public:
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
 	    return invmat;
 	}
-
-private:
-    // disable default constructor
-    CeperlyMatrix (void);
 };
 
 #endif

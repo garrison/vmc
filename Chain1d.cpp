@@ -5,30 +5,35 @@
 
 #include "Chain1d.hpp"
 
-Chain1dWalk::Chain1dWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<Chain1d::position_t> &r_)
+Chain1dWalk::Chain1dWalk (const Chain1d &wf_)
+    : wf(new Chain1d(wf_)),
+      r(wf->get_N_filled()),
+      transition_in_progress(false)
+{
+    for (int i = 0; i < wf->get_N_filled(); ++i)
+	r[i] = i; // fixme!
+
+    initialize_cmat();
+}
+
+Chain1dWalk::Chain1dWalk (const Chain1d &wf_, const std::vector<Chain1d::position_t> &r_)
     : wf(new Chain1d(wf_)),
       r(r_),
-      cmat(mat),
       transition_in_progress(false)
 {
     BOOST_ASSERT((int)r.size() == wf->get_N_filled());
+    initialize_cmat();
 }
 
-std::auto_ptr<Chain1dWalk> Chain1dWalk::random_initial_state (const Chain1d &wf_)
+void Chain1dWalk::initialize_cmat (void)
 {
-    int N = wf_.get_N_filled();
-
-    //boost::mt19937 rng(0); // fixme: seed
-    //boost::uniform_01<boost::mt19937> zeroone(rng);
+    int N = wf->get_N_filled();
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
-    std::vector<Chain1d::position_t> r(N); // fixme
     for (int i = 0; i < N; ++i) {
-	r[i] = i; //zeroone();
 	for (int j = 0; j < N; ++j)
-	    mat(i, j) = wf_.phi(j, r[i]);
+	    mat(i, j) = wf->phi(j, r[i]);
     }
-
-    return std::auto_ptr<Chain1dWalk>(new Chain1dWalk(mat, wf_, r));
+    cmat = mat;
 }
 
 probability_t Chain1dWalk::compute_probability_ratio_of_random_transition (void)

@@ -5,7 +5,7 @@
 
 #include "Chain1d.hpp"
 
-Chain1d::ArgumentWalk::ArgumentWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<int> &r_)
+Chain1dWalk::Chain1dWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<int> &r_)
     : wf(new Chain1d(wf_)),
       r(r_),
       cmat(mat),
@@ -14,7 +14,7 @@ Chain1d::ArgumentWalk::ArgumentWalk (const Eigen::Matrix<amplitude_t, Eigen::Dyn
     BOOST_ASSERT((int)r.size() == wf->get_N_filled());
 }
 
-std::auto_ptr<Chain1d::ArgumentWalk> Chain1d::ArgumentWalk::random_initial_state (const Chain1d &wf_)
+std::auto_ptr<Chain1dWalk> Chain1dWalk::random_initial_state (const Chain1d &wf_)
 {
     int N = wf_.get_N_filled();
 
@@ -28,10 +28,10 @@ std::auto_ptr<Chain1d::ArgumentWalk> Chain1d::ArgumentWalk::random_initial_state
 	    mat(i, j) = wf_.phi(j, r[i]);
     }
 
-    return std::auto_ptr<Chain1d::ArgumentWalk>(new Chain1d::ArgumentWalk(mat, wf_, r));
+    return std::auto_ptr<Chain1dWalk>(new Chain1dWalk(mat, wf_, r));
 }
 
-probability_t Chain1d::ArgumentWalk::compute_probability_ratio_of_random_transition (void)
+probability_t Chain1dWalk::compute_probability_ratio_of_random_transition (void)
 {
     BOOST_ASSERT(!transition_in_progress);
 
@@ -72,7 +72,7 @@ probability_t Chain1d::ArgumentWalk::compute_probability_ratio_of_random_transit
     return rv;
 }
 
-void Chain1d::ArgumentWalk::finalize_transition (void)
+void Chain1dWalk::finalize_transition (void)
 {
     BOOST_ASSERT(transition_in_progress);
 

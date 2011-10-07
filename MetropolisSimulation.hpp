@@ -8,13 +8,12 @@
 
 #include "vmc-typedefs.hpp"
 
-template <class WaveFunction_T>
+template <class Walk_T>
 class MetropolisSimulation
 {
 public:
-    MetropolisSimulation (const WaveFunction_T &wf, unsigned int lg_initialization_sweeps)
-	: wavefunction(wf),
-	  arguments(*WaveFunction_T::ArgumentWalk::random_initial_state(wf)),
+    MetropolisSimulation (const Walk_T &walk_, unsigned int lg_initialization_sweeps)
+	: walk(walk_),
 	  m_steps(0),
 	  m_steps_accepted(0),
 	  rng(0), // fixme: seed
@@ -50,8 +49,7 @@ public:
 	}
 
 private:
-    const WaveFunction_T wavefunction;
-    typename WaveFunction_T::ArgumentWalk arguments;
+    Walk_T walk;
     int m_steps, m_steps_accepted;
 
     // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
@@ -60,15 +58,15 @@ private:
 
     void perform_single_step (void)
 	{
-	    typename WaveFunction_T::ArgumentWalk new_arguments(arguments);
+	    Walk_T proposed_step(walk);
 
-	    probability_t probability_ratio = new_arguments.compute_probability_ratio_of_random_transition();
+	    probability_t probability_ratio = proposed_step.compute_probability_ratio_of_random_transition();
 	    BOOST_ASSERT(probability_ratio >= 0);
 	    if (probability_ratio >= 1
 		|| probability_ratio > uniform_distribution()) {
 		// accept transition
-		new_arguments.finalize_transition();
-		arguments = new_arguments;
+		proposed_step.finalize_transition();
+		walk = proposed_step;
 		++m_steps_accepted;
 		std::cerr << "A" << std::endl;
 	    } else {

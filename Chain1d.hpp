@@ -18,28 +18,6 @@
 class Chain1d
 {
 public:
-    class ArgumentWalk // Both the arguments themselves (and knowledge of
-		       // constraints on them) as well as the methods for
-		       // performing the random walk are in this class.  In
-		       // theory they should be in two different classes, but
-		       // we wouldn't gain anything from that (and the concepts
-		       // are closely coupled anyway).
-    {
-    private:
-	boost::shared_ptr<Chain1d> wf;
-	std::vector<int> r;
-	CeperlyMatrix<amplitude_t> cmat;
-	bool transition_in_progress;
-    public:
-	static std::auto_ptr<ArgumentWalk> random_initial_state (const Chain1d &wf_);
-	probability_t compute_probability_ratio_of_random_transition (void);
-	void finalize_transition (void);
-    private:
-	ArgumentWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<int> &r_);
-	// disable the default constructor
-	ArgumentWalk (void);
-    };
-
     Chain1d (int _N_filled, int _N_sites)
 	: N_filled(_N_filled),
 	  N_sites(_N_sites)
@@ -74,6 +52,28 @@ private:
 private:
     // disable default constructor
     Chain1d(void);
+};
+
+class Chain1dWalk // Both the arguments themselves (and knowledge of
+		       // constraints on them) as well as the methods for
+		       // performing the random walk are in this class.  In
+		       // theory they should be in two different classes, but
+		       // we wouldn't gain anything from that (and the concepts
+		       // are closely coupled anyway).
+{
+private:
+    boost::shared_ptr<Chain1d> wf;
+    std::vector<int> r;
+    CeperlyMatrix<amplitude_t> cmat;
+    bool transition_in_progress;
+public:
+    static std::auto_ptr<Chain1dWalk> random_initial_state (const Chain1d &wf_);
+    probability_t compute_probability_ratio_of_random_transition (void);
+    void finalize_transition (void);
+private:
+    Chain1dWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<int> &r_);
+    // disable the default constructor
+    Chain1dWalk (void);
 };
 
 #endif

@@ -18,6 +18,8 @@
 class Chain1d
 {
 public:
+    typedef int position_t;
+
     Chain1d (int _N_filled, int _N_sites)
 	: N_filled(_N_filled),
 	  N_sites(_N_sites)
@@ -63,7 +65,7 @@ class Chain1dWalk // Both the arguments themselves (and knowledge of
 {
 private:
     boost::shared_ptr<Chain1d> wf;
-    std::vector<int> r;
+    std::vector<Chain1d::position_t> r;
     CeperlyMatrix<amplitude_t> cmat;
     bool transition_in_progress;
 public:
@@ -71,7 +73,7 @@ public:
     probability_t compute_probability_ratio_of_random_transition (void);
     void finalize_transition (void);
 private:
-    Chain1dWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<int> &r_);
+    Chain1dWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<Chain1d::position_t> &r_);
     // disable the default constructor
     Chain1dWalk (void);
 };

@@ -5,7 +5,7 @@
 
 #include "Chain1d.hpp"
 
-Chain1dWalk::Chain1dWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<int> &r_)
+Chain1dWalk::Chain1dWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<Chain1d::position_t> &r_)
     : wf(new Chain1d(wf_)),
       r(r_),
       cmat(mat),
@@ -21,7 +21,7 @@ std::auto_ptr<Chain1dWalk> Chain1dWalk::random_initial_state (const Chain1d &wf_
     //boost::mt19937 rng(0); // fixme: seed
     //boost::uniform_01<boost::mt19937> zeroone(rng);
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
-    std::vector<int> r(N); // fixme
+    std::vector<Chain1d::position_t> r(N); // fixme
     for (int i = 0; i < N; ++i) {
 	r[i] = i; //zeroone();
 	for (int j = 0; j < N; ++j)

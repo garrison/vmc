@@ -45,22 +45,21 @@ probability_t Chain1dWalk::compute_probability_ratio_of_random_transition (void)
     //static boost::variate_generator<boost::mt19937&, boost::uniform_real<> > distance_gen(generator, movement_distribution);
 
     int chosen_particle = particle_gen();
-    int *rcp = &r[chosen_particle];
-    std::cerr << "Moving particle " << chosen_particle << " from " << *rcp;
+    std::cerr << "Moving particle " << chosen_particle << " from " << r[chosen_particle];
 
     // move it randomly
-    *rcp += movement_gen() * 2 - 1;
+    r[chosen_particle] += movement_gen() * 2 - 1;
     // enforce PBC
-    if (*rcp >= wf->get_N_sites())
-	*rcp -= wf->get_N_sites();
-    else if (*rcp < 0)
-	*rcp += wf->get_N_sites();
-    std::cerr << " to " << *rcp << std::endl;
+    if (r[chosen_particle] >= wf->get_N_sites())
+	r[chosen_particle] -= wf->get_N_sites();
+    else if (r[chosen_particle] < 0)
+	r[chosen_particle] += wf->get_N_sites();
+    std::cerr << " to " << r[chosen_particle] << std::endl;
 
     // calculate each phi at new position
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, 1> phivec(N);
     for (int i = 0; i < N; ++i)
-	phivec(i) = wf->phi(i, *rcp);
+	phivec(i) = wf->phi(i, r[chosen_particle]);
 
     cmat.update_row(chosen_particle, phivec);
 

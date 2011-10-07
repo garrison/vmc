@@ -29,7 +29,8 @@ public:
 	{
 	    // if invmat.inverse() is not close to mat it probably means our
 	    // orbitals are probably not linearly independent!
-	    BOOST_ASSERT((mat - invmat.inverse()).array().abs().sum() < .00000001);
+	    if ((mat - invmat.inverse()).array().abs().sum() > .00000001)
+		std::cerr << "Warning: inverse matrix error of " << (mat - invmat.inverse()).array().abs().sum() << std::endl;
 	}
 
     void update_row (int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)

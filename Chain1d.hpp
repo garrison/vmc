@@ -27,7 +27,7 @@ public:
     {
     private:
 	boost::shared_ptr<Chain1d> wf;
-	std::vector<double> r;
+	std::vector<int> r;
 	CeperlyMatrix<amplitude_t> cmat;
 	bool transition_in_progress;
     public:
@@ -35,7 +35,7 @@ public:
 	probability_t compute_probability_ratio_of_random_transition (void);
 	void finalize_transition (void);
     private:
-	ArgumentWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<double> &r_);
+	ArgumentWalk (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, const Chain1d &wf_, const std::vector<int> &r_);
 	// disable the default constructor
 	ArgumentWalk (void);
     };
@@ -58,14 +58,14 @@ public:
 	    return N_filled;
 	}
 
-    amplitude_t phi(int n, double r) const
+    amplitude_t phi(int n, int r) const
 	{
 	    BOOST_ASSERT(n >= 0 && n < N_filled);
-	    BOOST_ASSERT(r >= 0 && r <= 1);
+	    BOOST_ASSERT(r >= 0 && r < N_sites);
 
 	    const double pi = boost::math::constants::pi<double>();
 	    const std::complex<double> im_unit(0, 1);
-	    return exp(im_unit * std::complex<double>(2 * pi * r * (n + 1)));
+	    return exp(im_unit * std::complex<double>(2 * pi * r * (n + 1) / N_sites));
 	}
 
 private:

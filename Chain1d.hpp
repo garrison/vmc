@@ -19,6 +19,7 @@ class Chain1d
 {
 public:
     typedef int position_t;
+    typedef complex_amplitude_t amplitude_t;
 
     Chain1d (int _N_filled, int _N_sites)
 	: N_filled(_N_filled),
@@ -38,7 +39,7 @@ public:
 	    return N_filled;
 	}
 
-    amplitude_t phi(int n, int r) const
+    Chain1d::amplitude_t phi(int n, int r) const
 	{
 	    BOOST_ASSERT(n >= 0 && n < N_filled);
 	    BOOST_ASSERT(r >= 0 && r < N_sites);
@@ -66,7 +67,7 @@ class Chain1dWalk // Both the arguments themselves (and knowledge of
 private:
     boost::shared_ptr<Chain1d> wf;
     std::vector<Chain1d::position_t> r;
-    CeperlyMatrix<amplitude_t> cmat;
+    CeperlyMatrix<Chain1d::amplitude_t> cmat;
     bool transition_in_progress;
 public:
     Chain1dWalk (const Chain1d &wf_);

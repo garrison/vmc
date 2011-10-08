@@ -4,7 +4,9 @@
 #include <complex>
 
 typedef double probability_t;
-typedef std::complex<double> amplitude_t;
+
+typedef double real_amplitude_t;
+typedef std::complex<double> complex_amplitude_t;
 
 class accumulator_t
 {

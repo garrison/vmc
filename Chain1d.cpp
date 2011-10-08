@@ -28,7 +28,7 @@ Chain1dWalk::Chain1dWalk (const Chain1d &wf_, const std::vector<Chain1d::positio
 void Chain1dWalk::initialize_cmat (void)
 {
     int N = wf->get_N_filled();
-    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
+    Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
     for (int i = 0; i < N; ++i) {
 	for (int j = 0; j < N; ++j)
 	    mat(i, j) = wf->phi(j, r[i]);
@@ -62,14 +62,14 @@ probability_t Chain1dWalk::compute_probability_ratio_of_random_transition (void)
     std::cerr << " to " << r[chosen_particle] << std::endl;
 
     // calculate each phi at new position
-    Eigen::Matrix<amplitude_t, Eigen::Dynamic, 1> phivec(N);
+    Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, 1> phivec(N);
     for (int i = 0; i < N; ++i)
 	phivec(i) = wf->phi(i, r[chosen_particle]);
 
     cmat.update_row(chosen_particle, phivec);
 
     // take ratio of determinants and return a probability
-    amplitude_t amplitude_ratio = cmat.calculate_determinant_ratio();
+    Chain1d::amplitude_t amplitude_ratio = cmat.calculate_determinant_ratio();
     probability_t rv = norm(amplitude_ratio);
     std::cerr << "ratio " << rv << std::endl;
     transition_in_progress = true;

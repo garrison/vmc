@@ -20,7 +20,7 @@ public:
 	{
 	}
 
-    operator double ()
+    operator double () const
 	{
 	    return accum;
 	}

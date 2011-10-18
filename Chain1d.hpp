@@ -141,6 +141,33 @@ public:
     //Chain1dRenyiWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, RenyiWalkType walk_type_, const std::vector<Chain1d::position_t> &r);
     probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
     void accept_transition (void);
+
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phialpha1 (void) const
+	{
+	    return phialpha1;
+	}
+
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phialpha2 (void) const
+	{
+	    return phialpha2;
+	}
+
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta1 (void) const
+	{
+	    return phibeta1;
+	}
+
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta2 (void) const
+	{
+	    return phibeta2;
+	}
+
+    int get_N_subsystem (void) const
+	{
+	    BOOST_ASSERT(N_subsystem1 == N_subsystem2);
+	    return N_subsystem1;
+	}
+
 private:
     // disable the default constructor
     Chain1dRenyiWalk (void);
@@ -163,6 +190,33 @@ private:
     int subsystem_length;
     // disable default constructor
     Chain1dContiguousSubsystem (void);
+};
+
+class Chain1dRenyiMeasurement
+{
+public:
+    typedef double measurement_value_t;
+
+    Chain1dRenyiMeasurement (void)
+	: accum(0)
+	{
+	}
+
+    void measure (const Chain1dRenyiWalk &walk)
+	{
+	    accum += abs(walk.get_phibeta1().get_determinant()
+			 * walk.get_phibeta2().get_determinant()
+			 / walk.get_phialpha1().get_determinant()
+			 / walk.get_phialpha2().get_determinant());
+	}
+
+    measurement_value_t get (unsigned int measurements_completed) const
+	{
+	    return static_cast<double>(accum) / measurements_completed;
+	}
+
+private:
+    accumulator_t accum;
 };
 
 #endif

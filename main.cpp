@@ -8,26 +8,30 @@
 const int N = 200;
 const int sample_size = 3;
 
+const int subsystem_upper_bound = 0;
+
 int main ()
 {
 #if 1
     rng_class rng(3);
     Chain1d wf(N / 2, N);
     std::vector<boost::shared_ptr<Chain1dContiguousSubsystem> > subsystem;
-    std::vector<std::vector<boost::shared_ptr<MetropolisSimulation<Chain1dRenyiWalk> > > > vmc_sim(N);
-    for (int i = 0; i < 4; ++i) {
+    std::vector<std::vector<boost::shared_ptr<MetropolisSimulation<Chain1dRenyiWalk, Chain1dRenyiMeasurement> > > > vmc_sim(N);
+    for (int i = 0; i <= subsystem_upper_bound; ++i) {
 	std::cerr << "Initializing subsystem " << i << std::endl;
-	subsystem.push_back(boost::shared_ptr<Chain1dContiguousSubsystem>(new Chain1dContiguousSubsystem(i)));
-	Chain1dRenyiWalk walk(wf, &*subsystem[i], Chain1dRenyiWalk::SWAPA_MOD, rng);
-	for (int j = 0; j < sample_size; ++j)
-	    vmc_sim[i].push_back(boost::shared_ptr<MetropolisSimulation<Chain1dRenyiWalk> >(new MetropolisSimulation<Chain1dRenyiWalk>(walk, 12, i * sample_size + j)));
+	subsystem.push_back(boost::shared_ptr<Chain1dContiguousSubsystem>(new Chain1dContiguousSubsystem(20)));
+	for (int j = 0; j < sample_size; ++j) {
+	    Chain1dRenyiWalk walk(wf, &*subsystem[i], Chain1dRenyiWalk::SWAPA_MOD, rng);
+	    vmc_sim[i].push_back(boost::shared_ptr<MetropolisSimulation<Chain1dRenyiWalk, Chain1dRenyiMeasurement> >(new MetropolisSimulation<Chain1dRenyiWalk, Chain1dRenyiMeasurement>(walk, 12, i * sample_size + j)));
+	}
     }
     for (;;) {
-	for (int i = 0; i < N; ++i) {
+	for (int i = 0; i <= subsystem_upper_bound; ++i) {
 	    std::cerr << "Iterating on subsystem " << i << std::endl;
 	    for (int j = 0; j < sample_size; ++j)
 		vmc_sim[i][j]->iterate(12);
-	    std::cout << "Current measurement on subsystem " << i << ": " << std::endl;
+	    std::cout << "Current measurement on subsystem (" << i << "): " << vmc_sim[i][0]->get_measurement() << " " << vmc_sim[i][1]->get_measurement() << " " << vmc_sim[i][2]->get_measurement() << " " << std::endl;
+	    std::cerr << "Current particles in subsystem (" << i << "): " << vmc_sim[i][0]->get_walk().get_N_subsystem() << " " << vmc_sim[i][1]->get_walk().get_N_subsystem() << " " << vmc_sim[i][2]->get_walk().get_N_subsystem() << " " << std::endl;
 	}
     }
 #endif

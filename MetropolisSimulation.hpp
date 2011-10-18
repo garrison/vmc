@@ -11,7 +11,7 @@
 
 #include "vmc-typedefs.hpp"
 
-template <class Walk_T>
+template <class Walk_T, class Measurement_T> // fixme? make measurement imply walk?
 class MetropolisSimulation
 {
 public:
@@ -19,6 +19,7 @@ public:
 	: walk(walk_),
 	  m_steps(0),
 	  m_steps_accepted(0),
+	  m_measurements(0),
 	  rng(seed),
 	  uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
 	{
@@ -32,8 +33,11 @@ public:
 	{
 	    // fixme: steps between measurement, and implement measurement
 	    unsigned int sweeps = 1 << lg_sweeps;
-	    for (unsigned int i = 0; i < sweeps; ++i)
+	    for (unsigned int i = 0; i < sweeps; ++i) {
 		perform_single_step();
+		do_measurement();
+		++m_measurements;
+	    }
 	}
 
     int steps_completed (void) const
@@ -56,9 +60,15 @@ public:
 	    return walk;
 	}
 
+    typename Measurement_T::measurement_value_t get_measurement (void) const
+	{
+	    return measurement.get(m_measurements);
+	}
+
 private:
     Walk_T walk;
-    int m_steps, m_steps_accepted;
+    Measurement_T measurement;
+    int m_steps, m_steps_accepted, m_measurements;
 
     rng_class rng;
     boost::uniform_01<rng_class> uniform_distribution;
@@ -84,6 +94,11 @@ private:
 #endif
 	    }
 	    ++m_steps;
+	}
+
+    void do_measurement (void)
+	{
+	    measurement.measure(walk);
 	}
 
 };

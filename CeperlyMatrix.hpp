@@ -1,6 +1,9 @@
 #ifndef _CEPERLY_MATRIX_HPP
 #define _CEPERLY_MATRIX_HPP
 
+#include <iostream>
+#include <cmath>
+
 #include <Eigen/Dense>
 #include <boost/assert.hpp>
 
@@ -18,7 +21,7 @@ private:
     };
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat;
-    T detrat;
+    T detrat, det;
     int pending_index;
     NextStep next_step;
 
@@ -26,6 +29,7 @@ public:
     CeperlyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
 	: mat(initial_mat),
 	  invmat(mat.inverse()),
+	  det(mat.determinant()),
 	  next_step(UPDATE_ROW)
 	{
 	    // if invmat.inverse() is not close to mat it probably means our
@@ -37,6 +41,16 @@ public:
     CeperlyMatrix (void)
 	: next_step(INITIALIZE)
 	{
+	}
+
+    void swap_rows (int r1, int r2)
+	{
+	    BOOST_ASSERT(next_step == UPDATE_ROW);
+
+	    mat.row(r1).swap(mat.row(r2));
+	    invmat.col(r1).swap(invmat.col(r2));
+
+	    det = -det;
 	}
 
     void update_row (int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)
@@ -56,6 +70,10 @@ public:
 	    BOOST_ASSERT(next_step == CALCULATE_DETERMINANT_RATIO);
 
 	    detrat = mat.row(pending_index) * invmat.col(pending_index);
+	    det *= detrat;
+#ifdef DEBUG
+	    std::cerr << det << ' ' << mat.determinant() << std::endl;
+#endif
 
 	    next_step = FINISH_ROW_UPDATE;
 	    return detrat;
@@ -74,10 +92,27 @@ public:
 	    next_step = UPDATE_ROW;
 	}
 
-    void recompute_inverse (void)
+    void refresh_state (void)
 	{
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
 	    invmat = mat.inverse();
+	    det = mat.determinant();
+	}
+
+    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_matrix (void) const
+	{
+	    return mat;
+	}
+
+    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_inverse (void) const
+	{
+	    BOOST_ASSERT(next_step == UPDATE_ROW);
+	    return invmat;
+	}
+
+    T get_determinant (void) const
+	{
+	    return det;
 	}
 
     T compute_inverse_matrix_error (void) const
@@ -88,15 +123,10 @@ public:
 	    return m.array().abs().sum();
 	}
 
-    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get (void) const
-	{
-	    return mat;
-	}
-
-    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_inverse (void) const
+    T compute_determinant_error (void) const
 	{
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
-	    return invmat;
+	    return abs(mat.determinant() - det);
 	}
 };
 

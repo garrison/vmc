@@ -6,14 +6,35 @@
 #include "Chain1d.hpp"
 
 const int N = 200;
-const int sample_size = 3;
+const int sample_size = 8;
 
 const int subsystem_upper_bound = 0;
+
+template <typename T>
+static inline T square (T v)
+{
+    return v * v;
+}
+
+static std::pair<double, double> stats (const std::vector<double> &v)
+// returns mean, stddev of mean
+{
+    double mean = 0;
+    for (unsigned int i = 0; i < v.size(); ++i)
+	mean += v[i];
+    mean /= v.size();
+
+    double variance = 0;
+    for (unsigned int i = 0; i < v.size(); ++i)
+	variance += square(v[i] - mean);
+
+    return std::pair<double, double>(mean, sqrt(variance / (v.size() - 1) / v.size()));
+}
 
 int main ()
 {
 #if 1
-    rng_class rng(3);
+    rng_class rng(8);
     Chain1d wf(N / 2, N);
     std::vector<boost::shared_ptr<Chain1dContiguousSubsystem> > subsystem;
     std::vector<std::vector<boost::shared_ptr<MetropolisSimulation<Chain1dRenyiWalk, Chain1dRenyiMeasurement> > > > vmc_sim(N);
@@ -30,8 +51,17 @@ int main ()
 	    std::cerr << "Iterating on subsystem " << i << std::endl;
 	    for (int j = 0; j < sample_size; ++j)
 		vmc_sim[i][j]->iterate(12);
-	    std::cout << "Current measurement on subsystem (" << i << "): " << vmc_sim[i][0]->get_measurement() << " " << vmc_sim[i][1]->get_measurement() << " " << vmc_sim[i][2]->get_measurement() << " " << std::endl;
-	    std::cerr << "Current particles in subsystem (" << i << "): " << vmc_sim[i][0]->get_walk().get_N_subsystem() << " " << vmc_sim[i][1]->get_walk().get_N_subsystem() << " " << vmc_sim[i][2]->get_walk().get_N_subsystem() << " " << std::endl;
+	    std::cout << "Current measurement on subsystem (" << i << "): ";
+	    for (int j = 0; j < sample_size; ++j)
+		std::cout << vmc_sim[i][j]->get_measurement() << " (S" << vmc_sim[i][j]->get_walk().get_N_subsystem() << " " << (static_cast<double>(vmc_sim[i][j]->steps_accepted()) / vmc_sim[i][j]->steps_completed() * 100) << "%)  ";
+	    std::cout << std::endl;
+
+	    // calculate and display stats
+	    std::vector<double> v;
+	    for (int j = 0; j < sample_size; ++j)
+		v.push_back(vmc_sim[i][j]->get_measurement());
+	    std::pair<double, double> s = stats(v);
+	    std::cerr << s.first << " \\pm " << s.second << std::endl;
 	}
     }
 #endif

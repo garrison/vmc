@@ -1,6 +1,6 @@
 EIGEN3_INCLUDE_PATH = /usr/include/eigen3
 
-COMPILE = g++ -Wall -W -O2 -DDEBUG -I$(EIGEN3_INCLUDE_PATH)
+COMPILE = g++ -Wall -W -O2 -I$(EIGEN3_INCLUDE_PATH)
 
 HEADER_FILES = \
                CeperlyMatrix.hpp \

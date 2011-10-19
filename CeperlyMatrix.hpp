@@ -71,7 +71,7 @@ public:
 
 	    detrat = mat.row(pending_index) * invmat.col(pending_index);
 	    det *= detrat;
-#ifdef DEBUG
+#if 0
 	    std::cerr << det << ' ' << mat.determinant() << std::endl;
 #endif
 
@@ -112,6 +112,11 @@ public:
 
     T get_determinant (void) const
 	{
+#ifdef DEBUG
+	    static unsigned int z = 0;
+	    if (++z % 541 == 0) // use some prime number here
+		std::cerr << "deterr " << compute_relative_determinant_error() << " (" << abs(det) << ")" << std::endl;
+#endif
 	    return det;
 	}
 
@@ -123,10 +128,11 @@ public:
 	    return m.array().abs().sum();
 	}
 
-    T compute_determinant_error (void) const
+    double compute_relative_determinant_error (void) const
 	{
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
-	    return abs(mat.determinant() - det);
+	    T d = mat.determinant();
+	    return abs((d - det) / d);
 	}
 };
 

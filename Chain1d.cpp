@@ -18,12 +18,12 @@ Chain1dArguments::Chain1dArguments (const Chain1d &wf_, const std::vector<Chain1
     // fixme: assert each position is valid
 }
 
-static int move_random_particle_randomly(Chain1dArguments &r, const Chain1d &wf, rng_class &rng)
+static int move_random_particle_randomly(Chain1dArguments &r, const Chain1d &wf, rng_class &rng, bool adjacent_only=true)
 {
     boost::uniform_smallint<> integer_distribution(0, wf.get_N_filled() - 1);
     boost::variate_generator<rng_class&, boost::uniform_smallint<> > particle_gen(rng, integer_distribution);
-    boost::uniform_smallint<> binary_distribution(0, 1);
-    boost::variate_generator<rng_class&, boost::uniform_smallint<> > movement_gen(rng, binary_distribution);
+    boost::uniform_smallint<> movement_distribution(0, adjacent_only ? 1 : (wf.get_N_sites() - 1));
+    boost::variate_generator<rng_class&, boost::uniform_smallint<> > movement_gen(rng, movement_distribution);
 
     // choose particle
     int chosen_particle = particle_gen();
@@ -32,13 +32,19 @@ static int move_random_particle_randomly(Chain1dArguments &r, const Chain1d &wf,
 #endif
 
     // move it randomly
-    Chain1d::position_t rcp = r[chosen_particle];
-    rcp += movement_gen() * 2 - 1;
-    // enforce PBC
-    if (rcp >= wf.get_N_sites())
-	rcp -= wf.get_N_sites();
-    else if (rcp < 0)
-	rcp += wf.get_N_sites();
+    Chain1d::position_t rcp;
+    if (adjacent_only) {
+	rcp = r[chosen_particle];
+	rcp += movement_gen() * 2 - 1;
+	// enforce PBC
+	if (rcp >= wf.get_N_sites())
+	    rcp -= wf.get_N_sites();
+	else if (rcp < 0)
+	    rcp += wf.get_N_sites();
+    } else {
+	// fixme: choose any random *empty* site
+	rcp = movement_gen();
+    }
     r.update_position(chosen_particle, rcp);
 #ifdef DEBUG
     std::cerr << " to " << rcp << std::endl;
@@ -183,8 +189,12 @@ probability_t Chain1dRenyiWalk::compute_probability_ratio_of_random_transition (
 
     int N = wf->get_N_filled();
 
-    int chosen_particle1 = move_random_particle_randomly(r1, *wf, rng);
-    int chosen_particle2 = move_random_particle_randomly(r2, *wf, rng);
+    boost::uniform_smallint<> adjacent_distribution(0, 30);
+    boost::variate_generator<rng_class&, boost::uniform_smallint<> > adjacent_gen(rng, adjacent_distribution);
+    bool adjacent_only = (adjacent_gen() > 0);
+
+    int chosen_particle1 = move_random_particle_randomly(r1, *wf, rng, adjacent_only);
+    int chosen_particle2 = move_random_particle_randomly(r2, *wf, rng, adjacent_only);
 
     // if a particle crossed the subsystem boundary, account for that
     consider_crossing(subsystem, r1, chosen_particle1, N_subsystem1,

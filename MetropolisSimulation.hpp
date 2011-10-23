@@ -78,6 +78,10 @@ private:
 	    Walk_T proposed_step(walk);
 
 	    probability_t probability_ratio = proposed_step.compute_probability_ratio_of_random_transition(rng);
+#if 1
+	    if (!(probability_ratio >= 0))
+		std::cerr << "invalid probability ratio: " << probability_ratio << std::endl;
+#endif
 	    BOOST_ASSERT(probability_ratio >= 0);
 	    if (probability_ratio >= 1
 		|| probability_ratio > uniform_distribution()) {

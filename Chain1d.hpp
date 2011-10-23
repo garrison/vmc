@@ -162,10 +162,19 @@ public:
 	    return phibeta2;
 	}
 
-    int get_N_subsystem (void) const
+    int get_N_subsystem1 (void) const
 	{
-	    BOOST_ASSERT(N_subsystem1 == N_subsystem2);
 	    return N_subsystem1;
+	}
+
+    int get_N_subsystem2 (void) const
+	{
+	    return N_subsystem2;
+	}
+
+    RenyiWalkType get_walk_type (void) const
+	{
+	    return walk_type;
 	}
 
 private:
@@ -192,22 +201,25 @@ private:
     Chain1dContiguousSubsystem (void);
 };
 
-class Chain1dRenyiMeasurement
+class Chain1dRenyiModMeasurement
 {
 public:
     typedef double measurement_value_t;
 
-    Chain1dRenyiMeasurement (void)
+    Chain1dRenyiModMeasurement (void)
 	: accum(0)
 	{
 	}
 
     void measure (const Chain1dRenyiWalk &walk)
 	{
-	    accum += abs(walk.get_phibeta1().get_determinant()
-			 * walk.get_phibeta2().get_determinant()
-			 / walk.get_phialpha1().get_determinant()
-			 / walk.get_phialpha2().get_determinant());
+	    BOOST_ASSERT(walk.get_walk_type() == Chain1dRenyiWalk::SWAPA_MOD);
+	    if (walk.get_N_subsystem1() == walk.get_N_subsystem2()) {
+		accum += std::abs(walk.get_phibeta1().get_determinant()
+				  * walk.get_phibeta2().get_determinant()
+				  / walk.get_phialpha1().get_determinant()
+				  / walk.get_phialpha2().get_determinant());
+	    }
 	}
 
     measurement_value_t get (unsigned int measurements_completed) const
@@ -217,6 +229,49 @@ public:
 
 private:
     accumulator_t accum;
+};
+
+class Chain1dRenyiSignMeasurement
+{
+    // fixme: in the case of a real wave function, we know that the sign will
+    // always evaluate to 1 or -1.  In this case, it may make more sense to
+    // store as integers how many measurements were of each value, instead of
+    // using a complex<double> as an accumulator.
+
+public:
+    typedef Chain1d::amplitude_t measurement_value_t;
+
+    Chain1dRenyiSignMeasurement (void)
+	: accum(0)
+	{
+	}
+
+    void measure (const Chain1dRenyiWalk &walk)
+	{
+	    BOOST_ASSERT(walk.get_walk_type() == Chain1dRenyiWalk::SWAPA_SIGN);
+	    // we take the argument of each determinant separately instead of
+	    // multiplying the determinants together first.  this is necessary
+	    // because the determinants tend to be quite large, and multiplying
+	    // them can lead to overflow
+	    double a = 0;
+	    a -= std::arg(walk.get_phialpha1().get_determinant());
+	    a -= std::arg(walk.get_phialpha2().get_determinant());
+	    a += std::arg(walk.get_phibeta1().get_determinant());
+	    a += std::arg(walk.get_phibeta2().get_determinant());
+	    const std::complex<double> i(0, 1);
+#if 0
+	    std::cerr << std::real(std::exp(i * a)) << std::endl;
+#endif
+	    accum += std::exp(i * a);
+	}
+
+    measurement_value_t get (unsigned int measurements_completed) const
+	{
+	    return accum / (double)measurements_completed;
+	}
+
+private:
+    measurement_value_t accum; // fixme: complex accumulator_t needed
 };
 
 #endif

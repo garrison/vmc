@@ -136,46 +136,47 @@ Chain1dRenyiWalk::Chain1dRenyiWalk (const Chain1d &wf_, const Subsystem<Chain1d>
     phibeta2 = mat2;
 }
 
-static void consider_crossing (const Subsystem<Chain1d> *subsystem, Chain1dArguments &r1,
-			       int &chosen_particle1, int &N_subsystem1,
-			       CeperlyMatrix<Chain1d::amplitude_t> &phialpha1,
-			       CeperlyMatrix<Chain1d::amplitude_t> &phibeta1,
-			       CeperlyMatrix<Chain1d::amplitude_t> &phibeta2)
+static void consider_crossing (const Subsystem<Chain1d> *subsystem, Chain1dArguments &r,
+			       int &chosen_particle, int &N_subsystem,
+			       CeperlyMatrix<Chain1d::amplitude_t> &phialpha,
+			       CeperlyMatrix<Chain1d::amplitude_t> &phibeta,
+			       CeperlyMatrix<Chain1d::amplitude_t> &phibeta_other)//,
+//			       const int &N_subsystem1)
 {
-    if (chosen_particle1 < N_subsystem1) {
+    if (chosen_particle < N_subsystem) {
 	// chosen particle was in subsystem at beginning of step
-	if (!subsystem->particle_is_within(r1[chosen_particle1])) {
+	if (!subsystem->particle_is_within(r[chosen_particle])) {
 	    // particle moved out of subsystem
 #ifdef DEBUG
 	    std::cerr << "Particle leaving subsystem" << std::endl;
 #endif
-	    --N_subsystem1;
-	    if (chosen_particle1 != N_subsystem1) {
+	    --N_subsystem;
+	    if (chosen_particle != N_subsystem) {
 		// swap two particles that were inside the subsystem so that
 		// the chosen_particle is on the border
-		r1.swap_positions(chosen_particle1, N_subsystem1);
-		phialpha1.swap_rows(chosen_particle1, N_subsystem1);
-		phibeta2.swap_rows(chosen_particle1, N_subsystem1);
-		chosen_particle1 = N_subsystem1;
+		r.swap_positions(chosen_particle, N_subsystem);
+		phialpha.swap_rows(chosen_particle, N_subsystem);
+		phibeta_other.swap_rows(chosen_particle, N_subsystem); // FIXME
+		chosen_particle = N_subsystem;
 	    }
 	    //return true;
 	}
     } else {
 	// chosen particle was not in subsystem at beginning of step
-	if (subsystem->particle_is_within(r1[chosen_particle1])) {
+	if (subsystem->particle_is_within(r[chosen_particle])) {
 	    // particle entered subsystem
 #ifdef DEBUG
 	    std::cerr << "Particle entering subsystem" << std::endl;
 #endif
-	    if (chosen_particle1 != N_subsystem1) {
+	    if (chosen_particle != N_subsystem) {
 		// swap two particles that were outside the subsystem so that
 		// the chosen_particle is on the border
-		r1.swap_positions(chosen_particle1, N_subsystem1);
-		phialpha1.swap_rows(chosen_particle1, N_subsystem1);
-		phibeta1.swap_rows(chosen_particle1, N_subsystem1);
-		chosen_particle1 = N_subsystem1;
+		r.swap_positions(chosen_particle, N_subsystem);
+		phialpha.swap_rows(chosen_particle, N_subsystem);
+		phibeta.swap_rows(chosen_particle, N_subsystem); // FIXME
+		chosen_particle = N_subsystem;
 	    }
-	    ++N_subsystem1;
+	    ++N_subsystem;
 	    //return true;
 	}
     }
@@ -202,8 +203,8 @@ probability_t Chain1dRenyiWalk::compute_probability_ratio_of_random_transition (
     consider_crossing(subsystem, r2, chosen_particle2, N_subsystem2,
 		      phialpha2, phibeta2, phibeta1);
 
-    // automatic reject if the subsystems now have different particle counts
-    if (N_subsystem1 != N_subsystem2)
+    // for SWAPA_SIGN, automatic reject if the subsystems now have different particle counts
+    if (walk_type == SWAPA_SIGN && N_subsystem1 != N_subsystem2)
 	return 0;
 
     // calculate each phi at new position and update phialpha Ceperly matrices
@@ -230,7 +231,10 @@ probability_t Chain1dRenyiWalk::compute_probability_ratio_of_random_transition (
 	phibeta1_ratio *= phibeta1.calculate_determinant_ratio();
 	phibeta1.finish_row_update();
     }
-    if (chosen_particle2 < N_subsystem2) {
+    // yes, the line below says N_subsystem1.  The phibeta's are only
+    // well-defined anyway when N_subsystem1 == N_subsystem2.
+    // bleh ... FIXME!
+    if (chosen_particle2 < N_subsystem1) {
 	phibeta1.update_row(chosen_particle2, phivec2);
 	phibeta1_ratio *= phibeta1.calculate_determinant_ratio();
 	phibeta1.finish_row_update();

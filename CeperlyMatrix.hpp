@@ -34,8 +34,9 @@ public:
 	{
 	    // if invmat.inverse() is not close to mat it probably means our
 	    // orbitals are probably not linearly independent!
-	    if ((mat - invmat.inverse()).array().abs().sum() > .00000001)
-		std::cerr << "Warning: inverse matrix error of " << (mat - invmat.inverse()).array().abs().sum() << std::endl;
+	    double inverse_error = compute_inverse_matrix_error();
+	    if (inverse_error > .0000000001)
+		std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
 	}
 
     CeperlyMatrix (void)
@@ -46,6 +47,9 @@ public:
     void swap_rows (int r1, int r2)
 	{
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
+	    BOOST_ASSERT(r1 >= 0 && r1 < mat.rows());
+	    BOOST_ASSERT(r2 >= 0 && r2 < mat.rows());
+	    BOOST_ASSERT(r1 != r2);
 
 	    mat.row(r1).swap(mat.row(r2));
 	    invmat.col(r1).swap(invmat.col(r2));
@@ -120,12 +124,11 @@ public:
 	    return det;
 	}
 
-    T compute_inverse_matrix_error (void) const
+    double compute_inverse_matrix_error (void) const
 	{
 	    // there is surely a more informative way to do this
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
-	    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> m(mat.inverse() - invmat);
-	    return m.array().abs().sum();
+	    return (mat * invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(mat.rows(), mat.cols())).array().abs().sum();
 	}
 
     double compute_relative_determinant_error (void) const

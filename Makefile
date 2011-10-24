@@ -1,11 +1,13 @@
-EIGEN3_INCLUDE_PATH = /usr/include/eigen3
+EIGEN3_CFLAGS = -I/usr/include/eigen3
+BOOST_CFLAGS = 
 
-COMPILE = g++ -Wall -W -O2 -I$(EIGEN3_INCLUDE_PATH)
+COMPILE = g++ -Wall -W -O2 $(EIGEN3_CFLAGS) $(BOOST_CFLAGS)
 
 HEADER_FILES = \
                CeperlyMatrix.hpp \
                MetropolisSimulation.hpp \
                Chain1d.hpp \
+               SwappedSystem.hpp \
                Subsystem.hpp \
                random-combination.hpp \
                vmc-typedefs.hpp

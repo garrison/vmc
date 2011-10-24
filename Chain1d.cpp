@@ -107,17 +107,91 @@ void Chain1dWalk::accept_transition (void)
     transition_in_progress = false;
 }
 
-Chain1dRenyiWalk::Chain1dRenyiWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, RenyiWalkType walk_type_, rng_class &rng)
+Chain1dRenyiModWalk::Chain1dRenyiModWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, rng_class &rng)
+    : wf(new Chain1d(wf_)),
+      r1(wf_, rng),
+      r2(wf_, rng),
+      swapped_system(*subsystem_),
+      transition_copy_in_progress(0)
+{
+    int N = wf->get_N_filled();
+    Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
+    for (int i = 0; i < N; ++i) {
+	for (int j = 0; j < N; ++j) {
+	    mat1(i, j) = wf->phi(j, r1[i]);
+	    mat2(i, j) = wf->phi(j, r2[i]);
+	}
+    }
+    phialpha1 = mat1;
+    phialpha2 = mat2;
+
+    // fixme: don't do this until we've reached equilibrium
+    swapped_system.initialize(r1, r2, phialpha1, phialpha2);
+}
+
+probability_t Chain1dRenyiModWalk::compute_probability_ratio_of_random_transition (rng_class &rng)
+{
+    BOOST_ASSERT(!transition_copy_in_progress);
+
+    int N = wf->get_N_filled();
+
+    boost::uniform_smallint<> adjacent_distribution(0, 30);
+    boost::variate_generator<rng_class&, boost::uniform_smallint<> > adjacent_gen(rng, adjacent_distribution);
+    bool adjacent_only = (adjacent_gen() > 0);
+
+    boost::uniform_smallint<> copy_distribution(1, 2);
+    boost::variate_generator<rng_class&, boost::uniform_smallint<> > copy_gen(rng, copy_distribution);
+    transition_copy_in_progress = copy_gen();
+
+    Chain1dArguments &r = (transition_copy_in_progress == 1) ? r1 : r2;
+    CeperlyMatrix<Chain1d::amplitude_t> &phialpha = (transition_copy_in_progress == 1) ? phialpha1 : phialpha2;
+
+    chosen_particle = move_random_particle_randomly(r, *wf, rng, adjacent_only);
+
+    // calculate each phi at new position and update phialpha Ceperly matrix
+    Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, 1> phivec(N);
+
+    for (int i = 0; i < N; ++i) {
+	phivec(i) = wf->phi(i, r[chosen_particle]);
+    }
+    phialpha.update_row(chosen_particle, phivec);
+
+    // calculate ratio of determinants and return a probability
+    return norm(phialpha.calculate_determinant_ratio());
+}
+
+void Chain1dRenyiModWalk::accept_transition (void)
+{
+    BOOST_ASSERT(transition_copy_in_progress);
+
+#ifdef DEBUG
+    for (unsigned int i = 0; i < r1.size(); ++i)
+	std::cerr << r1[i] << ' ';
+    std::cerr << std::endl;
+    for (unsigned int i = 0; i < r2.size(); ++i)
+	std::cerr << r2[i] << ' ';
+    std::cerr << std::endl << std::endl;
+#endif
+
+    CeperlyMatrix<Chain1d::amplitude_t> &phialpha = (transition_copy_in_progress == 1) ? phialpha1 : phialpha2;
+    phialpha.finish_row_update();
+
+    Chain1d::amplitude_t dummy = 0;
+    swapped_system.update(transition_copy_in_progress, chosen_particle, r1, r2, phialpha1, phialpha2, dummy, dummy);
+    swapped_system.finish_update();
+
+    transition_copy_in_progress = 0;
+}
+
+Chain1dRenyiSignWalk::Chain1dRenyiSignWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, rng_class &rng)
     : wf(new Chain1d(wf_)),
       r1(wf_, rng),
       r2(r1),
-      subsystem(subsystem_),
-      N_subsystem1(fermion_partition<Chain1d>(r1, *subsystem).first),
-      N_subsystem2(fermion_partition<Chain1d>(r2, *subsystem).first),
-      walk_type(walk_type_),
+      swapped_system(*subsystem_),
       transition_in_progress(false)
 {
-    BOOST_ASSERT(N_subsystem1 == N_subsystem2);
+    // FIXME: start them both randomly !!
+    BOOST_ASSERT(swapped_system.get_N_subsystem1() == swapped_system.get_N_subsystem2());
 
     int N = wf->get_N_filled();
     Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
@@ -130,60 +204,10 @@ Chain1dRenyiWalk::Chain1dRenyiWalk (const Chain1d &wf_, const Subsystem<Chain1d>
     phialpha1 = mat1;
     phialpha2 = mat2;
 
-    for (int i = 0; i < N_subsystem1; ++i)
-	mat1.row(i).swap(mat2.row(i));
-    phibeta1 = mat1;
-    phibeta2 = mat2;
+    swapped_system.initialize(r1, r2, phialpha1, phialpha2);
 }
 
-static void consider_crossing (const Subsystem<Chain1d> *subsystem, Chain1dArguments &r,
-			       int &chosen_particle, int &N_subsystem,
-			       CeperlyMatrix<Chain1d::amplitude_t> &phialpha,
-			       CeperlyMatrix<Chain1d::amplitude_t> &phibeta,
-			       CeperlyMatrix<Chain1d::amplitude_t> &phibeta_other)//,
-//			       const int &N_subsystem1)
-{
-    if (chosen_particle < N_subsystem) {
-	// chosen particle was in subsystem at beginning of step
-	if (!subsystem->particle_is_within(r[chosen_particle])) {
-	    // particle moved out of subsystem
-#ifdef DEBUG
-	    std::cerr << "Particle leaving subsystem" << std::endl;
-#endif
-	    --N_subsystem;
-	    if (chosen_particle != N_subsystem) {
-		// swap two particles that were inside the subsystem so that
-		// the chosen_particle is on the border
-		r.swap_positions(chosen_particle, N_subsystem);
-		phialpha.swap_rows(chosen_particle, N_subsystem);
-		phibeta_other.swap_rows(chosen_particle, N_subsystem); // FIXME
-		chosen_particle = N_subsystem;
-	    }
-	    //return true;
-	}
-    } else {
-	// chosen particle was not in subsystem at beginning of step
-	if (subsystem->particle_is_within(r[chosen_particle])) {
-	    // particle entered subsystem
-#ifdef DEBUG
-	    std::cerr << "Particle entering subsystem" << std::endl;
-#endif
-	    if (chosen_particle != N_subsystem) {
-		// swap two particles that were outside the subsystem so that
-		// the chosen_particle is on the border
-		r.swap_positions(chosen_particle, N_subsystem);
-		phialpha.swap_rows(chosen_particle, N_subsystem);
-		phibeta.swap_rows(chosen_particle, N_subsystem); // FIXME
-		chosen_particle = N_subsystem;
-	    }
-	    ++N_subsystem;
-	    //return true;
-	}
-    }
-    //return false;
-}
-
-probability_t Chain1dRenyiWalk::compute_probability_ratio_of_random_transition (rng_class &rng)
+probability_t Chain1dRenyiSignWalk::compute_probability_ratio_of_random_transition (rng_class &rng)
 {
     BOOST_ASSERT(!transition_in_progress);
     transition_in_progress = true;
@@ -197,14 +221,9 @@ probability_t Chain1dRenyiWalk::compute_probability_ratio_of_random_transition (
     int chosen_particle1 = move_random_particle_randomly(r1, *wf, rng, adjacent_only);
     int chosen_particle2 = move_random_particle_randomly(r2, *wf, rng, adjacent_only);
 
-    // if a particle crossed the subsystem boundary, account for that
-    consider_crossing(subsystem, r1, chosen_particle1, N_subsystem1,
-		      phialpha1, phibeta1, phibeta2);
-    consider_crossing(subsystem, r2, chosen_particle2, N_subsystem2,
-		      phialpha2, phibeta2, phibeta1);
-
-    // for SWAPA_SIGN, automatic reject if the subsystems now have different particle counts
-    if (walk_type == SWAPA_SIGN && N_subsystem1 != N_subsystem2)
+    // automatic reject if the subsystems now have different particle counts
+    if (swapped_system.calculate_subsystem_particle_change(1, chosen_particle1, r1)
+	!= swapped_system.calculate_subsystem_particle_change(2, chosen_particle2, r2))
 	return 0;
 
     // calculate each phi at new position and update phialpha Ceperly matrices
@@ -214,49 +233,23 @@ probability_t Chain1dRenyiWalk::compute_probability_ratio_of_random_transition (
 	phivec1(i) = wf->phi(i, r1[chosen_particle1]);
 	phivec2(i) = wf->phi(i, r2[chosen_particle2]);
     }
-    phialpha1.update_row(chosen_particle1, phivec1);
-    phialpha2.update_row(chosen_particle2, phivec2);
 
-    // update phibeta matrices
-    //
-    // fixme: this is repetitive and error-prone, so we could probably abstract
-    // this away a little bit ...
     Chain1d::amplitude_t phibeta1_ratio = 1, phibeta2_ratio = 1;
-    if (chosen_particle1 < N_subsystem1) {
-	phibeta2.update_row(chosen_particle1, phivec1);
-	phibeta2_ratio *= phibeta2.calculate_determinant_ratio();
-	phibeta2.finish_row_update();
-    } else {
-	phibeta1.update_row(chosen_particle1, phivec1);
-	phibeta1_ratio *= phibeta1.calculate_determinant_ratio();
-	phibeta1.finish_row_update();
-    }
-    // yes, the line below says N_subsystem1.  The phibeta's are only
-    // well-defined anyway when N_subsystem1 == N_subsystem2.
-    // bleh ... FIXME!
-    if (chosen_particle2 < N_subsystem1) {
-	phibeta1.update_row(chosen_particle2, phivec2);
-	phibeta1_ratio *= phibeta1.calculate_determinant_ratio();
-	phibeta1.finish_row_update();
-    } else {
-	phibeta2.update_row(chosen_particle2, phivec2);
-	phibeta2_ratio *= phibeta2.calculate_determinant_ratio();
-	phibeta2.finish_row_update();
-    }
+
+    phialpha1.update_row(chosen_particle1, phivec1);
+    swapped_system.update(1, chosen_particle1, r1, r2, phialpha1, phialpha2, phibeta1_ratio, phibeta2_ratio);
+    swapped_system.finish_update();
+    phialpha2.update_row(chosen_particle2, phivec2);
+    swapped_system.update(2, chosen_particle2, r1, r2, phialpha1, phialpha2, phibeta1_ratio, phibeta2_ratio);
 
     // calculate ratio of determinants and return a probability
-    if (walk_type == SWAPA_MOD) {
-	return (norm(phialpha1.calculate_determinant_ratio()) *
-		norm(phialpha2.calculate_determinant_ratio()));
-    } else { // walk_type == SWAPA_SIGN
-	return abs(phialpha1.calculate_determinant_ratio() *
-		   phialpha2.calculate_determinant_ratio() *
-		   phibeta1_ratio *
-		   phibeta2_ratio);
-    }
+    return abs(phialpha1.calculate_determinant_ratio() *
+	       phialpha2.calculate_determinant_ratio() *
+	       phibeta1_ratio *
+	       phibeta2_ratio);
 }
 
-void Chain1dRenyiWalk::accept_transition (void)
+void Chain1dRenyiSignWalk::accept_transition (void)
 {
     BOOST_ASSERT(transition_in_progress);
 
@@ -271,6 +264,7 @@ void Chain1dRenyiWalk::accept_transition (void)
 
     phialpha1.finish_row_update();
     phialpha2.finish_row_update();
+    swapped_system.finish_update();
 
     transition_in_progress = false;
 }

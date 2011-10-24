@@ -73,6 +73,12 @@ public:
 	{
 	    BOOST_ASSERT(next_step == CALCULATE_DETERMINANT_RATIO);
 
+#if 1
+	    for (int i = 0; i < mat.rows(); ++i)
+		if (i != pending_index)
+		    BOOST_ASSERT(mat.row(i) != mat.row(pending_index));
+#endif
+
 	    detrat = mat.row(pending_index) * invmat.col(pending_index);
 	    det *= detrat;
 #if 0

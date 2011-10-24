@@ -13,6 +13,7 @@
 #include "vmc-typedefs.hpp"
 #include "CeperlyMatrix.hpp"
 #include "Subsystem.hpp"
+#include "SwappedSystem.hpp"
 
 // NOTE: all "random transitions" are expected to satisfy balance
 
@@ -93,13 +94,6 @@ public:
 	    r[v] = position;
 	}
 
-    void swap_positions (int v1, int v2)
-	{
-	    BOOST_ASSERT(v1 >= 0 && v1 < (int)r.size());
-	    BOOST_ASSERT(v2 >= 0 && v2 < (int)r.size());
-	    std::swap(r[v1], r[v2]);
-	}
-
 private:
     // disable the default constructor
     Chain1dArguments (void);
@@ -121,24 +115,18 @@ private:
     Chain1dWalk (void);
 };
 
-class Chain1dRenyiWalk
+class Chain1dRenyiModWalk
 {
-public:
-    enum RenyiWalkType {
-	SWAPA_MOD,
-	SWAPA_SIGN
-    };
 private:
     boost::shared_ptr<Chain1d> wf;
     Chain1dArguments r1, r2;
-    CeperlyMatrix<Chain1d::amplitude_t> phialpha1, phialpha2, phibeta1, phibeta2;
-    const Subsystem<Chain1d> *subsystem;
-    int N_subsystem1, N_subsystem2;
-    RenyiWalkType walk_type;
-    bool transition_in_progress;
+    CeperlyMatrix<Chain1d::amplitude_t> phialpha1, phialpha2;
+    SwappedSystem<Chain1d> swapped_system;
+    unsigned int transition_copy_in_progress;
+    int chosen_particle;
 public:
-    Chain1dRenyiWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, RenyiWalkType walk_type_, rng_class &rng);
-    //Chain1dRenyiWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, RenyiWalkType walk_type_, const std::vector<Chain1d::position_t> &r);
+    Chain1dRenyiModWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, rng_class &rng);
+    //Chain1dRenyiModWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, const std::vector<Chain1d::position_t> &r);
     probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
     void accept_transition (void);
 
@@ -154,32 +142,76 @@ public:
 
     const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta1 (void) const
 	{
-	    return phibeta1;
+	    return swapped_system.get_phibeta1();
 	}
 
     const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta2 (void) const
 	{
-	    return phibeta2;
+	    return swapped_system.get_phibeta2();
 	}
 
-    int get_N_subsystem1 (void) const
+    unsigned int get_N_subsystem1 (void) const
 	{
-	    return N_subsystem1;
+	    return swapped_system.get_N_subsystem1();
 	}
 
-    int get_N_subsystem2 (void) const
+    unsigned int get_N_subsystem2 (void) const
 	{
-	    return N_subsystem2;
-	}
-
-    RenyiWalkType get_walk_type (void) const
-	{
-	    return walk_type;
+	    return swapped_system.get_N_subsystem2();
 	}
 
 private:
     // disable the default constructor
-    Chain1dRenyiWalk (void);
+    Chain1dRenyiModWalk (void);
+};
+
+class Chain1dRenyiSignWalk
+{
+private:
+    boost::shared_ptr<Chain1d> wf;
+    Chain1dArguments r1, r2;
+    CeperlyMatrix<Chain1d::amplitude_t> phialpha1, phialpha2;
+    SwappedSystem<Chain1d> swapped_system;
+    bool transition_in_progress;
+public:
+    Chain1dRenyiSignWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, rng_class &rng);
+    //Chain1dRenyiSignWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, const std::vector<Chain1d::position_t> &r);
+    probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
+    void accept_transition (void);
+
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phialpha1 (void) const
+	{
+	    return phialpha1;
+	}
+
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phialpha2 (void) const
+	{
+	    return phialpha2;
+	}
+
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta1 (void) const
+	{
+	    return swapped_system.get_phibeta1();
+	}
+
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta2 (void) const
+	{
+	    return swapped_system.get_phibeta2();
+	}
+
+    unsigned int get_N_subsystem1 (void) const
+	{
+	    return swapped_system.get_N_subsystem1();
+	}
+
+    unsigned int get_N_subsystem2 (void) const
+	{
+	    return swapped_system.get_N_subsystem2();
+	}
+
+private:
+    // disable the default constructor
+    Chain1dRenyiSignWalk (void);
 };
 
 class Chain1dContiguousSubsystem : public Subsystem<Chain1d>
@@ -211,9 +243,8 @@ public:
 	{
 	}
 
-    void measure (const Chain1dRenyiWalk &walk)
+    void measure (const Chain1dRenyiModWalk &walk)
 	{
-	    BOOST_ASSERT(walk.get_walk_type() == Chain1dRenyiWalk::SWAPA_MOD);
 	    if (walk.get_N_subsystem1() == walk.get_N_subsystem2()) {
 		accum += std::abs(walk.get_phibeta1().get_determinant()
 				  * walk.get_phibeta2().get_determinant()
@@ -246,9 +277,8 @@ public:
 	{
 	}
 
-    void measure (const Chain1dRenyiWalk &walk)
+    void measure (const Chain1dRenyiSignWalk &walk)
 	{
-	    BOOST_ASSERT(walk.get_walk_type() == Chain1dRenyiWalk::SWAPA_SIGN);
 	    // we take the argument of each determinant separately instead of
 	    // multiplying the determinants together first.  this is necessary
 	    // because the determinants tend to be quite large, and multiplying

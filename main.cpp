@@ -10,10 +10,10 @@ const int sample_size = 3;
 
 const int subsystem_upper_bound = 0;
 
-const int seed = 17;
+const int seed = 43; // 19
 
-typedef Chain1dRenyiSignMeasurement CurrentMeasurement;
-#define walk_type Chain1dRenyiWalk::SWAPA_SIGN
+typedef Chain1dRenyiModMeasurement CurrentMeasurement;
+typedef Chain1dRenyiModWalk CurrentWalk;
 
 template <typename T>
 static inline T square (T v)
@@ -43,13 +43,13 @@ int main ()
     rng_class rng(seed);
     Chain1d wf(N / 2, N);
     std::vector<boost::shared_ptr<Chain1dContiguousSubsystem> > subsystem;
-    std::vector<std::vector<boost::shared_ptr<MetropolisSimulation<Chain1dRenyiWalk, CurrentMeasurement> > > > vmc_sim(N);
+    std::vector<std::vector<boost::shared_ptr<MetropolisSimulation<CurrentWalk, CurrentMeasurement> > > > vmc_sim(N);
     for (int i = 0; i <= subsystem_upper_bound; ++i) {
 	std::cerr << "Initializing subsystem " << i << std::endl;
 	subsystem.push_back(boost::shared_ptr<Chain1dContiguousSubsystem>(new Chain1dContiguousSubsystem(100)));
 	for (int j = 0; j < sample_size; ++j) {
-	    Chain1dRenyiWalk walk(wf, &*subsystem[i], walk_type, rng);
-	    vmc_sim[i].push_back(boost::shared_ptr<MetropolisSimulation<Chain1dRenyiWalk, CurrentMeasurement> >(new MetropolisSimulation<Chain1dRenyiWalk, CurrentMeasurement>(walk, 12, i * sample_size + j)));
+	    CurrentWalk walk(wf, &*subsystem[i], rng);
+	    vmc_sim[i].push_back(boost::shared_ptr<MetropolisSimulation<CurrentWalk, CurrentMeasurement> >(new MetropolisSimulation<CurrentWalk, CurrentMeasurement>(walk, 12, i * sample_size + j)));
 	}
     }
     for (;;) {

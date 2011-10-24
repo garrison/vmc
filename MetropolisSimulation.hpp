@@ -82,7 +82,6 @@ private:
 	    if (!(probability_ratio >= 0))
 		std::cerr << "invalid probability ratio: " << probability_ratio << std::endl;
 #endif
-	    BOOST_ASSERT(probability_ratio >= 0);
 	    if (probability_ratio >= 1
 		|| probability_ratio > uniform_distribution()) {
 		// accept transition

@@ -225,6 +225,11 @@ public:
 		phibeta2.finish_row_update();
 	    phibeta1_is_dirty = false;
 	    phibeta2_is_dirty = false;
+
+#if 1
+	    phibeta1.refresh_state();
+	    phibeta2.refresh_state();
+#endif
 	}
 
     int calculate_subsystem_particle_change (int copy, unsigned int index, const typename T::Arguments &r)

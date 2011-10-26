@@ -7,23 +7,31 @@
 #include "random-combination.hpp"
 
 Chain1dArguments::Chain1dArguments (const Chain1d &wf_, rng_class &rng)
+    : positions(wf_.get_N_sites())
 {
     random_combination(r, wf_.get_N_filled(), wf_.get_N_sites(), rng);
+    for (size_t i = 0; i < r.size(); ++i) {
+	++positions[r[i]];
+	BOOST_ASSERT(positions[r[i]] == 1);
+    }
 }
 
 Chain1dArguments::Chain1dArguments (const Chain1d &wf_, const std::vector<Chain1d::position_t> &r_)
-    : r(r_)
+    : r(r_),
+      positions(wf_.get_N_sites())
 {
     BOOST_ASSERT((int)r_.size() == wf_.get_N_filled());
     // fixme: assert each position is valid
+    for (size_t i = 0; i < r.size(); ++i) {
+	++positions[r[i]];
+	BOOST_ASSERT(positions[r[i]] == 1);
+    }
 }
 
 static int move_random_particle_randomly(Chain1dArguments &r, const Chain1d &wf, rng_class &rng, bool adjacent_only=true)
 {
     boost::uniform_smallint<> integer_distribution(0, wf.get_N_filled() - 1);
     boost::variate_generator<rng_class&, boost::uniform_smallint<> > particle_gen(rng, integer_distribution);
-    boost::uniform_smallint<> movement_distribution(0, adjacent_only ? 1 : (wf.get_N_sites() - 1));
-    boost::variate_generator<rng_class&, boost::uniform_smallint<> > movement_gen(rng, movement_distribution);
 
     // choose particle
     int chosen_particle = particle_gen();
@@ -34,16 +42,33 @@ static int move_random_particle_randomly(Chain1dArguments &r, const Chain1d &wf,
     // move it randomly
     Chain1d::position_t rcp;
     if (adjacent_only) {
+	// move it to the next closest empty site
+	boost::uniform_smallint<> movement_distribution(0, 1);
+	boost::variate_generator<rng_class&, boost::uniform_smallint<> > movement_gen(rng, movement_distribution);
+	int direction = movement_gen() * 2 - 1; // choose direction
 	rcp = r[chosen_particle];
-	rcp += movement_gen() * 2 - 1;
-	// enforce PBC
-	if (rcp >= wf.get_N_sites())
-	    rcp -= wf.get_N_sites();
-	else if (rcp < 0)
-	    rcp += wf.get_N_sites();
+	do {
+	    rcp += direction;
+	    // enforce PBC
+	    if (rcp >= wf.get_N_sites())
+		rcp -= wf.get_N_sites();
+	    else if (rcp < 0)
+		rcp += wf.get_N_sites();
+	} while (r.is_occupied(rcp) && rcp != r[chosen_particle]);
     } else {
-	// fixme: choose any random *empty* site
-	rcp = movement_gen();
+	// move to a random *empty* site
+	boost::uniform_smallint<> empty_site_distribution(0, wf.get_N_sites() - wf.get_N_filled() - 1);
+	boost::variate_generator<rng_class&, boost::uniform_smallint<> > empty_site_gen(rng, empty_site_distribution);
+	int empty_site = empty_site_gen();
+	for (int current_site = 0; ; ++current_site) {
+	    BOOST_ASSERT(current_site < wf.get_N_sites());
+	    if (!r.is_occupied(current_site)) {
+		if (empty_site-- == 0) {
+		    rcp = current_site;
+		    break;
+		}
+	    }
+	}
     }
     r.update_position(chosen_particle, rcp);
 #ifdef DEBUG
@@ -176,9 +201,10 @@ void Chain1dRenyiModWalk::accept_transition (void)
     CeperlyMatrix<Chain1d::amplitude_t> &phialpha = (transition_copy_in_progress == 1) ? phialpha1 : phialpha2;
     phialpha.finish_row_update();
 
-    Chain1d::amplitude_t dummy = 0;
-    swapped_system.update(transition_copy_in_progress, chosen_particle, r1, r2, phialpha1, phialpha2, dummy, dummy);
-    swapped_system.finish_update();
+    const int arg1 = (transition_copy_in_progress == 1) ? chosen_particle : -1;
+    const int arg2 = (transition_copy_in_progress == 2) ? chosen_particle : -1;
+
+    swapped_system.update(arg1, arg2, r1, r2, phialpha1, phialpha2);
 
     transition_copy_in_progress = 0;
 }
@@ -234,13 +260,15 @@ probability_t Chain1dRenyiSignWalk::compute_probability_ratio_of_random_transiti
 	phivec2(i) = wf->phi(i, r2[chosen_particle2]);
     }
 
-    Chain1d::amplitude_t phibeta1_ratio = 1, phibeta2_ratio = 1;
+    Chain1d::amplitude_t phibeta1_ratio = 1.0 / swapped_system.get_phibeta1().get_determinant();
+    Chain1d::amplitude_t phibeta2_ratio = 1.0 / swapped_system.get_phibeta2().get_determinant();
 
     phialpha1.update_row(chosen_particle1, phivec1);
-    swapped_system.update(1, chosen_particle1, r1, r2, phialpha1, phialpha2, phibeta1_ratio, phibeta2_ratio);
-    swapped_system.finish_update();
     phialpha2.update_row(chosen_particle2, phivec2);
-    swapped_system.update(2, chosen_particle2, r1, r2, phialpha1, phialpha2, phibeta1_ratio, phibeta2_ratio);
+    swapped_system.update(chosen_particle1, chosen_particle2, r1, r2, phialpha1, phialpha2);
+
+    phibeta1_ratio *= swapped_system.get_phibeta1().get_determinant();
+    phibeta2_ratio *= swapped_system.get_phibeta2().get_determinant();
 
     // calculate ratio of determinants and return a probability
     return abs(phialpha1.calculate_determinant_ratio() *
@@ -264,7 +292,6 @@ void Chain1dRenyiSignWalk::accept_transition (void)
 
     phialpha1.finish_row_update();
     phialpha2.finish_row_update();
-    swapped_system.finish_update();
 
     transition_in_progress = false;
 }

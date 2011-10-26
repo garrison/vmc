@@ -1,7 +1,7 @@
 EIGEN3_CFLAGS = -I/usr/include/eigen3
 BOOST_CFLAGS = 
 
-COMPILE = g++ -Wall -W -O2 $(EIGEN3_CFLAGS) $(BOOST_CFLAGS)
+COMPILE = g++ -Wall -W -O2 $(EIGEN3_CFLAGS) $(BOOST_CFLAGS) -DCAREFUL
 
 HEADER_FILES = \
                CeperlyMatrix.hpp \

@@ -6,11 +6,11 @@
 #include "Chain1d.hpp"
 
 const int N = 200;
-const int sample_size = 3;
+const int sample_size = 8;
 
 const int subsystem_upper_bound = 0;
 
-const int seed = 43; // 19
+const int seed = 56;
 
 typedef Chain1dRenyiModMeasurement CurrentMeasurement;
 typedef Chain1dRenyiModWalk CurrentWalk;

@@ -70,8 +70,8 @@ class Chain1dArguments
 // position arguments, and knowledge of constraints on them, are contained in this class.
 {
 private:
-    //boost::shared_ptr<Chain1d> wf;
     std::vector<Chain1d::position_t> r;
+    std::vector<int> positions;
 public:
     Chain1dArguments (const Chain1d &wf_, rng_class &rng);
     Chain1dArguments (const Chain1d &wf_, const std::vector<Chain1d::position_t> &r_);
@@ -91,7 +91,14 @@ public:
 	{
 	    BOOST_ASSERT(v >= 0 && v < (int)r.size());
 	    //BOOST_ASSERT(position is valid) // fixme
+	    --positions[r[v]];
+	    ++positions[position];
 	    r[v] = position;
+	}
+
+    bool is_occupied (Chain1d::position_t position)
+	{
+	    return positions[position] != 0;
 	}
 
 private:
@@ -247,8 +254,8 @@ public:
 	{
 	    if (walk.get_N_subsystem1() == walk.get_N_subsystem2()) {
 		accum += std::abs(walk.get_phibeta1().get_determinant()
-				  * walk.get_phibeta2().get_determinant()
 				  / walk.get_phialpha1().get_determinant()
+				  * walk.get_phibeta2().get_determinant()
 				  / walk.get_phialpha2().get_determinant());
 	    }
 	}

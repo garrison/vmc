@@ -35,7 +35,7 @@ public:
 	    // if invmat.inverse() is not close to mat it probably means our
 	    // orbitals are probably not linearly independent!
 	    double inverse_error = compute_inverse_matrix_error();
-	    if (inverse_error > .0000000001)
+	    if (inverse_error > .0001)
 		std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
 	}
 
@@ -73,16 +73,17 @@ public:
 	{
 	    BOOST_ASSERT(next_step == CALCULATE_DETERMINANT_RATIO);
 
-#if 0
-	    for (int i = 0; i < mat.rows(); ++i)
-		if (i != pending_index)
-		    BOOST_ASSERT(mat.row(i) != mat.row(pending_index));
-#endif
-
 	    detrat = mat.row(pending_index) * invmat.col(pending_index);
 	    det *= detrat;
-#if 0
-	    std::cerr << det << ' ' << mat.determinant() << std::endl;
+
+#ifdef CAREFUL
+	    for (int i = 0; i < mat.rows(); ++i) {
+		if (i != pending_index) {
+		    if (mat.row(i) == mat.row(pending_index))
+			std::cerr << "!" << i << "," << pending_index << ' ' << detrat << std::endl;
+		    BOOST_ASSERT(mat.row(i) != mat.row(pending_index));
+		}
+	    }
 #endif
 
 	    next_step = FINISH_ROW_UPDATE;
@@ -100,6 +101,17 @@ public:
 	    invmat.col(pending_index) = oldcol / detrat;
 
 	    next_step = UPDATE_ROW;
+
+#ifdef CAREFUL
+	    if (compute_inverse_matrix_error() > 1) {
+		std::cerr << "Recomputing inverse due to large inverse matrix error of " << compute_inverse_matrix_error() << std::endl;
+		refresh_state();
+	    }
+#endif
+#ifdef CAREFUL
+	    if (compute_relative_determinant_error() > .03)
+		std::cerr << "large determinant error! " << compute_relative_determinant_error() << std::endl;
+#endif
 	}
 
     void refresh_state (void)
@@ -125,7 +137,7 @@ public:
 #ifdef DEBUG
 	    static unsigned int z = 0;
 	    if (++z % 541 == 0) // use some prime number here
-		std::cerr << "deterr " << compute_relative_determinant_error() << " (" << abs(det) << ")" << std::endl;
+		std::cerr << "deterr " << compute_relative_determinant_error() << " (" << abs(det) << ") " << compute_inverse_matrix_error() << std::endl;
 #endif
 	    return det;
 	}

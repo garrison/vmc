@@ -5,15 +5,10 @@
 #include "MetropolisSimulation.hpp"
 #include "Chain1d.hpp"
 
-const int N = 200;
-const int sample_size = 8;
-
-const int subsystem_upper_bound = 0;
+const unsigned int N = 10;
+const unsigned int sample_size = 8;
 
 const int seed = 56;
-
-typedef Chain1dRenyiModMeasurement CurrentMeasurement;
-typedef Chain1dRenyiModWalk CurrentWalk;
 
 template <typename T>
 static inline T square (T v)
@@ -42,32 +37,28 @@ int main ()
 {
     rng_class rng(seed);
     Chain1d wf(N / 2, N);
-    std::vector<boost::shared_ptr<Chain1dContiguousSubsystem> > subsystem;
-    std::vector<std::vector<boost::shared_ptr<MetropolisSimulation<CurrentWalk, CurrentMeasurement> > > > vmc_sim(N);
-    for (int i = 0; i <= subsystem_upper_bound; ++i) {
-	std::cerr << "Initializing subsystem " << i << std::endl;
-	subsystem.push_back(boost::shared_ptr<Chain1dContiguousSubsystem>(new Chain1dContiguousSubsystem(100)));
-	for (int j = 0; j < sample_size; ++j) {
-	    CurrentWalk walk(wf, &*subsystem[i], rng);
-	    vmc_sim[i].push_back(boost::shared_ptr<MetropolisSimulation<CurrentWalk, CurrentMeasurement> >(new MetropolisSimulation<CurrentWalk, CurrentMeasurement>(walk, 12, i * sample_size + j)));
-	}
+    std::vector<boost::shared_ptr<Chain1dContiguousSubsystem> > subsystems;
+    std::vector<boost::shared_ptr<MetropolisSimulation<Chain1dRenyiModWalk, Chain1dRenyiModMeasurement> > > vmc_sim;
+    for (unsigned int i = 0; i <= N / 2 + 1; ++i) {
+	subsystems.push_back(boost::shared_ptr<Chain1dContiguousSubsystem>(new Chain1dContiguousSubsystem(i)));
+    }
+    for (unsigned int j = 0; j < sample_size; ++j) {
+	Chain1dRenyiModWalk walk(wf, &*subsystems[0], rng);
+	vmc_sim.push_back(boost::shared_ptr<MetropolisSimulation<Chain1dRenyiModWalk, Chain1dRenyiModMeasurement> >(new MetropolisSimulation<Chain1dRenyiModWalk, Chain1dRenyiModMeasurement>(walk, 12, rng())));
     }
     for (;;) {
-	for (int i = 0; i <= subsystem_upper_bound; ++i) {
-	    std::cerr << "Iterating on subsystem " << i << std::endl;
-	    for (int j = 0; j < sample_size; ++j)
-		vmc_sim[i][j]->iterate(12);
-	    std::cout << "Current measurement on subsystem (" << i << "): ";
-	    for (int j = 0; j < sample_size; ++j)
-		std::cout << vmc_sim[i][j]->get_measurement() << " (S" << vmc_sim[i][j]->get_walk().get_N_subsystem1() << "," << vmc_sim[i][j]->get_walk().get_N_subsystem2() << " " << (static_cast<double>(vmc_sim[i][j]->steps_accepted()) / vmc_sim[i][j]->steps_completed() * 100) << "%)  ";
-	    std::cout << std::endl;
+	for (unsigned int j = 0; j < sample_size; ++j)
+	    vmc_sim[j]->iterate(12);
+	for (unsigned int j = 0; j < sample_size; ++j)
+	    std::cout << vmc_sim[j]->get_measurement() << " (S" << vmc_sim[j]->get_walk().get_N_subsystem1() << "," << vmc_sim[j]->get_walk().get_N_subsystem2() << " " << (static_cast<double>(vmc_sim[j]->steps_accepted()) / vmc_sim[j]->steps_completed() * 100) << "%)  ";
+	std::cout << std::endl;
 
-	    // calculate and display stats
-	    std::vector<CurrentMeasurement::measurement_value_t> v;
-	    for (int j = 0; j < sample_size; ++j)
-		v.push_back(vmc_sim[i][j]->get_measurement());
-	    std::pair<CurrentMeasurement::measurement_value_t, CurrentMeasurement::measurement_value_t> s = stats(v);
-	    std::cerr << s.first << " \\pm " << s.second << std::endl;
-	}
+	// calculate and display stats
+	std::vector<Chain1dRenyiModMeasurement::measurement_value_t> v;
+	for (unsigned int j = 0; j < sample_size; ++j)
+	    v.push_back(vmc_sim[j]->get_measurement());
+	std::pair<Chain1dRenyiModMeasurement::measurement_value_t, Chain1dRenyiModMeasurement::measurement_value_t> s = stats(v);
+//	std::cout << "N" << N << " S" << subsystem_length << "  ";
+	std::cout << s.first << " \\pm " << s.second << std::endl;
     }
 }

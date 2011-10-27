@@ -88,11 +88,11 @@ private:
 		proposed_step.accept_transition();
 		walk = proposed_step;
 		++m_steps_accepted;
-#ifdef DEBUG
+#ifdef DEBUG_METROPOLIS
 		std::cerr << "A" << std::endl;
 #endif
 	    } else {
-#ifdef DEBUG
+#ifdef DEBUG_METROPOLIS
 		std::cerr << "-" << std::endl;
 #endif
 	    }

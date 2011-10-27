@@ -47,13 +47,13 @@ public:
 	    return N_filled;
 	}
 
-    Chain1d::amplitude_t phi(int n, int r) const
+    Chain1d::amplitude_t phi (int n, int r) const
 	{
 	    BOOST_ASSERT(n >= 0 && n < N_filled);
 	    BOOST_ASSERT(r >= 0 && r < N_sites);
 
 	    const double two_pi = 2 * boost::math::constants::pi<double>();
-	    int kbar = (n / 2 + 1) * ((n & 1) * -2 + 1); // fill each k value in order, alternating +k, -k
+	    int kbar = ((n + 1) / 2) * ((n & 1) * -2 + 1); // fill each k value in order, alternating +k, -k
 	    const std::complex<double> im_unit(0, 1);
 	    return exp(im_unit * std::complex<double>(two_pi * kbar * r / N_sites));
 	}
@@ -63,7 +63,7 @@ private:
 
 private:
     // disable default constructor
-    Chain1d(void);
+    Chain1d (void);
 };
 
 class Chain1dArguments
@@ -234,6 +234,7 @@ public:
 	    BOOST_ASSERT(position >= 0);
 	    return position < subsystem_length;
 	}
+
 private:
     int subsystem_length;
     // disable default constructor
@@ -297,7 +298,7 @@ public:
 	    a += std::arg(walk.get_phibeta2().get_determinant());
 	    const std::complex<double> i(0, 1);
 #if 0
-	    std::cerr << std::real(std::exp(i * a)) << std::endl;
+	    std::cerr << std::real(std::exp(i * a)) << "   " << std::arg(walk.get_phialpha1().get_determinant())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phialpha2().get_determinant())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta1().get_determinant())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta2().get_determinant())/boost::math::constants::pi<double>() << ' ' << std::endl;
 #endif
 	    accum += std::exp(i * a);
 	}

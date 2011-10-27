@@ -173,6 +173,15 @@ probability_t Chain1dRenyiModWalk::compute_probability_ratio_of_random_transitio
 
     chosen_particle = move_random_particle_randomly(r, *wf, rng, adjacent_only);
 
+#if 0
+    for (unsigned int k = 0; k < (unsigned int) wf->get_N_sites(); ++k)
+	std::cerr << (transition_copy_in_progress == 1 && r1[chosen_particle] == k ? '$' : (r1.is_occupied(k) ? '*' : '-'));
+    std::cerr << std::endl;
+    for (unsigned int k = 0; k < (unsigned int) wf->get_N_sites(); ++k)
+	std::cerr << (transition_copy_in_progress == 2 && r2[chosen_particle] == k ? '$' : (r2.is_occupied(k) ? '*' : '-'));
+    std::cerr << std::endl << std::endl;
+#endif
+
     // calculate each phi at new position and update phialpha Ceperly matrix
     Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, 1> phivec(N);
 

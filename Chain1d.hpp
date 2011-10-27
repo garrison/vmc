@@ -321,7 +321,7 @@ public:
 
     measurement_value_t get (unsigned int measurements_completed) const
 	{
-	    return accum / (double)measurements_completed;
+	    return accum / (real_amplitude_t) measurements_completed;
 	}
 
 private:

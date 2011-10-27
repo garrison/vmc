@@ -273,8 +273,8 @@ probability_t Chain1dRenyiSignWalk::compute_probability_ratio_of_random_transiti
 	phivec2(i) = wf->phi(i, r2[chosen_particle2]);
     }
 
-    Chain1d::amplitude_t phibeta1_ratio = 1.0 / swapped_system.get_phibeta1().get_determinant();
-    Chain1d::amplitude_t phibeta2_ratio = 1.0 / swapped_system.get_phibeta2().get_determinant();
+    Chain1d::amplitude_t phibeta1_ratio = Chain1d::amplitude_t(1) / swapped_system.get_phibeta1().get_determinant();
+    Chain1d::amplitude_t phibeta2_ratio = Chain1d::amplitude_t(1) / swapped_system.get_phibeta2().get_determinant();
 
     phialpha1.update_row(chosen_particle1, phivec1);
     phialpha2.update_row(chosen_particle2, phivec2);

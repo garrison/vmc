@@ -128,12 +128,11 @@ private:
     boost::shared_ptr<Chain1d> wf;
     Chain1dArguments r1, r2;
     CeperlyMatrix<Chain1d::amplitude_t> phialpha1, phialpha2;
-    SwappedSystem<Chain1d> swapped_system;
+    std::vector<SwappedSystem<Chain1d> > swapped_system;
     unsigned int transition_copy_in_progress;
     int chosen_particle;
 public:
-    Chain1dRenyiModWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, rng_class &rng);
-    //Chain1dRenyiModWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, const std::vector<Chain1d::position_t> &r);
+    Chain1dRenyiModWalk (const Chain1d &wf_, const std::vector<Subsystem<Chain1d> *> &subsystems, rng_class &rng);
     probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
     void accept_transition (void);
 
@@ -147,24 +146,33 @@ public:
 	    return phialpha2;
 	}
 
-    const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta1 (void) const
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta1 (unsigned int subsystem_index) const
 	{
-	    return swapped_system.get_phibeta1();
+	    BOOST_ASSERT(subsystem_index < swapped_system.size());
+	    return swapped_system[subsystem_index].get_phibeta1();
 	}
 
-    const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta2 (void) const
+    const CeperlyMatrix<Chain1d::amplitude_t> & get_phibeta2 (unsigned int subsystem_index) const
 	{
-	    return swapped_system.get_phibeta2();
+	    BOOST_ASSERT(subsystem_index < swapped_system.size());
+	    return swapped_system[subsystem_index].get_phibeta2();
 	}
 
-    unsigned int get_N_subsystem1 (void) const
+    unsigned int get_N_subsystem1 (unsigned int subsystem_index) const
 	{
-	    return swapped_system.get_N_subsystem1();
+	    BOOST_ASSERT(subsystem_index < swapped_system.size());
+	    return swapped_system[subsystem_index].get_N_subsystem1();
 	}
 
-    unsigned int get_N_subsystem2 (void) const
+    unsigned int get_N_subsystem2 (unsigned int subsystem_index) const
 	{
-	    return swapped_system.get_N_subsystem2();
+	    BOOST_ASSERT(subsystem_index < swapped_system.size());
+	    return swapped_system[subsystem_index].get_N_subsystem2();
+	}
+
+    unsigned int get_subsystem_array_size (void) const
+	{
+	    return swapped_system.size();
 	}
 
 private:
@@ -182,7 +190,6 @@ private:
     bool transition_in_progress;
 public:
     Chain1dRenyiSignWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, rng_class &rng);
-    //Chain1dRenyiSignWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, const std::vector<Chain1d::position_t> &r);
     probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
     void accept_transition (void);
 
@@ -244,30 +251,38 @@ private:
 class Chain1dRenyiModMeasurement
 {
 public:
-    typedef double measurement_value_t;
+    typedef std::vector<double> measurement_value_t;
 
-    Chain1dRenyiModMeasurement (void)
-	: accum(0)
+    Chain1dRenyiModMeasurement (const Chain1dRenyiModWalk &walk)
+	: accum(walk.get_subsystem_array_size())
 	{
 	}
 
     void measure (const Chain1dRenyiModWalk &walk)
 	{
-	    if (walk.get_N_subsystem1() == walk.get_N_subsystem2()) {
-		accum += std::abs(walk.get_phibeta1().get_determinant()
-				  / walk.get_phialpha1().get_determinant()
-				  * walk.get_phibeta2().get_determinant()
-				  / walk.get_phialpha2().get_determinant());
+	    for (unsigned int i = 0; i < accum.size(); ++i) {
+		if (walk.get_N_subsystem1(i) == walk.get_N_subsystem2(i)) {
+		    accum[i] += std::abs(walk.get_phibeta1(i).get_determinant()
+					 / walk.get_phialpha1().get_determinant()
+					 * walk.get_phibeta2(i).get_determinant()
+					 / walk.get_phialpha2().get_determinant());
+		}
 	    }
 	}
 
     measurement_value_t get (unsigned int measurements_completed) const
 	{
-	    return static_cast<double>(accum) / measurements_completed;
+	    std::vector<double> rv(accum.size());
+	    for (unsigned int i = 0; i < accum.size(); ++i)
+		rv[i] = static_cast<double>(accum[i]) / measurements_completed;
+	    return rv;
 	}
 
 private:
-    accumulator_t accum;
+    std::vector<accumulator_t> accum;
+
+    // disable default constructor
+    Chain1dRenyiModMeasurement (void);
 };
 
 class Chain1dRenyiSignMeasurement
@@ -280,9 +295,10 @@ class Chain1dRenyiSignMeasurement
 public:
     typedef Chain1d::amplitude_t measurement_value_t;
 
-    Chain1dRenyiSignMeasurement (void)
+    Chain1dRenyiSignMeasurement (const Chain1dRenyiSignWalk &walk)
 	: accum(0)
 	{
+	    (void) walk; // silence warning about unused variable
 	}
 
     void measure (const Chain1dRenyiSignWalk &walk)
@@ -310,6 +326,9 @@ public:
 
 private:
     measurement_value_t accum; // fixme: complex accumulator_t needed
+
+    // disable default constructor
+    Chain1dRenyiSignMeasurement (void);
 };
 
 #endif

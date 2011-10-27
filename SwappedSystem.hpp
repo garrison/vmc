@@ -36,8 +36,8 @@ private:
     bool phibeta1_is_dirty, phibeta2_is_dirty;
     bool initialized;
 public:
-    SwappedSystem (const Subsystem<T> &subsystem_)
-	: subsystem(&subsystem_),
+    SwappedSystem (const Subsystem<T> *subsystem_)
+	: subsystem(subsystem_),
 	  phibeta1_is_dirty(false),
 	  phibeta2_is_dirty(false),
 	  initialized(false)

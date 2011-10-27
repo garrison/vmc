@@ -132,11 +132,10 @@ void Chain1dWalk::accept_transition (void)
     transition_in_progress = false;
 }
 
-Chain1dRenyiModWalk::Chain1dRenyiModWalk (const Chain1d &wf_, const Subsystem<Chain1d> *subsystem_, rng_class &rng)
+Chain1dRenyiModWalk::Chain1dRenyiModWalk (const Chain1d &wf_, const std::vector<Subsystem<Chain1d> *> &subsystems, rng_class &rng)
     : wf(new Chain1d(wf_)),
       r1(wf_, rng),
       r2(wf_, rng),
-      swapped_system(*subsystem_),
       transition_copy_in_progress(0)
 {
     int N = wf->get_N_filled();
@@ -150,8 +149,12 @@ Chain1dRenyiModWalk::Chain1dRenyiModWalk (const Chain1d &wf_, const Subsystem<Ch
     phialpha1 = mat1;
     phialpha2 = mat2;
 
-    // fixme: don't do this until we've reached equilibrium
-    swapped_system.initialize(r1, r2, phialpha1, phialpha2);
+    swapped_system.reserve(subsystems.size());
+    for (unsigned int i = 0; i < subsystems.size(); ++i) {
+	swapped_system.push_back(subsystems[i]);
+	// fixme: don't do this until we've reached equilibrium
+	swapped_system[i].initialize(r1, r2, phialpha1, phialpha2);
+    }
 }
 
 probability_t Chain1dRenyiModWalk::compute_probability_ratio_of_random_transition (rng_class &rng)
@@ -191,7 +194,7 @@ probability_t Chain1dRenyiModWalk::compute_probability_ratio_of_random_transitio
     phialpha.update_row(chosen_particle, phivec);
 
     // calculate ratio of determinants and return a probability
-    return norm(phialpha.calculate_determinant_ratio());
+    return std::norm(phialpha.calculate_determinant_ratio());
 }
 
 void Chain1dRenyiModWalk::accept_transition (void)
@@ -213,7 +216,8 @@ void Chain1dRenyiModWalk::accept_transition (void)
     const int arg1 = (transition_copy_in_progress == 1) ? chosen_particle : -1;
     const int arg2 = (transition_copy_in_progress == 2) ? chosen_particle : -1;
 
-    swapped_system.update(arg1, arg2, r1, r2, phialpha1, phialpha2);
+    for (unsigned int i = 0; i < swapped_system.size(); ++i)
+	swapped_system[i].update(arg1, arg2, r1, r2, phialpha1, phialpha2);
 
     transition_copy_in_progress = 0;
 }
@@ -222,7 +226,7 @@ Chain1dRenyiSignWalk::Chain1dRenyiSignWalk (const Chain1d &wf_, const Subsystem<
     : wf(new Chain1d(wf_)),
       r1(wf_, rng),
       r2(r1),
-      swapped_system(*subsystem_),
+      swapped_system(subsystem_),
       transition_in_progress(false)
 {
     // FIXME: start them both randomly !!

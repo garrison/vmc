@@ -83,6 +83,9 @@ private:
 #if 1
 	    verify_phibetas(r1, r2, phialpha1, phialpha2);
 #endif
+	    // variables needed only for verification (unused otherwise)
+	    (void) r1;
+	    (void) r2;
 	}
 
 public:

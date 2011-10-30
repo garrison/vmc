@@ -40,4 +40,56 @@ private:
     long double accum;
 };
 
+#if defined(__GNUC__)
+
+#include <Eigen/Core>
+
+namespace Eigen {
+
+template<> struct NumTraits<__float128>
+{
+    typedef __float128 Real;
+    typedef __float128 NonInteger;
+    typedef __float128 Nested;
+
+    enum {
+	IsComplex = 0,
+	IsInteger = 0,
+	IsSigned,
+	ReadCost = 1,
+	AddCost = 1,
+	MulCost = 1,
+	RequireInitialization = 0
+    };
+};
+
+}
+
+// FIXME: overloading std namespace is evil ...
+namespace std {
+
+inline __float128 abs (const __float128 &v)
+{
+    return std::abs(static_cast<double>(v));
+}
+
+inline __float128 abs (const std::complex<__float128> &v)
+{
+    return std::abs(std::complex<double>(v.real(), v.imag()));
+}
+
+inline __float128 arg (const std::complex<__float128> &v)
+{
+    return std::arg(std::complex<double>(v.real(), v.imag()));
+}
+
+inline __float128 atan2 (const __float128 &v1, const __float128 &v2)
+{
+    return std::atan2(static_cast<double>(v1), static_cast<double>(v2));
+}
+
+}
+
+#endif
+
 #endif

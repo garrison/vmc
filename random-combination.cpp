@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <set>
 
 #include <boost/random/uniform_smallint.hpp>
@@ -30,7 +29,5 @@ void random_combination (std::vector<int> &v, int r, int n, rng_class &rng)
 	v.push_back(a);
 	vs.insert(a);
     }
-
-    std::sort_heap(v.begin(), v.end());
 }
 

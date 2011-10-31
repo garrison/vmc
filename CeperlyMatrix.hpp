@@ -22,7 +22,7 @@ private:
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat;
     T detrat, det;
-    int pending_index;
+    unsigned int pending_index;
     NextStep next_step;
 
 public:
@@ -44,11 +44,11 @@ public:
 	{
 	}
 
-    void swap_rows (int r1, int r2)
+    void swap_rows (unsigned int r1, unsigned int r2)
 	{
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
-	    BOOST_ASSERT(r1 >= 0 && r1 < mat.rows());
-	    BOOST_ASSERT(r2 >= 0 && r2 < mat.rows());
+	    BOOST_ASSERT(r1 < mat.rows());
+	    BOOST_ASSERT(r2 < mat.rows());
 	    BOOST_ASSERT(r1 != r2);
 
 	    mat.row(r1).swap(mat.row(r2));
@@ -57,9 +57,9 @@ public:
 	    det = -det;
 	}
 
-    void update_row (int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)
+    void update_row (unsigned int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)
 	{
-	    BOOST_ASSERT(r >= 0 && r < mat.rows());
+	    BOOST_ASSERT(r < mat.rows());
 	    BOOST_ASSERT(row.rows() == mat.cols());
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
 
@@ -77,7 +77,7 @@ public:
 	    det *= detrat;
 
 #ifdef CAREFUL
-	    for (int i = 0; i < mat.rows(); ++i) {
+	    for (unsigned int i = 0; i < mat.rows(); ++i) {
 		if (i != pending_index) {
 		    if (mat.row(i) == mat.row(pending_index))
 			std::cerr << "!" << i << "," << pending_index << ' ' << detrat << std::endl;

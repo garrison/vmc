@@ -20,7 +20,7 @@ Chain1dArguments::Chain1dArguments (const Chain1d &wf_, const std::vector<Chain1
     : r(r_),
       positions(wf_.get_N_sites())
 {
-    BOOST_ASSERT((int)r_.size() == wf_.get_N_filled());
+    BOOST_ASSERT(r_.size() == wf_.get_N_filled());
     // fixme: assert each position is valid
     for (size_t i = 0; i < r.size(); ++i) {
 	++positions[r[i]];
@@ -28,13 +28,13 @@ Chain1dArguments::Chain1dArguments (const Chain1d &wf_, const std::vector<Chain1
     }
 }
 
-static int move_random_particle_randomly(Chain1dArguments &r, const Chain1d &wf, rng_class &rng, bool adjacent_only=true)
+static unsigned int move_random_particle_randomly(Chain1dArguments &r, const Chain1d &wf, rng_class &rng, bool adjacent_only=true)
 {
     boost::uniform_smallint<> integer_distribution(0, wf.get_N_filled() - 1);
     boost::variate_generator<rng_class&, boost::uniform_smallint<> > particle_gen(rng, integer_distribution);
 
     // choose particle
-    int chosen_particle = particle_gen();
+    unsigned int chosen_particle = particle_gen();
 #ifdef DEBUG
     std::cerr << "Moving particle " << chosen_particle << " from " << r[chosen_particle];
 #endif
@@ -50,7 +50,7 @@ static int move_random_particle_randomly(Chain1dArguments &r, const Chain1d &wf,
 	do {
 	    rcp += direction;
 	    // enforce PBC
-	    if (rcp >= wf.get_N_sites())
+	    if (rcp >= (int) wf.get_N_sites())
 		rcp -= wf.get_N_sites();
 	    else if (rcp < 0)
 		rcp += wf.get_N_sites();
@@ -60,7 +60,7 @@ static int move_random_particle_randomly(Chain1dArguments &r, const Chain1d &wf,
 	boost::uniform_smallint<> empty_site_distribution(0, wf.get_N_sites() - wf.get_N_filled() - 1);
 	boost::variate_generator<rng_class&, boost::uniform_smallint<> > empty_site_gen(rng, empty_site_distribution);
 	int empty_site = empty_site_gen();
-	for (int current_site = 0; ; ++current_site) {
+	for (unsigned int current_site = 0; ; ++current_site) {
 	    BOOST_ASSERT(current_site < wf.get_N_sites());
 	    if (!r.is_occupied(current_site)) {
 		if (empty_site-- == 0) {
@@ -84,10 +84,10 @@ Chain1dWalk::Chain1dWalk (const Chain1d &wf_, const Chain1dArguments &arguments_
       transition_in_progress(false)
 {
     //BOOST_ASSERT(wf_ == r.wf);
-    int N = wf->get_N_filled();
+    unsigned int N = wf->get_N_filled();
     Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
-    for (int i = 0; i < N; ++i) {
-	for (int j = 0; j < N; ++j)
+    for (unsigned int i = 0; i < N; ++i) {
+	for (unsigned int j = 0; j < N; ++j)
 	    mat(i, j) = wf->phi(j, r[i]);
     }
     cmat = mat;
@@ -97,13 +97,13 @@ probability_t Chain1dWalk::compute_probability_ratio_of_random_transition (rng_c
 {
     BOOST_ASSERT(!transition_in_progress);
 
-    int N = wf->get_N_filled();
+    unsigned int N = wf->get_N_filled();
 
-    int chosen_particle = move_random_particle_randomly(r, *wf, rng);
+    unsigned int chosen_particle = move_random_particle_randomly(r, *wf, rng);
 
     // calculate each phi at new position and update Ceperly matrix
     Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, 1> phivec(N);
-    for (int i = 0; i < N; ++i)
+    for (unsigned int i = 0; i < N; ++i)
 	phivec(i) = wf->phi(i, r[chosen_particle]);
     cmat.update_row(chosen_particle, phivec);
 
@@ -138,10 +138,10 @@ Chain1dRenyiModWalk::Chain1dRenyiModWalk (const Chain1d &wf_, const std::vector<
       r2(wf_, rng),
       transition_copy_in_progress(0)
 {
-    int N = wf->get_N_filled();
+    unsigned int N = wf->get_N_filled();
     Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
-    for (int i = 0; i < N; ++i) {
-	for (int j = 0; j < N; ++j) {
+    for (unsigned int i = 0; i < N; ++i) {
+	for (unsigned int j = 0; j < N; ++j) {
 	    mat1(i, j) = wf->phi(j, r1[i]);
 	    mat2(i, j) = wf->phi(j, r2[i]);
 	}
@@ -161,7 +161,7 @@ probability_t Chain1dRenyiModWalk::compute_probability_ratio_of_random_transitio
 {
     BOOST_ASSERT(!transition_copy_in_progress);
 
-    int N = wf->get_N_filled();
+    unsigned int N = wf->get_N_filled();
 
     boost::uniform_smallint<> adjacent_distribution(0, 30);
     boost::variate_generator<rng_class&, boost::uniform_smallint<> > adjacent_gen(rng, adjacent_distribution);
@@ -177,10 +177,10 @@ probability_t Chain1dRenyiModWalk::compute_probability_ratio_of_random_transitio
     chosen_particle = move_random_particle_randomly(r, *wf, rng, adjacent_only);
 
 #if 0
-    for (unsigned int k = 0; k < (unsigned int) wf->get_N_sites(); ++k)
+    for (unsigned int k = 0; k < wf->get_N_sites(); ++k)
 	std::cerr << (transition_copy_in_progress == 1 && r1[chosen_particle] == k ? '$' : (r1.is_occupied(k) ? '*' : '-'));
     std::cerr << std::endl;
-    for (unsigned int k = 0; k < (unsigned int) wf->get_N_sites(); ++k)
+    for (unsigned int k = 0; k < wf->get_N_sites(); ++k)
 	std::cerr << (transition_copy_in_progress == 2 && r2[chosen_particle] == k ? '$' : (r2.is_occupied(k) ? '*' : '-'));
     std::cerr << std::endl << std::endl;
 #endif
@@ -188,7 +188,7 @@ probability_t Chain1dRenyiModWalk::compute_probability_ratio_of_random_transitio
     // calculate each phi at new position and update phialpha Ceperly matrix
     Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, 1> phivec(N);
 
-    for (int i = 0; i < N; ++i) {
+    for (unsigned int i = 0; i < N; ++i) {
 	phivec(i) = wf->phi(i, r[chosen_particle]);
     }
     phialpha.update_row(chosen_particle, phivec);
@@ -232,10 +232,10 @@ Chain1dRenyiSignWalk::Chain1dRenyiSignWalk (const Chain1d &wf_, const Subsystem<
     // FIXME: start them both randomly !!
     BOOST_ASSERT(swapped_system.get_N_subsystem1() == swapped_system.get_N_subsystem2());
 
-    int N = wf->get_N_filled();
+    unsigned int N = wf->get_N_filled();
     Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
-    for (int i = 0; i < N; ++i) {
-	for (int j = 0; j < N; ++j) {
+    for (unsigned int i = 0; i < N; ++i) {
+	for (unsigned int j = 0; j < N; ++j) {
 	    mat1(i, j) = wf->phi(j, r1[i]);
 	    mat2(i, j) = wf->phi(j, r2[i]);
 	}
@@ -251,14 +251,14 @@ probability_t Chain1dRenyiSignWalk::compute_probability_ratio_of_random_transiti
     BOOST_ASSERT(!transition_in_progress);
     transition_in_progress = true;
 
-    int N = wf->get_N_filled();
+    unsigned int N = wf->get_N_filled();
 
     boost::uniform_smallint<> adjacent_distribution(0, 30);
     boost::variate_generator<rng_class&, boost::uniform_smallint<> > adjacent_gen(rng, adjacent_distribution);
     bool adjacent_only = (adjacent_gen() > 0);
 
-    int chosen_particle1 = move_random_particle_randomly(r1, *wf, rng, adjacent_only);
-    int chosen_particle2 = move_random_particle_randomly(r2, *wf, rng, adjacent_only);
+    unsigned int chosen_particle1 = move_random_particle_randomly(r1, *wf, rng, adjacent_only);
+    unsigned int chosen_particle2 = move_random_particle_randomly(r2, *wf, rng, adjacent_only);
 
     // automatic reject if the subsystems now have different particle counts
     if (swapped_system.calculate_subsystem_particle_change(1, chosen_particle1, r1)
@@ -268,7 +268,7 @@ probability_t Chain1dRenyiSignWalk::compute_probability_ratio_of_random_transiti
     // calculate each phi at new position and update phialpha Ceperly matrices
     Eigen::Matrix<Chain1d::amplitude_t, Eigen::Dynamic, 1> phivec1(N), phivec2(N);
 
-    for (int i = 0; i < N; ++i) {
+    for (unsigned int i = 0; i < N; ++i) {
 	phivec1(i) = wf->phi(i, r1[chosen_particle1]);
 	phivec2(i) = wf->phi(i, r2[chosen_particle2]);
     }

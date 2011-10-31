@@ -108,7 +108,7 @@ probability_t Chain1dWalk::compute_probability_ratio_of_random_transition (rng_c
     cmat.update_row(chosen_particle, phivec);
 
     // take ratio of determinants and return a probability
-    Chain1d::amplitude_t amplitude_ratio = cmat.calculate_determinant_ratio();
+    Chain1d::amplitude_t amplitude_ratio = cmat.get_determinant_ratio();
     probability_t rv = norm(amplitude_ratio);
 #ifdef DEBUG
     std::cerr << "ratio " << rv << std::endl;
@@ -194,7 +194,7 @@ probability_t Chain1dRenyiModWalk::compute_probability_ratio_of_random_transitio
     phialpha.update_row(chosen_particle, phivec);
 
     // calculate ratio of determinants and return a probability
-    return std::norm(phialpha.calculate_determinant_ratio());
+    return std::norm(phialpha.get_determinant_ratio());
 }
 
 void Chain1dRenyiModWalk::accept_transition (void)
@@ -284,8 +284,8 @@ probability_t Chain1dRenyiSignWalk::compute_probability_ratio_of_random_transiti
     phibeta2_ratio *= swapped_system.get_phibeta2().get_determinant();
 
     // calculate ratio of determinants and return a probability
-    return abs(phialpha1.calculate_determinant_ratio() *
-	       phialpha2.calculate_determinant_ratio() *
+    return abs(phialpha1.get_determinant_ratio() *
+	       phialpha2.get_determinant_ratio() *
 	       phibeta1_ratio *
 	       phibeta2_ratio);
 }

@@ -265,12 +265,10 @@ private:
 		    const int pair_index = vector_find(subsystem_indices_this, *i);
 		    BOOST_ASSERT(pair_index != -1);
 		    phibeta_that.update_row(subsystem_indices_that[pair_index], phialpha_this.get_matrix().row(*i));
-		    phibeta_that.calculate_determinant_ratio();
 		    phibeta_that.finish_row_update();
 		} else {
 		    // it goes in this phibeta
 		    phibeta_this.update_row(*i, phialpha_this.get_matrix().row(*i));
-		    phibeta_this.calculate_determinant_ratio();
 		    phibeta_this.finish_row_update();
 		}
 	    }

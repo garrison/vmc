@@ -16,7 +16,6 @@ private:
     enum NextStep {
 	INITIALIZE,
 	UPDATE_ROW,
-	CALCULATE_DETERMINANT_RATIO,
 	FINISH_ROW_UPDATE
     };
 
@@ -29,6 +28,7 @@ public:
     CeperlyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
 	: mat(initial_mat),
 	  invmat(mat.inverse()),
+	  detrat(0),
 	  det(mat.determinant()),
 	  next_step(UPDATE_ROW)
 	{
@@ -55,6 +55,7 @@ public:
 	    invmat.col(r1).swap(invmat.col(r2));
 
 	    det = -det;
+	    detrat = -detrat;
 	}
 
     void update_row (unsigned int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)
@@ -63,20 +64,17 @@ public:
 	    BOOST_ASSERT(row.rows() == mat.cols());
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
 
+	    // update matrix
 	    mat.row(r) = row;
-
 	    pending_index = r;
-	    next_step = CALCULATE_DETERMINANT_RATIO;
-	}
 
-    T calculate_determinant_ratio (void)
-	{
-	    BOOST_ASSERT(next_step == CALCULATE_DETERMINANT_RATIO);
-
+	    // calculate determinant ratio
 	    detrat = mat.row(pending_index) * invmat.col(pending_index);
 	    det *= detrat;
 
 #ifdef CAREFUL
+	    // check to make sure the row given doesn't already exist in the
+	    // matrix, thus ruining things by setting the determinant to zero
 	    for (unsigned int i = 0; i < mat.rows(); ++i) {
 		if (i != pending_index) {
 		    if (mat.row(i) == mat.row(pending_index))
@@ -87,6 +85,11 @@ public:
 #endif
 
 	    next_step = FINISH_ROW_UPDATE;
+	}
+
+    T get_determinant_ratio (void) const
+	{
+	    BOOST_ASSERT(next_step != INITIALIZE);
 	    return detrat;
 	}
 
@@ -119,10 +122,12 @@ public:
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
 	    invmat = mat.inverse();
 	    det = mat.determinant();
+	    // FIXME: adjust detrat accordingly
 	}
 
     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_matrix (void) const
 	{
+	    BOOST_ASSERT(next_step != INITIALIZE);
 	    return mat;
 	}
 
@@ -134,6 +139,7 @@ public:
 
     T get_determinant (void) const
 	{
+	    BOOST_ASSERT(next_step != INITIALIZE);
 #ifdef DEBUG
 	    static unsigned int z = 0;
 	    if (++z % 541 == 0) // use some prime number here
@@ -144,7 +150,6 @@ public:
 
     double compute_inverse_matrix_error (void) const
 	{
-	    // there is surely a more informative way to do this
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
 	    return (mat * invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(mat.rows(), mat.cols())).array().abs().sum();
 	}

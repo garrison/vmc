@@ -1,33 +1,55 @@
 EIGEN3_CFLAGS = -I/usr/include/eigen3
 BOOST_CFLAGS = 
 
-COMPILE = g++ -Wall -W -O2 $(EIGEN3_CFLAGS) $(BOOST_CFLAGS) -DCAREFUL
+INCLUDES = $(EIGEN3_CFLAGS) $(BOOST_CFLAGS)
+LIBS = 
+
+COMPILE = g++ -Wall -W -O2 $(INCLUDES) -DCAREFUL -DDEBUG -Werror
 
 HEADER_FILES = \
                CeperlyMatrix.hpp \
+               Chain1dOrbitals.hpp \
+               FreeFermionWavefunctionAmplitude.hpp \
+               HypercubicLattice.hpp \
+               HypercubicSubsystem.hpp \
+               Lattice.hpp \
                MetropolisSimulation.hpp \
-               Chain1d.hpp \
-               SwappedSystem.hpp \
-               Subsystem.hpp \
+               NullMeasurement.hpp \
+               OrbitalDefinitions.hpp \
+               PositionArguments.hpp \
                random-combination.hpp \
-               vmc-typedefs.hpp
+               random-move.hpp \
+               RenyiModMeasurement.hpp \
+               RenyiModWalk.hpp \
+               RenyiSignMeasurement.hpp \
+               RenyiSignWalk.hpp \
+               StandardWalk.hpp \
+               Subsystem.hpp \
+               SwappedSystem.hpp \
+               vmc-typedefs.hpp \
+               WavefunctionAmplitude.hpp
+
+SOURCES = \
+	  Chain1dOrbitals.cpp \
+	  FreeFermionWavefunctionAmplitude.cpp \
+	  main.cpp \
+	  PositionArguments.cpp \
+	  random-combination.cpp \
+	  random-move.cpp \
+	  RenyiModWalk.cpp \
+	  RenyiSignWalk.cpp \
+	  StandardWalk.cpp \
+	  SwappedSystem.cpp
+
+OBJECTS = $(SOURCES:.cpp=.o)
 
 all:	vmc
 
-vmc:	main.o Chain1d.o random-combination.o
-	$(COMPILE) -o vmc main.o Chain1d.o random-combination.o
+vmc:	$(OBJECTS)
+	$(COMPILE) $(LIBS) -o vmc $(OBJECTS)
 
-main.o:	$(HEADER_FILES) main.cpp
-	$(COMPILE) -c main.cpp
-
-SimpleWaveFunction.o:	$(HEADER_FILES) SimpleWaveFunction.cpp
-	$(COMPILE) -c SimpleWaveFunction.cpp
-
-Chain1d.o:	$(HEADER_FILES) Chain1d.cpp
-	$(COMPILE) -c Chain1d.cpp
-
-random-combination.o:	$(HEADER_FILES) random-combination.cpp
-	$(COMPILE) -c random-combination.cpp
+%.o: %.cpp $(HEADER_FILES)
+	$(COMPILE) -c -o $@ $<
 
 clean:
 	rm -f *.o vmc

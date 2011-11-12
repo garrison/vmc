@@ -7,10 +7,12 @@
 typedef boost::mt19937 rng_class;
 typedef unsigned long long rng_seed_t;
 
-typedef double probability_t;
+typedef long double real_t;
+typedef std::complex<real_t> complex_t;
 
-typedef double real_amplitude_t;
-typedef std::complex<real_amplitude_t> complex_amplitude_t;
+typedef real_t probability_t;
+
+typedef complex_t amplitude_t;
 
 class accumulator_t
 {

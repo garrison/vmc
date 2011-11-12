@@ -5,6 +5,6 @@
 
 #include "vmc-typedefs.hpp"
 
-extern void random_combination (std::vector<int> &v, int r, int n, rng_class &rng);
+extern void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned int n, rng_class &rng, unsigned int keep=0);
 
 #endif

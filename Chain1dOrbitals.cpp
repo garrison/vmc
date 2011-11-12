@@ -1,0 +1,19 @@
+#include <boost/assert.hpp>
+#include <boost/math/constants/constants.hpp>
+
+#include "Chain1dOrbitals.hpp"
+#include "HypercubicLattice.hpp"
+
+bool Chain1dOrbitals::lattice_makes_sense (const Lattice &lattice) const
+{
+    return bool(dynamic_cast<const HypercubicLattice<1> *>(&lattice));
+}
+
+amplitude_t Chain1dOrbitals::calculate_phi (unsigned int n, unsigned int r, const Lattice &lattice) const
+{
+    BOOST_ASSERT(this->lattice_makes_sense(lattice));
+    const double two_pi = 2 * boost::math::constants::pi<double>();
+    int kbar = ((n + 1) / 2) * ((n & 1) * -2 + 1); // fill each k value in order, alternating +k, -k
+    const std::complex<double> im_unit(0, 1);
+    return exp(im_unit * std::complex<double>(two_pi * kbar * r / lattice.total_sites()));
+}

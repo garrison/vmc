@@ -140,11 +140,6 @@ public:
     T get_determinant (void) const
 	{
 	    BOOST_ASSERT(next_step != INITIALIZE);
-#ifdef DEBUG
-	    static unsigned int z = 0;
-	    if (++z % 541 == 0) // use some prime number here
-		std::cerr << "deterr " << compute_relative_determinant_error() << " (" << abs(det) << ") " << compute_inverse_matrix_error() << std::endl;
-#endif
 	    return det;
 	}
 
@@ -159,6 +154,16 @@ public:
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
 	    T d = mat.determinant();
 	    return abs((d - det) / d);
+	}
+
+    unsigned int rows (void) const
+	{
+	    return mat.rows();
+	}
+
+    unsigned int cols (void) const
+	{
+	    return rows();
 	}
 };
 

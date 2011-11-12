@@ -86,8 +86,8 @@ private:
 	    if (probability_ratio >= 1
 		|| probability_ratio > uniform_distribution()) {
 		// accept transition
+		proposed_step.accept_transition();
 		walk = proposed_step;
-		walk.accept_transition();
 		++m_steps_accepted;
 #ifdef DEBUG_METROPOLIS
 		std::cerr << "A" << std::endl;

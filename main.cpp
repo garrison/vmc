@@ -3,71 +3,45 @@
 #include <memory>
 
 #include "MetropolisSimulation.hpp"
-#include "Chain1d.hpp"
+#include "StandardWalk.hpp"
+#include "RenyiModMeasurement.hpp"
+#include "RenyiModWalk.hpp"
+#include "RenyiSignMeasurement.hpp"
+#include "RenyiSignWalk.hpp"
+#include "NullMeasurement.hpp"
+#include "HypercubicSubsystem.hpp"
+#include "FreeFermionWavefunctionAmplitude.hpp"
+#include "PositionArguments.hpp"
+#include "random-combination.hpp"
 
-const unsigned int N = 30;
-const unsigned int sample_size = 8;
+const unsigned int seed = 13;
 
-const int seed = 56;
-
-template <typename T>
-static inline T square (T v)
-{
-    return v * v;
-}
-
-template <typename T>
-static std::pair<T, T> stats (const std::vector<T> &v)
-// returns mean, stddev of mean
-{
-    T mean = 0;
-    for (unsigned int i = 0; i < v.size(); ++i)
-	mean += v[i];
-    mean /= v.size();
-
-    T variance = 0;
-    for (unsigned int i = 0; i < v.size(); ++i)
-	variance += square(v[i] - mean);
-
-    double denominator = (v.size() - 1) * v.size();
-    return std::pair<T, T>(mean, sqrt(variance / denominator));
-}
+const unsigned int N = 40;
+const unsigned int F = N / 2;
 
 int main ()
 {
     rng_class rng(seed);
-    Chain1d wf(N / 2, N);
-    std::vector<boost::shared_ptr<Chain1dContiguousSubsystem> > subsystems;
-    std::vector<Subsystem<Chain1d> *> subsystems_;
-    std::vector<boost::shared_ptr<MetropolisSimulation<Chain1dRenyiModWalk, Chain1dRenyiModMeasurement> > > vmc_sim;
-    for (unsigned int i = 0; i <= N / 2 + 1; ++i) {
-	subsystems.push_back(boost::shared_ptr<Chain1dContiguousSubsystem>(new Chain1dContiguousSubsystem(i)));
-	subsystems_.push_back(&*subsystems[i]);
-    }
-    for (unsigned int j = 0; j < sample_size; ++j) {
-	Chain1dRenyiModWalk walk(wf, subsystems_, rng);
-	vmc_sim.push_back(boost::shared_ptr<MetropolisSimulation<Chain1dRenyiModWalk, Chain1dRenyiModMeasurement> >(new MetropolisSimulation<Chain1dRenyiModWalk, Chain1dRenyiModMeasurement>(walk, 12, rng())));
-    }
-    for (;;) {
-	for (unsigned int j = 0; j < sample_size; ++j)
-	    vmc_sim[j]->iterate(12);
-	for (unsigned int j = 0; j < sample_size; ++j) {
-	    for (unsigned int i = 0; i < vmc_sim[j]->get_walk().get_subsystem_array_size(); ++i) {
-		std::cout << vmc_sim[j]->get_measurement()[i] << " (S" << vmc_sim[j]->get_walk().get_N_subsystem1(i) << "," << vmc_sim[j]->get_walk().get_N_subsystem2(i) << " " << (static_cast<double>(vmc_sim[j]->steps_accepted()) / vmc_sim[j]->steps_completed() * 100) << "%)  ";
-		std::cout << std::endl;
-	    }
-	}
-	std::cout << std::endl;
 
-	// calculate and display stats
-	for (unsigned int i = 0; i < vmc_sim[0]->get_walk().get_subsystem_array_size(); ++i) {
-	    std::vector<double> v;
-	    for (unsigned int j = 0; j < sample_size; ++j)
-		v.push_back(vmc_sim[j]->get_measurement()[i]);
-	    std::pair<double, double> s = stats(v);
-//	    std::cout << "N" << N << " S" << subsystem_length << "  ";
-	    std::cout << s.first << " \\pm " << s.second << std::endl;
-	}
-	std::cout << std::endl;
-    }
+    std::vector<unsigned int> v;
+    random_combination(v, F, N, rng);
+
+    PositionArguments r(v, N);
+    boost::shared_ptr<WavefunctionAmplitude> wf(new FreeFermionWavefunctionAmplitude(r));
+
+    StandardWalk walk(wf);
+    MetropolisSimulation<StandardWalk, NullMeasurement<StandardWalk> > sim(walk, 8, rng());
+    sim.iterate(12);
+
+    boost::shared_ptr<const Subsystem> subsystem(new HypercubicSubsystem<1>(4));
+    std::vector<boost::shared_ptr<const Subsystem> > subsystems;
+    subsystems.push_back(subsystem);
+
+    RenyiModWalk mod_walk(wf, subsystems, rng);
+    MetropolisSimulation<RenyiModWalk, RenyiModMeasurement> mod_sim(mod_walk, 8, rng());
+    mod_sim.iterate(12);
+
+    RenyiSignWalk sign_walk(wf, subsystem, rng);
+    MetropolisSimulation<RenyiSignWalk, RenyiSignMeasurement> sign_sim(sign_walk, 8, rng());
+    sign_sim.iterate(12);
 }

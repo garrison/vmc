@@ -6,28 +6,31 @@
 #include <boost/assert.hpp>
 
 #include "random-combination.hpp"
-#include "vmc-typedefs.hpp"
 
 // http://stackoverflow.com/questions/2394246/algorithm-to-select-a-single-random-combination-of-values
-void random_combination (std::vector<int> &v, int r, int n, rng_class &rng)
+void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned int n, rng_class &rng, unsigned int keep)
 {
     // per Jon Bentley's article in CACM, September 1987, Volume 30, Number 9
     BOOST_ASSERT(n > 0);
     BOOST_ASSERT(r > 0);
     BOOST_ASSERT(r <= n);
+    BOOST_ASSERT(keep <= n);
+    BOOST_ASSERT(v.size() >= keep);
 
     std::set<int> vs;
-    v.resize(0);
+    v.resize(keep);
     v.reserve(r);
+    for (std::vector<unsigned int>::const_iterator i = v.begin(); i != v.end(); ++i)
+	vs.insert(*i);
+    BOOST_ASSERT(v.size() == vs.size());
 
-    for (int k = n - r; k < n; ++k) {
+    for (unsigned int k = n - r + keep; k < n; ++k) {
 	boost::uniform_smallint<> dist(0, k - 1);
 	// fixme: make sure we can use the same rng again and again here without updating it
 	boost::variate_generator<rng_class&, boost::uniform_smallint<> > gen(rng, dist);
-	int x = gen();
-	int a = (vs.find(x) != vs.end()) ? k : x;
+	unsigned int x = gen();
+	unsigned int a = (vs.find(x) != vs.end()) ? k : x;
 	v.push_back(a);
 	vs.insert(a);
     }
 }
-

@@ -27,7 +27,7 @@ private:
 public:
     CeperlyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
 	: mat(initial_mat),
-	  invmat(mat.inverse()),
+	  invmat(mat.fullPivLu().inverse()),
 	  detrat(0),
 	  det(mat.determinant()),
 	  next_step(UPDATE_ROW)
@@ -120,7 +120,7 @@ public:
     void refresh_state (void)
 	{
 	    BOOST_ASSERT(next_step == UPDATE_ROW);
-	    invmat = mat.inverse();
+	    invmat = mat.fullPivLu().inverse();
 	    det = mat.determinant();
 	    // FIXME: adjust detrat accordingly
 	}

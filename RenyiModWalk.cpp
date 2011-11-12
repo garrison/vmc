@@ -3,6 +3,7 @@
 #include <boost/random/uniform_smallint.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/assert.hpp>
 
 #include "RenyiModWalk.hpp"
@@ -19,7 +20,7 @@ RenyiModWalk::RenyiModWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, 
 
     swapped_system.reserve(subsystems.size());
     for (unsigned int i = 0; i < subsystems.size(); ++i) {
-	swapped_system.push_back(boost::shared_ptr<SwappedSystem>(new SwappedSystem(subsystems[i])));
+	swapped_system.push_back(boost::make_shared<SwappedSystem>(subsystems[i]));
 	// fixme: don't do this until we've reached equilibrium
 	swapped_system[i]->initialize(*phialpha1, *phialpha2);
     }
@@ -92,7 +93,7 @@ void RenyiModWalk::accept_transition (void)
     for (unsigned int i = 0; i < swapped_system.size(); ++i) {
 	// copy on write
 	if (!swapped_system[i].unique())
-	    swapped_system[i] = boost::shared_ptr<SwappedSystem>(new SwappedSystem(*swapped_system[i]));
+	    swapped_system[i] = boost::make_shared<SwappedSystem>(*swapped_system[i]);
 
 	swapped_system[i]->update(arg1, arg2, *phialpha1, *phialpha2);
     }

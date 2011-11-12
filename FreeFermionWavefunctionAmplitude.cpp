@@ -1,4 +1,5 @@
 #include <boost/assert.hpp>
+#include <boost/make_shared.hpp>
 
 #include "FreeFermionWavefunctionAmplitude.hpp"
 #include "HypercubicLattice.hpp"
@@ -7,8 +8,8 @@ FreeFermionWavefunctionAmplitude::FreeFermionWavefunctionAmplitude (const Positi
     : WavefunctionAmplitude(r_),
       orbital_def(r_.get_N_filled())
 {
-    boost::array<int, 1> a = { { r_.get_N_sites() } };
-    lattice = boost::shared_ptr<const Lattice>(new HypercubicLattice<1>(a));
+    const boost::array<int, 1> a = { { r_.get_N_sites() } };
+    lattice = boost::make_shared<const HypercubicLattice<1> >(a);
     reinitialize();
 }
 
@@ -55,5 +56,5 @@ void FreeFermionWavefunctionAmplitude::reinitialize (void)
 
 boost::shared_ptr<WavefunctionAmplitude> FreeFermionWavefunctionAmplitude::clone_ (void) const
 {
-    return boost::shared_ptr<WavefunctionAmplitude>(new FreeFermionWavefunctionAmplitude(*this));
+    return boost::make_shared<FreeFermionWavefunctionAmplitude>(*this);
 }

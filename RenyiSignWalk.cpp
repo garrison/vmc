@@ -3,6 +3,7 @@
 #include <boost/random/uniform_smallint.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/assert.hpp>
 
 #include "RenyiSignWalk.hpp"
@@ -52,7 +53,7 @@ probability_t RenyiSignWalk::compute_probability_ratio_of_random_transition (rng
     if (!phialpha2.unique())
 	phialpha2 = phialpha2->clone();
     if (!swapped_system.unique())
-	swapped_system = boost::shared_ptr<SwappedSystem>(new SwappedSystem(*swapped_system));
+	swapped_system = boost::make_shared<SwappedSystem>(*swapped_system);
 
     // update phialpha's
     phialpha1->move_particle(chosen_particle1, particle1_destination);

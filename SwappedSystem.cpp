@@ -211,6 +211,10 @@ void SwappedSystem::reinitialize_phibetas (const WavefunctionAmplitude &phialpha
 
 void SwappedSystem::verify_phibetas (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2) const
 {
+#ifdef BOOST_DISABLE_ASSERTS
+    (void) phialpha1;
+    (void) phialpha2;
+#else
     const PositionArguments &r1 = phialpha1.get_positions();
     const PositionArguments &r2 = phialpha2.get_positions();
 
@@ -244,6 +248,7 @@ void SwappedSystem::verify_phibetas (const WavefunctionAmplitude &phialpha1, con
 	BOOST_ASSERT(swapped_r1[i] == phibeta1->get_positions()[i]);
 	BOOST_ASSERT(swapped_r2[i] == phibeta2->get_positions()[i]);
     }
+#endif
 }
 
 // this is a private utility method, called from both reinitialize_phibetas()

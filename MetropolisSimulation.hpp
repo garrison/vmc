@@ -41,17 +41,17 @@ public:
 	    }
 	}
 
-    int steps_completed (void) const
+    unsigned int steps_completed (void) const
 	{
 	    return m_steps;
 	}
 
-    int steps_rejected (void) const
+    unsigned int steps_rejected (void) const
 	{
 	    return m_steps - m_steps_accepted;
 	}
 
-    int steps_accepted (void) const
+    unsigned int steps_accepted (void) const
 	{
 	    return m_steps_accepted;
 	}
@@ -69,7 +69,7 @@ public:
 private:
     Walk_T walk;
     Measurement_T measurement;
-    int m_steps, m_steps_accepted, m_measurements;
+    unsigned int m_steps, m_steps_accepted, m_measurements;
 
     rng_class rng;
     boost::uniform_01<rng_class> uniform_distribution;

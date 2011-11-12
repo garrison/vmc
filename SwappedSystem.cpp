@@ -164,7 +164,7 @@ void SwappedSystem::update (int index1, int index2, const WavefunctionAmplitude 
 	    // update the phibeta's, performing copy-on-write
 	    if (index1 != -1) {
 		boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
-		const unsigned int phibeta_index = particle1_now_in_subsystem ? copy2_subsystem_indices[(delta1 == 0) ? pairing_index1 : copy1_subsystem_indices.size() - 1] : index1;
+		const unsigned int phibeta_index = particle1_now_in_subsystem ? copy2_subsystem_indices[(delta1 == 0) ? (unsigned int) pairing_index1 : copy1_subsystem_indices.size() - 1] : (unsigned int) index1;
 		if (!phibeta.unique())
 		    phibeta = phibeta->clone();
 		phibeta->move_particle(phibeta_index, r1[index1]);
@@ -173,7 +173,7 @@ void SwappedSystem::update (int index1, int index2, const WavefunctionAmplitude 
 
 	    if (index2 != -1) {
 		boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
-		const unsigned int phibeta_index = particle2_now_in_subsystem ? copy1_subsystem_indices[(delta2 == 0) ? pairing_index2 : copy2_subsystem_indices.size() - 1] : index2;
+		const unsigned int phibeta_index = particle2_now_in_subsystem ? copy1_subsystem_indices[(delta2 == 0) ? (unsigned int) pairing_index2 : copy2_subsystem_indices.size() - 1] : (unsigned int) index2;
 		if (!phibeta.unique())
 		    phibeta = phibeta->clone();
 		phibeta->move_particle(phibeta_index, r2[index2]);

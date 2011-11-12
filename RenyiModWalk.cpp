@@ -86,8 +86,8 @@ void RenyiModWalk::accept_transition (void)
 
     ((transition_copy_in_progress == 1) ? phialpha1 : phialpha2)->finish_particle_moved_update();
 
-    const int arg1 = (transition_copy_in_progress == 1) ? chosen_particle : -1;
-    const int arg2 = (transition_copy_in_progress == 2) ? chosen_particle : -1;
+    const int arg1 = (transition_copy_in_progress == 1) ? (int) chosen_particle : -1;
+    const int arg2 = (transition_copy_in_progress == 2) ? (int) chosen_particle : -1;
 
     for (unsigned int i = 0; i < swapped_system.size(); ++i) {
 	// copy on write

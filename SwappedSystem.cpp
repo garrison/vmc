@@ -15,13 +15,13 @@ static int vector_find (const std::vector<T> &vec, const T &val)
 
 SwappedSystem::SwappedSystem (const boost::shared_ptr<const Subsystem> &subsystem_)
     : subsystem(subsystem_),
-      initialized(false)
+      next_step(INITIALIZE)
 {
 }
 
 void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
 {
-    BOOST_ASSERT(!initialized);
+    BOOST_ASSERT(next_step == INITIALIZE);
 
     const PositionArguments &r1 = phialpha1.get_positions();
     const PositionArguments &r2 = phialpha2.get_positions();
@@ -46,14 +46,15 @@ void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const Wa
     if (copy1_subsystem_indices.size() == copy2_subsystem_indices.size())
 	reinitialize_phibetas(phialpha1, phialpha2);
 
-    initialized = true;
+    next_step = UPDATE;
 }
 
 void SwappedSystem::update (int index1, int index2, const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
 {
     // this function should be called *after* the phialpha's have been updated
 
-    BOOST_ASSERT(initialized);
+    BOOST_ASSERT(next_step == UPDATE);
+    next_step = FINISH_UPDATE;
 
     const PositionArguments &r1 = phialpha1.get_positions();
     const PositionArguments &r2 = phialpha2.get_positions();
@@ -103,17 +104,19 @@ void SwappedSystem::update (int index1, int index2, const WavefunctionAmplitude 
 	    phibeta2 = phibeta2->clone();
 
 	// update the phibeta's for the particles that left the system
+	BOOST_ASSERT(!phibeta1_dirty && !phibeta2_dirty);
 	phibeta1->move_particle(index1, r1[index1]);
 	phibeta2->move_particle(index2, r2[index2]);
-	phibeta1->finish_particle_moved_update();
-	phibeta2->finish_particle_moved_update();
+	phibeta1_dirty = true;
+	phibeta2_dirty = true;
 
 	if (pairing_index1 != pairing_index2) { // we must re-pair
 	    // update the phibeta's for the particles that are about to be paired
-	    phibeta1->move_particle(copy1_subsystem_indices[pairing_index2], r2[copy2_subsystem_indices[pairing_index1]]);
-	    phibeta2->move_particle(copy2_subsystem_indices[pairing_index1], r1[copy1_subsystem_indices[pairing_index2]]);
+	    BOOST_ASSERT(phibeta1_dirty && phibeta2_dirty);
 	    phibeta1->finish_particle_moved_update();
 	    phibeta2->finish_particle_moved_update();
+	    phibeta1->move_particle(copy1_subsystem_indices[pairing_index2], r2[copy2_subsystem_indices[pairing_index1]]);
+	    phibeta2->move_particle(copy2_subsystem_indices[pairing_index1], r1[copy1_subsystem_indices[pairing_index2]]);
 
 	    // update the subsystem indices so they become paired at the min_pairing_index
 	    if (pairing_index1 < pairing_index2)
@@ -164,23 +167,42 @@ void SwappedSystem::update (int index1, int index2, const WavefunctionAmplitude 
 	    // update the phibeta's, performing copy-on-write
 	    if (index1 != -1) {
 		boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
+		bool &phibeta_dirty = particle1_now_in_subsystem ? phibeta2_dirty : phibeta1_dirty;
 		const unsigned int phibeta_index = particle1_now_in_subsystem ? copy2_subsystem_indices[(delta1 == 0) ? (unsigned int) pairing_index1 : copy1_subsystem_indices.size() - 1] : (unsigned int) index1;
 		if (!phibeta.unique())
 		    phibeta = phibeta->clone();
+		BOOST_ASSERT(!phibeta_dirty); // will always be clean here, but not necessarily below
 		phibeta->move_particle(phibeta_index, r1[index1]);
-		phibeta->finish_particle_moved_update();
+		phibeta_dirty = true;
 	    }
 
 	    if (index2 != -1) {
 		boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
+		bool &phibeta_dirty = particle2_now_in_subsystem ? phibeta1_dirty : phibeta2_dirty;
 		const unsigned int phibeta_index = particle2_now_in_subsystem ? copy1_subsystem_indices[(delta2 == 0) ? (unsigned int) pairing_index2 : copy2_subsystem_indices.size() - 1] : (unsigned int) index2;
 		if (!phibeta.unique())
 		    phibeta = phibeta->clone();
+		if (phibeta_dirty)
+		    phibeta->finish_particle_moved_update();
 		phibeta->move_particle(phibeta_index, r2[index2]);
-		phibeta->finish_particle_moved_update();
+		phibeta_dirty = true;
 	    }
 	}
     }
+}
+
+void SwappedSystem::finish_update (void)
+{
+    BOOST_ASSERT(next_step == FINISH_UPDATE);
+    next_step = UPDATE;
+
+    if (phibeta1_dirty)
+	phibeta1->finish_particle_moved_update();
+    phibeta1_dirty = false;
+
+    if (phibeta2_dirty)
+	phibeta2->finish_particle_moved_update();
+    phibeta2_dirty = false;
 
 #ifdef CAREFUL
     verify_phibetas(phialpha1, phialpha2);
@@ -200,9 +222,11 @@ void SwappedSystem::reinitialize_phibetas (const WavefunctionAmplitude &phialpha
 
     phibeta1 = phialpha1.clone();
     phibeta1->reset(swapped_r1);
+    phibeta1_dirty = false;
 
     phibeta2 = phialpha2.clone();
     phibeta2->reset(swapped_r2);
+    phibeta2_dirty = false;
 
 #ifdef CAREFUL
     verify_phibetas(phialpha1, phialpha2);

@@ -91,4 +91,7 @@ void RenyiSignWalk::accept_transition (void)
     BOOST_ASSERT(phialpha2.unique());
     phialpha1->finish_particle_moved_update();
     phialpha2->finish_particle_moved_update();
+
+    BOOST_ASSERT(swapped_system.unique());
+    swapped_system->finish_update();
 }

@@ -96,6 +96,7 @@ void RenyiModWalk::accept_transition (void)
 	    swapped_system[i] = boost::make_shared<SwappedSystem>(*swapped_system[i]);
 
 	swapped_system[i]->update(arg1, arg2, *phialpha1, *phialpha2);
+	swapped_system[i]->finish_update();
     }
 
     transition_copy_in_progress = 0;

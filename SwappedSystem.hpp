@@ -21,7 +21,7 @@ public:
 
     void update (int index1, int index2, const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
 
-    // fixme: finish_update() function ??  would save some time on swapa,sign calculation
+    void finish_update (void);
 
     const Subsystem & get_subsystem (void) const
 	{
@@ -30,14 +30,14 @@ public:
 
     const WavefunctionAmplitude & get_phibeta1 (void) const
 	{
-	    BOOST_ASSERT(initialized);
+	    BOOST_ASSERT(next_step != INITIALIZE);
 	    BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
 	    return *phibeta1;
 	}
 
     const WavefunctionAmplitude & get_phibeta2 (void) const
 	{
-	    BOOST_ASSERT(initialized);
+	    BOOST_ASSERT(next_step != INITIALIZE);
 	    BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
 	    return *phibeta2;
 	}
@@ -63,7 +63,13 @@ private:
     boost::shared_ptr<WavefunctionAmplitude> phibeta1, phibeta2; // copy on write
     const boost::shared_ptr<const Subsystem> subsystem;
     std::vector<unsigned int> copy1_subsystem_indices, copy2_subsystem_indices;
-    bool initialized;
+    bool phibeta1_dirty, phibeta2_dirty; // helps save time on RenyiSign calculation
+
+    enum NextStep {
+	INITIALIZE,
+	UPDATE,
+	FINISH_UPDATE
+    } next_step;
 };
 
 #endif

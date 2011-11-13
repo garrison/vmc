@@ -20,6 +20,7 @@ public:
 	  measurement(walk_),
 	  m_steps(0),
 	  m_steps_accepted(0),
+	  m_steps_fully_rejected(0),
 	  m_measurements(0),
 	  rng(seed),
 	  uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
@@ -51,6 +52,11 @@ public:
 	    return m_steps - m_steps_accepted;
 	}
 
+    unsigned int steps_fully_rejected (void) const
+	{
+	    return m_steps_fully_rejected;
+	}
+
     unsigned int steps_accepted (void) const
 	{
 	    return m_steps_accepted;
@@ -69,7 +75,7 @@ public:
 private:
     Walk_T walk;
     Measurement_T measurement;
-    unsigned int m_steps, m_steps_accepted, m_measurements;
+    unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected, m_measurements;
 
     rng_class rng;
     boost::uniform_01<rng_class> uniform_distribution;
@@ -84,7 +90,7 @@ private:
 		std::cerr << "invalid probability ratio: " << probability_ratio << std::endl;
 #endif
 	    if (probability_ratio >= 1
-		|| probability_ratio > uniform_distribution()) {
+		|| (probability_ratio > 0 && probability_ratio > uniform_distribution())) {
 		// accept transition
 		proposed_step.accept_transition();
 		walk = proposed_step;
@@ -93,6 +99,8 @@ private:
 		std::cerr << "A" << std::endl;
 #endif
 	    } else {
+		if (probability_ratio == 0)
+		    ++m_steps_fully_rejected;
 #ifdef DEBUG_METROPOLIS
 		std::cerr << "-" << std::endl;
 #endif

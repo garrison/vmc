@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include <boost/assert.hpp>
 #include <boost/math/constants/constants.hpp>
 
@@ -14,6 +16,6 @@ amplitude_t Chain1dOrbitals::calculate_phi (unsigned int n, unsigned int r, cons
     BOOST_ASSERT(this->lattice_makes_sense(lattice));
     const double two_pi = 2 * boost::math::constants::pi<double>();
     int kbar = ((n + 1) / 2) * ((n & 1) * -2 + 1); // fill each k value in order, alternating +k, -k
-    const std::complex<double> im_unit(0, 1);
-    return exp(im_unit * std::complex<double>(two_pi * kbar * r / lattice.total_sites()));
+    const complex_t im_unit(0, 1);
+    return std::exp(im_unit * complex_t(two_pi * kbar * r / lattice.total_sites()));
 }

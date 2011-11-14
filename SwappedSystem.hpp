@@ -21,7 +21,7 @@ public:
 
     void update (int index1, int index2, const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
 
-    void finish_update (void);
+    void finish_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
 
     const Subsystem & get_subsystem (void) const
 	{

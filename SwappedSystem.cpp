@@ -191,7 +191,7 @@ void SwappedSystem::update (int index1, int index2, const WavefunctionAmplitude 
     }
 }
 
-void SwappedSystem::finish_update (void)
+void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
 {
     BOOST_ASSERT(next_step == FINISH_UPDATE);
     next_step = UPDATE;
@@ -205,7 +205,11 @@ void SwappedSystem::finish_update (void)
     phibeta2_dirty = false;
 
 #ifdef CAREFUL
-    verify_phibetas(phialpha1, phialpha2);
+    if (get_N_subsystem1() == get_N_subsystem2())
+	verify_phibetas(phialpha1, phialpha2);
+#else
+    (void) phialpha1;
+    (void) phialpha2;
 #endif
 }
 

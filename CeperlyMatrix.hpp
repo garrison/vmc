@@ -7,8 +7,9 @@
 #include <Eigen/Dense>
 #include <boost/assert.hpp>
 
-// O(N^2) algorithm for finding ratio of new to previous determinant
-// This class acts as a finite state machine.  See next_step.
+// O(N^2) method for keeping track of a determinant when only one row changes
+// in a given step.  Also known as the Sherman-Morrison-Woodbury formula.  This
+// class acts as a finite state machine.  See next_step.
 template <typename T>
 class CeperlyMatrix
 {

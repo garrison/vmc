@@ -15,6 +15,8 @@ static int vector_find (const std::vector<T> &vec, const T &val)
 
 SwappedSystem::SwappedSystem (const boost::shared_ptr<const Subsystem> &subsystem_)
     : subsystem(subsystem_),
+      phibeta1_dirty(false),
+      phibeta2_dirty(false),
       next_step(INITIALIZE)
 {
 }
@@ -196,12 +198,16 @@ void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const
     BOOST_ASSERT(next_step == FINISH_UPDATE);
     next_step = UPDATE;
 
-    if (phibeta1_dirty)
+    if (phibeta1_dirty) {
+	BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
 	phibeta1->finish_particle_moved_update();
+    }
     phibeta1_dirty = false;
 
-    if (phibeta2_dirty)
+    if (phibeta2_dirty) {
+	BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
 	phibeta2->finish_particle_moved_update();
+    }
     phibeta2_dirty = false;
 
 #ifdef CAREFUL

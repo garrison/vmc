@@ -9,6 +9,10 @@ class Measurement : boost::noncopyable
 // abstract base class
 {
 public:
+    virtual ~Measurement (void)
+	{
+	}
+
     void initialize (const Walk_T &walk)
 	{
 	    BOOST_ASSERT(!initialized);

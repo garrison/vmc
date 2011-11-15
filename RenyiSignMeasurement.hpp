@@ -3,9 +3,10 @@
 
 #include <cmath>
 
+#include "Measurement.hpp"
 #include "RenyiSignWalk.hpp"
 
-class RenyiSignMeasurement
+class RenyiSignMeasurement : public Measurement<RenyiSignWalk>
 {
     // fixme: in the case of a real wave function, we know that the sign will
     // always evaluate to 1 or -1.  In this case, it may make more sense to
@@ -15,13 +16,18 @@ class RenyiSignMeasurement
 public:
     typedef amplitude_t measurement_value_t;
 
-    RenyiSignMeasurement (const RenyiSignWalk &walk)
+    RenyiSignMeasurement (void)
 	: accum(0)
 	{
-	    (void) walk; // silence warning about unused variable
 	}
 
-    void measure (const RenyiSignWalk &walk)
+    measurement_value_t get (void) const
+	{
+	    return accum / (measurement_value_t) get_measurements_completed();
+	}
+
+private:
+    void measure_ (const RenyiSignWalk &walk)
 	{
 	    // we take the argument of each determinant separately instead of
 	    // multiplying the determinants together first.  this is necessary
@@ -39,16 +45,7 @@ public:
 	    accum += std::exp(i * a);
 	}
 
-    measurement_value_t get (unsigned int measurements_completed) const
-	{
-	    return accum / (measurement_value_t) measurements_completed;
-	}
-
-private:
     measurement_value_t accum; // fixme: complex accumulator_t needed
-
-    // disable default constructor
-    RenyiSignMeasurement (void);
 };
 
 #endif

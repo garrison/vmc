@@ -1,6 +1,10 @@
 #include <iostream>
 #include <vector>
+#include <list>
 #include <memory>
+
+#include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 #include "MetropolisSimulation.hpp"
 #include "StandardWalk.hpp"
@@ -30,18 +34,26 @@ int main ()
     boost::shared_ptr<WavefunctionAmplitude> wf(new FreeFermionWavefunctionAmplitude(r));
 
     StandardWalk walk(wf);
-    MetropolisSimulation<StandardWalk, NullMeasurement<StandardWalk> > sim(walk, 8, rng());
-    sim.iterate(12);
+    boost::shared_ptr<NullMeasurement<StandardWalk> > null_measurement(new NullMeasurement<StandardWalk>);
+    MetropolisSimulation<StandardWalk> sim(walk, null_measurement, 8, rng());
 
-    boost::shared_ptr<const Subsystem> subsystem(new HypercubicSubsystem<1>(4));
-    std::vector<boost::shared_ptr<const Subsystem> > subsystems;
-    subsystems.push_back(subsystem);
+    std::list<boost::shared_ptr<Measurement<RenyiModWalk> > > mod_measurements;
+    mod_measurements.push_back(boost::make_shared<RenyiModMeasurement>(boost::make_shared<HypercubicSubsystem<1> >(4)));
 
-    RenyiModWalk mod_walk(wf, subsystems, rng);
-    MetropolisSimulation<RenyiModWalk, RenyiModMeasurement> mod_sim(mod_walk, 8, rng());
-    mod_sim.iterate(12);
+    RenyiModWalk mod_walk(wf, rng);
+    MetropolisSimulation<RenyiModWalk> mod_sim(mod_walk, mod_measurements, 8, rng());
 
+    boost::shared_ptr<Subsystem> subsystem(new HypercubicSubsystem<1>(4));
     RenyiSignWalk sign_walk(wf, subsystem, rng);
-    MetropolisSimulation<RenyiSignWalk, RenyiSignMeasurement> sign_sim(sign_walk, 8, rng());
-    sign_sim.iterate(12);
+    boost::shared_ptr<RenyiSignMeasurement> sign_measurement(new RenyiSignMeasurement);
+    MetropolisSimulation<RenyiSignWalk> sign_sim(sign_walk, sign_measurement, 8, rng());
+
+    for (unsigned int i = 0; i < 20; ++i) {
+	sim.iterate(12);
+	std::cerr << "standard " << (100.0 * sim.steps_accepted() / sim.steps_completed()) << std::endl;
+	mod_sim.iterate(12);
+	std::cerr << "swap,mod " << (100.0 * mod_sim.steps_accepted() / mod_sim.steps_completed()) << '\t' << double(dynamic_cast<RenyiModMeasurement *>(&**mod_measurements.begin())->get()) << std::endl;
+	sign_sim.iterate(12);
+	std::cerr << "swap,sign " << (100.0 * sign_sim.steps_accepted() / sign_sim.steps_completed()) << '\t' << sign_measurement->get() << std::endl;
+    }
 }

@@ -5,40 +5,64 @@
 #include <iostream>
 #endif
 
+#include <list>
+
 #include <boost/assert.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/random/uniform_01.hpp>
 #include <boost/random.hpp>
 
 #include "vmc-typedefs.hpp"
+#include "Measurement.hpp"
 
-template <class Walk_T, class Measurement_T> // fixme? make measurement imply walk?
+template <class Walk_T>
 class MetropolisSimulation
 {
 public:
-    MetropolisSimulation (const Walk_T &walk_, unsigned int lg_initialization_sweeps, const rng_seed_t &seed)
+    MetropolisSimulation (const Walk_T &walk_, const std::list<boost::shared_ptr<Measurement<Walk_T> > > &measurements_,
+			  unsigned int lg_initialization_sweeps, const rng_seed_t &seed)
 	: walk(walk_),
-	  measurement(walk_),
+	  measurements(measurements_),
 	  m_steps(0),
 	  m_steps_accepted(0),
 	  m_steps_fully_rejected(0),
-	  m_measurements(0),
+	  not_yet_measured(true),
 	  rng(seed),
 	  uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
 	{
-	    // do initialization sweeps
-	    unsigned int initialization_sweeps = 1 << lg_initialization_sweeps;
-	    for (unsigned int i = 0; i < initialization_sweeps; ++i)
-		perform_single_step();
+	    perform_initialization(lg_initialization_sweeps);
+	}
+
+    MetropolisSimulation (const Walk_T &walk_, const boost::shared_ptr<Measurement<Walk_T> > &measurement_,
+			  unsigned int lg_initialization_sweeps, const rng_seed_t &seed)
+	: walk(walk_),
+	  m_steps(0),
+	  m_steps_accepted(0),
+	  m_steps_fully_rejected(0),
+	  not_yet_measured(true),
+	  rng(seed),
+	  uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
+	{
+	    measurements.push_back(measurement_);
+	    perform_initialization(lg_initialization_sweeps);
 	}
 
     void iterate (unsigned int lg_sweeps)
 	{
-	    // fixme: steps between measurement, and implement measurement
 	    unsigned int sweeps = 1 << lg_sweeps;
 	    for (unsigned int i = 0; i < sweeps; ++i) {
-		perform_single_step();
-		do_measurement();
-		++m_measurements;
+		// perform a single step
+		const bool accepted = perform_single_step();
+
+		// perform the measurement(s)
+		if (accepted || not_yet_measured) {
+		    for (typename std::list<boost::shared_ptr<Measurement<Walk_T> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+			(*m)->measure(walk);
+		    not_yet_measured = false;
+		} else {
+		    for (typename std::list<boost::shared_ptr<Measurement<Walk_T> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+			(*m)->repeat_measurement(walk);
+		}
 	    }
 	}
 
@@ -67,24 +91,21 @@ public:
 	    return walk;
 	}
 
-    typename Measurement_T::measurement_value_t get_measurement (void) const
-	{
-	    return measurement.get(m_measurements);
-	}
-
 private:
     Walk_T walk;
-    Measurement_T measurement;
-    unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected, m_measurements;
+    std::list<boost::shared_ptr<Measurement<Walk_T> > > measurements;
+    unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
+    bool not_yet_measured;
 
     rng_class rng;
     boost::uniform_01<rng_class> uniform_distribution;
 
-    void perform_single_step (void)
+    bool perform_single_step (void)
 	{
 	    Walk_T proposed_step(walk);
 
 	    probability_t probability_ratio = proposed_step.compute_probability_ratio_of_random_transition(rng);
+	    ++m_steps;
 #if 1
 	    if (!(probability_ratio >= 0))
 		std::cerr << "invalid probability ratio: " << probability_ratio << std::endl;
@@ -98,19 +119,26 @@ private:
 #ifdef DEBUG_METROPOLIS
 		std::cerr << "A" << std::endl;
 #endif
+		return true;
 	    } else {
 		if (probability_ratio == 0)
 		    ++m_steps_fully_rejected;
 #ifdef DEBUG_METROPOLIS
 		std::cerr << "-" << std::endl;
 #endif
+		return false;
 	    }
-	    ++m_steps;
 	}
 
-    void do_measurement (void)
+    void perform_initialization (unsigned int lg_initialization_sweeps)
 	{
-	    measurement.measure(walk);
+	    // do initialization sweeps
+	    unsigned int initialization_sweeps = 1 << lg_initialization_sweeps;
+	    for (unsigned int i = 0; i < initialization_sweeps; ++i)
+		perform_single_step();
+	    // initialize the measurements
+	    for (typename std::list<boost::shared_ptr<Measurement<Walk_T> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+		(*m)->initialize(walk);
 	}
 
 };

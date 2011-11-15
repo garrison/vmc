@@ -2,44 +2,67 @@
 #define _RENYI_MOD_MEASUREMENT_HPP
 
 #include <cmath>
+#include <memory>
 
+#include "Measurement.hpp"
 #include "RenyiModWalk.hpp"
+#include "SwappedSystem.hpp"
 
-class RenyiModMeasurement
+class RenyiModMeasurement : public Measurement<RenyiModWalk>
 {
 public:
-    typedef std::vector<double> measurement_value_t;
+    typedef double measurement_value_t;
 
-    RenyiModMeasurement (const RenyiModWalk &walk)
-	: accum(walk.get_subsystem_array_size())
+    RenyiModMeasurement (const boost::shared_ptr<const Subsystem> &subsystem)
+	: swapped_system(new SwappedSystem(subsystem)),
+	  accum(0)
 	{
 	}
 
-    void measure (const RenyiModWalk &walk)
+    measurement_value_t get (void) const
 	{
-	    for (unsigned int i = 0; i < accum.size(); ++i) {
-		if (walk.get_N_subsystem1(i) == walk.get_N_subsystem2(i)) {
-		    accum[i] += std::abs(walk.get_phibeta1(i).psi()
-					 / walk.get_phialpha1().psi()
-					 * walk.get_phibeta2(i).psi()
-					 / walk.get_phialpha2().psi());
-		}
-	    }
-	}
-
-    measurement_value_t get (unsigned int measurements_completed) const
-	{
-	    std::vector<double> rv(accum.size());
-	    for (unsigned int i = 0; i < accum.size(); ++i)
-		rv[i] = static_cast<double>(accum[i]) / measurements_completed;
-	    return rv;
+	    return static_cast<measurement_value_t>(accum) / get_measurements_completed();
 	}
 
 private:
-    std::vector<accumulator_t> accum;
+    void initialize_ (const RenyiModWalk &walk)
+	{
+	    swapped_system->initialize(walk.get_phialpha1(), walk.get_phialpha2());
+	}
+
+    void measure_ (const RenyiModWalk &walk)
+	{
+	    // NOTE: this must be called on *every* accepted step of RenyiModWalk.
+	    // Otherwise the phibeta's will get messed up.
+
+	    // update swapped_system
+	    std::pair<int, int> args = walk.get_swapped_system_update_args();
+	    swapped_system->update(args.first, args.second, walk.get_phialpha1(), walk.get_phialpha2());
+	    swapped_system->finish_update(walk.get_phialpha1(), walk.get_phialpha2());
+
+	    perform_the_measurement(walk);
+	}
+
+    void repeat_measurement_ (const RenyiModWalk &walk)
+	{
+	    perform_the_measurement(walk);
+	}
+
+    void perform_the_measurement (const RenyiModWalk &walk)
+	{
+	    if (swapped_system->get_N_subsystem1() == swapped_system->get_N_subsystem2()) {
+		accum += std::abs(swapped_system->get_phibeta1().psi()
+				  / walk.get_phialpha1().psi()
+				  * swapped_system->get_phibeta2().psi()
+				  / walk.get_phialpha2().psi());
+	    }
+	}
 
     // disable default constructor
     RenyiModMeasurement (void);
+
+    std::auto_ptr<SwappedSystem> swapped_system;
+    accumulator_t accum;
 };
 
 #endif

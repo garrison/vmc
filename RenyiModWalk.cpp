@@ -9,7 +9,7 @@
 #include "RenyiModWalk.hpp"
 #include "random-move.hpp"
 
-RenyiModWalk::RenyiModWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const std::vector<boost::shared_ptr<const Subsystem> > &subsystems, rng_class &rng)
+RenyiModWalk::RenyiModWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, rng_class &rng)
     : phialpha1(wf),
       phialpha2(wf),
       transition_copy_in_progress(0)
@@ -17,13 +17,6 @@ RenyiModWalk::RenyiModWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, 
     // FIXME: phialpha2 should be different than phialpha1; just take an
     // argument or rearrange the positions randomly
     (void) rng; // FIXME!
-
-    swapped_system.reserve(subsystems.size());
-    for (unsigned int i = 0; i < subsystems.size(); ++i) {
-	swapped_system.push_back(boost::make_shared<SwappedSystem>(subsystems[i]));
-	// fixme: don't do this until we've reached equilibrium
-	swapped_system[i]->initialize(*phialpha1, *phialpha2);
-    }
 }
 
 probability_t RenyiModWalk::compute_probability_ratio_of_random_transition (rng_class &rng)
@@ -87,17 +80,9 @@ void RenyiModWalk::accept_transition (void)
 
     ((transition_copy_in_progress == 1) ? phialpha1 : phialpha2)->finish_particle_moved_update();
 
-    const int arg1 = (transition_copy_in_progress == 1) ? (int) chosen_particle : -1;
-    const int arg2 = (transition_copy_in_progress == 2) ? (int) chosen_particle : -1;
-
-    for (unsigned int i = 0; i < swapped_system.size(); ++i) {
-	// copy on write
-	if (!swapped_system[i].unique())
-	    swapped_system[i] = boost::make_shared<SwappedSystem>(*swapped_system[i]);
-
-	swapped_system[i]->update(arg1, arg2, *phialpha1, *phialpha2);
-	swapped_system[i]->finish_update(*phialpha1, *phialpha2);
-    }
+    // remember what we just did, so each RenyiModMeasurement can update its SwappedSystem
+    swapped_system_update_args.first = (transition_copy_in_progress == 1) ? (int) chosen_particle : -1;
+    swapped_system_update_args.second = (transition_copy_in_progress == 2) ? (int) chosen_particle : -1;
 
     transition_copy_in_progress = 0;
 }

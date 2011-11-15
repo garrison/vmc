@@ -13,6 +13,7 @@ HEADER_FILES = \
                HypercubicLattice.hpp \
                HypercubicSubsystem.hpp \
                Lattice.hpp \
+               Measurement.hpp \
                MetropolisSimulation.hpp \
                NullMeasurement.hpp \
                OrbitalDefinitions.hpp \

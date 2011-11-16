@@ -2,6 +2,8 @@
 #define _POSITION_ARGUMENTS_HPP
 
 #include <vector>
+#include <cstddef>
+
 #include <boost/assert.hpp>
 
 // remember: for a brief period of time, this object may contain multiple
@@ -23,7 +25,7 @@ public:
 	    return r[particle];
 	}
 
-    size_t size (void) const
+    std::size_t size (void) const
 	{
 	    return r.size();
 	}

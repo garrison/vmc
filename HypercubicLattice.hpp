@@ -1,6 +1,8 @@
 #ifndef _HYPERCUBIC_LATTICE_HPP
 #define _HYPERCUBIC_LATTICE_HPP
 
+#include <cstddef>
+
 #include <boost/array.hpp>
 
 #include "Lattice.hpp"

@@ -1,7 +1,7 @@
 #ifndef _DENSITY_DENSITY_MEASUREMENT_HPP
 #define _DENSITY_DENSITY_MEASUREMENT_HPP
 
-#include <vector>
+#include <Eigen/Core>
 
 #include "Measurement.hpp"
 #include "StandardWalk.hpp"
@@ -14,10 +14,10 @@ class DensityDensityMeasurement : public Measurement<StandardWalk>
 public:
     real_t get (unsigned int site_index, unsigned int basis_index=0) const
 	{
-	    BOOST_ASSERT(site_index < density_accum[0].size());
-	    BOOST_ASSERT(basis_index < density_accum.size());
-	    unsigned int num = density_accum[basis_index][site_index];
-	    return real_t(num) / denominator[basis_index];
+	    BOOST_ASSERT(site_index < density_accum.cols());
+	    BOOST_ASSERT(basis_index < density_accum.rows());
+	    unsigned int num = density_accum(basis_index, site_index);
+	    return real_t(num) / denominator(basis_index);
 	}
 
 private:
@@ -29,10 +29,8 @@ private:
 	    BOOST_ASSERT(lattice != 0);
 
 	    const unsigned int basis_indices = lattice->basis_indices;
-	    density_accum.resize(basis_indices);
-	    denominator.resize(basis_indices);
-	    for (unsigned int i = 0; i < basis_indices; ++i)
-		density_accum[i].resize(total_sites);
+	    density_accum.setZero(basis_indices, total_sites);
+	    denominator.setZero(basis_indices);
 	}
 
     void measure_ (const StandardWalk &walk)
@@ -49,17 +47,17 @@ private:
 		for (unsigned int j = 0; j < r.get_N_filled(); ++j) {
 		    typename Lattice_T::Site site_j(lattice->site_from_index(r[j]));
 		    lattice->asm_subtract_site_vector(site_j, site_i);
-		    ++density_accum[i_basis][lattice->site_to_index(site_j)];
+		    ++density_accum(i_basis, lattice->site_to_index(site_j));
 		}
-		++denominator[i_basis];
+		++denominator(i_basis);
 	    }
 	}
 
     // first index is the basis, second is the site index
-    std::vector<std::vector<unsigned int> > density_accum;
+    Eigen::Array<unsigned int, Eigen::Dynamic, Eigen::Dynamic> density_accum;
 
     // index refers to the basis
-    std::vector<unsigned int> denominator;
+    Eigen::Array<unsigned int, Eigen::Dynamic, 1> denominator;
 };
 
 #endif

@@ -15,9 +15,6 @@ public:
 
 private:
     amplitude_t calculate_phi (unsigned int orbital, unsigned int site_index, const Lattice &lattice) const;
-
-    // disable default constructor
-    Chain1dOrbitals (void);
 };
 
 #endif

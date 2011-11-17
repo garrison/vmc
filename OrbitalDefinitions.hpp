@@ -34,10 +34,6 @@ protected:
 	}
 
     const unsigned int N_filled_orbitals;
-
-private:
-    // disable default constructor
-    OrbitalDefinitions (void);
 };
 
 #endif

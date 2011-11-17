@@ -43,9 +43,6 @@ public:
 
 private:
     boost::array<unsigned int, DIM> subsystem_length;
-
-    // disable default constructor
-    HypercubicSubsystem (void);
 };
 
 #endif

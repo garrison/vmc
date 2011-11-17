@@ -30,10 +30,6 @@ protected:
 	}
 
     const unsigned int m_total_sites;
-
-private:
-    // disable default constructor
-    Lattice (void);
 };
 
 #endif

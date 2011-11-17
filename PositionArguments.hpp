@@ -53,10 +53,6 @@ public:
 	{
 	    return r.size();
 	}
-
-private:
-    // disable the default constructor
-    PositionArguments (void);
 };
 
 #endif

@@ -20,9 +20,6 @@ private:
 #ifndef BOOST_DISABLE_ASSERTS
     bool transition_in_progress;
 #endif
-
-    // disable the default constructor
-    StandardWalk (void);
 };
 
 #endif

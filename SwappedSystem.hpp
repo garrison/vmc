@@ -57,9 +57,6 @@ private:
     void verify_phibetas (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2) const;
     void swap_positions (PositionArguments &r1, PositionArguments &r2) const;
 
-    // disable default constructor
-    SwappedSystem (void);
-
     boost::shared_ptr<WavefunctionAmplitude> phibeta1, phibeta2; // copy on write
     const boost::shared_ptr<const Subsystem> subsystem;
     std::vector<unsigned int> copy1_subsystem_indices, copy2_subsystem_indices;

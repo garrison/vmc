@@ -92,9 +92,6 @@ protected:
     boost::shared_ptr<const Lattice> lattice; // should remain constant after initialization
 
 private:
-    // disable default constructor
-    WavefunctionAmplitude (void);
-
 #ifndef BOOST_DISABLE_ASSERTS
     bool move_in_progress;
 #endif

@@ -52,9 +52,6 @@ private:
     boost::shared_ptr<WavefunctionAmplitude> phialpha1, phialpha2;
     boost::shared_ptr<SwappedSystem> swapped_system;
     bool transition_in_progress;
-
-    // disable the default constructor
-    RenyiSignWalk (void);
 };
 
 #endif

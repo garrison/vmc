@@ -58,9 +58,6 @@ private:
 	    }
 	}
 
-    // disable default constructor
-    RenyiModMeasurement (void);
-
     std::auto_ptr<SwappedSystem> swapped_system;
     accumulator_t accum;
 };

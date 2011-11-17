@@ -76,9 +76,6 @@ public:
 	}
 
 private:
-    // disable default constructor
-    HypercubicLattice (void);
-
     static inline unsigned int count_total_sites (const boost::array<int, DIM> &length)
 	{
 	    unsigned int rv = 1;

@@ -39,9 +39,6 @@ private:
     unsigned int transition_copy_in_progress;
     unsigned int chosen_particle;
     std::pair<int, int> swapped_system_update_args;
-
-    // disable the default constructor
-    RenyiModWalk (void);
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include <boost/array.hpp>
 
 #include "Lattice.hpp"
+#include "BoundaryCondition.hpp"
 #include "random-move.hpp"
 
 template<std::size_t DIM>
@@ -13,9 +14,11 @@ class HypercubicLattice : public Lattice
 {
 public:
     typedef boost::array<int, DIM> Site;
+    typedef boost::array<BoundaryCondition, DIM> BoundaryConditions;
 
     static const unsigned int dimensions = DIM;
     static const unsigned int move_axes = DIM;
+    static const unsigned int basis_indices = 1; // Bravais lattice
 
     HypercubicLattice (const boost::array<int, DIM> &length_)
 	: Lattice(count_total_sites(length_)),
@@ -57,6 +60,13 @@ public:
 	    return true;
 	}
 
+    unsigned int basis_index (const Site &site) const
+	{
+	    // a Bravais lattice always returns zero
+	    (void) site;
+	    return 0;
+	}
+
     void move_site (Site &site, unsigned int move_axis, int step_direction) const
 	{
 	    BOOST_ASSERT(move_axis < move_axes);
@@ -68,6 +78,51 @@ public:
 	    else if (site[move_axis] < 0)
 		site[move_axis] += length[move_axis];
 	    BOOST_ASSERT(site_is_valid(site));
+	}
+
+    phase_t asm_add_site_vector (Site &site, const Site &other, const BoundaryConditions *bcs=0) const
+	{
+	    BOOST_ASSERT(basis_index(other) == 0);
+	    for (unsigned int i = 0; i < DIM; ++i)
+		site[i] += other[i];
+	    return enforce_boundary(site, bcs);
+	}
+
+    phase_t asm_subtract_site_vector (Site &site, const Site &other, const BoundaryConditions *bcs=0) const
+	{
+	    BOOST_ASSERT(basis_index(other) == 0);
+	    for (unsigned int i = 0; i < DIM; ++i)
+		site[i] -= other[i];
+	    return enforce_boundary(site, bcs);
+	}
+
+    phase_t enforce_boundary (Site &site, const BoundaryConditions *bcs=0) const
+	{
+	    phase_t phase_change = 1;
+	    for (unsigned int dim = 0; dim < DIM; ++dim) {
+		while (site[dim] >= length[dim]) {
+		    site[dim] -= length[dim];
+		    if (bcs)
+			phase_change *= (*bcs)[dim].phase();
+		}
+		while (site[dim] < 0) {
+		    site[dim] += length[dim];
+		    if (bcs)
+			phase_change /= (*bcs)[dim].phase();
+		}
+	    }
+
+	    BOOST_ASSERT(site_is_valid(site));
+	    return phase_change;
+	}
+
+    Site move_to_basis_index (const Site &site, unsigned int index) const
+	{
+	    // provides access to any other sites within a given unit cell
+	    BOOST_ASSERT(index < basis_indices);
+	    // since this is a Bravais lattice, just return the current site
+	    (void) index;
+	    return site;
 	}
 
     unsigned int plan_particle_move_to_nearby_empty_site_virtual (unsigned int particle, const PositionArguments &r, rng_class &rng) const

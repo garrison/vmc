@@ -7,7 +7,9 @@ LIBS =
 COMPILE = g++ -Wall -W -O2 $(INCLUDES) -DCAREFUL -DDEBUG -Werror
 
 HEADER_FILES = \
+               BoundaryCondition.hpp \
                CeperlyMatrix.hpp \
+               DensityDensityMeasurement.hpp \
                Chain1dOrbitals.hpp \
                FreeFermionWavefunctionAmplitude.hpp \
                HypercubicLattice.hpp \

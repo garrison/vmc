@@ -14,6 +14,11 @@ public:
     probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
     void accept_transition (void);
 
+    const WavefunctionAmplitude & get_wavefunction (void) const
+	{
+	    return *wf;
+	}
+
 private:
     boost::shared_ptr<WavefunctionAmplitude> wf; // treat this as copy on write
 

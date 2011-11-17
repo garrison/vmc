@@ -2,6 +2,7 @@
 #define _DENSITY_DENSITY_MEASUREMENT_HPP
 
 #include <Eigen/Core>
+#include <boost/assert.hpp>
 
 #include "Measurement.hpp"
 #include "StandardWalk.hpp"

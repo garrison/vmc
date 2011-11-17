@@ -19,7 +19,7 @@ public:
 	{
 	    BOOST_ASSERT(!move_in_progress);
 	    BOOST_ASSERT(particle < r.get_N_filled());
-	    BOOST_ASSERT(!r.is_occupied(new_site_index));
+	    BOOST_ASSERT(!r.is_occupied(new_site_index) || r[particle] == new_site_index);
 #ifdef DEBUG
 	    if (r[particle] == new_site_index)
 		std::cerr << "performing a no-op particle move" << std::endl;

@@ -39,6 +39,11 @@ private:
 	    const Lattice_T *lattice = dynamic_cast<const Lattice_T*>(&walk.get_wavefunction().get_lattice());
 	    BOOST_ASSERT(lattice != 0);
 
+	    const unsigned int total_sites = walk.get_wavefunction().get_lattice().total_sites();
+	    const unsigned int basis_indices = lattice->basis_indices;
+	    current_density_accum.setZero(basis_indices, total_sites);
+	    current_denominator.setZero(basis_indices);
+
 	    // loop through all pairs of particles
 	    for (unsigned int i = 0; i < r.get_N_filled(); ++i) {
 		typename Lattice_T::Site site_i(lattice->site_from_index(r[i]));
@@ -51,13 +56,22 @@ private:
 		}
 		++denominator(i_basis);
 	    }
+
+	    repeat_measurement_(walk);
 	}
 
-    // first index is the basis, second is the site index
-    Eigen::Array<unsigned int, Eigen::Dynamic, Eigen::Dynamic> density_accum;
+    void repeat_measurement_ (const StandardWalk &walk)
+	{
+	    (void) walk;
+	    density_accum += current_density_accum;
+	    denominator += current_denominator;
+	}
+
+    // row is the basis, column is the site index
+    Eigen::Array<unsigned int, Eigen::Dynamic, Eigen::Dynamic> density_accum, current_density_accum;
 
     // index refers to the basis
-    Eigen::Array<unsigned int, Eigen::Dynamic, 1> denominator;
+    Eigen::Array<unsigned int, Eigen::Dynamic, 1> denominator, current_denominator;
 };
 
 #endif

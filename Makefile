@@ -4,7 +4,7 @@ BOOST_CFLAGS =
 INCLUDES = $(EIGEN3_CFLAGS) $(BOOST_CFLAGS)
 LIBS = 
 
-COMPILE = g++ -Wall -W -O2 $(INCLUDES) -DCAREFUL -DDEBUG -Werror
+COMPILE = g++ -Wall -W -O2 $(INCLUDES)
 
 HEADER_FILES = \
                BoundaryCondition.hpp \

@@ -32,6 +32,8 @@ private:
 	    const unsigned int basis_indices = lattice->basis_indices;
 	    density_accum.setZero(basis_indices, total_sites);
 	    denominator.setZero(basis_indices);
+	    current_density_accum.resizeLike(density_accum);
+	    current_denominator.resizeLike(denominator);
 	}
 
     void measure_ (const StandardWalk &walk)
@@ -40,10 +42,8 @@ private:
 	    const Lattice_T *lattice = dynamic_cast<const Lattice_T*>(&walk.get_wavefunction().get_lattice());
 	    BOOST_ASSERT(lattice != 0);
 
-	    const unsigned int total_sites = walk.get_wavefunction().get_lattice().total_sites();
-	    const unsigned int basis_indices = lattice->basis_indices;
-	    current_density_accum.setZero(basis_indices, total_sites);
-	    current_denominator.setZero(basis_indices);
+	    current_density_accum.setZero();
+	    current_denominator.setZero();
 
 	    // loop through all pairs of particles
 	    for (unsigned int i = 0; i < r.get_N_filled(); ++i) {

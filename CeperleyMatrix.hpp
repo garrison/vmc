@@ -101,7 +101,7 @@ public:
 	    // implement equation (12) of Ceperley et al, correctly given as eqn (4.22)
 	    // of Kent's thesis http://www.ornl.gov/~pk7/thesis/thesis.ps.gz
 	    Eigen::Matrix<T, Eigen::Dynamic, 1> oldcol(invmat.col(pending_index));
-	    invmat -= (invmat.col(pending_index) / detrat * mat.row(pending_index) * invmat).eval();
+	    invmat -= ((invmat.col(pending_index) / detrat) * (mat.row(pending_index) * invmat)).eval();
 	    invmat.col(pending_index) = oldcol / detrat;
 
 	    next_step = UPDATE_ROW;

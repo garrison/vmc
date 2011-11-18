@@ -3,7 +3,7 @@
 
 #include "WavefunctionAmplitude.hpp"
 #include "PositionArguments.hpp"
-#include "CeperlyMatrix.hpp"
+#include "CeperleyMatrix.hpp"
 #include "Chain1dOrbitals.hpp"
 
 // i.e. single determinant w/o Jastrow factor
@@ -11,7 +11,7 @@
 class FreeFermionWavefunctionAmplitude : public WavefunctionAmplitude
 {
 private:
-    CeperlyMatrix<amplitude_t> cmat;
+    CeperleyMatrix<amplitude_t> cmat;
     Chain1dOrbitals orbital_def;
 
 public:

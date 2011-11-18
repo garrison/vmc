@@ -1,5 +1,5 @@
-#ifndef _CEPERLY_MATRIX_HPP
-#define _CEPERLY_MATRIX_HPP
+#ifndef _CEPERLEY_MATRIX_HPP
+#define _CEPERLEY_MATRIX_HPP
 
 #include <iostream>
 #include <cmath>
@@ -11,7 +11,7 @@
 // in a given step.  Also known as the Sherman-Morrison-Woodbury formula.  This
 // class acts as a finite state machine.  See next_step.
 template <typename T>
-class CeperlyMatrix
+class CeperleyMatrix
 {
 private:
     enum NextStep {
@@ -26,7 +26,7 @@ private:
     NextStep next_step;
 
 public:
-    CeperlyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
+    CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
 	: mat(initial_mat),
 	  invmat(mat.fullPivLu().inverse()),
 	  detrat(0),
@@ -40,7 +40,7 @@ public:
 		std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
 	}
 
-    CeperlyMatrix (void)
+    CeperleyMatrix (void)
 	: next_step(INITIALIZE)
 	{
 	}
@@ -98,7 +98,7 @@ public:
 	{
 	    BOOST_ASSERT(next_step == FINISH_ROW_UPDATE);
 
-	    // implement equation (12) of Ceperly et al, correctly given as eqn (4.22)
+	    // implement equation (12) of Ceperley et al, correctly given as eqn (4.22)
 	    // of Kent's thesis http://www.ornl.gov/~pk7/thesis/thesis.ps.gz
 	    Eigen::Matrix<T, Eigen::Dynamic, 1> oldcol(invmat.col(pending_index));
 	    invmat -= (invmat.col(pending_index) / detrat * mat.row(pending_index) * invmat).eval();

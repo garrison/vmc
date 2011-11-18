@@ -8,7 +8,7 @@ COMPILE = g++ -Wall -W -O2 $(INCLUDES)
 
 HEADER_FILES = \
                BoundaryCondition.hpp \
-               CeperlyMatrix.hpp \
+               CeperleyMatrix.hpp \
                DensityDensityMeasurement.hpp \
                Chain1dOrbitals.hpp \
                FreeFermionWavefunctionAmplitude.hpp \

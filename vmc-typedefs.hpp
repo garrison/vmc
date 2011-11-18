@@ -43,7 +43,7 @@ private:
     long double accum;
 };
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 
 #include <Eigen/Core>
 

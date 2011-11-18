@@ -19,34 +19,34 @@ public:
     void accept_transition (void);
 
     const WavefunctionAmplitude & get_phialpha1 (void) const
-	{
-	    return *phialpha1;
-	}
+        {
+            return *phialpha1;
+        }
 
     const WavefunctionAmplitude & get_phialpha2 (void) const
-	{
-	    return *phialpha2;
-	}
+        {
+            return *phialpha2;
+        }
 
     const WavefunctionAmplitude & get_phibeta1 (void) const
-	{
-	    return swapped_system->get_phibeta1();
-	}
+        {
+            return swapped_system->get_phibeta1();
+        }
 
     const WavefunctionAmplitude & get_phibeta2 (void) const
-	{
-	    return swapped_system->get_phibeta2();
-	}
+        {
+            return swapped_system->get_phibeta2();
+        }
 
     unsigned int get_N_subsystem1 (void) const
-	{
-	    return swapped_system->get_N_subsystem1();
-	}
+        {
+            return swapped_system->get_N_subsystem1();
+        }
 
     unsigned int get_N_subsystem2 (void) const
-	{
-	    return swapped_system->get_N_subsystem2();
-	}
+        {
+            return swapped_system->get_N_subsystem2();
+        }
 
 private:
     boost::shared_ptr<WavefunctionAmplitude> phialpha1, phialpha2;

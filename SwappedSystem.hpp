@@ -24,33 +24,33 @@ public:
     void finish_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
 
     const Subsystem & get_subsystem (void) const
-	{
-	    return *subsystem;
-	}
+        {
+            return *subsystem;
+        }
 
     const WavefunctionAmplitude & get_phibeta1 (void) const
-	{
-	    BOOST_ASSERT(next_step != INITIALIZE);
-	    BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
-	    return *phibeta1;
-	}
+        {
+            BOOST_ASSERT(next_step != INITIALIZE);
+            BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
+            return *phibeta1;
+        }
 
     const WavefunctionAmplitude & get_phibeta2 (void) const
-	{
-	    BOOST_ASSERT(next_step != INITIALIZE);
-	    BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
-	    return *phibeta2;
-	}
+        {
+            BOOST_ASSERT(next_step != INITIALIZE);
+            BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
+            return *phibeta2;
+        }
 
     unsigned int get_N_subsystem1 (void) const
-	{
-	    return copy1_subsystem_indices.size();
-	}
+        {
+            return copy1_subsystem_indices.size();
+        }
 
     unsigned int get_N_subsystem2 (void) const
-	{
-	    return copy2_subsystem_indices.size();
-	}
+        {
+            return copy2_subsystem_indices.size();
+        }
 
 private:
     void reinitialize_phibetas (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
@@ -63,9 +63,9 @@ private:
     bool phibeta1_dirty, phibeta2_dirty; // helps save time on RenyiSign calculation
 
     enum NextStep {
-	INITIALIZE,
-	UPDATE,
-	FINISH_UPDATE
+        INITIALIZE,
+        UPDATE,
+        FINISH_UPDATE
     } next_step;
 };
 

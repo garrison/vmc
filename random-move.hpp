@@ -28,11 +28,11 @@ static inline unsigned int plan_particle_move_to_nearby_empty_site_template (uns
 {
     unsigned int move_axis;
     if (Lattice_T::move_axes == 1) {
-	move_axis = 0;
+        move_axis = 0;
     } else {
-	boost::uniform_smallint<> axis_distribution(0, Lattice_T::move_axes - 1);
-	boost::variate_generator<rng_class&, boost::uniform_smallint<> > axis_gen(rng, axis_distribution);
-	move_axis = axis_gen();
+        boost::uniform_smallint<> axis_distribution(0, Lattice_T::move_axes - 1);
+        boost::variate_generator<rng_class&, boost::uniform_smallint<> > axis_gen(rng, axis_distribution);
+        move_axis = axis_gen();
     }
 
     boost::uniform_smallint<> direction_distribution(0, 1);
@@ -42,8 +42,8 @@ static inline unsigned int plan_particle_move_to_nearby_empty_site_template (uns
     typename Lattice_T::Site site = lattice.site_from_index(r[particle]);
     unsigned int site_index;
     do {
-	lattice.move_site(site, move_axis, step_direction);
-	site_index = lattice.site_to_index(site);
+        lattice.move_site(site, move_axis, step_direction);
+        site_index = lattice.site_to_index(site);
     } while (r.is_occupied(site_index) && site_index != r[particle]);
 
     return site_index;

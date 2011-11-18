@@ -24,11 +24,11 @@ unsigned int choose_random_empty_site (const PositionArguments &r, rng_class &rn
 
     int empty_site = empty_site_gen();
     for (unsigned int current_site = 0; ; ++current_site) {
-	BOOST_ASSERT(current_site < r.get_N_sites());
-	if (!r.is_occupied(current_site)) {
-	    if (empty_site-- == 0) {
-		return current_site;
-	    }
-	}
+        BOOST_ASSERT(current_site < r.get_N_sites());
+        if (!r.is_occupied(current_site)) {
+            if (empty_site-- == 0) {
+                return current_site;
+            }
+        }
     }
 }

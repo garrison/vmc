@@ -10,19 +10,19 @@ public:
     typedef int measurement_value_t;
 
     NullMeasurement (void)
-	{
-	}
+        {
+        }
 
     measurement_value_t get (void) const
-	{
-	    return 0;
-	}
+        {
+            return 0;
+        }
 
 private:
     void measure_ (const Walk_T &walk)
-	{
-	    (void) walk;
-	}
+        {
+            (void) walk;
+        }
 };
 
 #endif

@@ -23,7 +23,7 @@ void FreeFermionWavefunctionAmplitude::move_particle_ (unsigned int particle, un
     // calculate each phi at new position and update the Ceperley matrix
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, 1> phivec(N);
     for (unsigned int i = 0; i < N; ++i)
-	phivec(i) = orbital_def.phi(i, new_site_index, *lattice);
+        phivec(i) = orbital_def.phi(i, new_site_index, *lattice);
     cmat.update_row(particle, phivec);
 }
 
@@ -48,8 +48,8 @@ void FreeFermionWavefunctionAmplitude::reinitialize (void)
     unsigned int N = r.get_N_filled();
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
     for (unsigned int i = 0; i < N; ++i) {
-	for (unsigned int j = 0; j < N; ++j)
-	    mat(i, j) = orbital_def.phi(j, r[i], *lattice);
+        for (unsigned int j = 0; j < N; ++j)
+            mat(i, j) = orbital_def.phi(j, r[i], *lattice);
     }
     cmat = mat;
 }

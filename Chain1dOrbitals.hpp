@@ -7,9 +7,9 @@ class Chain1dOrbitals : public OrbitalDefinitions
 {
 public:
     Chain1dOrbitals (unsigned int N_filled)
-	: OrbitalDefinitions(N_filled)
-	{
-	}
+        : OrbitalDefinitions(N_filled)
+        {
+        }
 
     bool lattice_makes_sense (const Lattice &lattice) const;
 

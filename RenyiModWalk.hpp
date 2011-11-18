@@ -17,22 +17,22 @@ public:
     void accept_transition (void);
 
     const WavefunctionAmplitude & get_phialpha1 (void) const
-	{
-	    return *phialpha1;
-	}
+        {
+            return *phialpha1;
+        }
 
     const WavefunctionAmplitude & get_phialpha2 (void) const
-	{
-	    return *phialpha2;
-	}
+        {
+            return *phialpha2;
+        }
 
     std::pair<int, int> get_swapped_system_update_args (void) const
-	{
-	    BOOST_ASSERT(transition_copy_in_progress == 0);
-	    // REMEMBER: this function also assumes that accept_transition()
-	    // has been called at least once.
-	    return swapped_system_update_args;
-	}
+        {
+            BOOST_ASSERT(transition_copy_in_progress == 0);
+            // REMEMBER: this function also assumes that accept_transition()
+            // has been called at least once.
+            return swapped_system_update_args;
+        }
 
 private:
     boost::shared_ptr<WavefunctionAmplitude> phialpha1, phialpha2;

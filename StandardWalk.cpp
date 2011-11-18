@@ -23,9 +23,9 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (rng_
     unsigned int chosen_particle = choose_random_particle(r, rng, 0);
     unsigned int new_site_index = plan_particle_move_to_nearby_empty_site(chosen_particle, r, wf->get_lattice(), rng);
     if (new_site_index == r[chosen_particle])
-	return 0; // we aren't moving anything, so just reject this move
+        return 0; // we aren't moving anything, so just reject this move
     if (!wf.unique()) // implement copy on write
-	wf = wf->clone();
+        wf = wf->clone();
     wf->move_particle(chosen_particle, new_site_index);
 
     // calculate and return a probability

@@ -40,12 +40,12 @@ probability_t RenyiModWalk::compute_probability_ratio_of_random_transition (rng_
 
     const PositionArguments &r1 = phialpha1->get_positions();
     for (unsigned int k = 0; k < N_sites; ++k)
-	std::cerr << (transition_copy_in_progress == 1 && r1[chosen_particle] == k ? '$' : (r1.is_occupied(k) ? '*' : '-'));
+        std::cerr << (transition_copy_in_progress == 1 && r1[chosen_particle] == k ? '$' : (r1.is_occupied(k) ? '*' : '-'));
     std::cerr << std::endl;
 
     const PositionArguments &r2 = phialpha2->get_positions();
     for (unsigned int k = 0; k < N_sites; ++k)
-	std::cerr << (transition_copy_in_progress == 2 && r2[chosen_particle] == k ? '$' : (r2.is_occupied(k) ? '*' : '-'));
+        std::cerr << (transition_copy_in_progress == 2 && r2[chosen_particle] == k ? '$' : (r2.is_occupied(k) ? '*' : '-'));
     std::cerr << std::endl << std::endl;
 #endif
 
@@ -53,7 +53,7 @@ probability_t RenyiModWalk::compute_probability_ratio_of_random_transition (rng_
 
     // update phialpha using copy-on-write
     if (!phialpha.unique())
-	phialpha = phialpha->clone();
+        phialpha = phialpha->clone();
     BOOST_ASSERT(phialpha.unique());
 
     phialpha->move_particle(chosen_particle, particle_destination);
@@ -69,12 +69,12 @@ void RenyiModWalk::accept_transition (void)
 #ifdef DEBUG
     const PositionArguments &r1 = phialpha1->get_positions();
     for (unsigned int i = 0; i < r1.size(); ++i)
-	std::cerr << r1[i] << ' ';
+        std::cerr << r1[i] << ' ';
     std::cerr << std::endl;
 
     const PositionArguments &r2 = phialpha2->get_positions();
     for (unsigned int i = 0; i < r2.size(); ++i)
-	std::cerr << r2[i] << ' ';
+        std::cerr << r2[i] << ' ';
     std::cerr << std::endl << std::endl;
 #endif
 

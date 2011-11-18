@@ -15,9 +15,9 @@ public:
     void accept_transition (void);
 
     const WavefunctionAmplitude & get_wavefunction (void) const
-	{
-	    return *wf;
-	}
+        {
+            return *wf;
+        }
 
 private:
     boost::shared_ptr<WavefunctionAmplitude> wf; // treat this as copy on write

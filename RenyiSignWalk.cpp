@@ -39,8 +39,8 @@ probability_t RenyiSignWalk::compute_probability_ratio_of_random_transition (rng
 
     // automatic reject if the subsystems will now have different particle counts
     if (calculate_subsystem_particle_change(swapped_system->get_subsystem(), r1[chosen_particle1], particle1_destination, phialpha1->get_lattice())
-	!= calculate_subsystem_particle_change(swapped_system->get_subsystem(), r2[chosen_particle2], particle2_destination, phialpha2->get_lattice()))
-	return 0;
+        != calculate_subsystem_particle_change(swapped_system->get_subsystem(), r2[chosen_particle2], particle2_destination, phialpha2->get_lattice()))
+        return 0;
 
     const amplitude_t old_phialpha1_psi = phialpha1->psi();
     const amplitude_t old_phialpha2_psi = phialpha2->psi();
@@ -49,11 +49,11 @@ probability_t RenyiSignWalk::compute_probability_ratio_of_random_transition (rng
 
     // implement copy-on-write
     if (!phialpha1.unique())
-	phialpha1 = phialpha1->clone();
+        phialpha1 = phialpha1->clone();
     if (!phialpha2.unique())
-	phialpha2 = phialpha2->clone();
+        phialpha2 = phialpha2->clone();
     if (!swapped_system.unique())
-	swapped_system = boost::make_shared<SwappedSystem>(*swapped_system);
+        swapped_system = boost::make_shared<SwappedSystem>(*swapped_system);
 
     // update phialpha's
     phialpha1->move_particle(chosen_particle1, particle1_destination);
@@ -78,12 +78,12 @@ void RenyiSignWalk::accept_transition (void)
 #ifdef DEBUG
     const PositionArguments &r1 = phialpha1->get_positions();
     for (unsigned int i = 0; i < r1.size(); ++i)
-	std::cerr << r1[i] << ' ';
+        std::cerr << r1[i] << ' ';
     std::cerr << std::endl;
 
     const PositionArguments &r2 = phialpha2->get_positions();
     for (unsigned int i = 0; i < r2.size(); ++i)
-	std::cerr << r2[i] << ' ';
+        std::cerr << r2[i] << ' ';
     std::cerr << std::endl << std::endl;
 #endif
 

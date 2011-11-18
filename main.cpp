@@ -49,16 +49,16 @@ int main ()
     MetropolisSimulation<RenyiSignWalk> sign_sim(sign_walk, sign_measurement, 8, rng());
 
     for (unsigned int i = 0; i < 20; ++i) {
-	sim.iterate(12);
-	std::cerr << "density-density " << (100.0 * sim.steps_accepted() / sim.steps_completed()) << "%\t";
-	for (unsigned int i = 0; i < N; ++i)
-	    std::cerr << "  " << density_measurement->get(i);
-	std::cerr << std::endl;
+        sim.iterate(12);
+        std::cerr << "density-density " << (100.0 * sim.steps_accepted() / sim.steps_completed()) << "%\t";
+        for (unsigned int i = 0; i < N; ++i)
+            std::cerr << "  " << density_measurement->get(i);
+        std::cerr << std::endl;
 
-	mod_sim.iterate(12);
-	std::cerr << "swap,mod " << (100.0 * mod_sim.steps_accepted() / mod_sim.steps_completed()) << "%\t" << double(dynamic_cast<RenyiModMeasurement *>(&**mod_measurements.begin())->get()) << std::endl;
+        mod_sim.iterate(12);
+        std::cerr << "swap,mod " << (100.0 * mod_sim.steps_accepted() / mod_sim.steps_completed()) << "%\t" << double(dynamic_cast<RenyiModMeasurement *>(&**mod_measurements.begin())->get()) << std::endl;
 
-	sign_sim.iterate(12);
-	std::cerr << "swap,sign " << (100.0 * sign_sim.steps_accepted() / sign_sim.steps_completed()) << "%\t" << sign_measurement->get() << std::endl;
+        sign_sim.iterate(12);
+        std::cerr << "swap,sign " << (100.0 * sign_sim.steps_accepted() / sign_sim.steps_completed()) << "%\t" << sign_measurement->get() << std::endl;
     }
 }

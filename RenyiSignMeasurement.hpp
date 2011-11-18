@@ -17,33 +17,33 @@ public:
     typedef amplitude_t measurement_value_t;
 
     RenyiSignMeasurement (void)
-	: accum(0)
-	{
-	}
+        : accum(0)
+        {
+        }
 
     measurement_value_t get (void) const
-	{
-	    return accum / (measurement_value_t) get_measurements_completed();
-	}
+        {
+            return accum / (measurement_value_t) get_measurements_completed();
+        }
 
 private:
     void measure_ (const RenyiSignWalk &walk)
-	{
-	    // we take the argument of each determinant separately instead of
-	    // multiplying the determinants together first.  this is necessary
-	    // because the determinants tend to be quite large, and multiplying
-	    // them can lead to overflow
-	    double a = 0;
-	    a -= std::arg(walk.get_phialpha1().psi());
-	    a -= std::arg(walk.get_phialpha2().psi());
-	    a += std::arg(walk.get_phibeta1().psi());
-	    a += std::arg(walk.get_phibeta2().psi());
-	    const std::complex<double> i(0, 1);
+        {
+            // we take the argument of each determinant separately instead of
+            // multiplying the determinants together first.  this is necessary
+            // because the determinants tend to be quite large, and multiplying
+            // them can lead to overflow
+            double a = 0;
+            a -= std::arg(walk.get_phialpha1().psi());
+            a -= std::arg(walk.get_phialpha2().psi());
+            a += std::arg(walk.get_phibeta1().psi());
+            a += std::arg(walk.get_phibeta2().psi());
+            const std::complex<double> i(0, 1);
 #if 0
-	    std::cerr << std::real(std::exp(i * a)) << "   " << std::arg(walk.get_phialpha1().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phialpha2().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta1().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta2().psi())/boost::math::constants::pi<double>() << ' ' << std::endl;
+            std::cerr << std::real(std::exp(i * a)) << "   " << std::arg(walk.get_phialpha1().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phialpha2().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta1().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta2().psi())/boost::math::constants::pi<double>() << ' ' << std::endl;
 #endif
-	    accum += std::exp(i * a);
-	}
+            accum += std::exp(i * a);
+        }
 
     measurement_value_t accum; // fixme: complex accumulator_t needed
 };

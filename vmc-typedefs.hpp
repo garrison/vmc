@@ -19,25 +19,25 @@ class accumulator_t
 {
 public:
     accumulator_t (double x=0)
-	: accum(x)
-	{
-	}
+        : accum(x)
+        {
+        }
 
     operator double () const
-	{
-	    return accum;
-	}
+        {
+            return accum;
+        }
 
     accumulator_t & operator+= (double x)
-	{
-	    accum += x;
-	    return *this;
-	}
+        {
+            accum += x;
+            return *this;
+        }
 
     accumulator_t & operator-= (double x)
-	{
-	    return operator+=(-x);
-	}
+        {
+            return operator+=(-x);
+        }
 
 private:
     long double accum;
@@ -56,13 +56,13 @@ template<> struct NumTraits<__float128>
     typedef __float128 Nested;
 
     enum {
-	IsComplex = 0,
-	IsInteger = 0,
-	IsSigned,
-	ReadCost = 1,
-	AddCost = 1,
-	MulCost = 1,
-	RequireInitialization = 0
+        IsComplex = 0,
+        IsInteger = 0,
+        IsSigned,
+        ReadCost = 1,
+        AddCost = 1,
+        MulCost = 1,
+        RequireInitialization = 0
     };
 };
 

@@ -21,16 +21,16 @@ void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned 
     v.resize(keep);
     v.reserve(r);
     for (std::vector<unsigned int>::const_iterator i = v.begin(); i != v.end(); ++i)
-	vs.insert(*i);
+        vs.insert(*i);
     BOOST_ASSERT(v.size() == vs.size());
 
     for (unsigned int k = n - r + keep; k < n; ++k) {
-	boost::uniform_smallint<> dist(0, k - 1);
-	// fixme: make sure we can use the same rng again and again here without updating it
-	boost::variate_generator<rng_class&, boost::uniform_smallint<> > gen(rng, dist);
-	unsigned int x = gen();
-	unsigned int a = (vs.find(x) != vs.end()) ? k : x;
-	v.push_back(a);
-	vs.insert(a);
+        boost::uniform_smallint<> dist(0, k - 1);
+        // fixme: make sure we can use the same rng again and again here without updating it
+        boost::variate_generator<rng_class&, boost::uniform_smallint<> > gen(rng, dist);
+        unsigned int x = gen();
+        unsigned int a = (vs.find(x) != vs.end()) ? k : x;
+        v.push_back(a);
+        vs.insert(a);
     }
 }

@@ -29,13 +29,15 @@ private:
 public:
     CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
         : mat(initial_mat),
-          invmat(mat.fullPivLu().inverse()),
           detrat(0),
-          det(mat.determinant()),
           next_step(UPDATE)
         {
-            // if invmat.inverse() is not close to mat it probably means our
-            // orbitals are probably not linearly independent!
+            Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > fullpivlu_decomposition(mat);
+            invmat = fullpivlu_decomposition.inverse();
+            det = fullpivlu_decomposition.determinant();
+
+            // if there is significant inverse error it probably means our
+            // orbitals are not linearly independent!
             double inverse_error = compute_inverse_matrix_error();
             if (inverse_error > .0001)
                 std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
@@ -160,8 +162,9 @@ public:
     void refresh_state (void)
         {
             BOOST_ASSERT(next_step == UPDATE);
-            invmat = mat.fullPivLu().inverse();
-            det = mat.determinant();
+            Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > fullpivlu_decomposition(mat);
+            invmat = fullpivlu_decomposition.inverse();
+            det = fullpivlu_decomposition.determinant();
             // FIXME: adjust detrat accordingly
         }
 
@@ -192,7 +195,7 @@ public:
     double compute_relative_determinant_error (void) const
         {
             BOOST_ASSERT(next_step == UPDATE);
-            T d = mat.determinant();
+            T d = mat.fullPivLu().determinant();
             return abs((d - det) / d);
         }
 

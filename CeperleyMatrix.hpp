@@ -16,8 +16,9 @@ class CeperleyMatrix
 private:
     enum NextStep {
 	INITIALIZE,
-	UPDATE_ROW,
-	FINISH_ROW_UPDATE
+	UPDATE,
+	FINISH_ROW_UPDATE,
+	FINISH_COLUMN_UPDATE
     };
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat;
@@ -31,7 +32,7 @@ public:
 	  invmat(mat.fullPivLu().inverse()),
 	  detrat(0),
 	  det(mat.determinant()),
-	  next_step(UPDATE_ROW)
+	  next_step(UPDATE)
 	{
 	    // if invmat.inverse() is not close to mat it probably means our
 	    // orbitals are probably not linearly independent!
@@ -47,7 +48,7 @@ public:
 
     void swap_rows (unsigned int r1, unsigned int r2)
 	{
-	    BOOST_ASSERT(next_step == UPDATE_ROW);
+	    BOOST_ASSERT(next_step == UPDATE);
 	    BOOST_ASSERT(r1 < mat.rows());
 	    BOOST_ASSERT(r2 < mat.rows());
 	    BOOST_ASSERT(r1 != r2);
@@ -63,7 +64,7 @@ public:
 	{
 	    BOOST_ASSERT(r < mat.rows());
 	    BOOST_ASSERT(row.rows() == mat.cols());
-	    BOOST_ASSERT(next_step == UPDATE_ROW);
+	    BOOST_ASSERT(next_step == UPDATE);
 
 	    // update matrix
 	    mat.row(r) = row;
@@ -88,6 +89,35 @@ public:
 	    next_step = FINISH_ROW_UPDATE;
 	}
 
+    void update_column (unsigned int c, const Eigen::Matrix<T, Eigen::Dynamic, 1> &col)
+	{
+	    BOOST_ASSERT(c < mat.cols());
+	    BOOST_ASSERT(col.rows() == mat.rows());
+	    BOOST_ASSERT(next_step == UPDATE);
+
+	    // update matrix
+	    mat.col(c) = col;
+	    pending_index = c;
+
+	    // calculate determinant ratio
+	    detrat = invmat.row(pending_index) * mat.col(pending_index);
+	    det *= detrat;
+
+#ifdef CAREFUL
+	    // check to make sure the column given doesn't already exist in the
+	    // matrix, thus ruining things by setting the determinant to zero
+	    for (unsigned int i = 0; i < mat.cols(); ++i) {
+		if (i != pending_index) {
+		    if (mat.col(i) == mat.col(pending_index))
+			std::cerr << "!" << i << "," << pending_index << ' ' << detrat << std::endl;
+		    BOOST_ASSERT(mat.col(i) != mat.col(pending_index));
+		}
+	    }
+#endif
+
+	    next_step = FINISH_COLUMN_UPDATE;
+	}
+
     T get_determinant_ratio (void) const
 	{
 	    BOOST_ASSERT(next_step != INITIALIZE);
@@ -104,23 +134,32 @@ public:
 	    invmat -= ((invmat.col(pending_index) / detrat) * (mat.row(pending_index) * invmat)).eval();
 	    invmat.col(pending_index) = oldcol / detrat;
 
-	    next_step = UPDATE_ROW;
+	    next_step = UPDATE;
 
 #ifdef CAREFUL
-	    if (compute_inverse_matrix_error() > 1) {
-		std::cerr << "Recomputing inverse due to large inverse matrix error of " << compute_inverse_matrix_error() << std::endl;
-		refresh_state();
-	    }
+	    be_careful();
 #endif
+	}
+
+    void finish_column_update (void)
+	{
+	    BOOST_ASSERT(next_step == FINISH_COLUMN_UPDATE);
+
+	    // same as above: update the inverse matrix
+	    Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index));
+	    invmat -= ((invmat * mat.col(pending_index)) * (invmat.row(pending_index) / detrat)).eval();
+	    invmat.row(pending_index) = oldrow / detrat;
+
+	    next_step = UPDATE;
+
 #ifdef CAREFUL
-	    if (compute_relative_determinant_error() > .03)
-		std::cerr << "large determinant error! " << compute_relative_determinant_error() << std::endl;
+	    be_careful();
 #endif
 	}
 
     void refresh_state (void)
 	{
-	    BOOST_ASSERT(next_step == UPDATE_ROW);
+	    BOOST_ASSERT(next_step == UPDATE);
 	    invmat = mat.fullPivLu().inverse();
 	    det = mat.determinant();
 	    // FIXME: adjust detrat accordingly
@@ -134,7 +173,7 @@ public:
 
     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_inverse (void) const
 	{
-	    BOOST_ASSERT(next_step == UPDATE_ROW);
+	    BOOST_ASSERT(next_step == UPDATE);
 	    return invmat;
 	}
 
@@ -146,13 +185,13 @@ public:
 
     double compute_inverse_matrix_error (void) const
 	{
-	    BOOST_ASSERT(next_step == UPDATE_ROW);
+	    BOOST_ASSERT(next_step == UPDATE);
 	    return (mat * invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(mat.rows(), mat.cols())).array().abs().sum();
 	}
 
     double compute_relative_determinant_error (void) const
 	{
-	    BOOST_ASSERT(next_step == UPDATE_ROW);
+	    BOOST_ASSERT(next_step == UPDATE);
 	    T d = mat.determinant();
 	    return abs((d - det) / d);
 	}
@@ -166,6 +205,20 @@ public:
 	{
 	    return rows();
 	}
+
+private:
+#ifdef CAREFUL
+    void be_careful (void)
+	{
+	    if (compute_inverse_matrix_error() > 1) {
+		std::cerr << "Recomputing inverse due to large inverse matrix error of " << compute_inverse_matrix_error() << std::endl;
+		refresh_state();
+	    }
+
+	    if (compute_relative_determinant_error() > .03)
+		std::cerr << "large determinant error! " << compute_relative_determinant_error() << std::endl;
+	}
+#endif
 };
 
 #endif

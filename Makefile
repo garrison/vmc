@@ -1,22 +1,32 @@
-EIGEN3_CFLAGS = -I/usr/include/eigen3
+EIGEN3_CFLAGS = 
 BOOST_CFLAGS = 
 
 INCLUDES = $(EIGEN3_CFLAGS) $(BOOST_CFLAGS)
 LIBS = 
 
-COMPILE = g++ -Wall -W -O2 $(INCLUDES)
+CXX = g++
+COMPILER_OPTIMIZATIONS = -O3 -march=native
+COMPILER_WARNINGS = -Wall -Wextra -Wno-unused-parameter
+COMPILER_DEFINES = 
+COMPILE = $(CXX) $(COMPILER_OPTIMIZATIONS) $(COMPILER_WARNINGS) $(COMPILER_DEFINES)
+
+-include Makefile-vmc.local
 
 HEADER_FILES = \
+               allowed-momentum.hpp \
+               array-util.hpp \
                BoundaryCondition.hpp \
                CeperleyMatrix.hpp \
                DensityDensityMeasurement.hpp \
-               Chain1dOrbitals.hpp \
+               FilledOrbitals.hpp \
                FreeFermionWavefunctionAmplitude.hpp \
                HypercubicLattice.hpp \
-               HypercubicSubsystem.hpp \
                Lattice.hpp \
+               LatticeRealization.hpp \
+               lowest-momenta.hpp \
                Measurement.hpp \
                MetropolisSimulation.hpp \
+               NDLattice.hpp \
                NullMeasurement.hpp \
                OrbitalDefinitions.hpp \
                PositionArguments.hpp \
@@ -26,6 +36,7 @@ HEADER_FILES = \
                RenyiModWalk.hpp \
                RenyiSignMeasurement.hpp \
                RenyiSignWalk.hpp \
+               SimpleSubsystem.hpp \
                StandardWalk.hpp \
                Subsystem.hpp \
                SwappedSystem.hpp \
@@ -33,7 +44,6 @@ HEADER_FILES = \
                WavefunctionAmplitude.hpp
 
 SOURCES = \
-	  Chain1dOrbitals.cpp \
 	  FreeFermionWavefunctionAmplitude.cpp \
 	  main.cpp \
 	  PositionArguments.cpp \
@@ -52,7 +62,7 @@ vmc:	$(OBJECTS)
 	$(COMPILE) $(LIBS) -o vmc $(OBJECTS)
 
 %.o: %.cpp $(HEADER_FILES)
-	$(COMPILE) -c -o $@ $<
+	$(COMPILE) $(INCLUDES) -c -o $@ $<
 
 clean:
 	rm -f *.o vmc

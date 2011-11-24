@@ -14,7 +14,7 @@
 class BoundaryCondition
 {
 public:
-    explicit BoundaryCondition (const boost::rational<unsigned int> &p_)
+    explicit BoundaryCondition (const boost::rational<int> &p_)
         : m_p(p_),
           m_phase(calculate_phase(p_))
         {
@@ -22,12 +22,12 @@ public:
         }
 
     explicit BoundaryCondition (unsigned int p_)
-        : m_p(boost::rational<unsigned int>(1, p_)),
-          m_phase(calculate_phase(m_p))
+        : m_p(boost::rational<int>(1, p_)),
+          m_phase(calculate_phase(p_))
         {
         }
 
-    boost::rational<unsigned int> p (void) const
+    boost::rational<int> p (void) const
         {
             return m_p;
         }
@@ -38,23 +38,23 @@ public:
         }
 
 private:
-    static phase_t calculate_phase (const boost::rational<unsigned int> &p)
+    static phase_t calculate_phase (const boost::rational<int> &p)
         {
             // if we can return an exact value, do so
-            if (p == boost::rational<unsigned int>(1))
+            if (p == boost::rational<int>(1))
                 return phase_t(1, 0);
-            else if (p == boost::rational<unsigned int>(1, 2))
+            else if (p == boost::rational<int>(1, 2))
                 return phase_t(-1, 0);
-            else if (p == boost::rational<unsigned int>(1, 4))
+            else if (p == boost::rational<int>(1, 4))
                 return phase_t(0, 1);
-            else if (p == boost::rational<unsigned int>(3, 4))
+            else if (p == boost::rational<int>(3, 4))
                 return phase_t(0, -1);
             else
                 // if not, fall back using the exponential function
                 return std::exp(complex_t(0, 1) * complex_t(2 * boost::math::constants::pi<real_t>() * boost::rational_cast<real_t>(p)));
         }
 
-    boost::rational<unsigned int> m_p;
+    boost::rational<int> m_p;
     phase_t m_phase;
 };
 

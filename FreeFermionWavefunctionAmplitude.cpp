@@ -2,14 +2,14 @@
 #include <boost/make_shared.hpp>
 
 #include "FreeFermionWavefunctionAmplitude.hpp"
-#include "HypercubicLattice.hpp"
 
-FreeFermionWavefunctionAmplitude::FreeFermionWavefunctionAmplitude (const PositionArguments &r_)
-    : WavefunctionAmplitude(r_),
-      orbital_def(r_.get_N_filled())
+FreeFermionWavefunctionAmplitude::FreeFermionWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_)
+    : WavefunctionAmplitude(r_, orbital_def_->get_lattice_ptr()),
+      orbital_def(orbital_def_)
 {
-    const boost::array<int, 1> a = { { r_.get_N_sites() } };
-    lattice = boost::make_shared<const HypercubicLattice<1> >(a);
+    BOOST_ASSERT(r.get_N_sites() == orbital_def->get_N_sites());
+    BOOST_ASSERT(r.get_N_filled() == orbital_def->get_N_filled());
+
     reinitialize();
 }
 
@@ -22,9 +22,7 @@ void FreeFermionWavefunctionAmplitude::move_particle_ (unsigned int particle, un
 
     // calculate each phi at new position and update the Ceperley matrix
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, 1> phivec(N);
-    for (unsigned int i = 0; i < N; ++i)
-        phivec(i) = orbital_def.phi(i, new_site_index, *lattice);
-    cmat.update_row(particle, phivec);
+    cmat.update_row(particle, orbital_def->get(new_site_index));
 }
 
 amplitude_t FreeFermionWavefunctionAmplitude::psi_ (void) const
@@ -39,6 +37,9 @@ void FreeFermionWavefunctionAmplitude::finish_particle_moved_update_ (void)
 
 void FreeFermionWavefunctionAmplitude::reset_ (const PositionArguments &r_)
 {
+    BOOST_ASSERT(r.get_N_sites() == orbital_def->get_N_sites());
+    BOOST_ASSERT(r.get_N_filled() == orbital_def->get_N_filled());
+
     r = r_;
     reinitialize();
 }
@@ -47,10 +48,8 @@ void FreeFermionWavefunctionAmplitude::reinitialize (void)
 {
     unsigned int N = r.get_N_filled();
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
-    for (unsigned int i = 0; i < N; ++i) {
-        for (unsigned int j = 0; j < N; ++j)
-            mat(i, j) = orbital_def.phi(j, r[i], *lattice);
-    }
+    for (unsigned int i = 0; i < N; ++i)
+        mat.row(i) = orbital_def->get(r[i]);
     cmat = mat;
 }
 

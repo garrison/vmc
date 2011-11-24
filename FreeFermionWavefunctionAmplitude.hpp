@@ -1,10 +1,12 @@
 #ifndef _FREE_FERMION_WAVEFUNCTION_AMPLITUDE_HPP
 #define _FREE_FERMION_WAVEFUNCTION_AMPLITUDE_HPP
 
+#include <boost/shared_ptr.hpp>
+
 #include "WavefunctionAmplitude.hpp"
 #include "PositionArguments.hpp"
 #include "CeperleyMatrix.hpp"
-#include "Chain1dOrbitals.hpp"
+#include "OrbitalDefinitions.hpp"
 
 // i.e. single determinant w/o Jastrow factor
 
@@ -12,10 +14,10 @@ class FreeFermionWavefunctionAmplitude : public WavefunctionAmplitude
 {
 private:
     CeperleyMatrix<amplitude_t> cmat;
-    Chain1dOrbitals orbital_def;
+    const boost::shared_ptr<const OrbitalDefinitions> orbital_def;
 
 public:
-    FreeFermionWavefunctionAmplitude (const PositionArguments &r_);
+    FreeFermionWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_);
 
 private:
     void move_particle_ (unsigned int particle, unsigned int new_site_index);

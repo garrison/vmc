@@ -79,17 +79,18 @@ private:
     virtual boost::shared_ptr<WavefunctionAmplitude> clone_ (void) const = 0;
 
 protected:
-    WavefunctionAmplitude (const PositionArguments &r_)
-        : r(r_)
+    WavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_)
+    : r(r_),
+      lattice(lattice_)
 #ifndef BOOST_DISABLE_ASSERTS
-        , move_in_progress(false)
+    , move_in_progress(false)
 #endif
         {
         }
 
     PositionArguments r;
 
-    boost::shared_ptr<const Lattice> lattice; // should remain constant after initialization
+    const boost::shared_ptr<const Lattice> lattice;
 
 private:
 #ifndef BOOST_DISABLE_ASSERTS

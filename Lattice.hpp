@@ -1,15 +1,12 @@
 #ifndef _LATTICE_HPP
 #define _LATTICE_HPP
 
-#include <boost/assert.hpp>
-
 #include "vmc-typedefs.hpp"
 
 class PositionArguments;
 
 class Lattice
-// abstract base class.  subclasses should also implement a few implied
-// functions; see e.g. HypercubicLattice.hpp
+// abstract base class
 {
 public:
     virtual ~Lattice (void)

@@ -1,22 +1,26 @@
-#ifndef _HYPERCUBIC_SUBSYSTEM_HPP
-#define _HYPERCUBIC_SUBSYSTEM_HPP
+#ifndef _SIMPLE_SUBSYSTEM_HPP
+#define _SIMPLE_SUBSYSTEM_HPP
 
 #include <boost/array.hpp>
+#include <boost/assert.hpp>
 
 #include "Subsystem.hpp"
-#include "HypercubicLattice.hpp"
+#include "NDLattice.hpp"
+
+// this work for any subsystem that is a parallelpiped that aligns with the
+// lattice's primitive vectors
 
 template <std::size_t DIM>
-class HypercubicSubsystem : public Subsystem
+class SimpleSubsystem : public Subsystem
 {
 public:
-    HypercubicSubsystem (unsigned int subsystem_length_)
+    SimpleSubsystem (unsigned int subsystem_length_)
         {
             for (unsigned int i = 0; i < DIM; ++i)
                 subsystem_length[i] = subsystem_length_;
         }
 
-    HypercubicSubsystem (const boost::array<unsigned int, DIM> &subsystem_length_)
+    SimpleSubsystem (const boost::array<unsigned int, DIM> &subsystem_length_)
         : subsystem_length(subsystem_length_)
         {
         }
@@ -24,10 +28,10 @@ public:
     bool particle_is_within (unsigned int site_index, const Lattice &lattice_) const
         {
             BOOST_ASSERT(lattice_makes_sense(lattice_));
-            const HypercubicLattice<DIM> *lattice = dynamic_cast<const HypercubicLattice<DIM> *>(&lattice_);
+            const NDLattice<DIM> *lattice = dynamic_cast<const NDLattice<DIM> *>(&lattice_);
             BOOST_ASSERT(lattice != 0);
 
-            typename HypercubicLattice<DIM>::Site site(lattice->site_from_index(site_index));
+            typename NDLattice<DIM>::Site site(lattice->site_from_index(site_index));
             for (unsigned int i = 0; i < DIM; ++i) {
                 BOOST_ASSERT(site[i] >= 0);
                 if (site[i] >= (int) subsystem_length[i])
@@ -38,7 +42,7 @@ public:
 
     bool lattice_makes_sense (const Lattice &lattice) const
         {
-            return bool(dynamic_cast<const HypercubicLattice<DIM> *>(&lattice));
+            return bool(dynamic_cast<const NDLattice<DIM> *>(&lattice));
         }
 
 private:

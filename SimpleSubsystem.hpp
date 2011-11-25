@@ -42,7 +42,14 @@ public:
 
     bool lattice_makes_sense (const Lattice &lattice) const
         {
-            return bool(dynamic_cast<const NDLattice<DIM> *>(&lattice));
+            const NDLattice<DIM> *ndlattice = dynamic_cast<const NDLattice<DIM> *>(&lattice);
+            if (!ndlattice)
+                return false;
+            for (unsigned int i = 0; i < DIM; ++i) {
+                if (subsystem_length[i] > ndlattice->length[i])
+                    return false;
+            }
+            return true;
         }
 
 private:

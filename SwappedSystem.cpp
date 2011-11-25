@@ -33,11 +33,13 @@ void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const Wa
     // we're only calling this function from two places in the code where this
     // can be easily verified ...
 
-    BOOST_ASSERT(r1.size() == r2.size());
+    BOOST_ASSERT(r1.get_N_filled() == r2.get_N_filled());
+    BOOST_ASSERT(r1.get_N_sites() == r2.get_N_sites());
     BOOST_ASSERT(subsystem->lattice_makes_sense(phialpha1.get_lattice()));
     BOOST_ASSERT(subsystem->lattice_makes_sense(phialpha2.get_lattice()));
+    BOOST_ASSERT(&phialpha1.get_lattice() == &phialpha2.get_lattice());
 
-    unsigned int N = r1.size();
+    unsigned int N = r1.get_N_filled();
     for (unsigned int i = 0; i < N; ++i) {
         if (subsystem->particle_is_within(r1[i], phialpha1.get_lattice()))
             copy1_subsystem_indices.push_back(i);

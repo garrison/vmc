@@ -14,6 +14,7 @@
 #include "BoundaryCondition.hpp"
 #include "PositionArguments.hpp"
 #include "vmc-typedefs.hpp"
+#include "safe-modulus.hpp"
 
 template<std::size_t DIM>
 class NDLattice : public Lattice
@@ -165,9 +166,7 @@ public:
 
             // this is often unnecessary ... should it be in a separate
             // function to be called before this one when needed?
-            while (site.basis_index < 0)
-                site.basis_index += basis_indices;
-            site.basis_index %= basis_indices;
+            do_safe_modulus(site.basis_index, basis_indices);
 
             BOOST_ASSERT(site_is_valid(site));
             return phase_change;

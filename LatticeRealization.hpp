@@ -10,6 +10,7 @@
 
 #include "vmc-typedefs.hpp"
 #include "NDLattice.hpp"
+#include "safe-modulus.hpp"
 
 // this class currently assumes a bravais lattice.  if it's not a bravais
 // lattice we will also want to store vectors that point to each site within a
@@ -43,9 +44,7 @@ public:
             // first, get everything in interval (-1/2, 1/2]
             for (unsigned int i = 0; i < DIM; ++i) {
                 int numerator = momentum[i].numerator(), denominator = momentum[i].denominator();
-                while (numerator < 0) // safe modulus for negative numbers
-                    numerator += denominator;
-                numerator %= denominator;
+                do_safe_modulus(numerator, denominator);
                 momentum[i] = boost::rational<int>(numerator, denominator);
                 if (momentum[i] > boost::rational<int>(1, 2))
                     momentum[i] -= 1;

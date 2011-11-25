@@ -7,7 +7,7 @@ LIBS =
 CXX = g++
 COMPILER_OPTIMIZATIONS = -O3 -march=native
 COMPILER_WARNINGS = -Wall -Wextra -Wno-unused-parameter
-COMPILER_DEFINES = 
+COMPILER_DEFINES = #-DBOOST_DISABLE_ASSERTS -DEIGEN_NO_DEBUG
 COMPILE = $(CXX) $(COMPILER_OPTIMIZATIONS) $(COMPILER_WARNINGS) $(COMPILER_DEFINES)
 
 -include Makefile-vmc.local
@@ -36,6 +36,7 @@ HEADER_FILES = \
                RenyiModWalk.hpp \
                RenyiSignMeasurement.hpp \
                RenyiSignWalk.hpp \
+               safe-modulus.hpp \
                SimpleSubsystem.hpp \
                StandardWalk.hpp \
                Subsystem.hpp \

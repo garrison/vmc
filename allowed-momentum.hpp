@@ -8,6 +8,7 @@
 #include <boost/rational.hpp>
 
 #include "NDLattice.hpp"
+#include "safe-modulus.hpp"
 
 // returns things in terms of the primitive vectors of the reciprocal lattice
 template<std::size_t DIM>
@@ -27,11 +28,8 @@ template<std::size_t DIM>
 boost::array<boost::rational<int>, DIM> allowed_momentum_safe (const boost::array<int, DIM> &momentum_site, const NDLattice<DIM> &lattice, const typename NDLattice<DIM>::BoundaryConditions &bcs)
 {
     boost::array<int, DIM> momentum_site_(momentum_site);
-    for (unsigned int i = 0; i < DIM; ++i) {
-        while (momentum_site[i] < 0)
-            momentum_site[i] += lattice.length[i];
-        momentum_site[i] %= lattice.length[i];
-    }
+    for (unsigned int i = 0; i < DIM; ++i)
+        do_safe_modulus(momentum_site[i], lattice.length[i]);
     return allowed_momentum(momentum_site_, lattice, bcs);
 }
 #endif

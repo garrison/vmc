@@ -46,7 +46,7 @@ public:
             if (!ndlattice)
                 return false;
             for (unsigned int i = 0; i < DIM; ++i) {
-                if (subsystem_length[i] > ndlattice->length[i])
+                if (ndlattice->length[i] < (int) subsystem_length[i])
                     return false;
             }
             return true;

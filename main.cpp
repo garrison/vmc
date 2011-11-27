@@ -25,11 +25,6 @@
 #include "FreeFermionWavefunctionAmplitude.hpp"
 #include "PositionArguments.hpp"
 #include "random-combination.hpp"
-#include "allowed-momentum.hpp"
-#include "lowest-momenta.hpp"
-
-// fixme: HypercubicLattice references should instead refer to NDLattice once
-// json specifies the momenta (and we no longer need lowest_momenta()
 
 class ParseError : public std::exception
 {
@@ -68,6 +63,20 @@ static inline void ensure_array (const Json::Value &jsonvalue)
         throw ParseError("array expected");
 }
 
+static void ensure_array (const Json::Value &jsonvalue, unsigned int array_length)
+{
+    if (!jsonvalue.isArray())
+        throw ParseError("array expected");
+    if (jsonvalue.size() != array_length)
+        throw ParseError("array is not the correct size");
+}
+
+static inline void ensure_string (const Json::Value &jsonvalue)
+{
+    if (!jsonvalue.isString())
+        throw ParseError("string expected");
+}
+
 static void ensure_required (const Json::Value &jsonvalue, const char * const keys[])
 {
     BOOST_ASSERT(jsonvalue.isObject());
@@ -89,6 +98,43 @@ static void ensure_only (const Json::Value &jsonvalue, const char * const keys[]
         if (key == NULL)
             throw ParseError("too many keys provided");
     }
+}
+
+template <unsigned int DIM>
+boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Value &json_orbitals, const boost::shared_ptr<const NDLattice<DIM> > &lattice)
+{
+    const char * const json_orbitals_required[] = { "filling", "boundary-conditions", NULL };
+    ensure_required(json_orbitals, json_orbitals_required);
+    ensure_only(json_orbitals, json_orbitals_required);
+
+    // set up the boundary conditions
+    const Json::Value &json_bcs = json_orbitals["boundary-conditions"];
+    ensure_array(json_bcs, DIM);
+    typename NDLattice<DIM>::BoundaryConditions boundary_conditions;
+    for (unsigned int i = 0; i < DIM; ++i) {
+        if (!(json_bcs[i].isIntegral() && json_bcs[i].asInt() > 0))
+            throw ParseError("invalid boundary condition specifier");
+        boundary_conditions[i] = BoundaryCondition(json_bcs[i].asUInt());
+    }
+
+    // set up the orbitals' filled momenta
+    const Json::Value &json_filling = json_orbitals["filling"];
+    ensure_array(json_filling);
+    std::vector<boost::array<int, DIM> > filled_momenta;
+    filled_momenta.reserve(json_filling.size());
+    for (unsigned int i = 0; i < json_filling.size(); ++i) {
+        const Json::Value &json_current_filling = json_filling[i];
+        ensure_array(json_current_filling, DIM);
+        boost::array<int, DIM> current_filling;
+        for (unsigned int j = 0; j < DIM; ++j) {
+            if (!(json_current_filling[j].isIntegral() && json_current_filling[j].asInt() >= 0 && json_current_filling[j].asInt() < lattice->length[j]))
+                throw ParseError("invalid momentum index");
+            current_filling[j] = json_current_filling[j].asInt();
+        }
+        filled_momenta.push_back(current_filling);
+    }
+
+    return boost::make_shared<FilledOrbitals<DIM> >(filled_momenta, lattice, boundary_conditions);
 }
 
 template <unsigned int DIM>
@@ -125,7 +171,7 @@ int main ()
         // begin setting up the physical system
         const Json::Value &json_system = json_input["system"];
         ensure_object(json_system);
-        const char * const json_system_required[] = { "lattice", NULL };
+        const char * const json_system_required[] = { "lattice", "wavefunction", NULL };
         ensure_required(json_system, json_system_required);
         ensure_only(json_system, json_system_required);
 
@@ -164,43 +210,55 @@ int main ()
 template <unsigned int DIM>
 static int do_simulation (const Json::Value &json_input, rng_class &rng)
 {
+    // finish setting up the lattice
     const Json::Value &json_lattice_size = json_input["system"]["lattice"]["size"];
     boost::array<int, DIM> lattice_size_array;
     for (unsigned int i = 0; i < DIM; ++i)
         lattice_size_array[i] = json_lattice_size[i].asInt();
-    boost::shared_ptr<const HypercubicLattice<DIM> > lattice(new HypercubicLattice<DIM>(lattice_size_array));
+    const boost::shared_ptr<const NDLattice<DIM> > lattice(new NDLattice<DIM>(lattice_size_array));
+
+    // set up the wavefunction
+    boost::shared_ptr<WavefunctionAmplitude> wf;
+    const Json::Value &json_wavefunction = json_input["system"]["wavefunction"];
+    ensure_object(json_wavefunction);
+    const char * const json_wavefunction_required[] = { "type", NULL };
+    ensure_required(json_wavefunction, json_wavefunction_required);
+    ensure_string(json_wavefunction["type"]);
+    const char *json_wavefunction_type_cstr = json_wavefunction["type"].asCString();
+    if (strcmp(json_wavefunction_type_cstr, "free-fermion") == 0) {
+        // free fermion wavefunction
+        const char * const json_free_fermion_wavefunction_required[] = { "type", "orbitals", NULL };
+        ensure_required(json_wavefunction, json_free_fermion_wavefunction_required);
+        ensure_only(json_wavefunction, json_free_fermion_wavefunction_required);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals = parse_json_orbitals<DIM>(json_wavefunction["orbitals"], lattice);
+        /* begin fixme */
+        std::vector<unsigned int> v;
+        random_combination(v, orbitals->get_N_filled(), lattice->total_sites(), rng);
+        PositionArguments r(v, lattice->total_sites());
+        /* end fixme */
+        wf.reset(new FreeFermionWavefunctionAmplitude(r, orbitals));
+    } else {
+        throw ParseError("invalid wavefunction type");
+    }
 
     // example API usage
-
-    const unsigned int F = 20;
-
-    std::vector<unsigned int> v;
-    random_combination(v, F, lattice->total_sites(), rng);
-    PositionArguments r(v, lattice->total_sites());
-
-    typename HypercubicLattice<DIM>::BoundaryConditions boundary_conditions;
-    for (unsigned int i = 0; i < DIM; ++i)
-        boundary_conditions[i] = periodic_bc;
-
-    boost::shared_ptr<const OrbitalDefinitions> orbitals(new FilledOrbitals<DIM>(lowest_momenta(*lattice, boundary_conditions, F), lattice, boundary_conditions));
-    boost::shared_ptr<WavefunctionAmplitude> wf(new FreeFermionWavefunctionAmplitude(r, orbitals));
 
     StandardWalk walk(wf);
     boost::shared_ptr<DensityDensityMeasurement<DIM> > density_measurement(new DensityDensityMeasurement<DIM>);
     MetropolisSimulation<StandardWalk> sim(walk, density_measurement, 8, rng());
 
     std::list<boost::shared_ptr<Measurement<RenyiModWalk> > > mod_measurements;
-    mod_measurements.push_back(boost::make_shared<RenyiModMeasurement>(boost::make_shared<SimpleSubsystem<DIM> >(4)));
+    mod_measurements.push_back(boost::make_shared<RenyiModMeasurement>(boost::make_shared<SimpleSubsystem<DIM> >(2)));
 
     RenyiModWalk mod_walk(wf, rng);
     MetropolisSimulation<RenyiModWalk> mod_sim(mod_walk, mod_measurements, 8, rng());
 
-    boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem<DIM>(4));
+    boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem<DIM>(2));
     RenyiSignWalk sign_walk(wf, subsystem, rng);
     boost::shared_ptr<RenyiSignMeasurement> sign_measurement(new RenyiSignMeasurement);
     MetropolisSimulation<RenyiSignWalk> sign_sim(sign_walk, sign_measurement, 8, rng());
 
-    for (unsigned int i = 0; i < 20; ++i) {
+    for (unsigned int i = 0; i < 100; ++i) {
         sim.iterate(12);
         std::cerr << "density-density " << (100.0 * sim.steps_accepted() / sim.steps_completed()) << "%\t";
         for (unsigned int i = 0; i < lattice->total_sites(); ++i)

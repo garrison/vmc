@@ -41,14 +41,14 @@ public:
 
     void map_momentum_to_brillouin_zone (boost::array<boost::rational<int>, DIM> &momentum) const
         {
-            // first, get everything in interval (-1/2, 1/2]
+            // first, get everything in interval [-1/2, 1/2)
             for (unsigned int i = 0; i < DIM; ++i) {
                 int numerator = momentum[i].numerator(), denominator = momentum[i].denominator();
                 do_safe_modulus(numerator, denominator);
                 momentum[i] = boost::rational<int>(numerator, denominator);
-                if (momentum[i] > boost::rational<int>(1, 2))
+                if (momentum[i] >= boost::rational<int>(1, 2))
                     momentum[i] -= 1;
-                BOOST_ASSERT(momentum[i] > boost::rational<int>(-1, 2) && momentum[i] <= boost::rational<int>(1, 2));
+                BOOST_ASSERT(momentum[i] >= boost::rational<int>(-1, 2) && momentum[i] < boost::rational<int>(1, 2));
             }
 
             // FIXME: now do a greedy search to get as close to the origin as possible

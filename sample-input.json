@@ -1,5 +1,10 @@
 {
     "rng": {
 	"seed": 23
+    },
+    "system": {
+	"lattice": {
+	    "size": [24, 4]
+	}
     }
 }

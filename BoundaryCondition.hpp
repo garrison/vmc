@@ -27,13 +27,21 @@ public:
         {
         }
 
+    BoundaryCondition (void) // uninitialized default constructor
+        : m_p(0),
+          m_phase(0)
+        {
+        }
+
     boost::rational<int> p (void) const
         {
+            BOOST_ASSERT(m_p != 0); // otherwise it is uninitialized
             return m_p;
         }
 
     phase_t phase (void) const
         {
+            BOOST_ASSERT(m_p != 0); // otherwise it is uninitialized
             return m_phase;
         }
 

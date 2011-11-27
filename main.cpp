@@ -8,6 +8,7 @@
 #include <json/json.h>
 #include <boost/array.hpp>
 #include <boost/assert.hpp>
+#include <boost/cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
@@ -26,7 +27,9 @@
 #include "random-combination.hpp"
 #include "allowed-momentum.hpp"
 #include "lowest-momenta.hpp"
-#include "array-util.hpp"
+
+// fixme: HypercubicLattice references should instead refer to NDLattice once
+// json specifies the momenta (and we no longer need lowest_momenta()
 
 class ParseError : public std::exception
 {
@@ -59,6 +62,12 @@ static inline void ensure_object (const Json::Value &jsonvalue)
         throw ParseError("object expected");
 }
 
+static inline void ensure_array (const Json::Value &jsonvalue)
+{
+    if (!jsonvalue.isArray())
+        throw ParseError("array expected");
+}
+
 static void ensure_required (const Json::Value &jsonvalue, const char * const keys[])
 {
     BOOST_ASSERT(jsonvalue.isObject());
@@ -82,10 +91,11 @@ static void ensure_only (const Json::Value &jsonvalue, const char * const keys[]
     }
 }
 
+template <unsigned int DIM>
+static int do_simulation (const Json::Value &json_input, rng_class &rng);
+
 int main ()
 {
-    unsigned int seed = 0;
-
     // take json input and perform a simulation
 
     Json::Value json_input;
@@ -93,11 +103,12 @@ int main ()
 
     try {
         ensure_object(json_input);
-        const char * const json_input_required[] = { "rng", NULL };
+        const char * const json_input_required[] = { "rng", "system", NULL };
         ensure_required(json_input, json_input_required);
         ensure_only(json_input, json_input_required);
 
         // initialize random number generator
+        unsigned int seed;
         const Json::Value &json_rng = json_input["rng"];
         ensure_object(json_rng);
         const char * const json_rng_allowed[] = { "seed", NULL };
@@ -109,41 +120,82 @@ int main ()
         } else {
             throw ParseError("seed must be given");
         }
+        rng_class rng(seed);
 
+        // begin setting up the physical system
+        const Json::Value &json_system = json_input["system"];
+        ensure_object(json_system);
+        const char * const json_system_required[] = { "lattice", NULL };
+        ensure_required(json_system, json_system_required);
+        ensure_only(json_system, json_system_required);
+
+        // begin setting up the lattice
+        const Json::Value &json_lattice = json_system["lattice"];
+        ensure_object(json_lattice);
+        const char * const json_lattice_required[] = { "size", NULL };
+        ensure_required(json_lattice, json_lattice_required);
+        ensure_only(json_lattice, json_lattice_required);
+
+        // determine the lattice size/dimension
+        const Json::Value &json_lattice_size = json_lattice["size"];
+        ensure_array(json_lattice_size);
+        unsigned int ndimensions = json_lattice_size.size();
+        for (unsigned int i = 0; i < ndimensions; ++i) {
+            if (!(json_lattice_size[i].isIntegral() && json_lattice_size[i].asInt() > 0))
+                throw ParseError("lattice dimensions must be positive integers");
+        }
+
+        // dispatch the remainder of the simulation based on the number of
+        // dimensions in the system
+        switch (ndimensions) {
+        case 1:
+            return do_simulation<1>(json_input, rng);
+        case 2:
+            return do_simulation<2>(json_input, rng);
+        default:
+            throw ParseError("lattice given has a number of dimensions that is not supported by this build");
+        }
     } catch (ParseError e) {
         std::cerr << e.what() << std::endl;
         return 1;
     }
+}
+
+template <unsigned int DIM>
+static int do_simulation (const Json::Value &json_input, rng_class &rng)
+{
+    const Json::Value &json_lattice_size = json_input["system"]["lattice"]["size"];
+    boost::array<int, DIM> lattice_size_array;
+    for (unsigned int i = 0; i < DIM; ++i)
+        lattice_size_array[i] = json_lattice_size[i].asInt();
+    boost::shared_ptr<const HypercubicLattice<DIM> > lattice(new HypercubicLattice<DIM>(lattice_size_array));
 
     // example API usage
 
-    const unsigned int DIMENSION = 1;
-    const unsigned int lattice_length = 40;
     const unsigned int F = 20;
-
-    rng_class rng(seed);
-
-    boost::shared_ptr<const HypercubicLattice<DIMENSION> > lattice(new HypercubicLattice<DIMENSION>(make_array<int, DIMENSION>(lattice_length)));
 
     std::vector<unsigned int> v;
     random_combination(v, F, lattice->total_sites(), rng);
     PositionArguments r(v, lattice->total_sites());
 
-    HypercubicLattice<DIMENSION>::BoundaryConditions boundary_conditions = make_array<BoundaryCondition>(periodic_bc);
-    boost::shared_ptr<const OrbitalDefinitions> orbitals(new FilledOrbitals<DIMENSION>(lowest_momenta(*lattice, boundary_conditions, F), lattice, boundary_conditions));
+    typename HypercubicLattice<DIM>::BoundaryConditions boundary_conditions;
+    for (unsigned int i = 0; i < DIM; ++i)
+        boundary_conditions[i] = periodic_bc;
+
+    boost::shared_ptr<const OrbitalDefinitions> orbitals(new FilledOrbitals<DIM>(lowest_momenta(*lattice, boundary_conditions, F), lattice, boundary_conditions));
     boost::shared_ptr<WavefunctionAmplitude> wf(new FreeFermionWavefunctionAmplitude(r, orbitals));
 
     StandardWalk walk(wf);
-    boost::shared_ptr<DensityDensityMeasurement<DIMENSION> > density_measurement(new DensityDensityMeasurement<DIMENSION>);
+    boost::shared_ptr<DensityDensityMeasurement<DIM> > density_measurement(new DensityDensityMeasurement<DIM>);
     MetropolisSimulation<StandardWalk> sim(walk, density_measurement, 8, rng());
 
     std::list<boost::shared_ptr<Measurement<RenyiModWalk> > > mod_measurements;
-    mod_measurements.push_back(boost::make_shared<RenyiModMeasurement>(boost::make_shared<SimpleSubsystem<DIMENSION> >(4)));
+    mod_measurements.push_back(boost::make_shared<RenyiModMeasurement>(boost::make_shared<SimpleSubsystem<DIM> >(4)));
 
     RenyiModWalk mod_walk(wf, rng);
     MetropolisSimulation<RenyiModWalk> mod_sim(mod_walk, mod_measurements, 8, rng());
 
-    boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem<DIMENSION>(4));
+    boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem<DIM>(4));
     RenyiSignWalk sign_walk(wf, subsystem, rng);
     boost::shared_ptr<RenyiSignMeasurement> sign_measurement(new RenyiSignMeasurement);
     MetropolisSimulation<RenyiSignWalk> sign_sim(sign_walk, sign_measurement, 8, rng());
@@ -156,9 +208,11 @@ int main ()
         std::cerr << std::endl;
 
         mod_sim.iterate(12);
-        std::cerr << "swap,mod " << (100.0 * mod_sim.steps_accepted() / mod_sim.steps_completed()) << "%\t" << double(dynamic_cast<RenyiModMeasurement *>(&**mod_measurements.begin())->get()) << std::endl;
+        std::cerr << "swap,mod " << (100.0 * mod_sim.steps_accepted() / mod_sim.steps_completed()) << "%\t" << double(boost::polymorphic_downcast<RenyiModMeasurement *>(&**mod_measurements.begin())->get()) << std::endl;
 
         sign_sim.iterate(12);
         std::cerr << "swap,sign " << (100.0 * sign_sim.steps_accepted() / sign_sim.steps_completed()) << "%\t" << sign_measurement->get() << std::endl;
     }
+
+    return 0;
 }

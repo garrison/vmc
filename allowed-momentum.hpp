@@ -17,7 +17,7 @@ boost::array<boost::rational<int>, DIM> allowed_momentum (const boost::array<int
     boost::array<boost::rational<int>, DIM> rv;
     for (unsigned int i = 0; i < DIM; ++i) {
         BOOST_ASSERT(momentum_site[i] >= 0 && momentum_site[i] < lattice.length[i]);
-        rv[i] = (bcs[i].p() + momentum_site[i] - 1) * boost::rational<int>(1, lattice.length[i]);
+        rv[i] = (bcs[i].p_floor() + momentum_site[i]) * boost::rational<int>(1, lattice.length[i]);
     }
     return rv;
 }

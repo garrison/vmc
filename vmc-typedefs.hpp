@@ -44,7 +44,7 @@ private:
     long double accum;
 };
 
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 
 #include <Eigen/Core>
 

@@ -10,6 +10,8 @@ COMPILER_WARNINGS = -Wall -Wextra -Wno-unused-parameter
 COMPILER_DEFINES = #-DBOOST_DISABLE_ASSERTS -DEIGEN_NO_DEBUG
 COMPILE = $(CXX) $(COMPILER_OPTIMIZATIONS) $(COMPILER_WARNINGS) $(COMPILER_DEFINES)
 
+DOXYGEN = doxygen
+
 -include Makefile-vmc.local
 
 HEADER_FILES = \
@@ -65,7 +67,14 @@ vmc:	$(OBJECTS)
 %.o: %.cpp $(HEADER_FILES)
 	$(COMPILE) $(INCLUDES) -c -o $@ $<
 
-clean:
+docs: Doxyfile $(HEADER_FILES) $(SOURCES) clean_docs
+	mkdir -p docs/
+	$(DOXYGEN)
+
+clean_docs:
+	rm -rf docs/generated/
+
+clean: clean_docs
 	rm -f *.o vmc
 
-.PHONY:	all clean
+.PHONY:	all clean docs clean_docs

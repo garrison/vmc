@@ -7,13 +7,20 @@
 #include <Eigen/Dense>
 #include <boost/assert.hpp>
 
-// O(N^2) method for keeping track of a determinant when only one row changes
-// in a given step.  Also known as the Sherman-Morrison-Woodbury formula.  This
-// class acts as a finite state machine.  See next_step.
+/**
+ * O(N^2) method for keeping track of a determinant when only one row (or
+ * column) changes in a given step.  Also known as the
+ * Sherman-Morrison-Woodbury formula.  This class acts as a finite state
+ * machine; that is, its methods should be called in a specific order.  See
+ * next_step.
+ */
 template <typename T>
 class CeperleyMatrix
 {
 private:
+    /**
+     * An enum for storing which operation should be called next on the object
+     */
     enum NextStep {
         INITIALIZE,
         UPDATE,
@@ -23,10 +30,13 @@ private:
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat;
     T detrat, det;
-    unsigned int pending_index;
+    unsigned int pending_index; // refers to a row or column index
     NextStep next_step;
 
 public:
+    /**
+     * Constructor for initializing a CeperleyMatrix from a square Eigen::Matrix
+     */
     CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
         : mat(initial_mat),
           detrat(0),
@@ -43,11 +53,22 @@ public:
                 std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
         }
 
+    /**
+     * It's sometimes useful to have a default constructor, but such objects
+     * are useless until they are copied from an existing CeperleyMatrix.
+     */
     CeperleyMatrix (void)
         : next_step(INITIALIZE)
         {
         }
 
+    /**
+     * Call this function to swap two rows in the matrix.  As a result, the
+     * determinant will change sign.
+     *
+     * @param r1 Index of one row to be swapped
+     * @param r2 Index of the row to the swapped with
+     */
     void swap_rows (unsigned int r1, unsigned int r2)
         {
             BOOST_ASSERT(next_step == UPDATE);
@@ -59,9 +80,32 @@ public:
             invmat.col(r1).swap(invmat.col(r2));
 
             det = -det;
-            detrat = -detrat;
+            //detrat = -detrat;
         }
 
+    /**
+     * Update a row in the matrix by replacing it with the given vector.
+     *
+     * This takes O(N) time.
+     *
+     * If the row can be represented roughly as a linear combination of the
+     * existing rows, the determinant should become zero (in theory, but not
+     * practice), and there will likely be large error from then on.
+     *
+     * After this is called, the new determinant is available, but no other
+     * operations can be called until finish_row_update() is called.  We don't
+     * do these steps here because they take O(N^2) time and are irrelevant if
+     * the matrix is immediately thrown away (e.g. if the Monte Carlo step is
+     * rejected).
+     *
+     * @param r index of the row to be updated
+     *
+     * @param row vector containing the values with which the row should be
+     * replaced
+     *
+     * @see finish_row_update()
+     * @see update_column()
+     */
     void update_row (unsigned int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)
         {
             BOOST_ASSERT(r < mat.rows());
@@ -91,6 +135,12 @@ public:
             next_step = FINISH_ROW_UPDATE;
         }
 
+    /**
+     * Update a column in the matrix by replacing it with the given vector.
+     *
+     * @see update_row()
+     * @see finish_column_update()
+     */
     void update_column (unsigned int c, const Eigen::Matrix<T, Eigen::Dynamic, 1> &col)
         {
             BOOST_ASSERT(c < mat.cols());
@@ -120,12 +170,14 @@ public:
             next_step = FINISH_COLUMN_UPDATE;
         }
 
-    T get_determinant_ratio (void) const
-        {
-            BOOST_ASSERT(next_step != INITIALIZE);
-            return detrat;
-        }
-
+    /**
+     * Finish a row update.  Must be called after update_row().
+     *
+     * This takes O(N^2) time.
+     *
+     * @see update_row()
+     * @see finish_column_update()
+     */
     void finish_row_update (void)
         {
             BOOST_ASSERT(next_step == FINISH_ROW_UPDATE);
@@ -143,6 +195,12 @@ public:
 #endif
         }
 
+    /**
+     * Finish a column update.  Must be called after update_column().
+     *
+     * @see update_column()
+     * @see finish_row_update()
+     */
     void finish_column_update (void)
         {
             BOOST_ASSERT(next_step == FINISH_COLUMN_UPDATE);
@@ -159,39 +217,66 @@ public:
 #endif
         }
 
+    /**
+     * Recalculates the matrix inverse and determinant from scratch.
+     */
     void refresh_state (void)
         {
             BOOST_ASSERT(next_step == UPDATE);
             Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > fullpivlu_decomposition(mat);
             invmat = fullpivlu_decomposition.inverse();
             det = fullpivlu_decomposition.determinant();
-            // FIXME: adjust detrat accordingly
         }
 
+    /**
+     * Returns the matrix.
+     */
     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_matrix (void) const
         {
             BOOST_ASSERT(next_step != INITIALIZE);
             return mat;
         }
 
+    /**
+     * Returns the inverse matrix.
+     */
     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_inverse (void) const
         {
             BOOST_ASSERT(next_step == UPDATE);
             return invmat;
         }
 
+    /**
+     * Returns the determinant of the matrix.
+     *
+     * The determinant is always pre-calculated, so this runs in O(1) time.
+     */
     T get_determinant (void) const
         {
             BOOST_ASSERT(next_step != INITIALIZE);
             return det;
         }
 
+    /**
+     * Computes and returns the inverse matrix error.
+     *
+     * This multiplies the matrix by its supposed inverse, and compares it to
+     * the identity matrix.
+     *
+     * @return a nonnegative number which is the sum of the absolute error.
+     */
     double compute_inverse_matrix_error (void) const
         {
             BOOST_ASSERT(next_step == UPDATE);
             return (mat * invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(mat.rows(), mat.cols())).array().abs().sum();
         }
 
+    /**
+     * Calculates and returns the determinant error.
+     *
+     * @return a ratio of the absolute error over the newly-calculated
+     * determinant
+     */
     double compute_relative_determinant_error (void) const
         {
             BOOST_ASSERT(next_step == UPDATE);
@@ -199,13 +284,31 @@ public:
             return abs((d - det) / d);
         }
 
+    /**
+     * Number of rows in the matrix
+     *
+     * (Since the matrix is square, this will always be equal to the number of
+     * columns)
+     *
+     * @see cols()
+     */
     unsigned int rows (void) const
         {
+            BOOST_ASSERT(next_step != INITIALIZE);
             return mat.rows();
         }
 
+    /**
+     * Number of columns in the matrix
+     *
+     * (Since the matrix is square, this will always be equal to the number of
+     * rows)
+     *
+     * @see rows()
+     */
     unsigned int cols (void) const
         {
+            BOOST_ASSERT(next_step != INITIALIZE);
             return rows();
         }
 

@@ -16,16 +16,44 @@
 #include "vmc-typedefs.hpp"
 #include "safe-modulus.hpp"
 
+/**
+ * N-dimensional lattice
+ *
+ * This class represents an N-dimensional lattice, where N is specified.  Most
+ * of the operations we do don't depend on the particular primitive vectors of
+ * the Bravais lattice, so NDLattice turns out to be immensely useful, even
+ * though it contains no knowledge of the primitive vectors.  For physical
+ * realizations of lattices in real space, see LatticeRealization and its
+ * subclasses, e.g. HypercubicLattice.
+ *
+ * @see LatticeRealization
+ */
 template<std::size_t DIM>
 class NDLattice : public Lattice
 {
 public:
+    /** number of dimensions of the lattice */
     static const unsigned int dimensions = DIM;
 
+    /** boundary conditions in each direction */
     typedef boost::array<BoundaryCondition, DIM> BoundaryConditions;
 
+    /**
+     * coordinates of a site on the Bravais lattice, represented as an array of
+     * zero-based indices
+     *
+     * The real-space position of a site would be given by the sum of each
+     * index multiplied by its respective primitive vector.
+     */
     typedef boost::array<int, DIM> BravaisSite;
 
+    /**
+     * a site on the lattice, represented by its BravaisSite and basis index
+     * (which is always zero if the physical system's sites all live on a
+     * Bravais lattice)
+     *
+     * @see BravaisSite
+     */
     struct Site
     {
     private:
@@ -33,6 +61,9 @@ public:
     public:
         int basis_index;
 
+        /**
+         * returns the site of the underlying Bravais lattice
+         */
         const BravaisSite & bravais_site (void) const
             {
                 return bs;
@@ -60,14 +91,22 @@ public:
     };
 
 protected:
-    // an axis by which we might want to move in configuration space.  Each
-    // member here represents some step size.
+    /**
+     * An axis by which we might want to move in configuration space.
+     *
+     * Each member here represents some step size.
+     */
     struct Move {
         boost::array<int, DIM> bravais_site;
         int basis_index;
     };
 
 public:
+    /** NDLattice constructor
+     *
+     * @param length_ an array representing the number of sites in each dimension
+     * @param basis_indices_ the number of sites per unit cell of the Bravais lattice
+     */
     NDLattice (const boost::array<int, DIM> &length_, int basis_indices_=1)
         : Lattice(count_total_sites(length_, basis_indices_)),
           length(length_),
@@ -97,6 +136,11 @@ public:
             }
         }
 
+    /**
+     * Maps a lattice index (0..N-1) to a Site (i.e. its coordinates)
+     *
+     * @see site_to_index()
+     */
     Site site_from_index (unsigned int n) const
         {
             BOOST_ASSERT(n < total_sites());
@@ -110,6 +154,11 @@ public:
             return rv;
         }
 
+    /**
+     * Maps a Site to its corresponding lattice index (0..N-1)
+     *
+     * @see site_from_index()
+     */
     unsigned int site_to_index (const Site &site) const
         {
             BOOST_ASSERT(site_is_valid(site));
@@ -134,6 +183,17 @@ public:
             return true;
         }
 
+    /**
+     * Adds to a Site the vector corresponding to the given BravaisSite
+     *
+     * Addition is done in place.  (The prefix "asm" is meant to remind of
+     * this, since addition is typically done in-place in assembly language.)
+     *
+     * @return phase change due to any crossings in the boundary.  If boundary
+     * conditions are not given, the phase returned will always be 1.
+     *
+     * @see asm_subtract_site_vector()
+     */
     phase_t asm_add_site_vector (Site &site, const BravaisSite &other, const BoundaryConditions *bcs=0) const
         {
             for (unsigned int i = 0; i < DIM; ++i)
@@ -141,6 +201,17 @@ public:
             return enforce_boundary(site, bcs);
         }
 
+    /**
+     * Subtracts from a Site the vector corresponding to the given BravaisSite
+     *
+     * Subtraction is done in place.  (The prefix "asm" is meant to remind of
+     * this, since addition is typically done in-place in assembly language.)
+     *
+     * @return phase change due to any crossings in the boundary.  If boundary
+     * conditions are not given, the phase returned will always be 1.
+     *
+     * @see asm_add_site_vector()
+     */
     phase_t asm_subtract_site_vector (Site &site, const BravaisSite &other, const BoundaryConditions *bcs=0) const
         {
             for (unsigned int i = 0; i < DIM; ++i)
@@ -148,6 +219,13 @@ public:
             return enforce_boundary(site, bcs);
         }
 
+    /**
+     * If the site is outside the lattice, move it to the corresponding site
+     * inside the lattice
+     *
+     * @return the phase change due to any crossings of the boundary.  If
+     * boundary conditions are not given, the value 1 will be returned.
+     */
     phase_t enforce_boundary (Site &site, const BoundaryConditions *bcs=0) const
         {
             phase_t phase_change = 1;
@@ -172,11 +250,40 @@ public:
             return phase_change;
         }
 
+    /**
+     * Returns the number of move axes
+     *
+     * "Move axis" here means a direction in which one can take one or more
+     * steps in configuration space.  Before calling
+     * plan_particle_move_to_nearby_empty_site(), one first chooses a move
+     * axis, typically at random.
+     *
+     * By default, there is one move axis per dimension in the lattice, plus
+     * (if the lattice is not a Bravais lattice) a move axis that only changes
+     * the basis_index (and thus moves particles around within a unit cell of
+     * the underlying Bravais lattice).
+     *
+     * Any subclasses of NDLattice (e.g. specific lattice realizations) can add
+     * additional move axes during object construction.  It may be possible to
+     * get better statistics this way.  (For instance, on a triangular lattice
+     * we may wish to attempt moves in three possible directions, even though
+     * there are only two primitive vectors.)
+     *
+     * @see plan_particle_move_to_nearby_empty_site()
+     * @see plan_particle_move_to_nearby_empty_site_virtual()
+     */
     unsigned int move_axes_count (void) const
         {
             return move_axes.size();
         }
 
+    /**
+     * Moves site a single step in a given direction
+     *
+     * @param site site to move
+     * @param move_axis index representing the axis to move along
+     * @param step_direction +1 or -1 depending on which direction to move
+     */
     void move_site (typename NDLattice<DIM>::Site &site, unsigned int move_axis, int step_direction) const
         {
             BOOST_ASSERT(move_axis < move_axes.size());
@@ -188,6 +295,14 @@ public:
             enforce_boundary(site);
         }
 
+    /**
+     * Returns an empty site index that is "near" a given particle.
+     *
+     * Typically you should call the corresponding function in random-move.hpp
+     * instead, which is a wrapper for this.
+     *
+     * @see plan_particle_move_to_nearby_empty_site()
+     */
     unsigned int plan_particle_move_to_nearby_empty_site_virtual (unsigned int particle, const PositionArguments &r, rng_class &rng) const
         {
             unsigned int move_axis;
@@ -228,7 +343,7 @@ private:
 
 public:
     const boost::array<int, DIM> length;
-    const int basis_indices;
+    const int basis_indices; /**< number of sites per Bravais unit cell */
 
 private:
     // these both remain constant after initialization as well

@@ -1,3 +1,4 @@
 Makefile-vmc.local
 *.[oa]
 vmc
+docs/generated/

@@ -36,8 +36,8 @@ void FreeFermionWavefunctionAmplitude::finish_particle_moved_update_ (void)
 
 void FreeFermionWavefunctionAmplitude::reset_ (const PositionArguments &r_)
 {
-    BOOST_ASSERT(r.get_N_sites() == orbital_def->get_N_sites());
-    BOOST_ASSERT(r.get_N_filled() == orbital_def->get_N_filled());
+    BOOST_ASSERT(r_.get_N_sites() == orbital_def->get_N_sites());
+    BOOST_ASSERT(r_.get_N_filled() == orbital_def->get_N_filled());
 
     r = r_;
     reinitialize();

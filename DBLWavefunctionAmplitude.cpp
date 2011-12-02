@@ -25,8 +25,8 @@ void DBLWavefunctionAmplitude::move_particle_ (unsigned int particle, unsigned i
     r.update_position(particle, new_site_index);
 
     // update the Ceperley matrices
-    cmat1.update_row(particle, orbital_def1->get(new_site_index));
-    cmat2.update_row(particle, orbital_def2->get(new_site_index));
+    cmat1.update_row(particle, orbital_def1->at_position(new_site_index));
+    cmat2.update_row(particle, orbital_def2->at_position(new_site_index));
 }
 
 amplitude_t DBLWavefunctionAmplitude::psi_ (void) const
@@ -54,8 +54,8 @@ void DBLWavefunctionAmplitude::reinitialize (void)
     unsigned int N = r.get_N_filled();
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
     for (unsigned int i = 0; i < N; ++i) {
-        mat1.row(i) = orbital_def1->get(r[i]);
-        mat2.row(i) = orbital_def2->get(r[i]);
+        mat1.row(i) = orbital_def1->at_position(r[i]);
+        mat2.row(i) = orbital_def2->at_position(r[i]);
     }
     cmat1 = mat1;
     cmat2 = mat2;

@@ -22,7 +22,7 @@ public:
         {
         }
 
-    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic>::ConstColXpr get (unsigned int site_index) const
+    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic>::ConstColXpr at_position (unsigned int site_index) const
         {
             BOOST_ASSERT(site_index < orbitals.cols());
             return orbitals.col(site_index);

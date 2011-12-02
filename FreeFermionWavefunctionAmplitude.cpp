@@ -21,7 +21,7 @@ void FreeFermionWavefunctionAmplitude::move_particle_ (unsigned int particle, un
     r.update_position(particle, new_site_index);
 
     // update the Ceperley matrix
-    cmat.update_row(particle, orbital_def->get(new_site_index));
+    cmat.update_row(particle, orbital_def->at_position(new_site_index));
 }
 
 amplitude_t FreeFermionWavefunctionAmplitude::psi_ (void) const
@@ -48,7 +48,7 @@ void FreeFermionWavefunctionAmplitude::reinitialize (void)
     unsigned int N = r.get_N_filled();
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
     for (unsigned int i = 0; i < N; ++i)
-        mat.row(i) = orbital_def->get(r[i]);
+        mat.row(i) = orbital_def->at_position(r[i]);
     cmat = mat;
 }
 

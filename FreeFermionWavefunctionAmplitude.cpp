@@ -20,8 +20,7 @@ void FreeFermionWavefunctionAmplitude::move_particle_ (unsigned int particle, un
 
     r.update_position(particle, new_site_index);
 
-    // calculate each phi at new position and update the Ceperley matrix
-    Eigen::Matrix<amplitude_t, Eigen::Dynamic, 1> phivec(N);
+    // update the Ceperley matrix
     cmat.update_row(particle, orbital_def->get(new_site_index));
 }
 

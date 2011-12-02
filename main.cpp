@@ -137,6 +137,43 @@ boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Val
     return boost::make_shared<FilledOrbitals<DIM> >(filled_momenta, lattice, boundary_conditions);
 }
 
+static inline double jsoncpp_real_cast (real_t v)
+{
+    // it would be really nice if jsoncpp supported "long double" directly...
+    return v;
+}
+
+static Json::Value complex_to_json_array (const complex_t &v)
+{
+    Json::Value rv(Json::arrayValue);
+    rv.append(Json::Value(jsoncpp_real_cast(std::real(v))));
+    rv.append(Json::Value(jsoncpp_real_cast(std::imag(v))));
+    return rv;
+}
+
+static Json::Value renyi_mod_measurement_json_repr (const RenyiModMeasurement &measurement)
+{
+    return Json::Value(measurement.get());
+}
+
+static Json::Value renyi_sign_measurement_json_repr (const RenyiSignMeasurement &measurement)
+{
+    return complex_to_json_array(measurement.get());
+}
+
+template<unsigned int DIM>
+static Json::Value density_density_measurement_json_repr (const DensityDensityMeasurement<DIM> &measurement)
+{
+    Json::Value rv(Json::arrayValue);
+    for (unsigned int i = 0; i < measurement.basis_indices(); ++i) {
+        Json::Value a(Json::arrayValue);
+        for (unsigned int j = 0; j < measurement.get_N_sites(); ++j)
+            a.append(Json::Value(jsoncpp_real_cast(measurement.get(j, i))));
+        rv.append(a);
+    }
+    return rv;
+}
+
 template <unsigned int DIM>
 static int do_simulation (const Json::Value &json_input, rng_class &rng);
 
@@ -260,15 +297,18 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
 
     for (unsigned int i = 0; i < 100; ++i) {
         sim.iterate(12);
+        std::cout << density_density_measurement_json_repr<DIM>(*density_measurement) << std::endl;
         std::cerr << "density-density " << (100.0 * sim.steps_accepted() / sim.steps_completed()) << "%\t";
         for (unsigned int i = 0; i < lattice->total_sites(); ++i)
             std::cerr << "  " << density_measurement->get(i);
         std::cerr << std::endl;
 
         mod_sim.iterate(12);
+        std::cout << renyi_mod_measurement_json_repr(*boost::polymorphic_downcast<RenyiModMeasurement *>(&**mod_measurements.begin())) << std::endl;
         std::cerr << "swap,mod " << (100.0 * mod_sim.steps_accepted() / mod_sim.steps_completed()) << "%\t" << double(boost::polymorphic_downcast<RenyiModMeasurement *>(&**mod_measurements.begin())->get()) << std::endl;
 
         sign_sim.iterate(12);
+        std::cout << renyi_sign_measurement_json_repr(*sign_measurement) << std::endl;
         std::cerr << "swap,sign " << (100.0 * sign_sim.steps_accepted() / sign_sim.steps_completed()) << "%\t" << sign_measurement->get() << std::endl;
     }
 

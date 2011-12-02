@@ -16,7 +16,7 @@
 #include "FilledOrbitals.hpp"
 #include "SimpleSubsystem.hpp"
 #include "HypercubicLattice.hpp"
-#include "FreeFermionWavefunctionAmplitude.hpp"
+#include "DBLWavefunctionAmplitude.hpp"
 #include "PositionArguments.hpp"
 #include "random-combination.hpp"
 #include "allowed-momentum.hpp"
@@ -41,7 +41,7 @@ int main ()
 
     HypercubicLattice<DIMENSION>::BoundaryConditions boundary_conditions = make_array<BoundaryCondition>(periodic_bc);
     boost::shared_ptr<const OrbitalDefinitions> orbitals(new FilledOrbitals<DIMENSION>(lowest_momenta(*lattice, boundary_conditions, F), lattice, boundary_conditions));
-    boost::shared_ptr<WavefunctionAmplitude> wf(new FreeFermionWavefunctionAmplitude(r, orbitals));
+    boost::shared_ptr<WavefunctionAmplitude> wf(new DBLWavefunctionAmplitude(r, orbitals, orbitals));
 
     StandardWalk walk(wf);
     boost::shared_ptr<DensityDensityMeasurement<DIMENSION> > density_measurement(new DensityDensityMeasurement<DIMENSION>);

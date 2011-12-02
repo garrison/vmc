@@ -19,6 +19,7 @@ HEADER_FILES = \
                array-util.hpp \
                BoundaryCondition.hpp \
                CeperleyMatrix.hpp \
+               DBLWavefunctionAmplitude.hpp \
                DensityDensityMeasurement.hpp \
                FilledOrbitals.hpp \
                FreeFermionWavefunctionAmplitude.hpp \
@@ -47,6 +48,7 @@ HEADER_FILES = \
                WavefunctionAmplitude.hpp
 
 SOURCES = \
+          DBLWavefunctionAmplitude.cpp \
 	  FreeFermionWavefunctionAmplitude.cpp \
 	  main.cpp \
 	  PositionArguments.cpp \

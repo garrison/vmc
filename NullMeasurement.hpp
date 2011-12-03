@@ -3,6 +3,9 @@
 
 #include "Measurement.hpp"
 
+/**
+ * Do-nothing measurement, useful for testing a Walk class
+ */
 template <class Walk_T>
 class NullMeasurement : public Measurement<Walk_T>
 {

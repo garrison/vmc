@@ -122,6 +122,7 @@ boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Val
     const Json::Value &json_filling = json_orbitals["filling"];
     ensure_array(json_filling);
     std::vector<boost::array<int, DIM> > filled_momenta;
+    std::set<boost::array<int, DIM> > filled_momenta_set;
     filled_momenta.reserve(json_filling.size());
     for (unsigned int i = 0; i < json_filling.size(); ++i) {
         const Json::Value &json_current_filling = json_filling[i];
@@ -133,6 +134,8 @@ boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Val
             current_filling[j] = json_current_filling[j].asInt();
         }
         filled_momenta.push_back(current_filling);
+        if (!filled_momenta_set.insert(current_filling).second)
+            throw ParseError("momentum was specified twice for the same orbital definitions");
     }
 
     return boost::make_shared<FilledOrbitals<DIM> >(filled_momenta, lattice, boundary_conditions);

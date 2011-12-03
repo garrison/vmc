@@ -23,6 +23,7 @@
 #include "SimpleSubsystem.hpp"
 #include "HypercubicLattice.hpp"
 #include "FreeFermionWavefunctionAmplitude.hpp"
+#include "DBLWavefunctionAmplitude.hpp"
 #include "PositionArguments.hpp"
 #include "random-combination.hpp"
 
@@ -274,6 +275,20 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         PositionArguments r(v, lattice->total_sites());
         /* end fixme */
         wf.reset(new FreeFermionWavefunctionAmplitude(r, orbitals));
+    } else if (strcmp(json_wavefunction_type_cstr, "dbl") == 0) {
+        const char * const json_dbl_wavefunction_required[] = { "type", "orbitals1", "orbitals2", NULL };
+        ensure_required(json_wavefunction, json_dbl_wavefunction_required);
+        ensure_only(json_wavefunction, json_dbl_wavefunction_required);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals1 = parse_json_orbitals<DIM>(json_wavefunction["orbitals1"], lattice);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals2 = parse_json_orbitals<DIM>(json_wavefunction["orbitals2"], lattice);
+        if (orbitals1->get_N_filled() != orbitals2->get_N_filled())
+            throw ParseError("d1 and d2 have different number of orbitals");
+        /* begin fixme */
+        std::vector<unsigned int> v;
+        random_combination(v, orbitals1->get_N_filled(), lattice->total_sites(), rng);
+        PositionArguments r(v, lattice->total_sites());
+        /* end fixme */
+        wf.reset(new DBLWavefunctionAmplitude(r, orbitals1, orbitals2));
     } else {
         throw ParseError("invalid wavefunction type");
     }

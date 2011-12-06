@@ -32,7 +32,6 @@ HEADER_FILES = \
                Measurement.hpp \
                MetropolisSimulation.hpp \
                NDLattice.hpp \
-               NullMeasurement.hpp \
                OrbitalDefinitions.hpp \
                PositionArguments.hpp \
                random-combination.hpp \

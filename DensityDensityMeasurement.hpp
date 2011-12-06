@@ -21,6 +21,16 @@ public:
             return real_t(num) / denominator(basis_index);
         }
 
+    unsigned int basis_indices (void) const
+        {
+            return density_accum.rows();
+        }
+
+    unsigned int get_N_sites (void) const
+        {
+            return density_accum.cols();
+        }
+
 private:
     void initialize_ (const StandardWalk &walk)
         {

@@ -55,10 +55,21 @@ public:
         }
 
     /**
+     * Uninitialized default constructor
+     */
+    BoundaryCondition (void)
+        : m_p(0),
+          m_p_floor(0),
+          m_phase(0)
+        {
+        }
+
+    /**
      * returns a value in (0, 1]
      */
     boost::rational<int> p (void) const
         {
+            BOOST_ASSERT(m_p != 0); // otherwise it is uninitialized
             return m_p;
         }
 
@@ -77,6 +88,7 @@ public:
      */
     phase_t phase (void) const
         {
+            BOOST_ASSERT(m_p != 0); // otherwise it is uninitialized
             return m_phase;
         }
 

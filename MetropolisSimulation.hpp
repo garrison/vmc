@@ -1,7 +1,7 @@
 #ifndef _METROPOLIS_SIMULATION_HPP
 #define _METROPOLIS_SIMULATION_HPP
 
-#ifdef DEBUG
+#if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
 #include <iostream>
 #endif
 
@@ -116,14 +116,14 @@ private:
                 proposed_step.accept_transition();
                 walk = proposed_step;
                 ++m_steps_accepted;
-#ifdef DEBUG_METROPOLIS
+#if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
                 std::cerr << "A" << std::endl;
 #endif
                 return true;
             } else {
                 if (probability_ratio == 0)
                     ++m_steps_fully_rejected;
-#ifdef DEBUG_METROPOLIS
+#if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
                 std::cerr << "-" << std::endl;
 #endif
                 return false;

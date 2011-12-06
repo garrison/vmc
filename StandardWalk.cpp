@@ -30,7 +30,7 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (rng_
 
     // calculate and return a probability
     probability_t rv = std::norm(wf->psi() / old_amplitude);
-#ifdef DEBUG
+#if defined(DEBUG_VMC_STANDARD_WALK) || defined(DEBUG_VMC_ALL)
     std::cerr << "ratio " << rv << std::endl;
 #endif
 #ifndef BOOST_DISABLE_ASSERTS

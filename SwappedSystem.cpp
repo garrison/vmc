@@ -225,7 +225,7 @@ void SwappedSystem::reinitialize_phibetas (const WavefunctionAmplitude &phialpha
 {
     BOOST_ASSERT(copy1_subsystem_indices.size() == copy2_subsystem_indices.size());
 
-#ifdef DEBUG
+#if defined(DEBUG_VMC_SWAPPED_SYSTEM) || defined(DEBUG_VMC_ALL)
     std::cerr << "swapping " << copy1_subsystem_indices.size() << " particles" << std::endl;
 #endif
 

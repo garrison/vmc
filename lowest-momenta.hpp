@@ -56,7 +56,7 @@ std::vector<boost::array<int, DIM> > lowest_momenta (const LatticeRealization<DI
         overflow_target[i] = &momentum_site[i + 1];
     overflow_target[DIM - 1] = &not_done;
     while (not_done == 0) {
-#if defined(DEBUG_LOWEST_MOMENTA) || defined(DEBUG_ALL)
+#if defined(DEBUG_VMC_LOWEST_MOMENTA) || defined(DEBUG_VMC_ALL)
         for (unsigned int i = 0; i < DIM; ++i)
             std::cerr << momentum_site[i] << ' ';
         std::cerr << std::endl;
@@ -69,7 +69,7 @@ std::vector<boost::array<int, DIM> > lowest_momenta (const LatticeRealization<DI
             lattice.map_momentum_to_brillouin_zone(momentum);
             const real_position_t euc_norm = _euclidean_norm(momentum, lattice.reciprocal_primitive_vectors);
             pairs.push_back(std::make_pair(momentum_site, euc_norm));
-#if defined(DEBUG_LOWEST_MOMENTA) || defined(DEBUG_ALL)
+#if defined(DEBUG_VMC_LOWEST_MOMENTA) || defined(DEBUG_VMC_ALL)
             std::cerr << euc_norm << std::endl;
 #endif
         }
@@ -95,7 +95,7 @@ std::vector<boost::array<int, DIM> > lowest_momenta (const LatticeRealization<DI
     for (unsigned int i = 0; i < count; ++i)
         rv.push_back(pairs[i].first);
 
-#if defined(DEBUG_LOWEST_MOMENTA) || defined(DEBUG_ALL)
+#if defined(DEBUG_VMC_LOWEST_MOMENTA) || defined(DEBUG_VMC_ALL)
     std::cerr << "Returning " << rv.size() << " orbitals:" << std::endl;
     for (unsigned int i = 0; i < rv.size(); ++i) {
         for (unsigned int j = 0; j < DIM; ++j)

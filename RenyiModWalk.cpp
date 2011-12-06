@@ -66,7 +66,7 @@ void RenyiModWalk::accept_transition (void)
 {
     BOOST_ASSERT(transition_copy_in_progress);
 
-#ifdef DEBUG
+#if defined(DEBUG_VMC_RENYI_MOD_WALK) || defined(DEBUG_VMC_ALL)
     const PositionArguments &r1 = phialpha1->get_positions();
     for (unsigned int i = 0; i < r1.size(); ++i)
         std::cerr << r1[i] << ' ';

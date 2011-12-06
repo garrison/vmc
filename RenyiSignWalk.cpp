@@ -75,7 +75,7 @@ void RenyiSignWalk::accept_transition (void)
     BOOST_ASSERT(transition_in_progress);
     transition_in_progress = false;
 
-#ifdef DEBUG
+#if defined(DEBUG_VMC_RENYI_SIGN_WALK) || defined(DEBUG_VMC_ALL)
     const PositionArguments &r1 = phialpha1->get_positions();
     for (unsigned int i = 0; i < r1.size(); ++i)
         std::cerr << r1[i] << ' ';

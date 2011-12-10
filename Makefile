@@ -26,6 +26,7 @@ HEADER_FILES = \
                DensityDensityMeasurement.hpp \
                FilledOrbitals.hpp \
                FreeFermionWavefunctionAmplitude.hpp \
+               GreenMeasurement.hpp \
                HypercubicLattice.hpp \
                Lattice.hpp \
                LatticeRealization.hpp \

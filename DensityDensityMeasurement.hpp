@@ -3,6 +3,7 @@
 
 #include <Eigen/Core>
 #include <boost/assert.hpp>
+#include <boost/cast.hpp>
 
 #include "Measurement.hpp"
 #include "StandardWalk.hpp"
@@ -36,8 +37,7 @@ private:
         {
             const unsigned int total_sites = walk.get_wavefunction().get_lattice().total_sites();
             BOOST_ASSERT(total_sites > 0);
-            const NDLattice<DIM> *lattice = dynamic_cast<const NDLattice<DIM>*>(&walk.get_wavefunction().get_lattice());
-            BOOST_ASSERT(lattice != 0);
+            const NDLattice<DIM> *lattice = boost::polymorphic_downcast<const NDLattice<DIM>*>(&walk.get_wavefunction().get_lattice());
 
             const unsigned int basis_indices = lattice->basis_indices;
             density_accum.setZero(basis_indices, total_sites);
@@ -49,8 +49,7 @@ private:
     void measure_ (const StandardWalk &walk)
         {
             const PositionArguments &r = walk.get_wavefunction().get_positions();
-            const NDLattice<DIM> *lattice = dynamic_cast<const NDLattice<DIM>*>(&walk.get_wavefunction().get_lattice());
-            BOOST_ASSERT(lattice != 0);
+            const NDLattice<DIM> *lattice = boost::polymorphic_downcast<const NDLattice<DIM>*>(&walk.get_wavefunction().get_lattice());
 
             current_density_accum.setZero();
             current_denominator.setZero();

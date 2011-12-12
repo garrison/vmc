@@ -41,9 +41,9 @@ void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const Wa
 
     unsigned int N = r1.get_N_filled();
     for (unsigned int i = 0; i < N; ++i) {
-        if (subsystem->particle_is_within(r1[i], phialpha1.get_lattice()))
+        if (subsystem->position_is_within(r1[i], phialpha1.get_lattice()))
             copy1_subsystem_indices.push_back(i);
-        if (subsystem->particle_is_within(r2[i], phialpha2.get_lattice()))
+        if (subsystem->position_is_within(r2[i], phialpha2.get_lattice()))
             copy2_subsystem_indices.push_back(i);
     }
 
@@ -78,8 +78,8 @@ void SwappedSystem::update (int index1, int index2, const WavefunctionAmplitude 
     const int pairing_index1 = (index1 == -1) ? -2 : vector_find(copy1_subsystem_indices, (unsigned int) index1);
     const int pairing_index2 = (index2 == -1) ? -2 : vector_find(copy2_subsystem_indices, (unsigned int) index2);
 
-    const bool particle1_now_in_subsystem = (index1 != -1 && subsystem->particle_is_within(r1[index1], lattice));
-    const bool particle2_now_in_subsystem = (index2 != -1 && subsystem->particle_is_within(r2[index2], lattice));
+    const bool particle1_now_in_subsystem = (index1 != -1 && subsystem->position_is_within(r1[index1], lattice));
+    const bool particle2_now_in_subsystem = (index2 != -1 && subsystem->position_is_within(r2[index2], lattice));
 
     const int delta1 = (particle1_now_in_subsystem ? 1 : 0) + (pairing_index1 >= 0 ? -1 : 0);
     const int delta2 = (particle2_now_in_subsystem ? 1 : 0) + (pairing_index2 >= 0 ? -1 : 0);
@@ -266,8 +266,8 @@ void SwappedSystem::verify_phibetas (const WavefunctionAmplitude &phialpha1, con
         const bool b2 = vector_find(copy2_subsystem_indices, i) != -1;
         if (b1) ++c1;
         if (b2) ++c2;
-        BOOST_ASSERT(b1 == subsystem->particle_is_within(r1[i], lattice));
-        BOOST_ASSERT(b2 == subsystem->particle_is_within(r2[i], lattice));
+        BOOST_ASSERT(b1 == subsystem->position_is_within(r1[i], lattice));
+        BOOST_ASSERT(b2 == subsystem->position_is_within(r2[i], lattice));
     }
     BOOST_ASSERT(c1 == copy1_subsystem_indices.size());
     BOOST_ASSERT(c2 == copy2_subsystem_indices.size());

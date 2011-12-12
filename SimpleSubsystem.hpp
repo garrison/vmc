@@ -25,7 +25,7 @@ public:
         {
         }
 
-    bool particle_is_within (unsigned int site_index, const Lattice &lattice_) const
+    bool position_is_within (unsigned int site_index, const Lattice &lattice_) const
         {
             BOOST_ASSERT(lattice_makes_sense(lattice_));
             const NDLattice<DIM> *lattice = dynamic_cast<const NDLattice<DIM> *>(&lattice_);

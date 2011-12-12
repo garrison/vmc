@@ -20,7 +20,7 @@ class MetropolisSimulation
 {
 public:
     MetropolisSimulation (const Walk_T &walk_, const std::list<boost::shared_ptr<Measurement<Walk_T> > > &measurements_,
-                          unsigned int lg_initialization_sweeps, const rng_seed_t &seed)
+                          unsigned int initialization_sweeps, const rng_seed_t &seed)
         : walk(walk_),
           measurements(measurements_),
           m_steps(0),
@@ -30,11 +30,11 @@ public:
           rng(seed),
           uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
         {
-            perform_initialization(lg_initialization_sweeps);
+            perform_initialization(initialization_sweeps);
         }
 
     MetropolisSimulation (const Walk_T &walk_, const boost::shared_ptr<Measurement<Walk_T> > &measurement_,
-                          unsigned int lg_initialization_sweeps, const rng_seed_t &seed)
+                          unsigned int initialization_sweeps, const rng_seed_t &seed)
         : walk(walk_),
           m_steps(0),
           m_steps_accepted(0),
@@ -44,12 +44,11 @@ public:
           uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
         {
             measurements.push_back(measurement_);
-            perform_initialization(lg_initialization_sweeps);
+            perform_initialization(initialization_sweeps);
         }
 
-    void iterate (unsigned int lg_sweeps)
+    void iterate (unsigned int sweeps)
         {
-            unsigned int sweeps = 1 << lg_sweeps;
             for (unsigned int i = 0; i < sweeps; ++i) {
                 // perform a single step
                 const bool accepted = perform_single_step();
@@ -130,10 +129,9 @@ private:
             }
         }
 
-    void perform_initialization (unsigned int lg_initialization_sweeps)
+    void perform_initialization (unsigned int initialization_sweeps)
         {
             // do initialization sweeps
-            unsigned int initialization_sweeps = 1 << lg_initialization_sweeps;
             for (unsigned int i = 0; i < initialization_sweeps; ++i)
                 perform_single_step();
             // initialize the measurements

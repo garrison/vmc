@@ -12,7 +12,7 @@
 class RenyiModWalk
 {
 public:
-    RenyiModWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, rng_class &rng);
+    RenyiModWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const boost::shared_ptr<WavefunctionAmplitude> &wf_copy);
     probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
     void accept_transition (void);
 

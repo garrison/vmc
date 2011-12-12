@@ -9,14 +9,18 @@
 #include "RenyiModWalk.hpp"
 #include "random-move.hpp"
 
-RenyiModWalk::RenyiModWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, rng_class &rng)
+RenyiModWalk::RenyiModWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const boost::shared_ptr<WavefunctionAmplitude> &wf_copy)
     : phialpha1(wf),
-      phialpha2(wf),
+      phialpha2(wf_copy),
       transition_copy_in_progress(0)
 {
-    // FIXME: phialpha2 should be different than phialpha1; just take an
-    // argument or rearrange the positions randomly
-    (void) rng; // FIXME!
+    BOOST_ASSERT(&phialpha1->get_lattice() == &phialpha2->get_lattice());
+    BOOST_ASSERT(phialpha1->get_positions().get_N_filled() == phialpha2->get_positions().get_N_filled());
+    BOOST_ASSERT(phialpha1->get_positions().get_N_sites() == phialpha2->get_positions().get_N_sites());
+    // there's no way to assert it, but we also assume they have precisely the
+    // same orbitals too.  In fact, it might be useful to make a function that
+    // asserts two wave functions are identical except for the particle
+    // positions ...
 }
 
 probability_t RenyiModWalk::compute_probability_ratio_of_random_transition (rng_class &rng)

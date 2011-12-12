@@ -14,7 +14,13 @@
 class RenyiSignWalk
 {
 public:
-    RenyiSignWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, boost::shared_ptr<const Subsystem> subsystem, rng_class &rng);
+    /**
+     * Constructor.
+     *
+     * It is essential that both wf and wf_copy have the same number of
+     * particles in the subsystem.
+     */
+    RenyiSignWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const boost::shared_ptr<WavefunctionAmplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem);
     probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
     void accept_transition (void);
 

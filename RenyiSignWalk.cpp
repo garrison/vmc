@@ -9,14 +9,19 @@
 #include "RenyiSignWalk.hpp"
 #include "random-move.hpp"
 
-RenyiSignWalk::RenyiSignWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, boost::shared_ptr<const Subsystem> subsystem, rng_class &rng)
+RenyiSignWalk::RenyiSignWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const boost::shared_ptr<WavefunctionAmplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem)
     : phialpha1(wf),
-      phialpha2(wf),
+      phialpha2(wf_copy),
       swapped_system(new SwappedSystem(subsystem)),
       transition_in_progress(false)
 {
-    // FIXME: start them both randomly !!
-    (void) rng; // FIXME!
+    BOOST_ASSERT(&phialpha1->get_lattice() == &phialpha2->get_lattice());
+    BOOST_ASSERT(phialpha1->get_positions().get_N_filled() == phialpha2->get_positions().get_N_filled());
+    BOOST_ASSERT(phialpha1->get_positions().get_N_sites() == phialpha2->get_positions().get_N_sites());
+    // there's no way to assert it, but we also assume they have precisely the
+    // same orbitals too.  In fact, it might be useful to make a function that
+    // asserts two wave functions are identical except for the particle
+    // positions ...
 
     BOOST_ASSERT(swapped_system->get_N_subsystem1() == swapped_system->get_N_subsystem2());
 

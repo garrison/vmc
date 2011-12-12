@@ -1,20 +1,21 @@
-#ifndef _D_B_M_WAVEFUNCTION_AMPLITUDE_HPP
-#define _D_B_M_WAVEFUNCTION_AMPLITUDE_HPP
+#ifndef _D_METAL_WAVEFUNCTION_AMPLITUDE_HPP
+#define _D_METAL_WAVEFUNCTION_AMPLITUDE_HPP
 
 #include <boost/shared_ptr.hpp>
 
 #include "WavefunctionAmplitude.hpp"
 #include "PositionArguments.hpp"
+
 #include "CeperleyMatrix.hpp"
 #include "OrbitalDefinitions.hpp"
 
 /**
- * D-wave Bose Metal wave function
+ * D-wave metal wave function
  *
- * (product of two determinants represents the boson, then two more
+ * (product of two determinants represents the charge sector with a DBL, then two more
  * determinants for spin up and spin down)
  */
-class DBMWavefunctionAmplitude : public WavefunctionAmplitude
+class DMetalWavefunctionAmplitude : public WavefunctionAmplitude
 {
 private:
     CeperleyMatrix<amplitude_t> m_cmat_d1, m_cmat_d2, m_cmat_f_up, m_cmat_f_down;
@@ -22,7 +23,7 @@ private:
     bool m_particle_moved_is_up;
 
 public:
-    DBMWavefunctionAmplitude (const PositionArguments &r_,
+    DMetalWavefunctionAmplitude (const PositionArguments &r_,
                               const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1,
                               const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2,
                               const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up,

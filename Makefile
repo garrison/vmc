@@ -22,7 +22,7 @@ HEADER_FILES = \
                BoundaryCondition.hpp \
                CeperleyMatrix.hpp \
                DBLWavefunctionAmplitude.hpp \
-               DBMWavefunctionAmplitude.hpp \
+               DMetalWavefunctionAmplitude.hpp \
                DensityDensityMeasurement.hpp \
                FilledOrbitals.hpp \
                FreeFermionWavefunctionAmplitude.hpp \
@@ -52,7 +52,7 @@ HEADER_FILES = \
 
 SOURCES = \
           DBLWavefunctionAmplitude.cpp \
-          DBMWavefunctionAmplitude.cpp \
+          DMetalWavefunctionAmplitude.cpp \
 	  FreeFermionWavefunctionAmplitude.cpp \
 	  main.cpp \
 	  PositionArguments.cpp \

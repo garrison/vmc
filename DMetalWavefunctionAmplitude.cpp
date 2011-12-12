@@ -1,9 +1,9 @@
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
 
-#include "DBMWavefunctionAmplitude.hpp"
+#include "DMetalWavefunctionAmplitude.hpp"
 
-DBMWavefunctionAmplitude::DBMWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2, const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up, const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down)
+DMetalWavefunctionAmplitude::DMetalWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2, const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up, const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down)
     : WavefunctionAmplitude(r_, orbital_d1->get_lattice_ptr()),
       m_orbital_d1(orbital_d1),
       m_orbital_d2(orbital_d2),
@@ -23,7 +23,7 @@ DBMWavefunctionAmplitude::DBMWavefunctionAmplitude (const PositionArguments &r_,
     reinitialize();
 }
 
-void DBMWavefunctionAmplitude::move_particle_ (unsigned int particle, unsigned int new_site_index)
+void DMetalWavefunctionAmplitude::move_particle_ (unsigned int particle, unsigned int new_site_index)
 {
     unsigned int N = r.get_N_filled();
     unsigned int M = m_orbital_f_up->get_N_filled();
@@ -42,7 +42,7 @@ void DBMWavefunctionAmplitude::move_particle_ (unsigned int particle, unsigned i
         m_cmat_f_down.update_column(particle - M, m_orbital_f_down->at_position(new_site_index));
 }
 
-amplitude_t DBMWavefunctionAmplitude::psi_ (void) const
+amplitude_t DMetalWavefunctionAmplitude::psi_ (void) const
 {
     return (m_cmat_d1.get_determinant()
             * m_cmat_d2.get_determinant()
@@ -50,14 +50,14 @@ amplitude_t DBMWavefunctionAmplitude::psi_ (void) const
             * m_cmat_f_down.get_determinant());
 }
 
-void DBMWavefunctionAmplitude::finish_particle_moved_update_ (void)
+void DMetalWavefunctionAmplitude::finish_particle_moved_update_ (void)
 {
     m_cmat_d1.finish_column_update();
     m_cmat_d2.finish_column_update();
     (m_particle_moved_is_up ? m_cmat_f_up : m_cmat_f_down).finish_column_update();
 }
 
-void DBMWavefunctionAmplitude::reset_ (const PositionArguments &r_)
+void DMetalWavefunctionAmplitude::reset_ (const PositionArguments &r_)
 {
     BOOST_ASSERT(r_.get_N_sites() == m_orbital_d1->get_N_sites());
     BOOST_ASSERT(r_.get_N_filled() == m_orbital_d1->get_N_filled());
@@ -66,7 +66,7 @@ void DBMWavefunctionAmplitude::reset_ (const PositionArguments &r_)
     reinitialize();
 }
 
-void DBMWavefunctionAmplitude::reinitialize (void)
+void DMetalWavefunctionAmplitude::reinitialize (void)
 {
     const unsigned int N = r.get_N_filled();
     const unsigned int M = m_orbital_f_up->get_N_filled();
@@ -92,7 +92,7 @@ void DBMWavefunctionAmplitude::reinitialize (void)
     m_cmat_f_down = mat_f_down;
 }
 
-boost::shared_ptr<WavefunctionAmplitude> DBMWavefunctionAmplitude::clone_ (void) const
+boost::shared_ptr<WavefunctionAmplitude> DMetalWavefunctionAmplitude::clone_ (void) const
 {
-    return boost::make_shared<DBMWavefunctionAmplitude>(*this);
+    return boost::make_shared<DMetalWavefunctionAmplitude>(*this);
 }

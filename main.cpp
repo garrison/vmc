@@ -19,7 +19,7 @@
 #include "FilledOrbitals.hpp"
 #include "FreeFermionWavefunctionAmplitude.hpp"
 #include "DBLWavefunctionAmplitude.hpp"
-#include "DBMWavefunctionAmplitude.hpp"
+#include "DMetalWavefunctionAmplitude.hpp"
 #include "MetropolisSimulation.hpp"
 #include "StandardWalk.hpp"
 #include "DensityDensityMeasurement.hpp"
@@ -425,11 +425,11 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
             throw ParseError("d1 and d2 have different number of orbitals");
         wf.reset(new DBLWavefunctionAmplitude(some_random_filling<DIM>(orbitals_d1->get_N_filled(), *lattice, rng),
                                               orbitals_d1, orbitals_d2));
-    } else if (std::strcmp(json_wavefunction_type_cstr, "dbm") == 0) {
-        // dbm wavefunction
-        const char * const json_dbm_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", "orbitals-f_up", "orbitals-f_down", NULL };
-        ensure_required(json_wavefunction, json_dbm_wavefunction_required);
-        ensure_only(json_wavefunction, json_dbm_wavefunction_required);
+    } else if (std::strcmp(json_wavefunction_type_cstr, "dmetal") == 0) {
+        // dmetal wavefunction
+        const char * const json_dmetal_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", "orbitals-f_up", "orbitals-f_down", NULL };
+        ensure_required(json_wavefunction, json_dmetal_wavefunction_required);
+        ensure_only(json_wavefunction, json_dmetal_wavefunction_required);
         boost::shared_ptr<const OrbitalDefinitions> orbitals_d1 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d1"], lattice);
         boost::shared_ptr<const OrbitalDefinitions> orbitals_d2 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d2"], lattice);
         boost::shared_ptr<const OrbitalDefinitions> orbitals_f_up = parse_json_orbitals<DIM>(json_wavefunction["orbitals-f_up"], lattice);
@@ -438,7 +438,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
             throw ParseError("d1 and d2 have different number of orbitals");
         if (orbitals_f_up->get_N_filled() + orbitals_f_down->get_N_filled() != orbitals_d1->get_N_filled())
             throw ParseError("number of orbitals in f_up and f_down must sum to number of orbitals in d1");
-        wf.reset(new DBMWavefunctionAmplitude(some_random_filling<DIM>(orbitals_d1->get_N_filled(), *lattice, rng),
+        wf.reset(new DMetalWavefunctionAmplitude(some_random_filling<DIM>(orbitals_d1->get_N_filled(), *lattice, rng),
                                               orbitals_d1, orbitals_d2, orbitals_f_up, orbitals_f_down));
     } else {
         throw ParseError("invalid wavefunction type");

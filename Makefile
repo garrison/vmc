@@ -53,15 +53,15 @@ HEADER_FILES = \
 SOURCES = \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \
-	  FreeFermionWavefunctionAmplitude.cpp \
-	  main.cpp \
-	  PositionArguments.cpp \
-	  random-combination.cpp \
-	  random-move.cpp \
-	  RenyiModWalk.cpp \
-	  RenyiSignWalk.cpp \
-	  StandardWalk.cpp \
-	  SwappedSystem.cpp
+          FreeFermionWavefunctionAmplitude.cpp \
+          main.cpp \
+          PositionArguments.cpp \
+          random-combination.cpp \
+          random-move.cpp \
+          RenyiModWalk.cpp \
+          RenyiSignWalk.cpp \
+          StandardWalk.cpp \
+          SwappedSystem.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 

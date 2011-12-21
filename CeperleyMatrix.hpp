@@ -31,7 +31,19 @@ private:
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat;
     T detrat, det;
     unsigned int pending_index; // refers to a row or column index
+    int nullity_lower_bound; // in general, a lower bound on the nullity.  but
+                             // it becomes zero only when the nullity is
+                             // precisely zero (and the matrix is invertible)
+    bool inverse_recently_calculated; // set to false every time in update_[row|column]
     NextStep next_step;
+
+    /**
+     * As long as the determinant remains below this value, the O(N^2) update
+     * algorithm will be used.  However, if the determinant falls below this
+     * value we will recalculate the inverse from scratch to fight numerical
+     * error.  This also allows us to determine when the matrix is singular.
+     */
+    static const T ceperley_determinant_cutoff;
 
 public:
     /**
@@ -39,18 +51,12 @@ public:
      */
     CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
         : mat(initial_mat),
-          detrat(0),
+          inverse_recently_calculated(false),
           next_step(UPDATE)
         {
-            Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > fullpivlu_decomposition(mat);
-            invmat = fullpivlu_decomposition.inverse();
-            det = fullpivlu_decomposition.determinant();
+            BOOST_ASSERT(initial_mat.rows() == initial_mat.cols());
 
-            // if there is significant inverse error it probably means our
-            // orbitals are not linearly independent!
-            double inverse_error = compute_inverse_matrix_error();
-            if (inverse_error > .0001)
-                std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
+            calculate_inverse();
         }
 
     /**
@@ -86,17 +92,14 @@ public:
     /**
      * Update a row in the matrix by replacing it with the given vector.
      *
-     * This takes O(N) time.
-     *
-     * If the row can be represented roughly as a linear combination of the
-     * existing rows, the determinant should become zero (in theory, but not
-     * practice), and there will likely be large error from then on.
+     * This takes O(N) time, assuming the matrix did not become singular as a
+     * result of the most recent update.
      *
      * After this is called, the new determinant is available, but no other
      * operations can be called until finish_row_update() is called.  We don't
-     * do these steps here because they take O(N^2) time and are irrelevant if
-     * the matrix is immediately thrown away (e.g. if the Monte Carlo step is
-     * rejected).
+     * update the inverse matrix here because it takes O(N^2) time and is
+     * irrelevant if the matrix is immediately thrown away (e.g. if the Monte
+     * Carlo step is rejected).
      *
      * @param r index of the row to be updated
      *
@@ -112,25 +115,26 @@ public:
             BOOST_ASSERT(row.rows() == mat.cols());
             BOOST_ASSERT(next_step == UPDATE);
 
+            inverse_recently_calculated = false;
+
             // update matrix
             mat.row(r) = row;
             pending_index = r;
 
-            // calculate determinant ratio
-            detrat = mat.row(pending_index) * invmat.col(pending_index);
-            det *= detrat;
+            if (nullity_lower_bound == 0) {
+                // The matrix is not singular, so we calculate the new
+                // determinant using the Sherman-Morrison-Woodbury formula.
+                detrat = mat.row(pending_index) * invmat.col(pending_index);
+                det *= detrat;
 
-#ifdef CAREFUL
-            // check to make sure the row given doesn't already exist in the
-            // matrix, thus ruining things by setting the determinant to zero
-            for (unsigned int i = 0; i < mat.rows(); ++i) {
-                if (i != pending_index) {
-                    if (mat.row(i) == mat.row(pending_index))
-                        std::cerr << "!" << i << "," << pending_index << ' ' << detrat << std::endl;
-                    BOOST_ASSERT(mat.row(i) != mat.row(pending_index));
-                }
+                // If the determinant has become sufficiently small, the matrix
+                // might have become singular so we recompute its inverse from
+                // scratch.
+                if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    calculate_inverse();
+            } else {
+                perform_singular_update();
             }
-#endif
 
             next_step = FINISH_ROW_UPDATE;
         }
@@ -147,25 +151,26 @@ public:
             BOOST_ASSERT(col.rows() == mat.rows());
             BOOST_ASSERT(next_step == UPDATE);
 
+            inverse_recently_calculated = false;
+
             // update matrix
             mat.col(c) = col;
             pending_index = c;
 
-            // calculate determinant ratio
-            detrat = invmat.row(pending_index) * mat.col(pending_index);
-            det *= detrat;
+            if (nullity_lower_bound == 0) {
+                // The matrix is not singular, so we calculate the new
+                // determinant using the Sherman-Morrison-Woodbury formula.
+                detrat = invmat.row(pending_index) * mat.col(pending_index);
+                det *= detrat;
 
-#ifdef CAREFUL
-            // check to make sure the column given doesn't already exist in the
-            // matrix, thus ruining things by setting the determinant to zero
-            for (unsigned int i = 0; i < mat.cols(); ++i) {
-                if (i != pending_index) {
-                    if (mat.col(i) == mat.col(pending_index))
-                        std::cerr << "!" << i << "," << pending_index << ' ' << detrat << std::endl;
-                    BOOST_ASSERT(mat.col(i) != mat.col(pending_index));
-                }
+                // If the determinant has become sufficiently small, the matrix
+                // might have become singular so we recompute its inverse from
+                // scratch.
+                if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    calculate_inverse();
+            } else {
+                perform_singular_update();
             }
-#endif
 
             next_step = FINISH_COLUMN_UPDATE;
         }
@@ -182,11 +187,14 @@ public:
         {
             BOOST_ASSERT(next_step == FINISH_ROW_UPDATE);
 
-            // implement equation (12) of Ceperley et al, correctly given as eqn (4.22)
-            // of Kent's thesis http://www.ornl.gov/~pk7/thesis/thesis.ps.gz
-            Eigen::Matrix<T, Eigen::Dynamic, 1> oldcol(invmat.col(pending_index));
-            invmat -= ((invmat.col(pending_index) / detrat) * (mat.row(pending_index) * invmat)).eval();
-            invmat.col(pending_index) = oldcol / detrat;
+            if (nullity_lower_bound == 0 && !inverse_recently_calculated) {
+                // implement equation (12) of Ceperley et al, correctly given
+                // as eqn (4.22) of Kent's thesis
+                // http://www.ornl.gov/~pk7/thesis/thesis.ps.gz
+                Eigen::Matrix<T, Eigen::Dynamic, 1> oldcol(invmat.col(pending_index));
+                invmat -= ((invmat.col(pending_index) / detrat) * (mat.row(pending_index) * invmat)).eval();
+                invmat.col(pending_index) = oldcol / detrat;
+            }
 
             next_step = UPDATE;
 
@@ -205,10 +213,13 @@ public:
         {
             BOOST_ASSERT(next_step == FINISH_COLUMN_UPDATE);
 
-            // same as above: update the inverse matrix
-            Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index));
-            invmat -= ((invmat * mat.col(pending_index)) * (invmat.row(pending_index) / detrat)).eval();
-            invmat.row(pending_index) = oldrow / detrat;
+            if (nullity_lower_bound == 0 && !inverse_recently_calculated) {
+                // same as above in finish_row_update(): update the inverse
+                // matrix
+                Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index));
+                invmat -= ((invmat * mat.col(pending_index)) * (invmat.row(pending_index) / detrat)).eval();
+                invmat.row(pending_index) = oldrow / detrat;
+            }
 
             next_step = UPDATE;
 
@@ -223,9 +234,7 @@ public:
     void refresh_state (void)
         {
             BOOST_ASSERT(next_step == UPDATE);
-            Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > fullpivlu_decomposition(mat);
-            invmat = fullpivlu_decomposition.inverse();
-            det = fullpivlu_decomposition.determinant();
+            calculate_inverse();
         }
 
     /**
@@ -243,6 +252,7 @@ public:
     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_inverse (void) const
         {
             BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(nullity_lower_bound == 0);
             return invmat;
         }
 
@@ -280,8 +290,13 @@ public:
     double compute_relative_determinant_error (void) const
         {
             BOOST_ASSERT(next_step == UPDATE);
-            T d = mat.fullPivLu().determinant();
-            return abs((d - det) / d);
+            Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);
+            if (lu_decomposition.isInvertible()) {
+                T d = lu_decomposition.determinant();
+                return std::abs((d - det) / d);
+            } else {
+                return std::abs(det);
+            }
         }
 
     /**
@@ -313,13 +328,52 @@ public:
         }
 
 private:
-#ifdef CAREFUL
-    void be_careful (void)
+    void calculate_inverse (void)
         {
-            if (compute_inverse_matrix_error() > 1) {
-                std::cerr << "Recomputing inverse due to large inverse matrix error of " << compute_inverse_matrix_error() << std::endl;
-                refresh_state();
+            Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);
+
+            // fixme (?)
+            lu_decomposition.setThreshold(lu_decomposition.threshold() * 10);
+
+            nullity_lower_bound = mat.cols() - lu_decomposition.rank();
+            if (!lu_decomposition.isInvertible()) {
+                // oddly enough, lu_decomposition.determinant() is not
+                // guaranteed to return zero, so we handle this case
+                // explicitly.
+                det = T(0);
+            } else {
+                det = lu_decomposition.determinant();
+                invmat = lu_decomposition.inverse();
+
+                // if there is significant inverse error it probably means our
+                // orbitals are not linearly independent!
+                double inverse_error = compute_inverse_matrix_error();
+                if (inverse_error > .0001)
+                    std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
+
+                inverse_recently_calculated = true;
             }
+        }
+
+    void perform_singular_update (void)
+        {
+            // The matrix was singular on the last step, so we may need to
+            // check to see if it is still singular
+#if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
+            std::cerr << "matrix was singular!" << std::endl;
+#endif
+            BOOST_ASSERT(det == T(0));
+            BOOST_ASSERT(nullity_lower_bound > 0);
+            --nullity_lower_bound;
+            if (nullity_lower_bound == 0)
+                calculate_inverse();
+        }
+
+#ifdef CAREFUL
+    void be_careful (void) const
+        {
+            if (compute_inverse_matrix_error() > 1)
+                std::cerr << "Large inverse matrix error of " << compute_inverse_matrix_error() << std::endl;
 
             if (compute_relative_determinant_error() > .03)
                 std::cerr << "large determinant error! " << compute_relative_determinant_error() << std::endl;

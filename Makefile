@@ -50,6 +50,7 @@ HEADER_FILES = \
                WavefunctionAmplitude.hpp
 
 SOURCES = \
+          CeperleyMatrix.cpp \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \
           FreeFermionWavefunctionAmplitude.cpp \

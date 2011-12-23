@@ -258,6 +258,8 @@ static void set_wavefunction_positions_from_json (WavefunctionAmplitude &wf, con
         v[i] = json_pos.asUInt();
     }
     wf.reset(PositionArguments(v, N_sites));
+    if (wf.psi() == amplitude_t(0))
+        throw ParseError("given positions have zero amplitude");
 }
 
 static inline double jsoncpp_real_cast (real_t v)

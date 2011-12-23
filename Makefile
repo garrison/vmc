@@ -18,7 +18,6 @@ DOXYGEN = doxygen
 
 HEADER_FILES = \
                allowed-momentum.hpp \
-               array-util.hpp \
                BoundaryCondition.hpp \
                CeperleyMatrix.hpp \
                DBLWavefunctionAmplitude.hpp \

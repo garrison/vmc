@@ -10,10 +10,20 @@
 #include "NDLattice.hpp"
 #include "PositionArguments.hpp"
 
+/**
+ * Green function measurement
+ *
+ * Assumes translational invariance
+ *
+ * @see StandardWalk
+ */
 template <std::size_t DIM>
 class GreenMeasurement : public Measurement<StandardWalk>
 {
 public:
+    /**
+     * Returns the Green function measurement so far for a given vector
+     */
     amplitude_t get (unsigned int site_index, unsigned int basis_index=0) const
         {
             BOOST_ASSERT(site_index < get_N_sites());
@@ -21,17 +31,26 @@ public:
             return green_accum(basis_index, site_index) / real_t(denominator(basis_index));
         }
 
+    /**
+     * Number of sites per unit cell of the Bravais lattice
+     */
     unsigned int basis_indices (void) const
         {
             return green_accum.rows();
         }
 
+    /**
+     * Number of sites on the lattice
+     */
     unsigned int get_N_sites (void) const
         {
             return green_accum.cols();
         }
 
 private:
+    /**
+     * Prepare the object for taking measurements
+     */
     void initialize_ (const StandardWalk &walk)
         {
             const unsigned int total_sites = walk.get_wavefunction().get_lattice().total_sites();
@@ -45,6 +64,9 @@ private:
             current_denominator.resizeLike(denominator);
         }
 
+    /**
+     * Calculate and tally a measurement
+     */
     void measure_ (const StandardWalk &walk)
         {
             const WavefunctionAmplitude &wf = walk.get_wavefunction();
@@ -75,6 +97,9 @@ private:
             repeat_measurement_(walk);
         }
 
+    /**
+     * Tally again the most recent measurement
+     */
     void repeat_measurement_ (const StandardWalk &walk)
         {
             (void) walk;

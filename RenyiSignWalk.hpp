@@ -11,6 +11,13 @@
 #include "SwappedSystem.hpp"
 #include "WavefunctionAmplitude.hpp"
 
+/**
+ * Renyi "sign" walk
+ *
+ * See Y. Zhang et. al., PRL 107, 067202 (2011) for explanation
+ *
+ * @see RenyiSignMeasurement
+ */
 class RenyiSignWalk
 {
 public:

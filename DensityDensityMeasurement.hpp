@@ -10,10 +10,20 @@
 #include "NDLattice.hpp"
 #include "PositionArguments.hpp"
 
+/**
+ * Density-density measurement
+ *
+ * Assumes translational invariance
+ *
+ * @see StandardWalk
+ */
 template <std::size_t DIM>
 class DensityDensityMeasurement : public Measurement<StandardWalk>
 {
 public:
+    /**
+     * Returns the density-density measurement so far for a given vector
+     */
     real_t get (unsigned int site_index, unsigned int basis_index=0) const
         {
             BOOST_ASSERT(site_index < density_accum.cols());
@@ -22,17 +32,26 @@ public:
             return real_t(num) / denominator(basis_index);
         }
 
+    /**
+     * Number of sites per unit cell of the Bravais lattice
+     */
     unsigned int basis_indices (void) const
         {
             return density_accum.rows();
         }
 
+    /**
+     * Number of sites on the lattice
+     */
     unsigned int get_N_sites (void) const
         {
             return density_accum.cols();
         }
 
 private:
+    /**
+     * Prepare the object for taking measurements
+     */
     void initialize_ (const StandardWalk &walk)
         {
             const unsigned int total_sites = walk.get_wavefunction().get_lattice().total_sites();
@@ -46,6 +65,9 @@ private:
             current_denominator.resizeLike(denominator);
         }
 
+    /**
+     * Calculate and tally a measurement
+     */
     void measure_ (const StandardWalk &walk)
         {
             const PositionArguments &r = walk.get_wavefunction().get_positions();
@@ -68,6 +90,9 @@ private:
             repeat_measurement_(walk);
         }
 
+    /**
+     * Tally again the most recent measurement
+     */
     void repeat_measurement_ (const StandardWalk &walk)
         {
             (void) walk;

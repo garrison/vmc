@@ -8,8 +8,11 @@
 #include "CeperleyMatrix.hpp"
 #include "OrbitalDefinitions.hpp"
 
-// i.e. single determinant w/o Jastrow factor
-
+/**
+ * Free fermion wave function
+ *
+ * (a single determinant with no Jastrow factor)
+ */
 class FreeFermionWavefunctionAmplitude : public WavefunctionAmplitude
 {
 private:

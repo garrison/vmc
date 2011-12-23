@@ -15,10 +15,45 @@
 #include "vmc-typedefs.hpp"
 #include "Measurement.hpp"
 
+/**
+ * Metropolis Simulation
+ *
+ * This class performs the Metropolis Monte Carlo algorithm using some given
+ * walk.  First it does some number of steps to (hopefully) reach
+ * "equilibrium," and after that it does some more steps, taking a measurement
+ * after each move.
+ */
 template <class Walk_T>
 class MetropolisSimulation
 {
 public:
+    /**
+     * Constructor
+     *
+     * Note: the initialization sweeps are performed during object
+     * construction.
+     *
+     * @param walk_ walk in its initial state
+     *
+     * @param measurements_ a list of measurements to perform
+     *
+     * @param initialization_sweeps number of steps to take before beginning to
+     * take measurements
+     *
+     * @param seed random seed
+     *
+     * The Walk_T type must define two methods:
+     *
+     * * probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
+     * * void accept_transition ();
+     *
+     * Currently, we copy the walk object in full before attempting any
+     * transition.  If the transition is rejected, we simply resume from the
+     * old walk object.  This may not be the most efficient method, but it is
+     * very general and there is little risk of it working incorrectly.
+     *
+     * @see StandardWalk for an example walk
+     */
     MetropolisSimulation (const Walk_T &walk_, const std::list<boost::shared_ptr<Measurement<Walk_T> > > &measurements_,
                           unsigned int initialization_sweeps, const rng_seed_t &seed)
         : walk(walk_),
@@ -33,6 +68,20 @@ public:
             perform_initialization(initialization_sweeps);
         }
 
+    /**
+     * Convenience constructor, if only one measurement is being performed
+     *
+     * The initialization sweeps are performed during object construction.
+     *
+     * @param walk_ walk in its initial state
+     *
+     * @param measurement_ the measurement to perform
+     *
+     * @param initialization_sweeps number of steps to take before beginning to
+     * take measurements
+     *
+     * @param seed random seed
+     */
     MetropolisSimulation (const Walk_T &walk_, const boost::shared_ptr<Measurement<Walk_T> > &measurement_,
                           unsigned int initialization_sweeps, const rng_seed_t &seed)
         : walk(walk_),
@@ -47,6 +96,10 @@ public:
             perform_initialization(initialization_sweeps);
         }
 
+    /**
+     * Perform some number of steps on the system, taking a measurement each
+     * time
+     */
     void iterate (unsigned int sweeps)
         {
             for (unsigned int i = 0; i < sweeps; ++i) {
@@ -65,26 +118,52 @@ public:
             }
         }
 
+    /**
+     * Returns the number of steps completed so far
+     */
     unsigned int steps_completed (void) const
         {
             return m_steps;
         }
 
+    /**
+     * Returns the number of rejected moves so far
+     */
     unsigned int steps_rejected (void) const
         {
             return m_steps - m_steps_accepted;
         }
 
+    /**
+     * Returns the number of "fully rejected" moves, i.e. the number of
+     * attempted moves that return a probability of precisely zero.
+     *
+     * This may be useful information to us if we are trying to improve the
+     * statistics of the simulation.  If a large proportion of the moves
+     * attempted are fully rejected, then maybe we should be choosing our moves
+     * more wisely.
+     *
+     * One example of where this frequent rejection might occur is in a
+     * wavefunction that disallows double-rung occupancy.  In such a case, it
+     * would be smart for us not to even attempt moves that would lead to
+     * states with zero amplitude.
+     */
     unsigned int steps_fully_rejected (void) const
         {
             return m_steps_fully_rejected;
         }
 
+    /**
+     * Returns the number of accepted moves so far
+     */
     unsigned int steps_accepted (void) const
         {
             return m_steps_accepted;
         }
 
+    /**
+     * Returns the walk object
+     */
     const Walk_T & get_walk (void) const
         {
             return walk;

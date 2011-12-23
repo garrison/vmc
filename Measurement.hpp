@@ -13,6 +13,13 @@ public:
         {
         }
 
+    /**
+     * Initializes the object for taking measurements.
+     *
+     * This is done once the walk is brought to "equilibrium."  After this is
+     * called, either measure() or repeat_measurement() should be called after
+     * every step.
+     */
     void initialize (const Walk_T &walk)
         {
             BOOST_ASSERT(!initialized);
@@ -22,6 +29,9 @@ public:
 #endif
         }
 
+    /**
+     * Calculates and tallies a measurement
+     */
     void measure (const Walk_T &walk)
         {
             BOOST_ASSERT(initialized);
@@ -37,6 +47,9 @@ public:
 #endif
         }
 
+    /**
+     * Tallies again the most recent measurement
+     */
     void repeat_measurement (const Walk_T &walk)
         {
             BOOST_ASSERT(initialized && measured);
@@ -62,6 +75,9 @@ protected:
         {
         }
 
+    /**
+     * Returns how many measurements have been tallied
+     */
     unsigned int get_measurements_completed (void) const
         {
             return m_measurements_completed;

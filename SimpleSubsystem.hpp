@@ -7,9 +7,10 @@
 #include "Subsystem.hpp"
 #include "NDLattice.hpp"
 
-// this work for any subsystem that is a parallelpiped that aligns with the
-// lattice's primitive vectors
-
+/**
+ * Represents any subsystem that is a parallelpiped aligned with the lattice's
+ * primitive vectors
+ */
 template <std::size_t DIM>
 class SimpleSubsystem : public Subsystem
 {

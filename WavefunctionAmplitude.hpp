@@ -8,6 +8,13 @@
 #include "Lattice.hpp"
 #include "vmc-typedefs.hpp"
 
+/**
+ * Abstract base class representing a wavefunction amplitude
+ *
+ * Specifically, a WavefunctionAmplitude keeps track of both the wavefunction
+ * itself (which is invariant after instantiation) and its amplitude, which
+ * varies as the particles are moved around.
+ */
 class WavefunctionAmplitude
 {
 public:
@@ -15,6 +22,13 @@ public:
         {
         }
 
+    /**
+     * Moves a particle to a new site
+     *
+     * After this is called, psi() will return the new amplitude, but further
+     * moves are not allowed until finish_particle_moved_update() has been
+     * called.
+     */
     void move_particle (unsigned int particle, unsigned int new_site_index)
         {
             BOOST_ASSERT(!move_in_progress);
@@ -30,11 +44,17 @@ public:
 #endif
         }
 
+    /**
+     * Returns the current amplitude of the wavefunction
+     */
     amplitude_t psi (void) const
         {
             return psi_();
         }
 
+    /**
+     * Completes the current move, such that new moves are allowed
+     */
     void finish_particle_moved_update (void)
         {
             BOOST_ASSERT(move_in_progress);
@@ -44,6 +64,9 @@ public:
 #endif
         }
 
+    /**
+     * Resets the wavefunction amplitude with a new set of positions
+     */
     void reset (const PositionArguments &r_)
         {
             reset_(r_);
@@ -52,6 +75,9 @@ public:
 #endif
         }
 
+    /**
+     * Returns a clone of the current object
+     */
     boost::shared_ptr<WavefunctionAmplitude> clone (void) const
         {
             return clone_();
@@ -62,6 +88,9 @@ public:
             return *lattice;
         }
 
+    /**
+     * Returns the current positions of the particles
+     */
     const PositionArguments & get_positions (void) const
         {
             return r;

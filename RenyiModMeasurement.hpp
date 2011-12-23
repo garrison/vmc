@@ -8,6 +8,13 @@
 #include "RenyiModWalk.hpp"
 #include "SwappedSystem.hpp"
 
+/**
+ * Renyi "mod" measurement
+ *
+ * See Y. Zhang et. al., PRL 107, 067202 (2011) for explanation
+ *
+ * @see RenyiModWalk
+ */
 class RenyiModMeasurement : public Measurement<RenyiModWalk>
 {
 public:
@@ -19,6 +26,9 @@ public:
         {
         }
 
+    /**
+     * Returns the current value of the measurement
+     */
     measurement_value_t get (void) const
         {
             return static_cast<measurement_value_t>(accum) / get_measurements_completed();

@@ -11,16 +11,43 @@
 
 class Lattice;
 
+/**
+ * Keeps tracked of the swapped wavefunctions
+ *
+ * phialpha refers to the unswapped wavefunctions, and phibeta refers to the
+ * swapped wavefunctions.  This language (and the concept for this class) are
+ * from the paper Y. Zhang et. al., PRL 107, 067202 (2011).
+ *
+ * Any time the phialpha's are updated, this object must be notified
+ * immediately after.  At most one particle can be moved in each phialpha at a
+ * time.  This is fine, as both RenyiModMeasurement and RenyiSignWalk obey this
+ * restriction.
+ *
+ * @see RenyiModMeasurement
+ * @see RenyiSignWalk
+ */
 class SwappedSystem
-// this class must be notified any time the phialpha's are changed
 {
 public:
     SwappedSystem (const boost::shared_ptr<const Subsystem> &subsystem_);
 
     void initialize (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
 
+    /**
+     * Update the phibetas
+     *
+     * This must be called immediately after a particle is moved in either or
+     * both of the phialpha's.
+     *
+     * index1 and index2 refer to the index of the particle moved in phialpha1
+     * and phialpha2 respectively.  It is possible for one of these to be -1,
+     * which signifies that no particle was moved in that copy.
+     */
     void update (int index1, int index2, const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
 
+    /**
+     * Finish the update of the phibetas
+     */
     void finish_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
 
     const Subsystem & get_subsystem (void) const
@@ -42,11 +69,17 @@ public:
             return *phibeta2;
         }
 
+    /**
+     * Returns the number of particles in the subsystem in copy 1
+     */
     unsigned int get_N_subsystem1 (void) const
         {
             return copy1_subsystem_indices.size();
         }
 
+    /**
+     * Returns the number of particles in the subsystem in copy 2
+     */
     unsigned int get_N_subsystem2 (void) const
         {
             return copy2_subsystem_indices.size();

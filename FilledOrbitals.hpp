@@ -15,10 +15,22 @@
 #include "OrbitalDefinitions.hpp"
 #include "allowed-momentum.hpp"
 
+/**
+ * OrbitalDefinitions based on filled momenta and some given boundary conditions
+ */
 template<std::size_t DIM>
 class FilledOrbitals : public OrbitalDefinitions
 {
 public:
+    /**
+     * Constructor
+     *
+     * @param momentum_sites represents which orbitals are filled
+     *
+     * @param lattice_ the lattice
+     *
+     * @param bcs the boundary conditions
+     */
     FilledOrbitals (const std::vector<boost::array<int, DIM> > &momentum_sites, const boost::shared_ptr<const NDLattice<DIM> > &lattice_, const typename NDLattice<DIM>::BoundaryConditions &bcs)
         : OrbitalDefinitions(momentum_sites.size(), lattice_),
           boundary_conditions(bcs)
@@ -48,6 +60,9 @@ public:
             }
         }
 
+    /**
+     * The boundary conditions with which the object was initialized
+     */
     const typename NDLattice<DIM>::BoundaryConditions boundary_conditions;
 };
 

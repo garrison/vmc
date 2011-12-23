@@ -16,10 +16,31 @@
 // lattice we will also want to store vectors that point to each site within a
 // unit cell.
 
+/**
+ * A lattice that exists with definite primitive vectors in real space.
+ *
+ * Most calculations only depend on what dimension the lattice is, but
+ * occasionally we want to represent a lattice with sites in real space.  For
+ * instance, only if we know the primitive vectors can we determine the
+ * magnitude of each momenta, so having a LatticeRealization is necessary if we
+ * e.g. want to fill the M lowest momenta.
+ */
 template<std::size_t DIM>
 class LatticeRealization : public NDLattice<DIM>
 {
 public:
+    /**
+     * Constructor.
+     *
+     * @param length_ size of lattice
+     *
+     * @param primitive_vectors_ primitive vectors of lattice
+     *
+     * @param reciprocal_primitive_vectors_ primitive vectors of reciprocal
+     * lattice, must satisfy \f$ \vec{a}_i \vec{b}_j = 2\pi\delta_{ij}\f$ where
+     * \f$\vec{a}_i\f$ are the direct lattice primitive vectors and
+     * \f$\vec{b}_j\f$ are the reciprocal lattice primitive vectors
+     */
     LatticeRealization (const boost::array<int, DIM> &length_, const boost::array<boost::array<real_position_t, DIM>, DIM> &primitive_vectors_, const boost::array<boost::array<real_position_t, DIM>, DIM> &reciprocal_primitive_vectors_)
         : NDLattice<DIM>(length_, 1),
           primitive_vectors(primitive_vectors_),
@@ -39,6 +60,12 @@ public:
 #endif
         }
 
+    /**
+     * Modifies the given momentum site so that it points to the same momentum
+     * value but within the first Brillouin zone.
+     *
+     * FIXME: currently this works only for hypercubic lattices
+     */
     void map_momentum_to_brillouin_zone (boost::array<boost::rational<int>, DIM> &momentum) const
         {
             // first, get everything in interval [-1/2, 1/2)

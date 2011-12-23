@@ -6,6 +6,13 @@
 #include "Measurement.hpp"
 #include "RenyiSignWalk.hpp"
 
+/**
+ * Renyi "sign" measurement
+ *
+ * See Y. Zhang et. al., PRL 107, 067202 (2011) for explanation
+ *
+ * @see RenyiSignWalk
+ */
 class RenyiSignMeasurement : public Measurement<RenyiSignWalk>
 {
     // fixme: in the case of a real wave function, we know that the sign will
@@ -21,6 +28,9 @@ public:
         {
         }
 
+    /**
+     * Returns the current value of the measurement
+     */
     measurement_value_t get (void) const
         {
             return accum / (measurement_value_t) get_measurements_completed();

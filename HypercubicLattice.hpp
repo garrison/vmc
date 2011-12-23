@@ -7,10 +7,22 @@
 #include "LatticeRealization.hpp"
 #include "vmc-typedefs.hpp"
 
+/**
+ * Lattice realization for a hypercubic lattice
+ *
+ * @see LatticeRealization
+ */
 template<std::size_t DIM>
 class HypercubicLattice : public LatticeRealization<DIM>
 {
 public:
+    /**
+     * Constructor
+     *
+     * @param length_ size of lattice
+     *
+     * @param a lattice spacing, defaults to 1
+     */
     HypercubicLattice (const boost::array<int, DIM> &length_, real_position_t a=1)
         : LatticeRealization<DIM>(length_, generate_vectors(a), generate_vectors(2 * boost::math::constants::pi<real_position_t>() / a))
         {

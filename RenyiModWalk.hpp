@@ -9,6 +9,13 @@
 #include "vmc-typedefs.hpp"
 #include "WavefunctionAmplitude.hpp"
 
+/**
+ * Renyi "mod" walk
+ *
+ * See Y. Zhang et. al., PRL 107, 067202 (2011) for explanation
+ *
+ * @see RenyiModMeasurement
+ */
 class RenyiModWalk
 {
 public:
@@ -26,6 +33,11 @@ public:
             return *phialpha2;
         }
 
+    /**
+     * Returns the first two arguments that should be passed to
+     * SwappedSystem::update().  This should be done by RenyiModMeasurement
+     * after each transition.
+     */
     std::pair<int, int> get_swapped_system_update_args (void) const
         {
             BOOST_ASSERT(transition_copy_in_progress == 0);

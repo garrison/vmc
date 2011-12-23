@@ -6,6 +6,7 @@
 
 #include <boost/array.hpp>
 #include <boost/assert.hpp>
+#include <boost/static_assert.hpp>
 #include <boost/random/uniform_smallint.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random.hpp>
@@ -32,6 +33,8 @@ template<std::size_t DIM>
 class NDLattice : public Lattice
 {
 public:
+    BOOST_STATIC_ASSERT(DIM > 0);
+
     /** number of dimensions of the lattice */
     static const unsigned int dimensions = DIM;
 

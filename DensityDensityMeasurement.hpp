@@ -29,7 +29,7 @@ public:
             BOOST_ASSERT(site_index < density_accum.cols());
             BOOST_ASSERT(basis_index < density_accum.rows());
             unsigned int num = density_accum(basis_index, site_index);
-            return real_t(num) / denominator(basis_index);
+            return density * (real_t(num) / denominator(basis_index) - density);
         }
 
     /**
@@ -63,6 +63,9 @@ private:
             denominator.setZero(basis_indices);
             current_density_accum.resizeLike(density_accum);
             current_denominator.resizeLike(denominator);
+
+            const PositionArguments &r = walk.get_wavefunction().get_positions();
+            density = real_t(r.get_N_filled()) / r.get_N_sites();
         }
 
     /**
@@ -105,6 +108,8 @@ private:
 
     // index refers to the basis
     Eigen::Array<unsigned int, Eigen::Dynamic, 1> denominator, current_denominator;
+
+    real_t density;
 };
 
 #endif

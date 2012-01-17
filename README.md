@@ -1,8 +1,8 @@
 vmc
 ===
 
-Performs variational Monte Carlo (VMC) calcuations on systems that are
-of interest to the authors of this code.
+Performs variational Monte Carlo (VMC) calcuations on lattice systems
+that are of interest to the authors of this code.
 
 Requires a recent [boost](http://www.boost.org/) (headers only) and
 [eigen3](http://eigen.tuxfamily.org/).  The input mechanism for
@@ -17,7 +17,8 @@ variables in the Makefile. For example, it could say:
     CXX = clang++
 
 To compile and run:
-$ make && ./vmc < sample-input.json
+
+    $ make && ./vmc < sample-input.json
 
 It should compile on recent versions of g++, clang++, and icc.
 

@@ -64,6 +64,7 @@ public:
 private:
     boost::shared_ptr<WavefunctionAmplitude> phialpha1, phialpha2;
     boost::shared_ptr<SwappedSystem> swapped_system;
+    unsigned int N_subsystem_sites;
     bool transition_in_progress;
 };
 

@@ -41,6 +41,7 @@ HEADER_FILES = \
                RenyiModWalk.hpp \
                RenyiSignMeasurement.hpp \
                RenyiSignWalk.hpp \
+               RunInformation.hpp \
                safe-modulus.hpp \
                SimpleSubsystem.hpp \
                StandardWalk.hpp \
@@ -60,6 +61,7 @@ SOURCES = \
           random-move.cpp \
           RenyiModWalk.cpp \
           RenyiSignWalk.cpp \
+          RunInformation.cpp \
           StandardWalk.cpp \
           SwappedSystem.cpp
 

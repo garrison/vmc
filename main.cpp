@@ -29,6 +29,7 @@
 #include "RenyiSignWalk.hpp"
 #include "RenyiSignMeasurement.hpp"
 #include "SimpleSubsystem.hpp"
+#include "RunInformation.hpp"
 
 // fixme: there is currently no reason for this to be a template
 // fixme: this function is more general than main.cpp
@@ -66,6 +67,8 @@ static unsigned int count_N_subsystem (const WavefunctionAmplitude &wf, const Su
     }
     return rv;
 }
+
+static RunInformation run_information;
 
 class ParseError : public std::exception
 {
@@ -598,7 +601,10 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         throw ParseError("invalid walk type");
     }
 
-    std::cout << json_measurement_output;
+    Json::Value json_output(Json::objectValue);
+    json_output["measurements"] = json_measurement_output;
+    json_output["run-information"] = run_information.json_info();
+    std::cout << json_output;
 
     return 0;
 }

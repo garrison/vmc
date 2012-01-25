@@ -1,5 +1,8 @@
 #include <sys/utsname.h>
+#include <sys/resource.h>
 #include <limits>
+#include <ctime>
+#include <string>
 
 #include <boost/version.hpp>
 #include <Eigen/Core>
@@ -26,27 +29,62 @@ static Json::Value get_json_uname()
 
 static const Json::Value platform = get_json_uname();
 
+static double timeval_to_double (const struct timeval &tv)
+{
+    return double(tv.tv_sec) + double(.000001 * tv.tv_usec);
+}
+
+static std::string time_to_string (const std::time_t &t)
+{
+    std::string rv(std::ctime(&t));
+    rv.erase(rv.size() - 1); // remove the trailing newline
+    return rv;
+}
+
 RunInformation::RunInformation (void)
 {
+    std::time(&start_time);
 }
 
 Json::Value RunInformation::json_info (void) const
 {
     Json::Value rv(Json::objectValue);
-    rv["version"]["boost"] = BOOST_LIB_VERSION;
-    rv["version"]["eigen"] = STRINGIFY(EIGEN_WORLD_VERSION) "." STRINGIFY(EIGEN_MAJOR_VERSION) "." STRINGIFY(EIGEN_MINOR_VERSION);
-    rv["version"]["vmc"] = "0";
-    rv["platform"] = platform;
+
 #ifdef __VERSION__
     rv["compiler"] = __VERSION__;
 #else
     rv["compiler"] = Json::Value(Json::nullValue);
 #endif
     // fixme: rv["compiler_defines"];
+
+    rv["platform"] = platform;
+
     rv["precision"]["digits"] = std::numeric_limits<real_t>::digits;
     rv["precision"]["min_exponent"] = std::numeric_limits<real_t>::min_exponent;
     rv["precision"]["max_exponent"] = std::numeric_limits<real_t>::max_exponent;
-    // fixme: start time, finish time, rusage
+
+    rv["version"]["boost"] = BOOST_LIB_VERSION;
+    rv["version"]["eigen"] = STRINGIFY(EIGEN_WORLD_VERSION) "." STRINGIFY(EIGEN_MAJOR_VERSION) "." STRINGIFY(EIGEN_MINOR_VERSION);
+    rv["version"]["vmc"] = "0";
+
+    std::time_t finish_time;
+    std::time(&finish_time);
+    rv["datetime"]["start"] = time_to_string(start_time);
+    rv["datetime"]["finish"] = time_to_string(finish_time);
+    rv["walltime"] = Json::Int(finish_time - start_time);
+
+    struct rusage res_usage;
+    if (getrusage(RUSAGE_SELF, &res_usage) == 0) {
+        rv["rusage"]["utime"] = timeval_to_double(res_usage.ru_utime);
+        rv["rusage"]["stime"] = timeval_to_double(res_usage.ru_stime);
+        rv["rusage"]["maxrss"] = Json::Int(res_usage.ru_maxrss);
+        rv["rusage"]["nvcsw"] = Json::Int(res_usage.ru_nvcsw);
+        rv["rusage"]["nivcsw"] = Json::Int(res_usage.ru_nivcsw);
+        rv["rusage"]["minflt"] = Json::Int(res_usage.ru_minflt);
+        rv["rusage"]["majflt"] = Json::Int(res_usage.ru_majflt);
+    } else {
+        rv["rusage"] = Json::Value(Json::nullValue);
+    }
 
     return rv;
 }

@@ -1,6 +1,8 @@
 #ifndef _RUN_INFORMATION_HPP
 #define _RUN_INFORMATION_HPP
 
+#include <ctime>
+
 #include <json/json.h>
 
 class RunInformation
@@ -18,6 +20,7 @@ public:
     Json::Value json_info (void) const;
 
 private:
+    std::time_t start_time;
 };
 
 #endif

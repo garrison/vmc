@@ -523,7 +523,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         for (std::list<boost::shared_ptr<Measurement<StandardWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(standard_walk_measurement_json_repr<DIM>(i->get()));
         }
-        json_final_positions_output = positions_json_repr(wf->get_positions());
+        json_final_positions_output = positions_json_repr(sim.get_walk().get_wavefunction().get_positions());
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-mod") == 0) {
 
@@ -565,8 +565,8 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
             json_measurement_output.append(renyi_mod_walk_measurement_json_repr(i->get()));
         }
         json_final_positions_output = Json::Value(Json::arrayValue);
-        json_final_positions_output.append(positions_json_repr(wf->get_positions()));
-        json_final_positions_output.append(positions_json_repr(wf2->get_positions()));
+        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha1().get_positions()));
+        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha2().get_positions()));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-sign") == 0) {
 
@@ -610,8 +610,8 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         // store json
         json_measurement_output.append(renyi_sign_walk_measurement_json_repr(measurement.get()));
         json_final_positions_output = Json::Value(Json::arrayValue);
-        json_final_positions_output.append(positions_json_repr(wf->get_positions()));
-        json_final_positions_output.append(positions_json_repr(wf2->get_positions()));
+        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha1().get_positions()));
+        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha2().get_positions()));
 
     } else {
         throw ParseError("invalid walk type");

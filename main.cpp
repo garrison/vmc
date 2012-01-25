@@ -274,6 +274,16 @@ static Json::Value positions_json_repr (const PositionArguments &r)
     return rv;
 }
 
+template <class Walk_T>
+static Json::Value monte_carlo_stats_json_repr (const MetropolisSimulation<Walk_T> &sim)
+{
+    Json::Value rv(Json::objectValue);
+    rv["steps-completed"] = Json::UInt(sim.steps_completed());
+    rv["steps-accepted"] = Json::UInt(sim.steps_accepted());
+    rv["steps-fully-rejected"] = Json::UInt(sim.steps_fully_rejected());
+    return rv;
+}
+
 static inline double jsoncpp_real_cast (real_t v)
 {
     // it would be really nice if jsoncpp supported "long double" directly...
@@ -483,7 +493,8 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         throw ParseError("initial positions must be given if there are no equilibrium steps");
 
     // from here forward, we have special logic per walk type
-    Json::Value json_measurement_output(Json::arrayValue), json_final_positions_output;
+    Json::Value json_measurement_output(Json::arrayValue);
+    Json::Value json_final_positions_output, json_monte_carlo_stats_output;
     ensure_string(json_simulation["walk-type"]);
     const char *json_walk_type_cstr = json_simulation["walk-type"].asCString();
     if (std::strcmp(json_walk_type_cstr, "standard") == 0) {
@@ -518,12 +529,11 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         sim.iterate(measurement_steps);
 
         // store json
-        std::cerr << "accepted " << (100.0 * sim.steps_accepted() / sim.steps_completed()) << "%" << std::endl;
-        // fixme: add current positions to json as well as steps accepted/rejected/totally-rejected, etc
         for (std::list<boost::shared_ptr<Measurement<StandardWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(standard_walk_measurement_json_repr<DIM>(i->get()));
         }
         json_final_positions_output = positions_json_repr(sim.get_walk().get_wavefunction().get_positions());
+        json_monte_carlo_stats_output = monte_carlo_stats_json_repr(sim);
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-mod") == 0) {
 
@@ -567,6 +577,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         json_final_positions_output = Json::Value(Json::arrayValue);
         json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha1().get_positions()));
         json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha2().get_positions()));
+        json_monte_carlo_stats_output = monte_carlo_stats_json_repr(sim);
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-sign") == 0) {
 
@@ -612,6 +623,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         json_final_positions_output = Json::Value(Json::arrayValue);
         json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha1().get_positions()));
         json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha2().get_positions()));
+        json_monte_carlo_stats_output = monte_carlo_stats_json_repr(sim);
 
     } else {
         throw ParseError("invalid walk type");
@@ -621,6 +633,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
     json_output["final-positions"] = json_final_positions_output;
     json_output["measurements"] = json_measurement_output;
     json_output["run-information"] = run_information.json_info();
+    json_output["monte-carlo-stats"] = json_monte_carlo_stats_output;
     std::cout << json_output;
 
     return 0;

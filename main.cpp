@@ -265,6 +265,15 @@ static void set_wavefunction_positions_from_json (WavefunctionAmplitude &wf, con
         throw ParseError("given positions have zero amplitude");
 }
 
+static Json::Value positions_json_repr (const PositionArguments &r)
+{
+    Json::Value rv(Json::arrayValue);
+    for (unsigned int i = 0; i < r.get_N_filled(); ++i) {
+        rv.append(r[i]);
+    }
+    return rv;
+}
+
 static inline double jsoncpp_real_cast (real_t v)
 {
     // it would be really nice if jsoncpp supported "long double" directly...
@@ -474,7 +483,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         throw ParseError("initial positions must be given if there are no equilibrium steps");
 
     // from here forward, we have special logic per walk type
-    Json::Value json_measurement_output(Json::arrayValue);
+    Json::Value json_measurement_output(Json::arrayValue), json_final_positions_output;
     ensure_string(json_simulation["walk-type"]);
     const char *json_walk_type_cstr = json_simulation["walk-type"].asCString();
     if (std::strcmp(json_walk_type_cstr, "standard") == 0) {
@@ -514,6 +523,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         for (std::list<boost::shared_ptr<Measurement<StandardWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(standard_walk_measurement_json_repr<DIM>(i->get()));
         }
+        json_final_positions_output = positions_json_repr(wf->get_positions());
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-mod") == 0) {
 
@@ -554,6 +564,9 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         for (std::list<boost::shared_ptr<Measurement<RenyiModWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(renyi_mod_walk_measurement_json_repr(i->get()));
         }
+        json_final_positions_output = Json::Value(Json::arrayValue);
+        json_final_positions_output.append(positions_json_repr(wf->get_positions()));
+        json_final_positions_output.append(positions_json_repr(wf2->get_positions()));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-sign") == 0) {
 
@@ -596,12 +609,16 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
 
         // store json
         json_measurement_output.append(renyi_sign_walk_measurement_json_repr(measurement.get()));
+        json_final_positions_output = Json::Value(Json::arrayValue);
+        json_final_positions_output.append(positions_json_repr(wf->get_positions()));
+        json_final_positions_output.append(positions_json_repr(wf2->get_positions()));
 
     } else {
         throw ParseError("invalid walk type");
     }
 
     Json::Value json_output(Json::objectValue);
+    json_output["final-positions"] = json_final_positions_output;
     json_output["measurements"] = json_measurement_output;
     json_output["run-information"] = run_information.json_info();
     std::cout << json_output;

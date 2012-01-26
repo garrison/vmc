@@ -73,7 +73,7 @@ vmc:	$(OBJECTS)
 	$(COMPILE) $(LIBS) -o vmc $(OBJECTS)
 
 %.o: %.cpp $(HEADER_FILES)
-	$(COMPILE) $(INCLUDES) -c -o $@ $<
+	$(COMPILE) $(INCLUDES) -DVMC_COMPILER_COMMANDLINE="$(COMPILE)" -c -o $@ $<
 
 docs: Doxyfile $(HEADER_FILES) $(SOURCES) clean_docs
 	mkdir -p docs/

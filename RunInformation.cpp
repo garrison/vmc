@@ -55,7 +55,7 @@ Json::Value RunInformation::json_info (void) const
 #else
     rv["compiler"] = Json::Value(Json::nullValue);
 #endif
-    // fixme: rv["compiler_defines"];
+    rv["compiler_commandline"] = STRINGIFY(VMC_COMPILER_COMMANDLINE);
 
     rv["platform"] = platform;
 

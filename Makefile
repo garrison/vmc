@@ -72,7 +72,7 @@ all:	vmc
 vmc:	$(OBJECTS)
 	$(COMPILE) $(LIBS) -o vmc $(OBJECTS)
 
-%.o: %.cpp $(HEADER_FILES)
+%.o: %.cpp $(HEADER_FILES) Makefile Makefile-vmc.local
 	$(COMPILE) $(INCLUDES) -DVMC_COMPILER_COMMANDLINE="$(COMPILE)" -c -o $@ $<
 
 docs: Doxyfile $(HEADER_FILES) $(SOURCES) clean_docs

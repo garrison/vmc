@@ -7,7 +7,7 @@
 typedef boost::mt19937 rng_class;
 typedef unsigned long long rng_seed_t;
 
-typedef long double real_t;
+typedef double real_t;
 typedef std::complex<real_t> complex_t;
 
 typedef real_t probability_t;

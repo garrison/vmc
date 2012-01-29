@@ -24,9 +24,7 @@ public:
         {
             BOOST_ASSERT(!initialized);
             initialize_(walk);
-#ifndef BOOST_DISABLE_ASSERTS
             initialized = true;
-#endif
         }
 
     /**
@@ -37,14 +35,10 @@ public:
             BOOST_ASSERT(initialized);
             BOOST_ASSERT(!measurement_in_progress);
             ++m_measurements_completed;
-#ifndef BOOST_DISABLE_ASSERTS
             measurement_in_progress = true;
-#endif
             measure_(walk);
-#ifndef BOOST_DISABLE_ASSERTS
             measured = true;
             measurement_in_progress = false;
-#endif
         }
 
     /**
@@ -55,23 +49,17 @@ public:
             BOOST_ASSERT(initialized && measured);
             BOOST_ASSERT(!measurement_in_progress);
             ++m_measurements_completed;
-#ifndef BOOST_DISABLE_ASSERTS
             measurement_in_progress = true;
-#endif
             repeat_measurement_(walk);
-#ifndef BOOST_DISABLE_ASSERTS
             measurement_in_progress = false;
-#endif
         }
 
 protected:
     Measurement (void)
-        : m_measurements_completed(0)
-#ifndef BOOST_DISABLE_ASSERTS
-        , initialized(false)
-        , measured(false)
-        , measurement_in_progress(false)
-#endif
+        : m_measurements_completed(0),
+          initialized(false),
+          measured(false),
+          measurement_in_progress(false)
         {
         }
 
@@ -101,9 +89,7 @@ private:
 
     unsigned int m_measurements_completed;
 
-#ifndef BOOST_DISABLE_ASSERTS
     bool initialized, measured, measurement_in_progress;
-#endif
 };
 
 #endif

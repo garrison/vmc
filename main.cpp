@@ -238,8 +238,29 @@ boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_de
 template <unsigned int DIM>
 boost::shared_ptr<Measurement<RenyiModWalk> > parse_renyi_mod_walk_measurement_definition (const Json::Value &json_measurement_def, const NDLattice<DIM> &lattice)
 {
-    boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem<DIM>(json_measurement_def, lattice));
-    return boost::make_shared<RenyiModMeasurement>(subsystem);
+    ensure_object_with_type_field_as_string(json_measurement_def);
+    if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-mod") == 0) {
+        const char * const json_renyi_mod_required[] = { "type", "subsystem", NULL };
+        ensure_required(json_measurement_def, json_renyi_mod_required);
+        ensure_only(json_measurement_def, json_renyi_mod_required);
+        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem<DIM>(json_measurement_def["subsystem"], lattice));
+        return boost::make_shared<RenyiModMeasurement>(subsystem);
+    } else {
+        throw ParseError("invalid renyi-mod walk measurement type");
+    }
+}
+
+template <unsigned int DIM>
+boost::shared_ptr<Measurement<RenyiSignWalk> > parse_renyi_sign_walk_measurement_definition (const Json::Value &json_measurement_def)
+{
+    ensure_object_with_type_field_as_string(json_measurement_def);
+    if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-sign") == 0) {
+        const char * const json_renyi_sign_allowed[] = { "type", NULL };
+        ensure_only(json_measurement_def, json_renyi_sign_allowed);
+        return boost::make_shared<RenyiSignMeasurement>();
+    } else {
+        throw ParseError("invalid renyi-sign walk measurement type");
+    }
 }
 
 static void set_wavefunction_positions_from_json (WavefunctionAmplitude &wf, const Json::Value &json_initial_positions)
@@ -338,9 +359,10 @@ static Json::Value renyi_mod_walk_measurement_json_repr (const Measurement<Renyi
     return Json::Value(rmm->get());
 }
 
-static Json::Value renyi_sign_walk_measurement_json_repr (const RenyiSignMeasurement *measurement)
+static Json::Value renyi_sign_walk_measurement_json_repr (const Measurement<RenyiSignWalk> *measurement_ptr)
 {
-    return complex_to_json_array(measurement->get());
+    const RenyiSignMeasurement *rsm = boost::polymorphic_downcast<const RenyiSignMeasurement*>(measurement_ptr);
+    return complex_to_json_array(rsm->get());
 }
 
 template <unsigned int DIM>
@@ -540,9 +562,9 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         // RENYI MOD WALK
 
         // ensure correct json properties are given
-        const char * const json_simulation_additional_required[] = { "measurement-subsystems", NULL };
+        const char * const json_simulation_additional_required[] = { "measurements", NULL };
         ensure_required(json_simulation, json_simulation_additional_required);
-        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "measurement-subsystems", NULL };
+        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "measurements", NULL };
         ensure_only(json_simulation, json_simulation_only);
 
         // set up initial positions of wavefunctions
@@ -559,7 +581,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         }
 
         // set up measurement(s)
-        const Json::Value &json_measurements = json_simulation["measurement-subsystems"];
+        const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
         std::list<boost::shared_ptr<Measurement<RenyiModWalk> > > measurements;
         for (unsigned int i = 0; i < json_measurements.size(); ++i)
@@ -584,9 +606,9 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         // RENYI SIGN WALK
 
         // ensure correct json properties are given
-        const char * const json_simulation_additional_required[] = { "subsystem", NULL };
+        const char * const json_simulation_additional_required[] = { "subsystem", "measurements", NULL };
         ensure_required(json_simulation, json_simulation_additional_required);
-        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "subsystem", NULL };
+        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "subsystem", "measurements", NULL };
         ensure_only(json_simulation, json_simulation_only);
 
         // set up subsystem
@@ -610,16 +632,22 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
             wf2 = wf;
         }
 
-        // set up measurement
-        boost::shared_ptr<RenyiSignMeasurement> measurement(new RenyiSignMeasurement);
+        // set up measurement(s)
+        const Json::Value &json_measurements = json_simulation["measurements"];
+        ensure_array(json_measurements);
+        std::list<boost::shared_ptr<Measurement<RenyiSignWalk> > > measurements;
+        for (unsigned int i = 0; i < json_measurements.size(); ++i)
+            measurements.push_back(parse_renyi_sign_walk_measurement_definition<DIM>(json_measurements[i]));
 
         // set up and perform walk
         RenyiSignWalk walk(wf, wf2, subsystem);
-        MetropolisSimulation<RenyiSignWalk> sim(walk, measurement, equilibrium_steps, rng());
+        MetropolisSimulation<RenyiSignWalk> sim(walk, measurements, equilibrium_steps, rng());
         sim.iterate(measurement_steps);
 
         // store json
-        json_measurement_output.append(renyi_sign_walk_measurement_json_repr(measurement.get()));
+        for (std::list<boost::shared_ptr<Measurement<RenyiSignWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
+            json_measurement_output.append(renyi_sign_walk_measurement_json_repr(i->get()));
+        }
         json_final_positions_output = Json::Value(Json::arrayValue);
         json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha1().get_positions()));
         json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha2().get_positions()));

@@ -24,7 +24,8 @@ public:
     typedef amplitude_t measurement_value_t;
 
     RenyiSignMeasurement (void)
-        : accum(0)
+        : Measurement<RenyiSignWalk>(1), // we must measure after every step
+          accum(0)
         {
         }
 

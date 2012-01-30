@@ -61,7 +61,7 @@ public:
           m_steps(0),
           m_steps_accepted(0),
           m_steps_fully_rejected(0),
-          not_yet_measured(true),
+          measurement_not_yet_updated(true),
           rng(seed),
           uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
         {
@@ -88,7 +88,7 @@ public:
           m_steps(0),
           m_steps_accepted(0),
           m_steps_fully_rejected(0),
-          not_yet_measured(true),
+          measurement_not_yet_updated(true),
           rng(seed),
           uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
         {
@@ -107,13 +107,13 @@ public:
                 const bool accepted = perform_single_step();
 
                 // perform the measurement(s)
-                if (accepted || not_yet_measured) {
+                if (accepted || measurement_not_yet_updated) {
                     for (typename std::list<boost::shared_ptr<Measurement<Walk_T> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
-                        (*m)->measure(walk);
-                    not_yet_measured = false;
+                        (*m)->step_advanced(walk);
+                    measurement_not_yet_updated = false;
                 } else {
                     for (typename std::list<boost::shared_ptr<Measurement<Walk_T> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
-                        (*m)->repeat_measurement(walk);
+                        (*m)->step_repeated(walk);
                 }
             }
         }
@@ -173,7 +173,7 @@ private:
     Walk_T walk;
     std::list<boost::shared_ptr<Measurement<Walk_T> > > measurements;
     unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
-    bool not_yet_measured;
+    bool measurement_not_yet_updated;
 
     rng_class rng;
     boost::uniform_01<rng_class> uniform_distribution;

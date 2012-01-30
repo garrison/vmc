@@ -154,6 +154,18 @@ static void ensure_object_with_type_field_as_string (const Json::Value &jsonvalu
     ensure_string(jsonvalue["type"]);
 }
 
+static unsigned int parse_json_steps_per_measurement (const Json::Value &json_measurement_def)
+{
+    if (json_measurement_def.isMember("steps-per-measurement")) {
+        const Json::Value &spm = json_measurement_def["steps-per-measurement"];
+        if (!(spm.isIntegral() && spm.asInt() > 0))
+            throw ParseError("invalid steps-per-measurement value");
+        return spm.asUInt();
+    } else {
+        return 1;
+    }
+}
+
 template <unsigned int DIM>
 boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Value &json_orbitals, const boost::shared_ptr<const NDLattice<DIM> > &lattice)
 {
@@ -223,13 +235,15 @@ boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_de
 {
     ensure_object_with_type_field_as_string(json_measurement_def);
     if (std::strcmp(json_measurement_def["type"].asCString(), "density-density") == 0) {
-        const char * const json_density_density_allowed[] = { "type", NULL };
+        const char * const json_density_density_allowed[] = { "type", "steps-per-measurement", NULL };
         ensure_only(json_measurement_def, json_density_density_allowed);
-        return boost::make_shared<DensityDensityMeasurement<DIM> >();
+        unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
+        return boost::make_shared<DensityDensityMeasurement<DIM> >(steps_per_measurement);
     } else if (std::strcmp(json_measurement_def["type"].asCString(), "green") == 0) {
-        const char * const json_density_density_allowed[] = { "type", NULL };
+        const char * const json_density_density_allowed[] = { "type", "steps-per-measurement", NULL };
         ensure_only(json_measurement_def, json_density_density_allowed);
-        return boost::make_shared<GreenMeasurement<DIM> >();
+        unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
+        return boost::make_shared<GreenMeasurement<DIM> >(steps_per_measurement);
     } else {
         throw ParseError("invalid standard walk measurement type");
     }
@@ -241,10 +255,12 @@ boost::shared_ptr<Measurement<RenyiModWalk> > parse_renyi_mod_walk_measurement_d
     ensure_object_with_type_field_as_string(json_measurement_def);
     if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-mod") == 0) {
         const char * const json_renyi_mod_required[] = { "type", "subsystem", NULL };
+        const char * const json_renyi_mod_allowed[] = { "type", "steps-per-measurement", "subsystem", NULL };
         ensure_required(json_measurement_def, json_renyi_mod_required);
-        ensure_only(json_measurement_def, json_renyi_mod_required);
+        ensure_only(json_measurement_def, json_renyi_mod_allowed);
         boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem<DIM>(json_measurement_def["subsystem"], lattice));
-        return boost::make_shared<RenyiModMeasurement>(subsystem);
+        unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
+        return boost::make_shared<RenyiModMeasurement>(subsystem, steps_per_measurement);
     } else {
         throw ParseError("invalid renyi-mod walk measurement type");
     }

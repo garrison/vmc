@@ -21,6 +21,11 @@ template <std::size_t DIM>
 class GreenMeasurement : public Measurement<StandardWalk>
 {
 public:
+    GreenMeasurement (unsigned int steps_per_measurement)
+        : Measurement<StandardWalk>(steps_per_measurement)
+        {
+        }
+
     /**
      * Returns the Green function measurement so far for a given vector
      */

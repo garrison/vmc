@@ -21,6 +21,11 @@ template <std::size_t DIM>
 class DensityDensityMeasurement : public Measurement<StandardWalk>
 {
 public:
+    DensityDensityMeasurement (unsigned int steps_per_measurement)
+        : Measurement<StandardWalk>(steps_per_measurement)
+        {
+        }
+
     /**
      * Returns the density-density measurement so far for a given vector
      */

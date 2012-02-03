@@ -22,7 +22,8 @@ class GreenMeasurement : public Measurement<StandardWalk>
 {
 public:
     GreenMeasurement (unsigned int steps_per_measurement)
-        : Measurement<StandardWalk>(steps_per_measurement)
+        : Measurement<StandardWalk>(steps_per_measurement),
+          denominator(0)
         {
         }
 
@@ -33,7 +34,7 @@ public:
         {
             BOOST_ASSERT(site_index < get_N_sites());
             BOOST_ASSERT(basis_index < basis_indices());
-            return green_accum(basis_index, site_index) / real_t(denominator(basis_index));
+            return green_accum(basis_index, site_index) / real_t(denominator);
         }
 
     /**
@@ -64,9 +65,9 @@ private:
 
             const unsigned int basis_indices = lattice->basis_indices;
             green_accum.setZero(basis_indices, total_sites);
-            denominator.setZero(basis_indices);
-            current_green_accum.resizeLike(green_accum);
-            current_denominator.resizeLike(denominator);
+            current_step_green_accum.resizeLike(green_accum);
+
+            single_step_denominator = lattice->total_sites() / basis_indices;
         }
 
     /**
@@ -78,12 +79,16 @@ private:
             const PositionArguments &r = wf.get_positions();
             const NDLattice<DIM> *lattice = boost::polymorphic_downcast<const NDLattice<DIM>*>(&wf.get_lattice());
 
-            current_green_accum.setZero();
-            current_denominator.setZero();
+            current_step_green_accum.setZero();
 
-            // loop through all pairs of particles
+            // loop through all (particle, empty site) pairs
             for (unsigned int i = 0; i < r.get_N_filled(); ++i) {
                 const typename NDLattice<DIM>::Site site_i(lattice->site_from_index(r[i]));
+
+                // amplitude of starting and ending on same site
+                current_step_green_accum(site_i.basis_index, 0) += amplitude_t(1);
+
+                // loop through all empty sites
                 for (unsigned int j = 0; j < r.get_N_sites(); ++j) {
                     if (r.is_occupied(j))
                         continue;
@@ -94,9 +99,8 @@ private:
                     typename NDLattice<DIM>::Site site_j(lattice->site_from_index(j));
                     phase_t phase = lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
                     // fixme: check logic of multiplying by phase
-                    green_accum(site_i.basis_index, lattice->site_to_index(site_j)) += std::conj(wf_operated->psi() * phase / wf.psi());
+                    current_step_green_accum(site_i.basis_index, lattice->site_to_index(site_j)) += std::conj(wf_operated->psi() * phase / wf.psi());
                 }
-                ++denominator(site_i.basis_index);
             }
 
             repeat_measurement_(walk);
@@ -108,15 +112,14 @@ private:
     void repeat_measurement_ (const StandardWalk &walk)
         {
             (void) walk;
-            green_accum += current_green_accum;
-            denominator += current_denominator;
+            green_accum += current_step_green_accum;
+            denominator += single_step_denominator;
         }
 
     // row is the basis, column is the site index
-    Eigen::Array<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> green_accum, current_green_accum;
+    Eigen::Array<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> green_accum, current_step_green_accum;
 
-    // index refers to the basis
-    Eigen::Array<unsigned int, Eigen::Dynamic, 1> denominator, current_denominator;
+    unsigned int denominator, single_step_denominator;
 };
 
 #endif

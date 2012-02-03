@@ -22,7 +22,8 @@ class DensityDensityMeasurement : public Measurement<StandardWalk>
 {
 public:
     DensityDensityMeasurement (unsigned int steps_per_measurement)
-        : Measurement<StandardWalk>(steps_per_measurement)
+        : Measurement<StandardWalk>(steps_per_measurement),
+          denominator(0)
         {
         }
 
@@ -34,7 +35,7 @@ public:
             BOOST_ASSERT(site_index < density_accum.cols());
             BOOST_ASSERT(basis_index < density_accum.rows());
             unsigned int num = density_accum(basis_index, site_index);
-            return density * (real_t(num) / denominator(basis_index) - density);
+            return real_t(num) / denominator - density_squared;
         }
 
     /**
@@ -65,12 +66,13 @@ private:
 
             const unsigned int basis_indices = lattice->basis_indices;
             density_accum.setZero(basis_indices, total_sites);
-            denominator.setZero(basis_indices);
-            current_density_accum.resizeLike(density_accum);
-            current_denominator.resizeLike(denominator);
+            current_step_density_accum.resizeLike(density_accum);
+
+            single_step_denominator = lattice->total_sites() / basis_indices;
 
             const PositionArguments &r = walk.get_wavefunction().get_positions();
-            density = real_t(r.get_N_filled()) / r.get_N_sites();
+            const real_t density = real_t(r.get_N_filled()) / r.get_N_sites();
+            density_squared = density * density;
         }
 
     /**
@@ -81,8 +83,7 @@ private:
             const PositionArguments &r = walk.get_wavefunction().get_positions();
             const NDLattice<DIM> *lattice = boost::polymorphic_downcast<const NDLattice<DIM>*>(&walk.get_wavefunction().get_lattice());
 
-            current_density_accum.setZero();
-            current_denominator.setZero();
+            current_step_density_accum.setZero();
 
             // loop through all pairs of particles
             for (unsigned int i = 0; i < r.get_N_filled(); ++i) {
@@ -90,9 +91,8 @@ private:
                 for (unsigned int j = 0; j < r.get_N_filled(); ++j) {
                     typename NDLattice<DIM>::Site site_j(lattice->site_from_index(r[j]));
                     lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
-                    ++density_accum(site_i.basis_index, lattice->site_to_index(site_j));
+                    ++current_step_density_accum(site_i.basis_index, lattice->site_to_index(site_j));
                 }
-                ++denominator(site_i.basis_index);
             }
 
             repeat_measurement_(walk);
@@ -104,17 +104,16 @@ private:
     void repeat_measurement_ (const StandardWalk &walk)
         {
             (void) walk;
-            density_accum += current_density_accum;
-            denominator += current_denominator;
+            density_accum += current_step_density_accum;
+            denominator += single_step_denominator;
         }
 
     // row is the basis, column is the site index
-    Eigen::Array<unsigned int, Eigen::Dynamic, Eigen::Dynamic> density_accum, current_density_accum;
+    Eigen::Array<unsigned int, Eigen::Dynamic, Eigen::Dynamic> density_accum, current_step_density_accum;
 
-    // index refers to the basis
-    Eigen::Array<unsigned int, Eigen::Dynamic, 1> denominator, current_denominator;
+    unsigned int denominator, single_step_denominator;
 
-    real_t density;
+    real_t density_squared;
 };
 
 #endif

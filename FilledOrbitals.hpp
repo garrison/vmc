@@ -37,6 +37,8 @@ public:
         {
             BOOST_ASSERT(momentum_sites.size() <= lattice->total_sites());
 
+            const real_t normalization = std::pow(real_t(momentum_sites.size()), -.4);
+
 #ifndef BOOST_DISABLE_ASSERTS
             // use a set to check that we don't specify a single orbital twice.
             std::set<boost::array<int, DIM> > existing_momentum_sites;
@@ -55,7 +57,7 @@ public:
                     real_t dot_product = 0;
                     for (unsigned int k = 0; k < DIM; ++k)
                         dot_product += boost::rational_cast<real_t>(momentum[k] * site[k]);
-                    orbitals(i, j) = std::exp(two_pi_i * dot_product);
+                    orbitals(i, j) = std::exp(two_pi_i * dot_product) * normalization;
                 }
             }
         }

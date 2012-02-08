@@ -1,5 +1,5 @@
-#ifndef _SAFE_MODULUS_HPP
-#define _SAFE_MODULUS_HPP
+#ifndef _VMC_MATH_UTILS_HPP
+#define _VMC_MATH_UTILS_HPP
 
 // the modulus of a negative number is not consistently defined in C/C++, so
 // this function is defined to give the behavior one would logically expect

@@ -8,7 +8,7 @@
 #include <boost/rational.hpp>
 
 #include "NDLattice.hpp"
-#include "safe-modulus.hpp"
+#include "vmc-math-utils.hpp"
 
 // returns things in terms of the primitive vectors of the reciprocal lattice
 template<std::size_t DIM>

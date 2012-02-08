@@ -42,11 +42,11 @@ HEADER_FILES = \
                RenyiSignMeasurement.hpp \
                RenyiSignWalk.hpp \
                RunInformation.hpp \
-               safe-modulus.hpp \
                SimpleSubsystem.hpp \
                StandardWalk.hpp \
                Subsystem.hpp \
                SwappedSystem.hpp \
+               vmc-math-utils.hpp \
                vmc-typedefs.hpp \
                WavefunctionAmplitude.hpp
 

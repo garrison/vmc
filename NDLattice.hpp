@@ -15,7 +15,7 @@
 #include "BoundaryCondition.hpp"
 #include "PositionArguments.hpp"
 #include "vmc-typedefs.hpp"
-#include "safe-modulus.hpp"
+#include "vmc-math-utils.hpp"
 
 /**
  * N-dimensional lattice

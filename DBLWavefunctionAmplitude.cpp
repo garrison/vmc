@@ -1,12 +1,15 @@
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
 
+#include "vmc-math-utils.hpp"
 #include "DBLWavefunctionAmplitude.hpp"
 
-DBLWavefunctionAmplitude::DBLWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2)
+DBLWavefunctionAmplitude::DBLWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_)
     : WavefunctionAmplitude(r_, orbital_def_1->get_lattice_ptr()),
       orbital_def1(orbital_def_1),
-      orbital_def2(orbital_def_2)
+      orbital_def2(orbital_def_2),
+      d1_exponent(d1_exponent_),
+      d2_exponent(d2_exponent_)
 {
     BOOST_ASSERT(r.get_N_sites() == orbital_def1->get_N_sites());
     BOOST_ASSERT(r.get_N_sites() == orbital_def2->get_N_sites());
@@ -31,7 +34,10 @@ void DBLWavefunctionAmplitude::move_particle_ (unsigned int particle, unsigned i
 
 amplitude_t DBLWavefunctionAmplitude::psi_ (void) const
 {
-    return cmat1.get_determinant() * cmat2.get_determinant();
+    // fixme: we could cache or precalculate this ... but i doubt it would make
+    // much difference really
+    return (complex_pow(cmat1.get_determinant(), d1_exponent)
+            * complex_pow(cmat2.get_determinant(), d2_exponent));
 }
 
 void DBLWavefunctionAmplitude::finish_particle_moved_update_ (void)

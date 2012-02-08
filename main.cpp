@@ -154,6 +154,17 @@ static void ensure_object_with_type_field_as_string (const Json::Value &jsonvalu
     ensure_string(jsonvalue["type"]);
 }
 
+static double json_get_double (const Json::Value &jsonvalue, const char *key, double default_value)
+{
+    if (!jsonvalue.isMember(key))
+        return default_value;
+
+    const Json::Value & jsondouble = jsonvalue[key];
+    if (!jsondouble.isNumeric())
+        throw ParseError("number expected");
+    return jsondouble.asDouble();
+}
+
 static unsigned int parse_json_steps_per_measurement (const Json::Value &json_measurement_def)
 {
     if (json_measurement_def.isMember("steps-per-measurement")) {
@@ -479,14 +490,17 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
     } else if (std::strcmp(json_wavefunction_type_cstr, "dbl") == 0) {
         // dbl wavefunction
         const char * const json_dbl_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", NULL };
+        const char * const json_dbl_wavefunction_allowed[] = { "type", "orbitals-d1", "orbitals-d2", "exponent-d1", "exponent-d2", NULL };
         ensure_required(json_wavefunction, json_dbl_wavefunction_required);
-        ensure_only(json_wavefunction, json_dbl_wavefunction_required);
+        ensure_only(json_wavefunction, json_dbl_wavefunction_allowed);
         boost::shared_ptr<const OrbitalDefinitions> orbitals_d1 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d1"], lattice);
         boost::shared_ptr<const OrbitalDefinitions> orbitals_d2 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d2"], lattice);
         if (orbitals_d1->get_N_filled() != orbitals_d2->get_N_filled())
             throw ParseError("d1 and d2 have different number of orbitals");
         wf.reset(new DBLWavefunctionAmplitude(some_random_filling<DIM>(orbitals_d1->get_N_filled(), *lattice, rng),
-                                              orbitals_d1, orbitals_d2));
+                                              orbitals_d1, orbitals_d2,
+                                              json_get_double(json_wavefunction, "exponent-d1", 1.0),
+                                              json_get_double(json_wavefunction, "exponent-d2", 1.0)));
     } else if (std::strcmp(json_wavefunction_type_cstr, "dmetal") == 0) {
         // dmetal wavefunction
         const char * const json_dmetal_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", "orbitals-f_up", "orbitals-f_down", NULL };

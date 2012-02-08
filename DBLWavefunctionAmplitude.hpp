@@ -18,9 +18,10 @@ class DBLWavefunctionAmplitude : public WavefunctionAmplitude
 private:
     CeperleyMatrix<amplitude_t> cmat1, cmat2;
     const boost::shared_ptr<const OrbitalDefinitions> orbital_def1, orbital_def2;
+    const real_t d1_exponent, d2_exponent;
 
 public:
-    DBLWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2);
+    DBLWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_);
 
 private:
     void move_particle_ (unsigned int particle, unsigned int new_site_index);

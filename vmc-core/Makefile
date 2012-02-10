@@ -67,10 +67,10 @@ SOURCES = \
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
-all:	vmc
+all:	vmc-core
 
-vmc:	$(OBJECTS)
-	$(COMPILE) $(LIBS) -o vmc $(OBJECTS)
+vmc-core: $(OBJECTS)
+	$(COMPILE) $(LIBS) -o vmc-core $(OBJECTS)
 
 %.o: %.cpp $(HEADER_FILES) Makefile Makefile-vmc.local
 	$(COMPILE) $(INCLUDES) -DVMC_COMPILER_COMMANDLINE="$(COMPILE)" -c -o $@ $<

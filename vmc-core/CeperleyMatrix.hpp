@@ -360,7 +360,7 @@ private:
             // The matrix was singular on the last step, so we may need to
             // check to see if it is still singular
 #if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
-            std::cerr << "matrix was singular!" << std::endl;
+            std::cerr << "DEBUG INFO: matrix was singular!" << std::endl;
 #endif
             BOOST_ASSERT(det == T(0));
             BOOST_ASSERT(nullity_lower_bound > 0);

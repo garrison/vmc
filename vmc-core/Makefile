@@ -63,6 +63,7 @@ SOURCES = \
           RenyiSignWalk.cpp \
           RunInformation.cpp \
           StandardWalk.cpp \
+          Subsystem.cpp \
           SwappedSystem.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)

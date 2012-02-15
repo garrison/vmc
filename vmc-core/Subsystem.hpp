@@ -28,6 +28,13 @@ public:
         }
 };
 
+class WavefunctionAmplitude;
+
+/**
+ * Returns the number of particles in the given subsystem
+ */
+extern unsigned int count_N_subsystem (const WavefunctionAmplitude &wf, const Subsystem &subsystem);
+
 /**
  * Returns the change in the number of particles in the subsystem if we were to
  * move a particle from current_position to proposed_position.

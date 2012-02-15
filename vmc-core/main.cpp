@@ -28,6 +28,7 @@
 #include "RenyiModMeasurement.hpp"
 #include "RenyiSignWalk.hpp"
 #include "RenyiSignMeasurement.hpp"
+#include "Subsystem.hpp"
 #include "SimpleSubsystem.hpp"
 #include "RunInformation.hpp"
 
@@ -53,19 +54,6 @@ static bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf
         wf.reset(some_random_filling<DIM>(wf.get_positions().get_N_filled(), lattice, rng));
     }
     return true;
-}
-
-// fixme: this function is more general than main.cpp
-static unsigned int count_N_subsystem (const WavefunctionAmplitude &wf, const Subsystem &subsystem)
-{
-    BOOST_ASSERT(subsystem.lattice_makes_sense(wf.get_lattice()));
-    const PositionArguments &r = wf.get_positions();
-    unsigned int rv = 0;
-    for (unsigned int i = 0; i < r.size(); ++i) {
-        if (subsystem.position_is_within(r[i], wf.get_lattice()))
-            ++rv;
-    }
-    return rv;
 }
 
 static RunInformation run_information;

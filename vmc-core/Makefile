@@ -36,6 +36,7 @@ HEADER_FILES = \
                OrbitalDefinitions.hpp \
                PositionArguments.hpp \
                random-combination.hpp \
+               random-filling.hpp \
                random-move.hpp \
                RenyiModMeasurement.hpp \
                RenyiModWalk.hpp \

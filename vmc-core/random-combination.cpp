@@ -43,4 +43,6 @@ void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned 
         v.push_back(a);
         vs.insert(a);
     }
+
+    BOOST_ASSERT(v.size() == r);
 }

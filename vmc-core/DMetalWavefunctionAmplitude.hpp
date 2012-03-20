@@ -20,6 +20,7 @@ class DMetalWavefunctionAmplitude : public WavefunctionAmplitude
 private:
     CeperleyMatrix<amplitude_t> m_cmat_d1, m_cmat_d2, m_cmat_f_up, m_cmat_f_down;
     const boost::shared_ptr<const OrbitalDefinitions> m_orbital_d1, m_orbital_d2, m_orbital_f_up, m_orbital_f_down;
+    const real_t m_d1_exponent, m_d2_exponent, m_f_up_exponent, m_f_down_exponent;
     bool m_particle_moved_is_up;
 
 public:
@@ -27,7 +28,11 @@ public:
                                  const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1,
                                  const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2,
                                  const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up,
-                                 const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down);
+                                 const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down,
+                                 real_t d1_exponent,
+                                 real_t d2_exponent,
+                                 real_t f_up_exponent,
+                                 real_t f_down_exponent);
 
 private:
     void move_particle_ (Particle particle, unsigned int new_site_index);

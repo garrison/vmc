@@ -1,14 +1,27 @@
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
 
+#include "vmc-math-utils.hpp"
 #include "DMetalWavefunctionAmplitude.hpp"
 
-DMetalWavefunctionAmplitude::DMetalWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2, const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up, const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down)
+DMetalWavefunctionAmplitude::DMetalWavefunctionAmplitude (const PositionArguments &r_,
+                                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1,
+                                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2,
+                                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up,
+                                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down,
+                                                          real_t d1_exponent,
+                                                          real_t d2_exponent,
+                                                          real_t f_up_exponent,
+                                                          real_t f_down_exponent)
     : WavefunctionAmplitude(r_, orbital_d1->get_lattice_ptr()),
       m_orbital_d1(orbital_d1),
       m_orbital_d2(orbital_d2),
       m_orbital_f_up(orbital_f_up),
-      m_orbital_f_down(orbital_f_down)
+      m_orbital_f_down(orbital_f_down),
+      m_d1_exponent(d1_exponent),
+      m_d2_exponent(d2_exponent),
+      m_f_up_exponent(f_up_exponent),
+      m_f_down_exponent(f_down_exponent)
 {
     reinitialize();
 }
@@ -35,10 +48,10 @@ void DMetalWavefunctionAmplitude::move_particle_ (Particle particle, unsigned in
 
 amplitude_t DMetalWavefunctionAmplitude::psi_ (void) const
 {
-    return (m_cmat_d1.get_determinant()
-            * m_cmat_d2.get_determinant()
-            * m_cmat_f_up.get_determinant()
-            * m_cmat_f_down.get_determinant());
+    return (complex_pow(m_cmat_d1.get_determinant(), m_d1_exponent)
+            * complex_pow(m_cmat_d2.get_determinant(), m_d2_exponent)
+            * complex_pow(m_cmat_f_up.get_determinant(), m_f_up_exponent)
+            * complex_pow(m_cmat_f_down.get_determinant(), m_f_down_exponent));
 }
 
 void DMetalWavefunctionAmplitude::finish_particle_moved_update_ (void)

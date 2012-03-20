@@ -516,9 +516,10 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
                                               json_get_double(json_wavefunction, "exponent-d2", 1.0)));
     } else if (std::strcmp(json_wavefunction_type_cstr, "dmetal") == 0) {
         // dmetal wavefunction
-        const char * const json_dmetal_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", "orbitals-f_up", "orbitals-f_down", "exponent-d1", "exponent-d2", "exponent-f_up", "exponent-f_down", NULL };
+        const char * const json_dmetal_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", "orbitals-f_up", "orbitals-f_down", NULL };
+        const char * const json_dmetal_wavefunction_allowed[] = { "type", "orbitals-d1", "orbitals-d2", "orbitals-f_up", "orbitals-f_down", "exponent-d1", "exponent-d2", "exponent-f_up", "exponent-f_down", NULL };
         ensure_required(json_wavefunction, json_dmetal_wavefunction_required);
-        ensure_only(json_wavefunction, json_dmetal_wavefunction_required);
+        ensure_only(json_wavefunction, json_dmetal_wavefunction_allowed);
         boost::shared_ptr<const OrbitalDefinitions> orbitals_d1 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d1"], lattice);
         boost::shared_ptr<const OrbitalDefinitions> orbitals_d2 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d2"], lattice);
         boost::shared_ptr<const OrbitalDefinitions> orbitals_f_up = parse_json_orbitals<DIM>(json_wavefunction["orbitals-f_up"], lattice);

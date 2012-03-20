@@ -107,6 +107,7 @@ void RenyiSignWalk::accept_transition (void)
         for (unsigned int i = 0; i < r2.get_N_filled(species); ++i)
             std::cerr << r2[Particle(i, species)] << ' ';
     }
+    std::cerr << std::endl;
 #endif
 
     BOOST_ASSERT(phialpha1.unique());

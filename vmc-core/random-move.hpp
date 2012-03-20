@@ -10,13 +10,9 @@
  *
  * @param r PositionArguments representing the particles in the system
  * @param rng random number generator
- * @param n_fixed_particles this many particles with the lowest particle
- *        indexes will never be chosen.  Defaults to 0, which makes every
- *        particle eligible for random selection.
- * @return index of chosen particle, which is a number less than
- *         r.get_N_filled()
+ * @return the chosen particle
  */
-extern unsigned int choose_random_particle (const PositionArguments &r, rng_class &rng, unsigned int n_fixed_particles=0);
+extern Particle choose_random_particle (const PositionArguments &r, rng_class &rng);
 
 /**
  * Chooses a random empty site
@@ -26,7 +22,7 @@ extern unsigned int choose_random_particle (const PositionArguments &r, rng_clas
  * @return index of chosen empty site, which is a number less than
  *         r.get_N_sites()
  */
-extern unsigned int choose_random_empty_site (const PositionArguments &r, rng_class &rng);
+extern unsigned int choose_random_empty_site (const PositionArguments &r, unsigned int species, rng_class &rng);
 
 /**
  * Returns an empty site index that is "near" a given particle.
@@ -41,7 +37,7 @@ extern unsigned int choose_random_empty_site (const PositionArguments &r, rng_cl
  * @return index of chosen nearby empty site, which is a number less than
  *         r.get_N_sites()
  */
-static inline unsigned int plan_particle_move_to_nearby_empty_site (unsigned int particle, const PositionArguments &r, const Lattice &lattice, rng_class &rng)
+static inline unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const PositionArguments &r, const Lattice &lattice, rng_class &rng)
 {
     // we want this to execute slightly different code based on the number of
     // dimensions in the lattice.  unfortunately, the only way to handle this

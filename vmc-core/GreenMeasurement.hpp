@@ -21,8 +21,9 @@ template <std::size_t DIM>
 class GreenMeasurement : public Measurement<StandardWalk>
 {
 public:
-    GreenMeasurement (unsigned int steps_per_measurement)
+    GreenMeasurement (unsigned int steps_per_measurement, unsigned int species_)
         : Measurement<StandardWalk>(steps_per_measurement),
+          species(species_),
           denominator(0)
         {
         }
@@ -82,19 +83,20 @@ private:
             current_step_green_accum.setZero();
 
             // loop through all (particle, empty site) pairs
-            for (unsigned int i = 0; i < r.get_N_filled(); ++i) {
-                const typename NDLattice<DIM>::Site site_i(lattice->site_from_index(r[i]));
+            for (unsigned int i = 0; i < r.get_N_filled(species); ++i) {
+                const Particle particle(i, species);
+                const typename NDLattice<DIM>::Site site_i(lattice->site_from_index(r[particle]));
 
                 // amplitude of starting and ending on same site
                 current_step_green_accum(site_i.basis_index, 0) += amplitude_t(1);
 
                 // loop through all empty sites
                 for (unsigned int j = 0; j < r.get_N_sites(); ++j) {
-                    if (r.is_occupied(j))
+                    if (r.is_occupied(j, species))
                         continue;
 
                     boost::shared_ptr<WavefunctionAmplitude> wf_operated = wf.clone();
-                    wf_operated->move_particle(i, j);
+                    wf_operated->move_particle(particle, j);
 
                     typename NDLattice<DIM>::Site site_j(lattice->site_from_index(j));
                     phase_t phase = lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
@@ -115,6 +117,8 @@ private:
             green_accum += current_step_green_accum;
             denominator += single_step_denominator;
         }
+
+    const unsigned int species;
 
     // row is the basis, column is the site index
     Eigen::Array<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> green_accum, current_step_green_accum;

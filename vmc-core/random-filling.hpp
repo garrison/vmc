@@ -23,7 +23,7 @@ static inline unsigned int random_small_uint (unsigned int min, unsigned int max
 }
 
 template <unsigned int DIM>
-PositionArguments some_random_filling (unsigned int N_filled, const NDLattice<DIM> &lattice, rng_class &rng)
+std::vector<unsigned int> some_random_filling (unsigned int N_filled, const NDLattice<DIM> &lattice, rng_class &rng)
 {
     BOOST_ASSERT(N_filled <= lattice.total_sites());
 
@@ -61,14 +61,27 @@ PositionArguments some_random_filling (unsigned int N_filled, const NDLattice<DI
             }
             remaining -= spread_coordinate.size();
         }
-        return PositionArguments(v, lattice.total_sites());
+        return v;
     }
 
     // otherwise, fall back to just blindly choosing a random combination of sites
     std::vector<unsigned int> v;
     random_combination(v, N_filled, lattice.total_sites(), rng);
-    return PositionArguments(v, lattice.total_sites());
+    return v;
 }
+
+template <unsigned int DIM>
+void reset_wavefunction_with_random_filling (WavefunctionAmplitude &wf, const NDLattice<DIM> &lattice, rng_class &rng)
+{
+    const PositionArguments &r = wf.get_positions();
+
+    std::vector<std::vector<unsigned int> > vv;
+    for (unsigned int i = 0; i < r.get_N_species(); ++i) {
+        vv.push_back(some_random_filling<DIM>(r.get_N_filled(i), lattice, rng));
+    }
+    wf.reset(PositionArguments(vv, lattice.total_sites()));
+}
+
 
 template <unsigned int DIM>
 bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, const NDLattice<DIM> &lattice, rng_class &rng)
@@ -77,7 +90,7 @@ bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, const
     while (wf.psi() == amplitude_t(0)) {
         if (attempts++ == 10000)
             return false;
-        wf.reset(some_random_filling<DIM>(wf.get_positions().get_N_filled(), lattice, rng));
+        reset_wavefunction_with_random_filling<DIM>(wf, lattice, rng);
     }
     return true;
 }

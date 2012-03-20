@@ -21,8 +21,10 @@ template <std::size_t DIM>
 class DensityDensityMeasurement : public Measurement<StandardWalk>
 {
 public:
-    DensityDensityMeasurement (unsigned int steps_per_measurement)
+    DensityDensityMeasurement (unsigned int steps_per_measurement, unsigned int species1_, unsigned int species2_)
         : Measurement<StandardWalk>(steps_per_measurement),
+          species1(species1_),
+          species2(species2_),
           denominator(0)
         {
         }
@@ -71,8 +73,11 @@ private:
             single_step_denominator = lattice->total_sites() / basis_indices;
 
             const PositionArguments &r = walk.get_wavefunction().get_positions();
-            const real_t density = real_t(r.get_N_filled()) / r.get_N_sites();
-            density_squared = density * density;
+
+            BOOST_ASSERT(species1 < r.get_N_species());
+            BOOST_ASSERT(species2 < r.get_N_species());
+
+            density_squared = real_t(r.get_N_filled(species1) * r.get_N_filled(species2)) / (r.get_N_sites() * r.get_N_sites());
         }
 
     /**
@@ -86,10 +91,10 @@ private:
             current_step_density_accum.setZero();
 
             // loop through all pairs of particles
-            for (unsigned int i = 0; i < r.get_N_filled(); ++i) {
-                const typename NDLattice<DIM>::Site site_i(lattice->site_from_index(r[i]));
-                for (unsigned int j = 0; j < r.get_N_filled(); ++j) {
-                    typename NDLattice<DIM>::Site site_j(lattice->site_from_index(r[j]));
+            for (unsigned int i = 0; i < r.get_N_filled(species2); ++i) {
+                const typename NDLattice<DIM>::Site site_i(lattice->site_from_index(r[Particle(i, species2)]));
+                for (unsigned int j = 0; j < r.get_N_filled(species1); ++j) {
+                    typename NDLattice<DIM>::Site site_j(lattice->site_from_index(r[Particle(j, species1)]));
                     lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
                     ++current_step_density_accum(site_i.basis_index, lattice->site_to_index(site_j));
                 }
@@ -107,6 +112,8 @@ private:
             density_accum += current_step_density_accum;
             denominator += single_step_denominator;
         }
+
+    unsigned int species1, species2;
 
     // row is the basis, column is the site index
     Eigen::Array<unsigned int, Eigen::Dynamic, Eigen::Dynamic> density_accum, current_step_density_accum;

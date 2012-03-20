@@ -29,11 +29,11 @@ public:
      * moves are not allowed until finish_particle_moved_update() has been
      * called.
      */
-    void move_particle (unsigned int particle, unsigned int new_site_index)
+    void move_particle (Particle particle, unsigned int new_site_index)
         {
             BOOST_ASSERT(!move_in_progress);
-            BOOST_ASSERT(particle < r.get_N_filled());
-            BOOST_ASSERT(!r.is_occupied(new_site_index) || r[particle] == new_site_index);
+            BOOST_ASSERT(r.particle_is_valid(particle));
+            BOOST_ASSERT(!r.is_occupied(new_site_index, particle.species) || r[particle] == new_site_index);
 #if defined(DEBUG_VMC_WAVEFUNCTION_AMPLITUDE) || defined(DEBUG_VMC_ALL)
             if (r[particle] == new_site_index)
                 std::cerr << "performing a no-op particle move" << std::endl;
@@ -97,7 +97,7 @@ public:
         }
 
 private:
-    virtual void move_particle_ (unsigned int particle, unsigned int new_site_index) = 0;
+    virtual void move_particle_ (Particle particle, unsigned int new_site_index) = 0;
 
     virtual amplitude_t psi_ (void) const = 0;
 

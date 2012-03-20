@@ -11,25 +11,26 @@ DBLWavefunctionAmplitude::DBLWavefunctionAmplitude (const PositionArguments &r_,
       d1_exponent(d1_exponent_),
       d2_exponent(d2_exponent_)
 {
+    BOOST_ASSERT(r.get_N_species() == 1);
     BOOST_ASSERT(r.get_N_sites() == orbital_def1->get_N_sites());
     BOOST_ASSERT(r.get_N_sites() == orbital_def2->get_N_sites());
-    BOOST_ASSERT(r.get_N_filled() == orbital_def1->get_N_filled());
-    BOOST_ASSERT(r.get_N_filled() == orbital_def2->get_N_filled());
+    BOOST_ASSERT(r.get_N_filled(0) == orbital_def1->get_N_filled());
+    BOOST_ASSERT(r.get_N_filled(0) == orbital_def2->get_N_filled());
     BOOST_ASSERT(orbital_def1->get_lattice_ptr() == orbital_def2->get_lattice_ptr());
 
     reinitialize();
 }
 
-void DBLWavefunctionAmplitude::move_particle_ (unsigned int particle, unsigned int new_site_index)
+void DBLWavefunctionAmplitude::move_particle_ (Particle particle, unsigned int new_site_index)
 {
-    unsigned int N = r.get_N_filled();
-    BOOST_ASSERT(particle < N);
+    BOOST_ASSERT(r.particle_is_valid(particle));
+    BOOST_ASSERT(new_site_index < r.get_N_sites());
 
     r.update_position(particle, new_site_index);
 
     // update the Ceperley matrices
-    cmat1.update_column(particle, orbital_def1->at_position(new_site_index));
-    cmat2.update_column(particle, orbital_def2->at_position(new_site_index));
+    cmat1.update_column(particle.index, orbital_def1->at_position(new_site_index));
+    cmat2.update_column(particle.index, orbital_def2->at_position(new_site_index));
 }
 
 amplitude_t DBLWavefunctionAmplitude::psi_ (void) const
@@ -48,8 +49,9 @@ void DBLWavefunctionAmplitude::finish_particle_moved_update_ (void)
 
 void DBLWavefunctionAmplitude::reset_ (const PositionArguments &r_)
 {
+    BOOST_ASSERT(r_.get_N_species() == 1);
     BOOST_ASSERT(r_.get_N_sites() == orbital_def1->get_N_sites());
-    BOOST_ASSERT(r_.get_N_filled() == orbital_def1->get_N_filled());
+    BOOST_ASSERT(r_.get_N_filled(0) == orbital_def1->get_N_filled());
 
     r = r_;
     reinitialize();
@@ -57,11 +59,12 @@ void DBLWavefunctionAmplitude::reset_ (const PositionArguments &r_)
 
 void DBLWavefunctionAmplitude::reinitialize (void)
 {
-    unsigned int N = r.get_N_filled();
+    const unsigned int N = r.get_N_filled(0);
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
     for (unsigned int i = 0; i < N; ++i) {
-        mat1.col(i) = orbital_def1->at_position(r[i]);
-        mat2.col(i) = orbital_def2->at_position(r[i]);
+        const Particle particle(i, 0);
+        mat1.col(i) = orbital_def1->at_position(r[particle]);
+        mat2.col(i) = orbital_def2->at_position(r[particle]);
     }
     cmat1 = mat1;
     cmat2 = mat2;

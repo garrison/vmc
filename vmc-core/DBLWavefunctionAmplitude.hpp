@@ -24,7 +24,7 @@ public:
     DBLWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_);
 
 private:
-    void move_particle_ (unsigned int particle, unsigned int new_site_index);
+    void move_particle_ (Particle particle, unsigned int new_site_index);
 
     amplitude_t psi_ (void) const;
 

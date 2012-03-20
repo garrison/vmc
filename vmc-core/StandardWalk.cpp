@@ -20,7 +20,7 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (rng_
 
     // move a particle and update things
     const PositionArguments &r = wf->get_positions();
-    unsigned int chosen_particle = choose_random_particle(r, rng, 0);
+    Particle chosen_particle = choose_random_particle(r, rng);
     unsigned int new_site_index = plan_particle_move_to_nearby_empty_site(chosen_particle, r, wf->get_lattice(), rng);
     if (new_site_index == r[chosen_particle])
         return 0; // we aren't moving anything, so just reject this move

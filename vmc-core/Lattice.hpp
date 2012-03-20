@@ -1,9 +1,9 @@
 #ifndef _LATTICE_HPP
 #define _LATTICE_HPP
 
+#include "PositionArguments.hpp"
 #include "vmc-typedefs.hpp"
 
-class PositionArguments;
 
 /**
  * Abstract base class for a lattice of any dimension.
@@ -36,7 +36,7 @@ public:
      *
      * @see plan_particle_move_to_nearby_empty_site()
      */
-    virtual unsigned int plan_particle_move_to_nearby_empty_site_virtual (unsigned int particle, const PositionArguments &r, rng_class &rng) const = 0;
+    virtual unsigned int plan_particle_move_to_nearby_empty_site_virtual (Particle particle, const PositionArguments &r, rng_class &rng) const = 0;
 
 protected:
     Lattice (unsigned int total_sites)

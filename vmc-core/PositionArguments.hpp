@@ -7,35 +7,72 @@
 #include <boost/assert.hpp>
 
 /**
+ * Represents a particle in a system
+ */
+struct Particle
+{
+    unsigned int index;
+    unsigned int species;
+
+    Particle (void)
+        {
+        }
+
+    Particle (unsigned int index_, unsigned int species_)
+        : index(index_),
+          species(species_)
+        {
+        }
+};
+
+/**
  * Stores each particle's position such that we can also quickly query to see
  * whether a given site is vacant or not.
  *
- * Remember: this object must support having multiple particles on the same
- * site, since this occurs e.g. while SwappedSystem is initializing itself.
+ * The assertions only allow one particle per site, but this restriction could
+ * easily be removed.
  */
 class PositionArguments
 {
-private:
-    std::vector<unsigned int> r; /**< stores the position of each particle */
-    std::vector<int> positions; /**< stores the particle count on each site */
 public:
-    PositionArguments (const std::vector<unsigned int> &r_, unsigned int N_sites);
+    /**
+     * Constructor
+     *
+     * @param r_ a vector of a vector which, for each species, contains the
+     * positions of each particle
+     */
+    PositionArguments (const std::vector<std::vector<unsigned int> > &r_, unsigned int N_sites);
 
     /**
-     * returns the site index of the given particle
+     * Resets the positions according to the given vector
      */
-    unsigned int operator[] (unsigned int particle) const
+    void reset (const std::vector<std::vector<unsigned int> > &r_);
+
+    /**
+     * Returns the site index of the given particle
+     */
+    unsigned int operator[] (Particle particle) const
         {
-            BOOST_ASSERT(particle < get_N_filled());
-            return r[particle];
+            BOOST_ASSERT(particle_is_valid(particle));
+            return r[particle.species][particle.index];
         }
 
     /**
-     * returns the number of particles
+     * Returns the vector containing the position of each particle
      */
-    std::size_t size (void) const
+    const std::vector<unsigned int> & r_vector (unsigned int species) const
         {
-            return r.size();
+            BOOST_ASSERT(species < get_N_species());
+            return r[species];
+        }
+
+    /**
+     * Returns true if the particle is a valid (index, species) combination
+     */
+    bool particle_is_valid (Particle particle) const
+        {
+            return (particle.species < get_N_species()
+                    && particle.index < get_N_filled(particle.species));
         }
 
     /** moves a particle to a new position
@@ -43,29 +80,73 @@ public:
      * @param particle particle index
      * @param position position index of target site
      */
-    void update_position (unsigned int particle, unsigned int position)
+    void update_position (Particle particle, unsigned int position)
         {
-            BOOST_ASSERT(particle < get_N_filled());
+            BOOST_ASSERT(particle_is_valid(particle));
             BOOST_ASSERT(position < get_N_sites());
-            --positions[r[particle]];
-            ++positions[position];
-            r[particle] = position;
+
+            const unsigned int old_position = (*this)[particle];
+
+            BOOST_ASSERT(is_occupied(old_position, particle.species));
+            BOOST_ASSERT(!is_occupied(position, particle.species)); // we don't allow double occupancy
+
+            --positions[particle.species][old_position];
+            ++positions[particle.species][position];
+            r[particle.species][particle.index] = position;
         }
 
-    bool is_occupied (unsigned int position) const
+    /**
+     * Returns true if the given position contains a particle of the given
+     * species
+     */
+    bool is_occupied (unsigned int position, unsigned int species) const
         {
-            return positions[position] != 0;
+            BOOST_ASSERT(position < get_N_sites());
+            BOOST_ASSERT(species < get_N_species());
+            return bool(positions[species][position] != 0);
         }
 
+    /**
+     * Returns the number of sites on the lattice
+     */
     unsigned int get_N_sites (void) const
         {
-            return positions.size();
+            BOOST_ASSERT(positions.size() != 0);
+            return positions[0].size();
         }
 
-    unsigned int get_N_filled (void) const
+    /**
+     * Returns the number of particles of a given species
+     */
+    unsigned int get_N_filled (unsigned int species) const
+        {
+            BOOST_ASSERT(species < get_N_species());
+            return r[species].size();
+        }
+
+    /**
+     * Returns the total number of particles of all species
+     */
+    unsigned int get_N_filled_total (void) const
+        {
+            return N_filled_total;
+        }
+
+    /**
+     * Returns the number of species of particles
+     */
+    unsigned int get_N_species (void) const
         {
             return r.size();
         }
+
+private:
+    void _populate_positions (unsigned int N_sites);
+
+    std::vector<std::vector<unsigned int> > r; /**< stores the position of each particle (a vector for each species) */
+    std::vector<std::vector<int> > positions; /**< stores the particle(s) on each site (a vector for each species) */
+
+    unsigned int N_filled_total;
 };
 
 #endif

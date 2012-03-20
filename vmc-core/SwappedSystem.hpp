@@ -39,11 +39,12 @@ public:
      * This must be called immediately after a particle is moved in either or
      * both of the phialpha's.
      *
-     * index1 and index2 refer to the index of the particle moved in phialpha1
-     * and phialpha2 respectively.  It is possible for one of these to be -1,
+     * particle1 and particle2 refer to which particle moved in phialpha1 and
+     * phialpha2 respectively.  It is possible for one of these to be null,
      * which signifies that no particle was moved in that copy.
      */
-    void update (int index1, int index2, const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
+    void update (const Particle *particle1, const Particle *particle2,
+                 const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
 
     /**
      * Finish the update of the phibetas
@@ -58,32 +59,21 @@ public:
     const WavefunctionAmplitude & get_phibeta1 (void) const
         {
             BOOST_ASSERT(next_step != INITIALIZE);
-            BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
+            BOOST_ASSERT(subsystem_particle_counts_match());
             return *phibeta1;
         }
 
     const WavefunctionAmplitude & get_phibeta2 (void) const
         {
             BOOST_ASSERT(next_step != INITIALIZE);
-            BOOST_ASSERT(get_N_subsystem1() == get_N_subsystem2());
+            BOOST_ASSERT(subsystem_particle_counts_match());
             return *phibeta2;
         }
 
     /**
-     * Returns the number of particles in the subsystem in copy 1
+     *
      */
-    unsigned int get_N_subsystem1 (void) const
-        {
-            return copy1_subsystem_indices.size();
-        }
-
-    /**
-     * Returns the number of particles in the subsystem in copy 2
-     */
-    unsigned int get_N_subsystem2 (void) const
-        {
-            return copy2_subsystem_indices.size();
-        }
+    bool subsystem_particle_counts_match (void) const;
 
 private:
     void reinitialize_phibetas (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
@@ -92,7 +82,7 @@ private:
 
     boost::shared_ptr<WavefunctionAmplitude> phibeta1, phibeta2; // copy on write
     const boost::shared_ptr<const Subsystem> subsystem;
-    std::vector<unsigned int> copy1_subsystem_indices, copy2_subsystem_indices;
+    std::vector<std::vector<unsigned int> > copy1_subsystem_indices, copy2_subsystem_indices;
     bool phibeta1_dirty, phibeta2_dirty; // helps save time on RenyiSign calculation
 
     enum NextStep {
@@ -101,5 +91,11 @@ private:
         FINISH_UPDATE
     } next_step;
 };
+
+/**
+ *
+ */
+extern bool count_subsystem_particle_counts_for_match (const WavefunctionAmplitude &wf1, const WavefunctionAmplitude &wf2,
+                                                       const Subsystem &subsystem);
 
 #endif

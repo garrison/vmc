@@ -51,16 +51,6 @@ public:
             return swapped_system->get_phibeta2();
         }
 
-    unsigned int get_N_subsystem1 (void) const
-        {
-            return swapped_system->get_N_subsystem1();
-        }
-
-    unsigned int get_N_subsystem2 (void) const
-        {
-            return swapped_system->get_N_subsystem2();
-        }
-
 private:
     boost::shared_ptr<WavefunctionAmplitude> phialpha1, phialpha2;
     boost::shared_ptr<SwappedSystem> swapped_system;

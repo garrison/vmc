@@ -38,19 +38,24 @@ public:
      * SwappedSystem::update().  This should be done by RenyiModMeasurement
      * after each transition.
      */
-    std::pair<int, int> get_swapped_system_update_args (void) const
+    std::pair<const Particle *, const Particle *> get_swapped_system_update_args (void) const
         {
+            // make sure transition has been accepted
             BOOST_ASSERT(transition_copy_in_progress == 0);
-            // REMEMBER: this function also assumes that accept_transition()
-            // has been called at least once.
-            return swapped_system_update_args;
+
+            BOOST_ASSERT(transition_copy_just_completed == 1
+                         || transition_copy_just_completed == 2);
+
+            if (transition_copy_just_completed == 1)
+                return std::make_pair(&chosen_particle, (Particle *) 0);
+            else
+                return std::make_pair((Particle *) 0, &chosen_particle);
         }
 
 private:
     boost::shared_ptr<WavefunctionAmplitude> phialpha1, phialpha2;
-    unsigned int transition_copy_in_progress;
-    unsigned int chosen_particle;
-    std::pair<int, int> swapped_system_update_args;
+    int transition_copy_in_progress, transition_copy_just_completed;
+    Particle chosen_particle;
 };
 
 #endif

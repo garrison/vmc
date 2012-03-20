@@ -306,8 +306,10 @@ public:
      *
      * @see plan_particle_move_to_nearby_empty_site()
      */
-    unsigned int plan_particle_move_to_nearby_empty_site_virtual (unsigned int particle, const PositionArguments &r, rng_class &rng) const
+    unsigned int plan_particle_move_to_nearby_empty_site_virtual (Particle particle, const PositionArguments &r, rng_class &rng) const
         {
+            BOOST_ASSERT(r.particle_is_valid(particle));
+
             unsigned int move_axis;
             if (this->move_axes_count() == 1) {
                 move_axis = 0;
@@ -321,12 +323,13 @@ public:
             boost::variate_generator<rng_class&, boost::uniform_smallint<> > direction_gen(rng, direction_distribution);
             int step_direction = direction_gen() * 2 - 1;
 
-            Site site = this->site_from_index(r[particle]);
+            const unsigned int original_site_index = r[particle];
+            Site site = this->site_from_index(original_site_index);
             unsigned int site_index;
             do {
                 this->move_site(site, move_axis, step_direction);
                 site_index = this->site_to_index(site);
-            } while (r.is_occupied(site_index) && site_index != r[particle]);
+            } while (r.is_occupied(site_index, particle.species) && site_index != original_site_index);
 
             return site_index;
         }

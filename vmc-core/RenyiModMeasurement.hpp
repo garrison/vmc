@@ -51,7 +51,7 @@ private:
         {
             if (get_steps_per_measurement() == 1) {
                 // update swapped_system
-                std::pair<int, int> args = walk.get_swapped_system_update_args();
+                std::pair<const Particle *, const Particle *> args = walk.get_swapped_system_update_args();
                 swapped_system->update(args.first, args.second, walk.get_phialpha1(), walk.get_phialpha2());
                 swapped_system->finish_update(walk.get_phialpha1(), walk.get_phialpha2());
                 perform_the_measurement(walk);
@@ -74,7 +74,7 @@ private:
 
     void perform_the_measurement (const RenyiModWalk &walk)
         {
-            if (swapped_system->get_N_subsystem1() == swapped_system->get_N_subsystem2()) {
+            if (swapped_system->subsystem_particle_counts_match()) {
                 accum += std::abs(swapped_system->get_phibeta1().psi()
                                   / walk.get_phialpha1().psi()
                                   * swapped_system->get_phibeta2().psi()

@@ -12,20 +12,27 @@
 RenyiModWalk::RenyiModWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const boost::shared_ptr<WavefunctionAmplitude> &wf_copy)
     : phialpha1(wf),
       phialpha2(wf_copy),
-      transition_copy_in_progress(0)
+      transition_copy_in_progress(-1)
 {
+#ifndef BOOST_DISABLE_ASSERTS
+    const PositionArguments &r1 = phialpha1->get_positions();
+    const PositionArguments &r2 = phialpha2->get_positions();
+
     BOOST_ASSERT(&phialpha1->get_lattice() == &phialpha2->get_lattice());
-    BOOST_ASSERT(phialpha1->get_positions().get_N_filled() == phialpha2->get_positions().get_N_filled());
-    BOOST_ASSERT(phialpha1->get_positions().get_N_sites() == phialpha2->get_positions().get_N_sites());
+    BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
+    for (unsigned int i = 0; i < r1.get_N_species(); ++i)
+        BOOST_ASSERT(r1.get_N_filled(i) == r2.get_N_filled(i));
+    BOOST_ASSERT(r1.get_N_sites() == r2.get_N_sites());
     // there's no way to assert it, but we also assume they have precisely the
     // same orbitals too.  In fact, it might be useful to make a function that
     // asserts two wave functions are identical except for the particle
     // positions ...
+#endif
 }
 
 probability_t RenyiModWalk::compute_probability_ratio_of_random_transition (rng_class &rng)
 {
-    BOOST_ASSERT(!transition_copy_in_progress);
+    BOOST_ASSERT(transition_copy_in_progress <= 0);
 
     // decide which copy of the system to attempt to move
     boost::uniform_smallint<> copy_distribution(1, 2);
@@ -68,25 +75,32 @@ probability_t RenyiModWalk::compute_probability_ratio_of_random_transition (rng_
 
 void RenyiModWalk::accept_transition (void)
 {
-    BOOST_ASSERT(transition_copy_in_progress);
+    BOOST_ASSERT(transition_copy_in_progress > 0);
 
 #if defined(DEBUG_VMC_RENYI_MOD_WALK) || defined(DEBUG_VMC_ALL)
     const PositionArguments &r1 = phialpha1->get_positions();
-    for (unsigned int i = 0; i < r1.size(); ++i)
-        std::cerr << r1[i] << ' ';
+    for (unsigned int species = 0; species < r1.get_N_species(); ++species) {
+        if (species != 0)
+            std::cerr << "| ";
+        for (unsigned int i = 0; i < r1.get_N_filled(species); ++i)
+            std::cerr << r1[Particle(i, species)] << ' ';
+    }
     std::cerr << std::endl;
 
     const PositionArguments &r2 = phialpha2->get_positions();
-    for (unsigned int i = 0; i < r2.size(); ++i)
-        std::cerr << r2[i] << ' ';
-    std::cerr << std::endl << std::endl;
+    for (unsigned int species = 0; species < r2.get_N_species(); ++species) {
+        if (species != 0)
+            std::cerr << "| ";
+        for (unsigned int i = 0; i < r2.get_N_filled(species); ++i)
+            std::cerr << r2[Particle(i, species)] << ' ';
+    }
 #endif
 
     ((transition_copy_in_progress == 1) ? phialpha1 : phialpha2)->finish_particle_moved_update();
 
-    // remember what we just did, so each RenyiModMeasurement can update its SwappedSystem
-    swapped_system_update_args.first = (transition_copy_in_progress == 1) ? (int) chosen_particle : -1;
-    swapped_system_update_args.second = (transition_copy_in_progress == 2) ? (int) chosen_particle : -1;
+    // remember what we just did, so each RenyiModMeasurement can update its
+    // SwappedSystem
+    transition_copy_just_completed = transition_copy_in_progress;
 
     transition_copy_in_progress = 0;
 }

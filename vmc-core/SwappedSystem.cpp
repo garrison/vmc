@@ -90,8 +90,8 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
     // these will be will be >= 0 if the particle was in the subsystem before,
     // -1 if the particle was not in the subsystem before, and -2 if the
     // particle isn't even being moved.
-    const int pairing_index1 = (!particle1) ? -2 : vector_find(copy1_subsystem_indices[particle1->species], particle1->index);
-    const int pairing_index2 = (!particle2) ? -2 : vector_find(copy2_subsystem_indices[particle2->species], particle2->index);
+    int pairing_index1 = (!particle1) ? -2 : vector_find(copy1_subsystem_indices[particle1->species], particle1->index);
+    int pairing_index2 = (!particle2) ? -2 : vector_find(copy2_subsystem_indices[particle2->species], particle2->index);
 
     const bool particle1_now_in_subsystem = (particle1 && subsystem->position_is_within(r1[*particle1], lattice));
     const bool particle2_now_in_subsystem = (particle2 && subsystem->position_is_within(r2[*particle2], lattice));
@@ -161,6 +161,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             std::vector<unsigned int> &c1_s = copy1_subsystem_indices[particle1->species];
             if (delta1 == 1) {
                 c1_s.push_back(particle1->index);
+                pairing_index1 = c1_s.size() - 1;
             } else {
                 BOOST_ASSERT(delta1 == -1);
                 c1_s[pairing_index1] = c1_s[c1_s.size() - 1];
@@ -171,6 +172,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             std::vector<unsigned int> &c2_s = copy2_subsystem_indices[particle2->species];
             if (delta2 == 1) {
                 c2_s.push_back(particle2->index);
+                pairing_index2 = c2_s.size() - 1;
             } else {
                 BOOST_ASSERT(delta2 == -1);
                 c2_s[pairing_index2] = c2_s[c2_s.size() - 1];
@@ -200,7 +202,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             if (particle1) {
                 boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
                 bool &phibeta_dirty = particle1_now_in_subsystem ? phibeta2_dirty : phibeta1_dirty;
-                const Particle phibeta_particle = particle1_now_in_subsystem ? Particle(copy2_subsystem_indices[particle1->species][(delta1 == 0) ? (unsigned int) pairing_index1 : copy1_subsystem_indices[particle1->species].size() - 1], particle1->species) : *particle1;
+                const Particle phibeta_particle = particle1_now_in_subsystem ? Particle(copy2_subsystem_indices[particle1->species][pairing_index1], particle1->species) : *particle1;
                 if (!phibeta.unique())
                     phibeta = phibeta->clone();
                 BOOST_ASSERT(!phibeta_dirty); // will always be clean here, but not necessarily below
@@ -211,7 +213,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             if (particle2) {
                 boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
                 bool &phibeta_dirty = particle2_now_in_subsystem ? phibeta1_dirty : phibeta2_dirty;
-                const Particle phibeta_particle = particle2_now_in_subsystem ? Particle(copy1_subsystem_indices[particle2->species][(delta2 == 0) ? (unsigned int) pairing_index2 : copy2_subsystem_indices[particle2->species].size() - 1], particle2->species) : *particle2;
+                const Particle phibeta_particle = particle2_now_in_subsystem ? Particle(copy1_subsystem_indices[particle2->species][pairing_index2], particle2->species) : *particle2;
                 if (!phibeta.unique())
                     phibeta = phibeta->clone();
                 if (phibeta_dirty)

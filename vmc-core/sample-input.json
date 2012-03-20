@@ -62,7 +62,7 @@
     },
     "simulation": {
 	"walk-type": "standard",
-        //"initial-positions": [0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38], // if not given, implies starting from a random initial state
+        //"initial-positions": [[0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38]], // if not given, implies starting from a random initial state
 	"equilibrium-steps": 5000, // should be non-zero if initial-positions is not given
 	"measurement-steps": 50000,
 	"measurements": [

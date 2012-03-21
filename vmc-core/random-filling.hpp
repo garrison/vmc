@@ -88,7 +88,7 @@ bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, const
 {
     unsigned int attempts = 1; // assume that one attempt has already been completed
     while (wf.psi() == amplitude_t(0)) {
-        if (attempts++ == 10000)
+        if (attempts++ == 1000000)
             return false;
         reset_wavefunction_with_random_filling<DIM>(wf, lattice, rng);
     }

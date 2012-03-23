@@ -372,7 +372,7 @@ private:
 #ifdef CAREFUL
     void be_careful (void) const
         {
-            if (compute_inverse_matrix_error() > 1)
+            if (det != T(0) && compute_inverse_matrix_error() > 1)
                 std::cerr << "Large inverse matrix error of " << compute_inverse_matrix_error() << std::endl;
 
             if (compute_relative_determinant_error() > .03)

@@ -2,7 +2,6 @@
 #define _POSITION_ARGUMENTS_HPP
 
 #include <vector>
-#include <cstddef>
 
 #include <boost/assert.hpp>
 

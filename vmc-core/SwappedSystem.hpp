@@ -93,7 +93,8 @@ private:
 };
 
 /**
- *
+ * Count the subsystem particle counts of each species in wf1 and wf2, and
+ * return true if they match
  */
 extern bool count_subsystem_particle_counts_for_match (const WavefunctionAmplitude &wf1, const WavefunctionAmplitude &wf2,
                                                        const Subsystem &subsystem);

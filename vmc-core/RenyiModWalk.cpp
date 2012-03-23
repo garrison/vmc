@@ -48,15 +48,16 @@ probability_t RenyiModWalk::compute_probability_ratio_of_random_transition (rng_
 
 #if 0
     const unsigned int N_sites = phialpha1->get_lattice().total_sites();
+    std::cerr << "species " << chosen_particle.species << std::endl;
 
     const PositionArguments &r1 = phialpha1->get_positions();
     for (unsigned int k = 0; k < N_sites; ++k)
-        std::cerr << (transition_copy_in_progress == 1 && r1[chosen_particle] == k ? '$' : (r1.is_occupied(k) ? '*' : '-'));
+        std::cerr << (transition_copy_in_progress == 1 && r1[chosen_particle] == k ? '$' : (r1.is_occupied(k, chosen_particle.species) ? '*' : '-'));
     std::cerr << std::endl;
 
     const PositionArguments &r2 = phialpha2->get_positions();
     for (unsigned int k = 0; k < N_sites; ++k)
-        std::cerr << (transition_copy_in_progress == 2 && r2[chosen_particle] == k ? '$' : (r2.is_occupied(k) ? '*' : '-'));
+        std::cerr << (transition_copy_in_progress == 2 && r2[chosen_particle] == k ? '$' : (r2.is_occupied(k, chosen_particle.species) ? '*' : '-'));
     std::cerr << std::endl << std::endl;
 #endif
 

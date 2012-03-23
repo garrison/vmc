@@ -408,7 +408,7 @@ bool count_subsystem_particle_counts_for_match (const WavefunctionAmplitude &wf1
         unsigned int count1 = 0, count2 = 0;
 
         for (unsigned int i = 0; i < r1.get_N_filled(species); ++i) {
-            Particle particle(i, species);
+            const Particle particle(i, species);
             if (subsystem.position_is_within(r1[particle], wf1.get_lattice()))
                 ++count1;
             if (subsystem.position_is_within(r2[particle], wf2.get_lattice()))

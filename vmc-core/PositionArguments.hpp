@@ -88,7 +88,9 @@ public:
             const unsigned int old_position = (*this)[particle];
 
             BOOST_ASSERT(is_occupied(old_position, particle.species));
-            BOOST_ASSERT(!is_occupied(position, particle.species)); // we don't allow double occupancy
+            // we don't allow double occupancy
+            BOOST_ASSERT(!is_occupied(position, particle.species)
+                         || r[particle.species][particle.index] == position);
 
             --positions[particle.species][old_position];
             ++positions[particle.species][position];

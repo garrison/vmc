@@ -30,6 +30,9 @@ extern unsigned int choose_random_empty_site (const PositionArguments &r, unsign
  * The method used to return a nearby site should satisfy balance, so it can be
  * used to plan moves in Monte Carlo simulations.
  *
+ * On occasion, this function will return a site that is far away, just to make
+ * sure things are ergodic in the simulation.
+ *
  * @param particle index of particle to move
  * @param r PositionArguments representing the particles in the system
  * @param lattice the lattice itself
@@ -37,13 +40,6 @@ extern unsigned int choose_random_empty_site (const PositionArguments &r, unsign
  * @return index of chosen nearby empty site, which is a number less than
  *         r.get_N_sites()
  */
-static inline unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const PositionArguments &r, const Lattice &lattice, rng_class &rng)
-{
-    // we want this to execute slightly different code based on the number of
-    // dimensions in the lattice.  unfortunately, the only way to handle this
-    // is through a virtual function in a Lattice subclass, so we call that
-    // here
-    return lattice.plan_particle_move_to_nearby_empty_site_virtual(particle, r, rng);
-}
+extern unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const PositionArguments &r, const Lattice &lattice, rng_class &rng);
 
 #endif

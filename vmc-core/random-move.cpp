@@ -44,3 +44,20 @@ unsigned int choose_random_empty_site (const PositionArguments &r, unsigned int 
         }
     }
 }
+
+unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const PositionArguments &r, const Lattice &lattice, rng_class &rng)
+{
+    boost::uniform_smallint<> method_distribution(0, 9);
+    boost::variate_generator<rng_class&, boost::uniform_smallint<> > method_gen(rng, method_distribution);
+
+    // occasionally, in order to make sure things are ergodic, we should
+    // attempt to move to a random empty site in the lattice
+    if (method_gen() == 0)
+        return choose_random_empty_site(r, particle.species, rng);
+
+    // we want this to execute slightly different code based on the number of
+    // dimensions in the lattice.  unfortunately, the only way to handle this
+    // is through a virtual function in a Lattice subclass, so we call that
+    // here
+    return lattice.plan_particle_move_to_nearby_empty_site_virtual(particle, r, rng);
+}

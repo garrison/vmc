@@ -24,6 +24,7 @@
 #include "StandardWalk.hpp"
 #include "DensityDensityMeasurement.hpp"
 #include "GreenMeasurement.hpp"
+#include "SubsystemOccupationNumberProbabilityMeasurement.hpp"
 #include "RenyiModWalk.hpp"
 #include "RenyiModMeasurement.hpp"
 #include "RenyiSignWalk.hpp"
@@ -222,7 +223,7 @@ boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Value &json
 }
 
 template <unsigned int DIM>
-boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_definition (const Json::Value &json_measurement_def, const WavefunctionAmplitude &wf)
+boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_definition (const Json::Value &json_measurement_def, const WavefunctionAmplitude &wf, const NDLattice<DIM> &lattice)
 {
     const unsigned int N_species = wf.get_positions().get_N_species();
     ensure_object_with_type_field_as_string(json_measurement_def);
@@ -255,6 +256,14 @@ boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_de
             throw ParseError("species must be given, as this wave function contains multiple species of particles");
         }
         return boost::make_shared<GreenMeasurement<DIM> >(steps_per_measurement, species);
+    } else if (std::strcmp(json_measurement_def["type"].asCString(), "subsystem-occupation-number-probability") == 0) {
+        const char * const json_subsystem_occupation_required[] = { "type", "subsystem", NULL };
+        const char * const json_subsystem_occupation_allowed[] = { "type", "subsystem", "steps-per-measurement", NULL };
+        ensure_required(json_measurement_def, json_subsystem_occupation_required);
+        ensure_only(json_measurement_def, json_subsystem_occupation_allowed);
+        unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
+        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem<DIM>(json_measurement_def["subsystem"], lattice));
+        return boost::make_shared<SubsystemOccupationNumberProbabilityMeasurement>(subsystem, steps_per_measurement);
     } else {
         throw ParseError("invalid standard walk measurement type");
     }
@@ -358,10 +367,11 @@ static Json::Value complex_to_json_array (const complex_t &v)
 }
 
 template <unsigned int DIM>
-static Json::Value standard_walk_measurement_json_repr (const Measurement<StandardWalk> *measurement_ptr)
+static Json::Value standard_walk_measurement_json_repr (const Measurement<StandardWalk> *measurement_ptr, const WavefunctionAmplitude &wf)
 {
     const DensityDensityMeasurement<DIM> *ddm = dynamic_cast<const DensityDensityMeasurement<DIM>*>(measurement_ptr);
     const GreenMeasurement<DIM> *gm = dynamic_cast<const GreenMeasurement<DIM>*>(measurement_ptr);
+    const SubsystemOccupationNumberProbabilityMeasurement *sonpm = dynamic_cast<const SubsystemOccupationNumberProbabilityMeasurement *>(measurement_ptr);
     if (ddm) {
         // density-density measurement
         Json::Value rv(Json::arrayValue);
@@ -380,6 +390,38 @@ static Json::Value standard_walk_measurement_json_repr (const Measurement<Standa
             for (unsigned int j = 0; j < gm->get_N_sites(); ++j)
                 a.append(Json::Value(complex_to_json_array(gm->get(j, i))));
             rv.append(a);
+        }
+        return rv;
+    } else if (sonpm) {
+        // subsystem occupation number probability measurement
+        const PositionArguments &r = wf.get_positions();
+        Json::Value rv(Json::arrayValue);
+        std::vector<unsigned int> occupation(r.get_N_species());
+        Json::Value current_pair(Json::arrayValue);
+        current_pair.resize(2);
+        current_pair[0].resize(occupation.size());
+        bool done = false;
+        while (!done) {
+            // append to json the current occupation probability (if nonzero)
+            real_t val = sonpm->get(occupation);
+            if (val != real_t(0)) {
+                for (unsigned int i = 0; i < occupation.size(); ++i)
+                    current_pair[0][i] = occupation[i];
+                current_pair[1] = jsoncpp_real_cast(val);
+                rv.append(current_pair);
+            }
+
+            // advance to the next occupation we should consider
+            for (unsigned int j = 0; j < occupation.size(); ++j) {
+                ++occupation[j];
+                if (occupation[j] == r.get_N_filled(j)) {
+                    occupation[j] = 0;
+                    if (j == occupation.size() - 1)
+                        done = true;
+                } else {
+                    break;
+                }
+            }
         }
         return rv;
     } else {
@@ -594,7 +636,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         ensure_array(json_measurements);
         std::list<boost::shared_ptr<Measurement<StandardWalk> > > measurements;
         for (unsigned int i = 0; i < json_measurements.size(); ++i)
-            measurements.push_back(parse_standard_walk_measurement_definition<DIM>(json_measurements[i], *wf));
+            measurements.push_back(parse_standard_walk_measurement_definition<DIM>(json_measurements[i], *wf, *lattice));
 
         // set up and perform walk
         StandardWalk walk(wf);
@@ -603,7 +645,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
 
         // store json
         for (std::list<boost::shared_ptr<Measurement<StandardWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
-            json_measurement_output.append(standard_walk_measurement_json_repr<DIM>(i->get()));
+            json_measurement_output.append(standard_walk_measurement_json_repr<DIM>(i->get(), walk.get_wavefunction()));
         }
         json_final_positions_output = positions_json_repr(sim.get_walk().get_wavefunction().get_positions());
         json_monte_carlo_stats_output = monte_carlo_stats_json_repr(sim);

@@ -46,6 +46,7 @@ HEADER_FILES = \
                SimpleSubsystem.hpp \
                StandardWalk.hpp \
                Subsystem.hpp \
+               SubsystemOccupationNumberProbabilityMeasurement.hpp \
                SwappedSystem.hpp \
                vmc-math-utils.hpp \
                vmc-typedefs.hpp \

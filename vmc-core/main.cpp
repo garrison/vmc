@@ -1,3 +1,8 @@
+/*
+ * main.cpp: everything necessary to set up a simulation based on json input,
+ * run the simulation, and return its results in json format.
+ */
+
 #include <iostream>
 #include <vector>
 #include <set>

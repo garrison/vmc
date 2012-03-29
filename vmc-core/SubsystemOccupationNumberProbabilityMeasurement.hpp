@@ -90,6 +90,7 @@ private:
 
     void repeat_measurement_ (const StandardWalk &walk)
         {
+            (void) walk;
             ++(*last_data_ptr);
         }
 

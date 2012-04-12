@@ -1,3 +1,5 @@
+#include <vector>
+
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
 
@@ -112,4 +114,19 @@ void DMetalWavefunctionAmplitude::reinitialize (void)
 boost::shared_ptr<WavefunctionAmplitude> DMetalWavefunctionAmplitude::clone_ (void) const
 {
     return boost::make_shared<DMetalWavefunctionAmplitude>(*this);
+}
+
+void DMetalWavefunctionAmplitude::reset_with_filler (const RandomFiller &filler, rng_class &rng)
+{
+    const unsigned int N = m_orbital_d1->get_N_filled();
+    const unsigned int M = m_orbital_f_up->get_N_filled();
+
+    // take into account the Gutzwiller projection
+    std::vector<std::vector<unsigned int> > vv(2);
+    vv[0] = filler.some_random_filling(N, rng);
+    for (unsigned int i = M; i < N; ++i)
+        vv[1].push_back(vv[0][i]);
+    vv[0].resize(M);
+
+    reset(PositionArguments(vv, lattice->total_sites()));
 }

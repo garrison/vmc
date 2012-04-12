@@ -1,4 +1,4 @@
 Makefile-vmc.local
 *.[oa]
-vmc-core
+vmc-core/vmc-core
 docs/generated/

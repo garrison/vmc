@@ -5,6 +5,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "PositionArguments.hpp"
+#include "RandomFiller.hpp"
 #include "Lattice.hpp"
 #include "vmc-typedefs.hpp"
 
@@ -95,6 +96,16 @@ public:
         {
             return r;
         }
+
+    /**
+     * Reset the wavefunction's positions with the help of a RandomFiller
+     * object.
+     *
+     * Subclasses may wish to override this method if they have special
+     * projection properties, e.g., no spin-up and spin-down particle allowed
+     * on the same site.
+     */
+    virtual void reset_with_filler (const RandomFiller &filler, rng_class &rng);
 
 private:
     virtual void move_particle_ (Particle particle, unsigned int new_site_index) = 0;

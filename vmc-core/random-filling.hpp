@@ -12,6 +12,7 @@
 #include "NDLattice.hpp"
 #include "vmc-typedefs.hpp"
 #include "random-combination.hpp"
+#include "RandomFiller.hpp"
 #include "WavefunctionAmplitude.hpp"
 
 // fixme: do we really want this to be here?  if we move it, remove the boost includes above.
@@ -70,27 +71,38 @@ std::vector<unsigned int> some_random_filling (unsigned int N_filled, const NDLa
     return v;
 }
 
+/**
+ * N-dimensional random filler
+ *
+ * @see RandomFiller
+ */
 template <unsigned int DIM>
-void reset_wavefunction_with_random_filling (WavefunctionAmplitude &wf, const NDLattice<DIM> &lattice, rng_class &rng)
+class NDRandomFiller : public RandomFiller
 {
-    const PositionArguments &r = wf.get_positions();
+public:
+    NDRandomFiller (const NDLattice<DIM> &lattice_)
+        : lattice(lattice_)
+        {
+        }
 
-    std::vector<std::vector<unsigned int> > vv;
-    for (unsigned int i = 0; i < r.get_N_species(); ++i) {
-        vv.push_back(some_random_filling<DIM>(r.get_N_filled(i), lattice, rng));
-    }
-    wf.reset(PositionArguments(vv, lattice.total_sites()));
-}
+    std::vector<unsigned int> some_random_filling (unsigned int N_filled, rng_class &rng) const
+        {
+            return ::some_random_filling<DIM>(N_filled, lattice, rng);
+        }
 
+private:
+    const NDLattice<DIM> &lattice;
+};
 
 template <unsigned int DIM>
 bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, const NDLattice<DIM> &lattice, rng_class &rng)
 {
+    NDRandomFiller<DIM> filler(lattice);
     unsigned int attempts = 1; // assume that one attempt has already been completed
     while (wf.psi() == amplitude_t(0)) {
         if (attempts++ == 1000000)
             return false;
-        reset_wavefunction_with_random_filling<DIM>(wf, lattice, rng);
+        wf.reset_with_filler(filler, rng);
     }
     return true;
 }

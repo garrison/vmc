@@ -38,6 +38,7 @@ HEADER_FILES = \
                random-combination.hpp \
                random-filling.hpp \
                random-move.hpp \
+               RandomFiller.hpp \
                RenyiModMeasurement.hpp \
                RenyiModWalk.hpp \
                RenyiSignMeasurement.hpp \
@@ -65,7 +66,8 @@ SOURCES = \
           RenyiSignWalk.cpp \
           RunInformation.cpp \
           StandardWalk.cpp \
-          SwappedSystem.cpp
+          SwappedSystem.cpp \
+          WavefunctionAmplitude.cpp
 
 OBJECTS = $(SOURCES:.cpp=.o)
 

@@ -70,7 +70,9 @@ private:
             unsigned int n = 1;
             for (unsigned int i = 0; i < r.get_N_species(); ++i) {
                 offsets[i] = n;
-                n *= r.get_N_filled(i);
+                // we need (N_filled + 1) slots since the number in the
+                // subsystem will be in the range 0 .. N_filled
+                n *= r.get_N_filled(i) + 1;
             }
             data.resize(n);
         }
@@ -83,6 +85,7 @@ private:
             unsigned int offset = 0;
             for (unsigned int i = 0; i < offsets.size(); ++i)
                 offset += do_subsystem_particle_count(wf, i) * offsets[i];
+            BOOST_ASSERT(offset < data.size());
 
             last_data_ptr = &data[offset];
             ++data[offset];

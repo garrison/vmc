@@ -32,6 +32,8 @@
 #include "SubsystemOccupationNumberProbabilityMeasurement.hpp"
 #include "RenyiModWalk.hpp"
 #include "RenyiModMeasurement.hpp"
+#include "RenyiModPossibleWalk.hpp"
+#include "RenyiModPossibleMeasurement.hpp"
 #include "RenyiSignWalk.hpp"
 #include "RenyiSignMeasurement.hpp"
 #include "Subsystem.hpp"
@@ -292,6 +294,19 @@ boost::shared_ptr<Measurement<RenyiModWalk> > parse_renyi_mod_walk_measurement_d
 }
 
 template <unsigned int DIM>
+boost::shared_ptr<Measurement<RenyiModPossibleWalk> > parse_renyi_mod_possible_walk_measurement_definition (const Json::Value &json_measurement_def)
+{
+    ensure_object_with_type_field_as_string(json_measurement_def);
+    if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-mod/possible") == 0) {
+        const char * const json_renyi_mod_possible_allowed[] = { "type", NULL };
+        ensure_only(json_measurement_def, json_renyi_mod_possible_allowed);
+        return boost::make_shared<RenyiModPossibleMeasurement>();
+    } else {
+        throw ParseError("invalid renyi-mod/possible walk measurement type");
+    }
+}
+
+template <unsigned int DIM>
 boost::shared_ptr<Measurement<RenyiSignWalk> > parse_renyi_sign_walk_measurement_definition (const Json::Value &json_measurement_def)
 {
     ensure_object_with_type_field_as_string(json_measurement_def);
@@ -440,6 +455,12 @@ static Json::Value renyi_mod_walk_measurement_json_repr (const Measurement<Renyi
 {
     const RenyiModMeasurement *rmm = boost::polymorphic_downcast<const RenyiModMeasurement*>(measurement_ptr);
     return Json::Value(rmm->get());
+}
+
+static Json::Value renyi_mod_possible_walk_measurement_json_repr (const Measurement<RenyiModPossibleWalk> *measurement_ptr)
+{
+    const RenyiModPossibleMeasurement *rmpm = boost::polymorphic_downcast<const RenyiModPossibleMeasurement*>(measurement_ptr);
+    return Json::Value(rmpm->get());
 }
 
 static Json::Value renyi_sign_walk_measurement_json_repr (const Measurement<RenyiSignWalk> *measurement_ptr)
@@ -693,6 +714,58 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         // store json
         for (std::list<boost::shared_ptr<Measurement<RenyiModWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(renyi_mod_walk_measurement_json_repr(i->get()));
+        }
+        json_final_positions_output = Json::Value(Json::arrayValue);
+        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha1().get_positions()));
+        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha2().get_positions()));
+        json_monte_carlo_stats_output = monte_carlo_stats_json_repr(sim);
+
+    } else if (std::strcmp(json_walk_type_cstr, "renyi-mod/possible") == 0) {
+
+        // RENYI MOD/POSSIBLE WALK
+
+        // ensure correct json properties are given
+        const char * const json_simulation_additional_required[] = { "subsystem", "measurements", NULL };
+        ensure_required(json_simulation, json_simulation_additional_required);
+        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "subsystem", "measurements", NULL };
+        ensure_only(json_simulation, json_simulation_only);
+
+        // set up subsystem
+        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem<DIM>(json_simulation["subsystem"], *lattice));
+
+        // set up initial positions of wavefunctions
+        boost::shared_ptr<WavefunctionAmplitude> wf2(wf->clone());
+        if (json_simulation.isMember("initial-positions")) {
+            ensure_array(json_simulation["initial-positions"], 2);
+            set_wavefunction_positions_from_json(*wf, json_simulation["initial-positions"][0u]);
+            set_wavefunction_positions_from_json(*wf2, json_simulation["initial-positions"][1u]);
+            if (!count_subsystem_particle_counts_for_match(*wf, *wf2, *subsystem))
+                throw ParseError("The initial positions of each copy must have the same numbers/types of particles in the subsystem");
+        } else {
+            bool success = search_for_filling_with_nonzero_amplitude<DIM>(*wf, *lattice, rng);
+            if (!success)
+                throw ParseError("could not find a filling with nonzero amplitude");
+            // We need two copies of the system, each of which has the same
+            // number of particles in the subsystem.  So for now we just
+            // initialize both copies with the same exact positions.
+            wf2 = wf;
+        }
+
+        // set up measurement(s)
+        const Json::Value &json_measurements = json_simulation["measurements"];
+        ensure_array(json_measurements);
+        std::list<boost::shared_ptr<Measurement<RenyiModPossibleWalk> > > measurements;
+        for (unsigned int i = 0; i < json_measurements.size(); ++i)
+            measurements.push_back(parse_renyi_mod_possible_walk_measurement_definition<DIM>(json_measurements[i]));
+
+        // set up and perform walk
+        RenyiModPossibleWalk walk(wf, wf2, subsystem);
+        MetropolisSimulation<RenyiModPossibleWalk> sim(walk, measurements, equilibrium_steps, rng());
+        sim.iterate(measurement_steps);
+
+        // store json
+        for (std::list<boost::shared_ptr<Measurement<RenyiModPossibleWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
+            json_measurement_output.append(renyi_mod_possible_walk_measurement_json_repr(i->get()));
         }
         json_final_positions_output = Json::Value(Json::arrayValue);
         json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha1().get_positions()));

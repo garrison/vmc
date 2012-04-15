@@ -18,6 +18,7 @@ DOXYGEN = doxygen
 
 HEADER_FILES = \
                allowed-momentum.hpp \
+               BaseSwapPossibleWalk.hpp \
                BoundaryCondition.hpp \
                CeperleyMatrix.hpp \
                DBLWavefunctionAmplitude.hpp \
@@ -40,6 +41,8 @@ HEADER_FILES = \
                random-move.hpp \
                RandomFiller.hpp \
                RenyiModMeasurement.hpp \
+               RenyiModPossibleMeasurement.hpp \
+               RenyiModPossibleWalk.hpp \
                RenyiModWalk.hpp \
                RenyiSignMeasurement.hpp \
                RenyiSignWalk.hpp \
@@ -54,6 +57,7 @@ HEADER_FILES = \
                WavefunctionAmplitude.hpp
 
 SOURCES = \
+          BaseSwapPossibleWalk.cpp \
           CeperleyMatrix.cpp \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \
@@ -62,6 +66,7 @@ SOURCES = \
           PositionArguments.cpp \
           random-combination.cpp \
           random-move.cpp \
+          RenyiModPossibleWalk.cpp \
           RenyiModWalk.cpp \
           RenyiSignWalk.cpp \
           RunInformation.cpp \

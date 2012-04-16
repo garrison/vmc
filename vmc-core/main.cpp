@@ -460,7 +460,7 @@ static Json::Value renyi_mod_walk_measurement_json_repr (const Measurement<Renyi
 static Json::Value renyi_mod_possible_walk_measurement_json_repr (const Measurement<RenyiModPossibleWalk> *measurement_ptr)
 {
     const RenyiModPossibleMeasurement *rmpm = boost::polymorphic_downcast<const RenyiModPossibleMeasurement*>(measurement_ptr);
-    return Json::Value(rmpm->get());
+    return Json::Value(jsoncpp_real_cast(rmpm->get()));
 }
 
 static Json::Value renyi_sign_walk_measurement_json_repr (const Measurement<RenyiSignWalk> *measurement_ptr)

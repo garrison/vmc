@@ -83,7 +83,8 @@ public:
         }
 
     /**
-     *
+     * Returns true if both subsystems have the same particle count for each
+     * species
      */
     bool subsystem_particle_counts_match (void) const;
 

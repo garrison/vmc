@@ -54,9 +54,13 @@ public:
 private:
     virtual probability_t probability_ratio (amplitude_t phialpha1_ratio, amplitude_t phialpha2_ratio, amplitude_t phibeta1_ratio, amplitude_t phibeta2_ratio) const = 0;
 
+    static unsigned int count_subsystem_sites (const Subsystem &subsystem, const Lattice &lattice);
+
     boost::shared_ptr<WavefunctionAmplitude> phialpha1, phialpha2;
     boost::shared_ptr<SwappedSystem> swapped_system;
-    Particle chosen_particle1, chosen_particle2;
+    Particle chosen_particle_A, chosen_particle_B;
+    const Particle *chosen_particle1, *chosen_particle2;
+    unsigned int N_subsystem_sites; // remains constant after initialization
     bool update_swapped_system_before_accepting; // remains constant after initialization
     bool transition_in_progress;
 };

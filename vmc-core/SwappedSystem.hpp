@@ -70,6 +70,18 @@ public:
             return *phibeta2;
         }
 
+    unsigned int get_N_subsystem1 (unsigned int species) const
+        {
+            BOOST_ASSERT(species < copy1_subsystem_indices.size());
+            return copy1_subsystem_indices[species].size();
+        }
+
+    unsigned int get_N_subsystem2 (unsigned int species) const
+        {
+            BOOST_ASSERT(species < copy2_subsystem_indices.size());
+            return copy2_subsystem_indices[species].size();
+        }
+
     /**
      *
      */

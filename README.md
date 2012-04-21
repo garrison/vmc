@@ -7,7 +7,7 @@ that are of interest to the authors of this code.
 Requires a recent [boost](http://www.boost.org/) (headers only) and
 [eigen3](http://eigen.tuxfamily.org/).  The input mechanism for
 declaring calculations also requires
-[jsoncpp](http://jsoncpp.sourceforge.net/).
+[jsoncpp](http://jsoncpp.sourceforge.net/) 0.6.0-rc2 or later.
 
 A file named vmc-core/Makefile-vmc.local can be created to override
 any variables in the Makefile. For example, it could say:

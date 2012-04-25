@@ -17,10 +17,12 @@
 #include <boost/cast.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <Eigen/Dense>
 
 #include "NDLattice.hpp"
 #include "random-filling.hpp"
 #include "PositionArguments.hpp"
+#include "OrbitalDefinitions.hpp"
 #include "FilledOrbitals.hpp"
 #include "FreeFermionWavefunctionAmplitude.hpp"
 #include "DBLWavefunctionAmplitude.hpp"
@@ -142,6 +144,15 @@ static unsigned int parse_uint (const Json::Value &uint, unsigned int lowest_out
     return rv;
 }
 
+static complex_t parse_complex (const Json::Value &complex)
+{
+    ensure_array(complex, 2);
+    if (!complex[0].isNumeric() || !complex[1].isNumeric())
+        throw ParseError("expecting a complex number represented as a json array of two numbers");
+
+    return complex_t(complex[0].asDouble(), complex[1].asDouble());
+}
+
 static double json_get_double (const Json::Value &jsonvalue, const char *key, double default_value)
 {
     if (!jsonvalue.isMember(key))
@@ -166,7 +177,36 @@ static unsigned int parse_json_steps_per_measurement (const Json::Value &json_me
 }
 
 template <unsigned int DIM>
-boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Value &json_orbitals, const boost::shared_ptr<const NDLattice<DIM> > &lattice)
+boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_definitions (const Json::Value &json_orbitals, const boost::shared_ptr<const NDLattice<DIM> > &lattice)
+{
+    const char * const json_orbitals_required[] = { "definitions", NULL };
+    ensure_required(json_orbitals, json_orbitals_required);
+    ensure_only(json_orbitals, json_orbitals_required);
+
+    const Json::Value &json_defs = json_orbitals["definitions"];
+    ensure_array(json_defs);
+
+    const unsigned int N_filled = json_defs.size();
+    const unsigned int N_sites = lattice->total_sites();
+
+    if (N_filled > N_sites)
+        throw ParseError("cannot have more orbitals than the number of sites on the lattice");
+
+    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> orbitals(N_filled, N_sites);
+
+    for (unsigned int i = 0; i < N_filled; ++i) {
+        const Json::Value &json_current_def = json_defs[i];
+        ensure_array(json_current_def, N_sites);
+        for (unsigned int j = 0; j < N_sites; ++j) {
+            orbitals(i, j) = parse_complex(json_current_def[j]);
+        }
+    }
+
+    return boost::make_shared<OrbitalDefinitions>(orbitals, lattice);
+}
+
+template <unsigned int DIM>
+boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_filling (const Json::Value &json_orbitals, const boost::shared_ptr<const NDLattice<DIM> > &lattice)
 {
     const char * const json_orbitals_required[] = { "filling", "boundary-conditions", NULL };
     ensure_required(json_orbitals, json_orbitals_required);
@@ -203,6 +243,16 @@ boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Val
     }
 
     return boost::make_shared<FilledOrbitals<DIM> >(filled_momenta, lattice, boundary_conditions);
+}
+
+template <unsigned int DIM>
+boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Value &json_orbitals, const boost::shared_ptr<const NDLattice<DIM> > &lattice)
+{
+    if (json_orbitals.isMember("definitions")) {
+        return parse_json_orbitals_from_definitions<DIM>(json_orbitals, lattice);
+    } else {
+        return parse_json_orbitals_from_filling<DIM>(json_orbitals, lattice);
+    }
 }
 
 template <unsigned int DIM>

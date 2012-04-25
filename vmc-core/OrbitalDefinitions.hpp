@@ -16,14 +16,14 @@
  */
 class OrbitalDefinitions
 {
-protected:
-    OrbitalDefinitions (unsigned int N_filled_orbitals, const boost::shared_ptr<const Lattice> &lattice_)
-        : orbitals(N_filled_orbitals, lattice_->total_sites()),
+public:
+    OrbitalDefinitions (const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &orbitals_, const boost::shared_ptr<const Lattice> &lattice_)
+        : orbitals(orbitals_),
           lattice(lattice_)
         {
+            BOOST_ASSERT(orbitals.cols() == lattice_->total_sites());
         }
 
-public:
     virtual ~OrbitalDefinitions (void)
         {
         }

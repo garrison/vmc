@@ -87,7 +87,7 @@ public:
             const unsigned int old_position = (*this)[particle];
 
             BOOST_ASSERT(is_occupied(old_position, particle.species));
-            // we don't allow double occupancy
+            // enforce pauli exclusion
             BOOST_ASSERT(!is_occupied(position, particle.species)
                          || r[particle.species][particle.index] == position);
 

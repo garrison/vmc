@@ -62,7 +62,6 @@ SOURCES = \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \
           FreeFermionWavefunctionAmplitude.cpp \
-          main.cpp \
           PositionArguments.cpp \
           random-combination.cpp \
           random-move.cpp \
@@ -76,10 +75,13 @@ SOURCES = \
 
 OBJECTS = $(SOURCES:.cpp=.o)
 
-all:	vmc-core
+all:	vmc-core example-cpp-api
 
-vmc-core: $(OBJECTS)
-	$(COMPILE) $(LIBS) -o vmc-core $(OBJECTS)
+vmc-core: $(OBJECTS) vmc-core.o
+	$(COMPILE) $(LIBS) -o vmc-core $(OBJECTS) vmc-core.o
+
+example-cpp-api: $(OBJECTS) example-cpp-api.o
+	$(COMPILE) $(LIBS) -o example-cpp-api $(OBJECTS) example-cpp-api.o
 
 %.o: %.cpp $(HEADER_FILES) Makefile Makefile-vmc.local
 	$(COMPILE) $(INCLUDES) -DVMC_COMPILER_COMMANDLINE="$(COMPILE)" -c -o $@ $<

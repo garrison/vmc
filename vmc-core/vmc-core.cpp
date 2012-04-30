@@ -529,7 +529,7 @@ int main (int argc, char *argv[])
 
     Json::Value json_input;
 
-    if (argc == 1) {
+    if (argc < 2) {
         // read from STDIN
         std::cin >> json_input;
     } else if (argc == 2) {

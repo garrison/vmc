@@ -4,6 +4,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <set>
 #include <list>
@@ -522,12 +523,28 @@ static Json::Value renyi_sign_walk_measurement_json_repr (const Measurement<Reny
 template <unsigned int DIM>
 static int do_simulation (const Json::Value &json_input, rng_class &rng);
 
-int main ()
+int main (int argc, char *argv[])
 {
     // take json input and perform a simulation
 
     Json::Value json_input;
-    std::cin >> json_input;
+
+    if (argc == 1) {
+        // read from STDIN
+        std::cin >> json_input;
+    } else if (argc == 2) {
+        // read from given file
+        std::ifstream input_file(argv[1]);
+        if (!input_file.good()) {
+            std::cerr << "cannot open file: " << argv[1] << std::endl;
+            return 1;
+        }
+        input_file >> json_input;
+        input_file.close();
+    } else {
+        std::cerr << "invalid number of commandline arguments" << std::endl;
+        return 1;
+    }
 
     try {
         ensure_object(json_input);

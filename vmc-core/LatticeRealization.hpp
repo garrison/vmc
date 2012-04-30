@@ -10,7 +10,7 @@
 
 #include "vmc-typedefs.hpp"
 #include "NDLattice.hpp"
-#include "safe-modulus.hpp"
+#include "vmc-math-utils.hpp"
 
 // this class currently assumes a bravais lattice.  if it's not a bravais
 // lattice we will also want to store vectors that point to each site within a

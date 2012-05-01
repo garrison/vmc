@@ -46,6 +46,14 @@ class Lattice(collections.Sequence, collections.Hashable):
             'size': self.dimensions,
         }
 
+    def __eq__(self, other):
+        return (isinstance(other, Lattice) and
+                self.dimensions == other.dimensions and
+                self.basis_indices == other.basis_indices)
+
+    def __ne__(self, other):
+        return (self is not other) and not self.__eq__(other)
+
     def __len__(self):
         return product(self.dimensions) * self.basis_indices
 
@@ -145,6 +153,14 @@ class SimpleSubsystem(Subsystem):
         assert all(isinstance(d, numbers.Integral) and d > 0 for d in self.dimensions)
         if any(d1 > d2 for d1, d2 in zip(dimensions, lattice.dimensions)):
             raise Exception("subsystem cannot be larger than the system")
+
+    def __eq__(self, other):
+        return (isinstance(other, SimpleSubsystem) and
+                self.dimensions == other.dimensions and
+                self.lattice == other.lattice)
+
+    def __ne__(self, other):
+        return (self is not other) and not self.__eq__(other)
 
     def __len__(self):
         return product(self.dimensions) * self.lattice.basis_indices

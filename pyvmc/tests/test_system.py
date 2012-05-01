@@ -33,6 +33,20 @@ def test_lattice_json():
     lattice = Lattice([24, 2])
     assert json.dumps(lattice.to_json()) == json.dumps({ "size": [24, 2] })
 
+def test_lattice_equality():
+    lattice1 = Lattice([24, 2])
+    lattice2 = Lattice([24, 2])
+    lattice3 = Lattice([24, 2], 2)
+    lattice4 = Lattice([48, 2])
+    lattice5 = Lattice([48])
+
+    assert lattice1 == lattice2
+    assert not (lattice1 != lattice1)
+    assert not (lattice1 != lattice2)
+    assert lattice2 != lattice3
+    assert lattice2 != lattice4
+    assert lattice4 != lattice5
+
 def test_vmc_core_lattice_correspondence():
     lattice = Lattice([32, 4], 2)
     assert lattice[3] == LatticeSite([3, 0], 0)
@@ -63,3 +77,19 @@ def test_simple_subsystem_json():
     lattice = Lattice([16, 8], 2)
     subsystem = SimpleSubsystem([4, 4], lattice)
     assert json.dumps(subsystem.to_json()) == json.dumps({ 'type': 'simple', 'dimensions': (4, 4) })
+
+def test_subsystem_equality():
+    lattice1 = Lattice([24, 4])
+    lattice2 = Lattice([24, 4])
+    lattice3 = Lattice([16, 4])
+
+    subsystem1 = SimpleSubsystem([4, 4], lattice1)
+    subsystem2 = SimpleSubsystem([4, 4], lattice2)
+    subsystem3 = SimpleSubsystem([4, 4], lattice3)
+    subsystem4 = SimpleSubsystem([3, 4], lattice1)
+
+    assert subsystem1 == subsystem2
+    assert not (subsystem1 != subsystem2)
+    assert subsystem2 != subsystem3
+    assert not (subsystem2 == subsystem3)
+    assert subsystem1 != subsystem4

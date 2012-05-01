@@ -1,0 +1,13 @@
+# Python dependencies of pyvmc
+#
+# This file is meant to be used with pip:
+#
+# $ pip install -r requirements.txt
+#
+# The recommended way to use pip is inside a virtualenv.  See
+# http://pypi.python.org/pypi/virtualenv for details.
+
+numpy
+scipy
+Twisted
+pytest

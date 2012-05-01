@@ -1,0 +1,23 @@
+#!/bin/sh
+
+################################################################################
+#
+#  This a list of things you might wish to check before making a commit.
+#  To automate this as a pre-commit hook, run the following
+#  command from the top-level repository directory:
+#
+#  $ ln -fs ../../pre-commit-hook .git/hooks/pre-commit
+#
+################################################################################
+
+
+# This script should exit immediately on any error
+set -e
+
+
+# Change to the top-level directory of the repository
+cd `git rev-parse --show-toplevel`
+
+
+# Check for pep8 compliance, at least to the extent that we follow it
+pep8 `git ls-files | grep \\\\.py` --ignore=E501,E401,E225,E301,E302,E201 --repeat

@@ -126,6 +126,7 @@ class Subsystem(collections.Sequence):
     """Abstract base class representing a spatial subset of a lattice"""
 
     __metaclass__ = abc.ABCMeta
+    __slots__ = ('lattice',)
 
     def __init__(self, lattice):
         assert isinstance(lattice, Lattice)

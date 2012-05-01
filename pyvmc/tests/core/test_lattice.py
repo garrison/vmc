@@ -31,6 +31,8 @@ def test_lattice_immutable():
         lattice.x = 3
     with pytest.raises(TypeError):
         del lattice.x
+    with pytest.raises(TypeError):
+        lattice.dimensions[0] = 24
 
 def test_lattice_json():
     lattice = Lattice([24, 2])

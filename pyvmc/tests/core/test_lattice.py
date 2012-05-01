@@ -22,6 +22,9 @@ def test_lattice_iteration():
     assert LatticeSite((48, 5)) not in lattice
     assert LatticeSite((46, 2), 2) not in lattice
 
+    assert lattice.count(LatticeSite((5, 3))) == 1
+    assert lattice.count(LatticeSite((245, 2))) == 0
+
 def test_lattice_immutable():
     lattice = Lattice((48, 2))
     with pytest.raises(TypeError):

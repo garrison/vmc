@@ -45,3 +45,8 @@ def test_subsystem_equality():
     assert subsystem2 != subsystem3
     assert not (subsystem2 == subsystem3)
     assert subsystem1 != subsystem4
+
+def test_subsystem_repr():
+    lattice = Lattice([24, 4])
+    for subsystem in SimpleSubsystem([4, 4], lattice), SimpleSubsystem([8, 4], lattice):
+        assert subsystem == eval(repr(subsystem))

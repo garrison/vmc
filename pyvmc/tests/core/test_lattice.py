@@ -52,6 +52,10 @@ def test_lattice_equality():
     assert lattice2 != lattice4
     assert lattice4 != lattice5
 
+def test_lattice_repr():
+    for lattice in Lattice([24, 2]), Lattice([8, 8], 2):
+        assert lattice == eval(repr(lattice))
+
 def test_vmc_core_lattice_correspondence():
     lattice = Lattice([32, 4], 2)
     assert lattice[3] == LatticeSite([3, 0], 0)

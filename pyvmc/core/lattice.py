@@ -33,6 +33,7 @@ class Lattice(collections.Sequence, collections.Hashable):
 
     def __init__(self, dimensions, basis_indices=1):
         assert isinstance(dimensions, collections.Sequence)
+        assert len(dimensions) != 0
         dimensions = tuple(dimensions)
         assert all(isinstance(x, numbers.Integral) for x in dimensions)
         object.__setattr__(self, "dimensions", dimensions)

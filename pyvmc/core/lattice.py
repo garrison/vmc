@@ -48,7 +48,7 @@ class Lattice(collections.Sequence, collections.Hashable):
         }
 
     def __eq__(self, other):
-        return (isinstance(other, Lattice) and
+        return (self.__class__ == other.__class__ and
                 self.dimensions == other.dimensions and
                 self.basis_indices == other.basis_indices)
 

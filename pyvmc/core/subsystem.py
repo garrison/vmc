@@ -42,7 +42,7 @@ class SimpleSubsystem(Subsystem):
             raise Exception("subsystem cannot be larger than the system")
 
     def __eq__(self, other):
-        return (isinstance(other, SimpleSubsystem) and
+        return (self.__class__ == other.__class__ and
                 self.dimensions == other.dimensions and
                 self.lattice == other.lattice)
 

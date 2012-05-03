@@ -7,6 +7,14 @@ from pyvmc.core import LatticeSite, Lattice
 def test_lattice_site():
     assert LatticeSite((1, 4)) == LatticeSite((1, 4), 0)
 
+def test_lattice_constructor():
+    with pytest.raises(AssertionError):
+        Lattice([-1, 2])
+    with pytest.raises(AssertionError):
+        Lattice([])
+    with pytest.raises(AssertionError):
+        Lattice([0, 4])
+
 def test_lattice_iteration():
     lattice = Lattice((48, 4), 2)
     assert len(lattice) == (48 * 4 * 2)

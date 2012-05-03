@@ -18,6 +18,8 @@ class OrbitalsDescription(object):
 class Orbitals(object):
     __metaclass__ = abc.ABCMeta
 
+    __slots__ = ("lattice",)
+
     def __init__(self, lattice):
         assert isinstance(lattice, Lattice)
         object.__setattr__(self, "lattice", lattice)

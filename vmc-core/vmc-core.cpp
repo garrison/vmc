@@ -718,6 +718,8 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         // set up initial positions of wavefunction
         if (json_simulation.isMember("initial-positions")) {
             set_wavefunction_positions_from_json(*wf, json_simulation["initial-positions"]);
+            if (wf->psi() == amplitude_t(0))
+                throw ParseError("wavefunction has zero amplitude at given initial-positions");
         } else {
             bool success = search_for_filling_with_nonzero_amplitude<DIM>(*wf, *lattice, rng);
             if (!success)

@@ -106,6 +106,22 @@ public:
             BOOST_ASSERT(species < get_N_species());
             return bool(positions[species][position] != 0);
         }
+    
+    /**
+     * Returns the index of a given particle of type species located at position;
+     * if no such particle is present, returns -1
+     */
+    int particle_index_at_pos (unsigned int position, unsigned int species) const
+        {
+            BOOST_ASSERT(position < get_N_sites());
+            BOOST_ASSERT(species < get_N_species());
+            unsigned int ind = 0;
+            while (ind < get_N_filled(species)) {
+                if (r[species][ind] == position) return ind;
+                ++ind;
+            }
+            return -1;
+        }
 
     /**
      * Returns the number of sites on the lattice

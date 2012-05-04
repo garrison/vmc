@@ -28,6 +28,7 @@
 #include "FreeFermionWavefunctionAmplitude.hpp"
 #include "DBLWavefunctionAmplitude.hpp"
 #include "DMetalWavefunctionAmplitude.hpp"
+#include "RVBWavefunctionAmplitude.hpp"
 #include "MetropolisSimulation.hpp"
 #include "StandardWalk.hpp"
 #include "DensityDensityMeasurement.hpp"

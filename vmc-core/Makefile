@@ -19,6 +19,7 @@ DOXYGEN = doxygen
 HEADER_FILES = \
                allowed-momentum.hpp \
                BaseSwapPossibleWalk.hpp \
+               RVBWavefunctionAmplitude.hpp \
                BoundaryCondition.hpp \
                CeperleyMatrix.hpp \
                DBLWavefunctionAmplitude.hpp \
@@ -58,6 +59,7 @@ HEADER_FILES = \
 
 SOURCES = \
           BaseSwapPossibleWalk.cpp \
+          RVBWavefunctionAmplitude.cpp \
           CeperleyMatrix.cpp \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \

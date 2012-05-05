@@ -48,7 +48,8 @@ int main ()
     vv[0] = some_random_filling<DIMENSION>(M, *lattice, rng);
     vv[1] = some_random_filling<DIMENSION>(M, *lattice, rng);
     PositionArguments r(vv, lattice->total_sites());
-        
+    
+    // RVB wave function with the "pair wave function" in the determinant a Gaussian
     std::vector<complex_t> phi;
     for (unsigned int i = 0; i < lattice->total_sites(); ++i) phi.push_back(exp(-1.0*i*i));
     boost::shared_ptr<WavefunctionAmplitude> wf(new RVBWavefunctionAmplitude(r, lattice, phi));
@@ -72,12 +73,6 @@ int main ()
         std::cerr << "density-density " << (100.0 * sim.steps_accepted() / sim.steps_completed()) << "%\t";
         for (unsigned int i = 0; i < lattice->total_sites(); ++i)
             std::cerr << "  " << density_measurement->get(i);
-        std::cerr << std::endl;
-        
-//        mod_sim.iterate(5000);
-//        std::cerr << "swap,mod " << (100.0 * mod_sim.steps_accepted() / mod_sim.steps_completed()) << "%\t" << double(dynamic_cast<RenyiModMeasurement *>(&**mod_measurements.begin())->get()) << std::endl;
-        
-//        sign_sim.iterate(5000);
-//        std::cerr << "swap,sign " << (100.0 * sign_sim.steps_accepted() / sign_sim.steps_completed()) << "%\t" << sign_measurement->get() << std::endl;
+        std::cerr << std::endl;        
     }
 }

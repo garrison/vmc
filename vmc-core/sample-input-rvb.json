@@ -1,0 +1,28 @@
+{
+    "rng": {
+	"seed": 23
+    },
+    "system": {
+	"lattice": {
+	    "size": [2, 2]
+	},
+	"wavefunction": {
+	    "type": "rvb",
+            "phi": [
+                [1.0, 0.0],
+                [0.8, 0.0],
+                [1.0, 0.7],
+                [1.0, 0.3]
+            ]
+	}
+    },
+    "simulation": {
+	"walk-type": "standard",
+	"equilibrium-steps": 5000,
+	"measurement-steps": 50000,
+	"measurements": [
+	    { "type": "density-density", "species": 0 },
+	    { "type": "green", "species": 0 }
+	]
+    }
+}

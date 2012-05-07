@@ -673,6 +673,38 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
                                                  json_get_double(json_wavefunction, "exponent-d2", 1.0),
                                                  json_get_double(json_wavefunction, "exponent-f_up", 1.0),
                                                  json_get_double(json_wavefunction, "exponent-f_down", 1.0)));
+    } else if (std::strcmp(json_wavefunction_type_cstr, "rvb") == 0) {
+        // rvb wavefunction
+        if (DIM != 2)
+            throw ParseError("RVB wavefunction must be on a 2d lattice (for now)");
+        const char * const json_rvb_wavefunction_required[] = { "type", "phi", NULL };
+        ensure_required(json_wavefunction, json_rvb_wavefunction_required);
+        ensure_only(json_wavefunction, json_rvb_wavefunction_required);
+        const Json::Value &json_phi = json_wavefunction["phi"];
+        const unsigned int N_sites = lattice->total_sites();
+        if (N_sites % 2 == 1)
+            throw ParseError("RVB wavefunction must be on a lattice with an even number of sites");
+        ensure_array(json_phi, N_sites);
+        std::vector<complex_t> phi(N_sites);
+        for (unsigned int i = 0; i < N_sites; ++i)
+            phi[i] = parse_complex(json_phi[i]);
+
+        // find some initial positions with no double occupancy
+        std::vector<std::vector<unsigned int> > filling;
+        filling.push_back(some_random_filling<DIM>(N_sites / 2, *lattice, rng));
+        filling.push_back(std::vector<unsigned int>());
+        std::vector<unsigned int> occupied_sites(N_sites);
+        for (unsigned int i = 0; i < filling[0].size(); ++i) {
+            BOOST_ASSERT(filling[0][i] < N_sites);
+            BOOST_ASSERT(occupied_sites[filling[0][i]] == 0);
+            ++occupied_sites[filling[0][i]];
+        }
+        for (unsigned int i = 0; i < N_sites; ++i) {
+            if (occupied_sites[i] == 0)
+                filling[1].push_back(i);
+        }
+        BOOST_ASSERT(filling[0].size() == filling[1].size());
+        wf.reset(new RVBWavefunctionAmplitude(PositionArguments(filling, lattice->total_sites()), lattice, phi));
     } else {
         throw ParseError("invalid wavefunction type");
     }

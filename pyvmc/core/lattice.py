@@ -47,6 +47,10 @@ class Lattice(collections.Sequence, collections.Hashable):
             'size': self.dimensions,
         }
 
+    def abstract_lattice(self):
+        """This will always return a Lattice object, never a LatticeRealization"""
+        return self
+
     def __eq__(self, other):
         return (self.__class__ == other.__class__ and
                 self.dimensions == other.dimensions and
@@ -122,3 +126,72 @@ class Lattice(collections.Sequence, collections.Hashable):
             repr(self.dimensions),
             repr(self.basis_indices)
         )
+
+class LatticeRealization(Lattice):
+    __metaclass__ = abc.ABCMeta
+
+    __slots__ = ('dimensions', 'basis_indices')
+
+    def abstract_lattice(self):
+        return Lattice(self.dimensions, self.basis_indices)
+
+    @abc.abstractmethod
+    def nearest_neighbors(self, point, double_count=True):
+        """Returns a point's nearest neighbors.
+
+        If double_count evaluates to True (the default), all nearest neighbors
+        are returned.  If double_count is False, this method will
+        systematically return only half of the nearest neighbors for the point,
+        such that summing over all points' neighest neighbors will sum over
+        each bond precisely once.
+
+        This method will, in some instances, return sites that aren't even on
+        the lattice.  It is up to the user of this method to choose whether to
+        call enforce_boundary() (e.g. in the case of periodic or twisted
+        boundary conditions) or to throw such sites away (e.g. in the case of
+        open boundary conditions).
+        """
+        assert point in self
+        raise NotImplementedError
+
+class HypercubicLattice(LatticeRealization):
+    __slots__ = ('dimensions', 'basis_indices')
+
+    def __init__(self, dimensions):
+        super(HypercubicLattice, self).__init__(dimensions, 1)
+
+    def nearest_neighbors(self, point, double_count=True):
+        assert point in self
+        bs = point.bs
+        rv = []
+        for d in xrange(len(self.dimensions)):
+            p = list(bs)
+            p[d] += 1
+            rv.append(LatticeSite(p, 0))
+            if double_count:
+                p[d] -= 2
+                rv.append(LatticeSite(p, 0))
+        return rv
+
+class HexagonalLattice(LatticeRealization):
+    __slots__ = ('dimensions', 'basis_indices')
+
+    def __init__(self, dimensions):
+        assert len(dimensions) == 2
+        super(HexagonalLattice, self).__init__(dimensions, 1)
+
+    def nearest_neighbors(self, point, double_count=True):
+        assert point in self
+        bs = point.bs
+        rv = (
+            LatticeSite((bs[0], bs[1] + 1), 0),
+            LatticeSite((bs[0] + 1, bs[1] + 1), 0),
+            LatticeSite((bs[0] + 1, bs[1]), 0),
+        )
+        if double_count:
+            rv += (
+                LatticeSite((bs[0], bs[1] - 1), 0),
+                LatticeSite((bs[0] - 1, bs[1] - 1), 0),
+                LatticeSite((bs[0] - 1, bs[1]), 0),
+            )
+        return rv

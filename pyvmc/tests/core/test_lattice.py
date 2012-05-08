@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from pyvmc.core import LatticeSite, Lattice
+from pyvmc.core import LatticeSite, Lattice, HypercubicLattice, HexagonalLattice
 
 def test_lattice_site():
     assert LatticeSite((1, 4)) == LatticeSite((1, 4), 0)
@@ -68,3 +68,29 @@ def test_vmc_core_lattice_correspondence():
     lattice = Lattice([32, 4], 2)
     assert lattice[3] == LatticeSite([3, 0], 0)
     assert lattice[32] == LatticeSite([0, 1], 0)
+
+def test_hypercubic_lattice():
+    lattice = HypercubicLattice([8, 8])
+    point = LatticeSite([0, 0])
+    expected = set([
+        LatticeSite([0, 1]),
+        LatticeSite([1, 0]),
+        LatticeSite([0, -1]),
+        LatticeSite([-1, 0]),
+    ])
+    assert set(lattice.nearest_neighbors(point)) == expected
+    assert len(lattice.nearest_neighbors(point)) == 2 * len(lattice.nearest_neighbors(point, False))
+
+def test_hexagonal_lattice():
+    lattice = HexagonalLattice([8, 8])
+    point = LatticeSite([4, 0])
+    expected = set([
+        LatticeSite([4, 1]),
+        LatticeSite([5, 0]),
+        LatticeSite([5, 1]),
+        LatticeSite([4, -1]),
+        LatticeSite([3, 0]),
+        LatticeSite([3, -1]),
+    ])
+    assert set(lattice.nearest_neighbors(point)) == expected
+    assert len(lattice.nearest_neighbors(point)) == 2 * len(lattice.nearest_neighbors(point, False))

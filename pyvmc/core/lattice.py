@@ -154,6 +154,12 @@ class LatticeRealization(Lattice):
         assert point in self
         raise NotImplementedError
 
+    def __repr__(self):
+        return "%s(%s)" % (
+            self.__class__.__name__,
+            repr(self.dimensions)
+        )
+
 class HypercubicLattice(LatticeRealization):
     __slots__ = ('dimensions', 'basis_indices')
 

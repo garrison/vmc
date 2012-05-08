@@ -71,6 +71,7 @@ def test_vmc_core_lattice_correspondence():
 
 def test_hypercubic_lattice():
     lattice = HypercubicLattice([8, 8])
+    assert eval(repr(lattice)) == lattice
     point = LatticeSite([0, 0])
     expected = set([
         LatticeSite([0, 1]),
@@ -83,6 +84,7 @@ def test_hypercubic_lattice():
 
 def test_hexagonal_lattice():
     lattice = HexagonalLattice([8, 8])
+    assert eval(repr(lattice)) == lattice
     point = LatticeSite([4, 0])
     expected = set([
         LatticeSite([4, 1]),

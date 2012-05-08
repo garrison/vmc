@@ -115,11 +115,16 @@ public:
         {
             BOOST_ASSERT(position < get_N_sites());
             BOOST_ASSERT(species < get_N_species());
-            unsigned int ind = 0;
-            while (ind < get_N_filled(species)) {
-                if (r[species][ind] == position) return ind;
-                ++ind;
+
+            if (positions[species][position] == 0)
+                return -1;
+            for (unsigned int i = 0; i < get_N_filled(species); ++i) {
+                if (r[species][i] == position)
+                    return i;
             }
+
+            // should not be reached
+            BOOST_ASSERT(false);
             return -1;
         }
 

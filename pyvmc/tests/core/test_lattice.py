@@ -1,7 +1,9 @@
 import json
+from fractions import Fraction
 
 import pytest
 
+from pyvmc.core.boundary_conditions import periodic, antiperiodic
 from pyvmc.core import LatticeSite, Lattice, HypercubicLattice, HexagonalLattice
 
 def test_lattice_site():
@@ -68,6 +70,31 @@ def test_vmc_core_lattice_correspondence():
     lattice = Lattice([32, 4], 2)
     assert lattice[3] == LatticeSite([3, 0], 0)
     assert lattice[32] == LatticeSite([0, 1], 0)
+
+def test_enforce_boundary_without_boundary_conditions():
+    lattice = Lattice([24, 4])
+
+    # BravaisSite
+    assert lattice.enforce_boundary((24, 3)) == (0, 3)
+    assert lattice.enforce_boundary((-1, 4)) == (23, 0)
+
+    # LatticeSite
+    assert lattice.enforce_boundary(LatticeSite((-1, 0))) == LatticeSite((23, 0))
+    with pytest.raises(AssertionError):
+        lattice.enforce_boundary(LatticeSite((-1, 0), 1))
+
+def test_enforce_boundary_with_boundary_conditions():
+    lattice = Lattice([8, 8], 2)
+
+    # BravaisSite
+    assert lattice.enforce_boundary((4, 4), (periodic, periodic)) == ((4, 4), 0)
+    assert lattice.enforce_boundary((4, 4), (antiperiodic, antiperiodic)) == ((4, 4), 0)
+    assert lattice.enforce_boundary((13, 4), (periodic, periodic)) == ((5, 4), 0)
+    assert lattice.enforce_boundary((13, 4), (antiperiodic, periodic)) == ((5, 4), Fraction(1, 2))
+    assert lattice.enforce_boundary((-3, 4), (antiperiodic, periodic)) == ((5, 4), Fraction(1, 2))
+
+    # LatticeSite
+    assert lattice.enforce_boundary(LatticeSite((-3, 4), 1), (antiperiodic, periodic)) == (LatticeSite([5, 4], 1), Fraction(1, 2))
 
 def test_hypercubic_lattice():
     lattice = HypercubicLattice([8, 8])

@@ -4,7 +4,7 @@ import collections
 import logging
 
 from pyvmc.core.lattice import Lattice
-from pyvmc.core.boundary_conditions import valid_boundary_conditions, enforce_boundary, periodic, antiperiodic
+from pyvmc.core.boundary_conditions import valid_boundary_conditions, periodic, antiperiodic
 
 logger = logging.getLogger(__name__)
 

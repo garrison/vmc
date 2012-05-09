@@ -15,7 +15,7 @@ class OrbitalsDescription(object):
     def get_orbitals(self, lattice):
         raise NotImplementedError
 
-class Orbitals(object):
+class Orbitals(collections.Hashable):
     __metaclass__ = abc.ABCMeta
 
     __slots__ = ("lattice",)
@@ -37,6 +37,12 @@ class Orbitals(object):
             return orbitals_or_description.get_orbitals(lattice)
         else:
             raise TypeError
+
+    def __setattr__(self, name, value):
+        raise TypeError
+
+    def __delattr__(self, name):
+        raise TypeError
 
 class MomentaOrbitals(Orbitals):
     """takes momentum (k) vectors to make its orbitals."""
@@ -73,12 +79,6 @@ class MomentaOrbitals(Orbitals):
 
     def __ne__(self, other):
         return (self is not other) and not self.__eq__(other)
-
-    def __setattr__(self, name, value):
-        raise TypeError
-
-    def __delattr__(self, name):
-        raise TypeError
 
     def __hash__(self):
         return hash(self.lattice) | hash(self.momentum_sites) | hash(self.boundary_conditions)

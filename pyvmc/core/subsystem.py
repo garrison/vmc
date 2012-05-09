@@ -8,7 +8,7 @@ import collections
 from pyvmc.utils import product
 from pyvmc.core.lattice import LatticeSite, Lattice
 
-class Subsystem(collections.Sequence):
+class Subsystem(collections.Sequence, collections.Hashable):
     """Abstract base class representing a spatial subset of a lattice"""
 
     __metaclass__ = abc.ABCMeta
@@ -28,6 +28,12 @@ class Subsystem(collections.Sequence):
             if site in self:
                 count += 1
         return count
+
+    def __setattr__(self, name, value):
+        raise TypeError
+
+    def __delattr__(self, name):
+        raise TypeError
 
 class SimpleSubsystem(Subsystem):
     """Subsystem consisting of a hyper-rectangle bordering the origin"""
@@ -104,12 +110,6 @@ class SimpleSubsystem(Subsystem):
             "type": "simple",
             "dimensions": self.dimensions,
         }
-
-    def __setattr__(self, name, value):
-        raise TypeError
-
-    def __delattr__(self, name):
-        raise TypeError
 
     def __hash__(self):
         return hash(self.dimensions) | hash(self.lattice)

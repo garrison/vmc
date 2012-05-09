@@ -178,6 +178,12 @@ static unsigned int parse_json_steps_per_measurement (const Json::Value &json_me
     }
 }
 
+static void ensure_single_step_per_measurement (const Json::Value &json_measurement_def)
+{
+    if (parse_json_steps_per_measurement(json_measurement_def) != 1)
+        throw ParseError("given measurement requires a measurement on each step");
+}
+
 template <unsigned int DIM>
 boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_definitions (const Json::Value &json_orbitals, const boost::shared_ptr<const NDLattice<DIM> > &lattice)
 {
@@ -350,8 +356,9 @@ boost::shared_ptr<Measurement<RenyiModPossibleWalk> > parse_renyi_mod_possible_w
 {
     ensure_object_with_type_field_as_string(json_measurement_def);
     if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-mod/possible") == 0) {
-        const char * const json_renyi_mod_possible_allowed[] = { "type", NULL };
+        const char * const json_renyi_mod_possible_allowed[] = { "type", "steps-per-measurement", NULL };
         ensure_only(json_measurement_def, json_renyi_mod_possible_allowed);
+        ensure_single_step_per_measurement(json_measurement_def);
         return boost::make_shared<RenyiModPossibleMeasurement>();
     } else {
         throw ParseError("invalid renyi-mod/possible walk measurement type");
@@ -363,8 +370,9 @@ boost::shared_ptr<Measurement<RenyiSignWalk> > parse_renyi_sign_walk_measurement
 {
     ensure_object_with_type_field_as_string(json_measurement_def);
     if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-sign") == 0) {
-        const char * const json_renyi_sign_allowed[] = { "type", NULL };
+        const char * const json_renyi_sign_allowed[] = { "type", "steps-per-measurement", NULL };
         ensure_only(json_measurement_def, json_renyi_sign_allowed);
+        ensure_single_step_per_measurement(json_measurement_def);
         return boost::make_shared<RenyiSignMeasurement>();
     } else {
         throw ParseError("invalid renyi-sign walk measurement type");

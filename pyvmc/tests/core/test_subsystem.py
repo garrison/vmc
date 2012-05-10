@@ -1,7 +1,6 @@
-import json
-
 import pytest
 
+from pyvmc.utils import complex_json as json
 from pyvmc.core import Lattice, SimpleSubsystem
 
 def test_simple_subsystem():

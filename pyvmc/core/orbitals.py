@@ -3,10 +3,19 @@ import numbers
 import collections
 import logging
 
+import numpy
+
 from pyvmc.core.lattice import Lattice
 from pyvmc.core.boundary_conditions import valid_boundary_conditions, periodic, antiperiodic
 
 logger = logging.getLogger(__name__)
+
+def allowed_momentum(momentum_site, lattice, boundary_conditions):
+    from fractions import Fraction
+    return tuple((ms + (bc % 1)) * Fraction(1, ll)
+                 for ms, bc, ll in zip(momentum_site,
+                                       boundary_conditions,
+                                       lattice.dimensions))
 
 class OrbitalsDescription(object):
     __metaclass__ = abc.ABCMeta
@@ -66,9 +75,13 @@ class MomentaOrbitals(Orbitals):
         object.__setattr__(self, "boundary_conditions", tuple(boundary_conditions))
 
     def to_json(self):
+        orbital_defs = []
+        for momentum_site in self.momentum_sites:
+            k_site = allowed_momentum(momentum_site, self.lattice, self.boundary_conditions)
+            orbital_defs.append([numpy.exp(2j * numpy.pi * numpy.dot(k_site, r.bs))
+                                 for r in self.lattice])
         return {
-            'filling': self.momentum_sites,
-            'boundary-conditions': self.boundary_conditions,
+            'definitions': orbital_defs,
         }
 
     def __eq__(self, other):

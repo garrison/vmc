@@ -1,7 +1,6 @@
-import json
-
 import pytest
 
+from pyvmc.utils import complex_json as json
 from pyvmc.core.lattice import Lattice
 from pyvmc.core.orbitals import Orbitals, MomentaOrbitals, Bands
 from pyvmc.core.boundary_conditions import periodic, antiperiodic
@@ -19,12 +18,6 @@ def test_momenta_orbitals():
         MomentaOrbitals(lattice, [(0, 0, 0)], [periodic, periodic, periodic])
     with pytest.raises(AssertionError):
         MomentaOrbitals(lattice, [[0, 0]], [periodic, periodic])
-
-def test_momenta_orbitals_to_json():
-    lattice = Lattice([12, 2])
-    momentum_sites = [(0, 0), (1, 0), (11, 0), (0, 1)]
-    orbitals = MomentaOrbitals(lattice, momentum_sites, [periodic, periodic])
-    assert json.dumps(orbitals.to_json()) == json.dumps({ 'filling': momentum_sites, 'boundary-conditions': [periodic, periodic] })
 
 def test_single_band_orbitals():
     lattice = Lattice([8])

@@ -110,6 +110,8 @@ class Bands(OrbitalsDescription):
     Takes a number of particles for each band
     """
 
+    target_class = MomentaOrbitals
+
     __slots__ = ("particles_by_band", "boundary_conditions")
 
     def __init__(self, particles_by_band, boundary_conditions):
@@ -146,7 +148,7 @@ class Bands(OrbitalsDescription):
             for i, b in enumerate(self.particles_by_band):
                 orbitals.extend(self._single_band_orbitals((i,), b, lattice))
 
-        return MomentaOrbitals(lattice, orbitals, self.boundary_conditions)
+        return self.target_class(lattice, orbitals, self.boundary_conditions)
 
     def __repr__(self):
         return "%s(%s, %s)" % (

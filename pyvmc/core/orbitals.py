@@ -10,6 +10,8 @@ from pyvmc.core.boundary_conditions import valid_boundary_conditions, periodic, 
 
 logger = logging.getLogger(__name__)
 
+two_pi_i = 2j * numpy.pi
+
 def allowed_momentum(momentum_site, lattice, boundary_conditions):
     from fractions import Fraction
     from pyvmc.core.lattice import LatticeSite
@@ -58,7 +60,7 @@ class Orbitals(collections.Hashable):
 class MomentaOrbitals(Orbitals):
     """takes momentum (k) vectors to make its orbitals."""
 
-    __slots__ = ("lattice", "momentum_sites", "boundary_conditions")
+    __slots__ = ("lattice", "momentum_sites", "boundary_conditions", "_orbitals_matrix")
 
     def __init__(self, lattice, momentum_sites, boundary_conditions):
         super(MomentaOrbitals, self).__init__(lattice)
@@ -75,13 +77,21 @@ class MomentaOrbitals(Orbitals):
         object.__setattr__(self, "momentum_sites", tuple(momentum_sites))
         assert valid_boundary_conditions(boundary_conditions, n_dimensions)
         object.__setattr__(self, "boundary_conditions", tuple(boundary_conditions))
+        object.__setattr__(self, "_orbitals_matrix", None)
+
+    def _get_orbitals_matrix(self):
+        if self._orbitals_matrix is None:
+            orbital_defs = []
+            for momentum_site in self.momentum_sites:
+                k_site = allowed_momentum(momentum_site, self.lattice, self.boundary_conditions)
+                # fixme: change the magnitude of these so that the determinant is not giant
+                orbital_defs.append([numpy.exp(two_pi_i * numpy.dot(k_site, r.bs))
+                                     for r in self.lattice])
+            object.__setattr__(self, "_orbitals_matrix", numpy.array(orbital_defs, dtype=complex))
+        return self._orbitals_matrix
 
     def to_json(self):
-        orbital_defs = []
-        for momentum_site in self.momentum_sites:
-            k_site = allowed_momentum(momentum_site, self.lattice, self.boundary_conditions)
-            orbital_defs.append([numpy.exp(2j * numpy.pi * numpy.dot(k_site, r.bs))
-                                 for r in self.lattice])
+        orbital_defs = [list(a) for a in self._get_orbitals_matrix()]
         return {
             'definitions': orbital_defs,
         }

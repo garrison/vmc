@@ -93,11 +93,11 @@ class SimpleSubsystem(Subsystem):
             raise ValueError
         dimensions = self.dimensions
         index = 0
-        offset = 1
+        index_offset = 1
         for i, x in enumerate(site.bs):
-            index += x * offset
-            offset *= dimensions[i]
-        index += site.bi * offset
+            index += x * index_offset
+            index_offset *= dimensions[i]
+        index += site.bi * index_offset
         assert index < len(self)
         return index
 

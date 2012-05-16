@@ -37,8 +37,14 @@ class Orbitals(collections.Hashable):
         assert isinstance(lattice, Lattice)
         object.__setattr__(self, "lattice", lattice)
 
-    @abc.abstractmethod
     def to_json(self):
+        orbital_defs = [list(a) for a in self.get_orbitals_matrix()]
+        return {
+            'definitions': orbital_defs,
+        }
+
+    @abc.abstractmethod
+    def get_orbitals_matrix(self):
         return None
 
     @staticmethod
@@ -79,7 +85,7 @@ class MomentaOrbitals(Orbitals):
         object.__setattr__(self, "boundary_conditions", tuple(boundary_conditions))
         object.__setattr__(self, "_orbitals_matrix", None)
 
-    def _get_orbitals_matrix(self):
+    def get_orbitals_matrix(self):
         if self._orbitals_matrix is None:
             orbital_defs = []
             for momentum_site in self.momentum_sites:
@@ -89,12 +95,6 @@ class MomentaOrbitals(Orbitals):
                                      for r in self.lattice])
             object.__setattr__(self, "_orbitals_matrix", numpy.array(orbital_defs, dtype=complex))
         return self._orbitals_matrix
-
-    def to_json(self):
-        orbital_defs = [list(a) for a in self._get_orbitals_matrix()]
-        return {
-            'definitions': orbital_defs,
-        }
 
     def __eq__(self, other):
         return (self.__class__ == other.__class__ and

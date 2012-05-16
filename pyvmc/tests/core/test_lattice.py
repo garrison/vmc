@@ -123,3 +123,42 @@ def test_hexagonal_lattice():
     ])
     assert set(lattice.nearest_neighbors(point)) == expected
     assert len(lattice.nearest_neighbors(point)) == 2 * len(lattice.nearest_neighbors(point, False))
+
+class TestHexagonalSpace:
+    def test_primitive_vectors(self):
+        lattice = HexagonalLattice([8, 8])
+        from numpy import pi, dot, abs
+        for i, pv in enumerate(lattice.primitive_vectors):
+            for j, rpv in enumerate(lattice.reciprocal_primitive_vectors):
+                target = (2 * pi) if (i == j) else 0.0
+                assert abs(dot(pv, rpv) - target) < .00000001
+
+    def test_nearest_neighbors_distance(self):
+        lattice = HexagonalLattice([8, 8])
+        nn = lattice.nearest_neighbors(LatticeSite([0, 0]))
+        nn = [lattice.real_space_point(point) for point in nn]
+        norms = [sum(a * a for a in point) for point in nn]
+        assert min(norms) + .0000001 > max(norms)
+
+    def test_next_nearest_neighbors_distance(self):
+        lattice = HexagonalLattice([8, 8])
+        nn = lattice.next_nearest_neighbors(LatticeSite([0, 0]))
+        nn = [lattice.real_space_point(point) for point in nn]
+        norms = [sum(a * a for a in point) for point in nn]
+        assert min(norms) + .0000001 > max(norms)
+
+class TestHypercubicSpace:
+    def test_primitive_vectors(self):
+        lattice = HypercubicLattice([8, 8, 16])
+        from numpy import pi, dot, abs
+        for i, pv in enumerate(lattice.primitive_vectors):
+            for j, rpv in enumerate(lattice.reciprocal_primitive_vectors):
+                target = (2 * pi) if (i == j) else 0.0
+                assert abs(dot(pv, rpv) - target) < .00000001
+
+    def test_nearest_neighbors_distance(self):
+        lattice = HypercubicLattice([8, 16, 24])
+        nn = lattice.nearest_neighbors(LatticeSite([0, 0, 0]))
+        nn = [lattice.real_space_point(point) for point in nn]
+        norms = [sum(a * a for a in point) for point in nn]
+        assert min(norms) + .0000001 > max(norms)

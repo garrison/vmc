@@ -5,8 +5,11 @@ import abc
 import numbers
 import collections
 
+import numpy
+
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.utils import product
+from pyvmc.constants import two_pi, sqrt_three_over_two, pi
 
 class BravaisSite(tuple):
     pass
@@ -159,6 +162,31 @@ class LatticeRealization(Lattice):
     def abstract_lattice(self):
         return Lattice(self.dimensions, self.basis_indices)
 
+    @abc.abstractproperty
+    def primitive_vectors(self):
+        return None
+
+    @abc.abstractproperty
+    def reciprocal_primitive_vectors(self):
+        return None
+
+    @property
+    def basis_offsets(self):
+        assert self.basis_indices == 1
+        return (
+            tuple(0.0 for i in xrange(len(self.dimensions))),
+        )
+
+    def real_space_point(self, point):
+        # NOTE: this method doesn't even require that the resulting point is on
+        # the lattice
+        assert isinstance(point, LatticeSite)
+        basis_offsets = self.basis_offsets
+        assert len(basis_offsets) == self.basis_indices
+        assert point.bi < self.basis_indices
+        return tuple(sum(z) for z in zip(basis_offsets[point.bi],
+                                         *(numpy.multiply(p, pv) for p, pv in zip(point.bs, self.primitive_vectors))))
+
     @abc.abstractmethod
     def nearest_neighbors(self, point, double_count=True):
         """Returns a point's nearest neighbors.
@@ -187,8 +215,31 @@ class LatticeRealization(Lattice):
 class HypercubicLattice(LatticeRealization):
     __slots__ = ('dimensions', 'basis_indices')
 
+    a = 1.0   # lattice spacing
+
     def __init__(self, dimensions):
         super(HypercubicLattice, self).__init__(dimensions, 1)
+
+    @property
+    def primitive_vectors(self):
+        rv = []
+        num_dimensions = len(self.dimensions)
+        for d in xrange(num_dimensions):
+            v = [0.0] * num_dimensions
+            v[d] = self.a
+            rv.append(tuple(v))
+        return rv
+
+    @property
+    def reciprocal_primitive_vectors(self):
+        rv = []
+        b = two_pi / self.a
+        num_dimensions = len(self.dimensions)
+        for d in xrange(num_dimensions):
+            v = [0.0] * num_dimensions
+            v[d] = b
+            rv.append(tuple(v))
+        return rv
 
     def nearest_neighbors(self, point, double_count=True):
         assert point in self
@@ -206,9 +257,27 @@ class HypercubicLattice(LatticeRealization):
 class HexagonalLattice(LatticeRealization):
     __slots__ = ('dimensions', 'basis_indices')
 
+    a = 1.0   # lattice spacing
+
     def __init__(self, dimensions):
         assert len(dimensions) == 2
         super(HexagonalLattice, self).__init__(dimensions, 1)
+
+    @property
+    def primitive_vectors(self):
+        a = self.a
+        return (
+            (a, 0.0),
+            (-.5 * a, sqrt_three_over_two * a),
+        )
+
+    @property
+    def reciprocal_primitive_vectors(self):
+        a = self.a
+        return (
+            (two_pi / self.a, pi / sqrt_three_over_two / self.a),
+            (0.0, two_pi / sqrt_three_over_two / self.a),
+        )
 
     def nearest_neighbors(self, point, double_count=True):
         assert point in self
@@ -223,5 +292,21 @@ class HexagonalLattice(LatticeRealization):
                 LatticeSite((bs[0], bs[1] - 1), 0),
                 LatticeSite((bs[0] - 1, bs[1] - 1), 0),
                 LatticeSite((bs[0] - 1, bs[1]), 0),
+            )
+        return rv
+
+    def next_nearest_neighbors(self, point, double_count=True):
+        assert point in self
+        bs = point.bs
+        rv = (
+            LatticeSite((bs[0] + 2, bs[1] + 1), 0),
+            LatticeSite((bs[0] + 1, bs[1] + 2), 0),
+            LatticeSite((bs[0] - 1, bs[1] + 1), 0),
+        )
+        if double_count:
+            rv += (
+                LatticeSite((bs[0] - 2, bs[1] - 1), 0),
+                LatticeSite((bs[0] - 1, bs[1] - 2), 0),
+                LatticeSite((bs[0] + 1, bs[1] - 1), 0),
             )
         return rv

@@ -23,6 +23,7 @@ class VmcProcessProtocol(protocol.ProcessProtocol):
         logger.debug('OUTPUT: %s', output)
         logger.debug('ERROR: %s', err)
         if reason.value.exitCode != 0:
+            logger.error("nonzero exit value: %s\n%s", output, err)
             raise Exception("process failed with exit code: %s" % reason.value.exitCode)
         self.d.callback((output, err))
 

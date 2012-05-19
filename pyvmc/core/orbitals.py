@@ -81,11 +81,12 @@ class MomentaOrbitals(Orbitals):
 
     def get_orbitals_matrix(self):
         if self._orbitals_matrix is None:
+            # fixme: this is a rather crude way of determining normalization
+            normalization = len(self.momentum_sites) ** -.4
             orbital_defs = []
             for momentum_site in self.momentum_sites:
                 k_site = allowed_momentum(momentum_site, self.lattice, self.boundary_conditions)
-                # fixme: change the magnitude of these so that the determinant is not giant
-                orbital_defs.append([numpy.exp(two_pi_i * numpy.dot(k_site, r.bs))
+                orbital_defs.append([numpy.exp(two_pi_i * numpy.dot(k_site, r.bs)) * normalization
                                      for r in self.lattice])
             object.__setattr__(self, "_orbitals_matrix", numpy.array(orbital_defs, dtype=complex))
         return self._orbitals_matrix

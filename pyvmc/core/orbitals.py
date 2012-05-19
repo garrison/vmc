@@ -7,6 +7,7 @@ import numpy
 
 from pyvmc.core.lattice import Lattice
 from pyvmc.core.boundary_conditions import valid_boundary_conditions, periodic, antiperiodic
+from pyvmc.utils.immutable import Immutable
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +29,12 @@ class OrbitalsDescription(object):
     def get_orbitals(self, lattice):
         raise NotImplementedError
 
-class Orbitals(collections.Hashable):
-    __metaclass__ = abc.ABCMeta
-
+class Orbitals(Immutable):
     __slots__ = ("lattice",)
 
-    def __init__(self, lattice):
+    def init_validate(self, lattice):
         assert isinstance(lattice, Lattice)
-        object.__setattr__(self, "lattice", lattice)
+        return (lattice,)
 
     def to_json(self):
         orbital_defs = [list(a) for a in self.get_orbitals_matrix()]
@@ -57,19 +56,14 @@ class Orbitals(collections.Hashable):
         else:
             raise TypeError
 
-    def __setattr__(self, name, value):
-        raise TypeError
-
-    def __delattr__(self, name):
-        raise TypeError
-
 class MomentaOrbitals(Orbitals):
     """takes momentum (k) vectors to make its orbitals."""
 
     __slots__ = ("lattice", "momentum_sites", "boundary_conditions", "_orbitals_matrix")
+    _immutable_slots = ("lattice", "momentum_sites", "boundary_conditions")
 
-    def __init__(self, lattice, momentum_sites, boundary_conditions):
-        super(MomentaOrbitals, self).__init__(lattice)
+    def init_validate(self, lattice, momentum_sites, boundary_conditions):
+        (lattice,) = super(MomentaOrbitals, self).init_validate(lattice)
         assert isinstance(momentum_sites, collections.Sequence)
         lattice_dimensions = lattice.dimensions
         n_dimensions = len(lattice_dimensions)
@@ -79,11 +73,11 @@ class MomentaOrbitals(Orbitals):
                         x >= 0 and x < ld
                         for x, ld in zip(ms, lattice_dimensions))
                     for ms in momentum_sites])
-        assert len(momentum_sites) == len(set(momentum_sites))
-        object.__setattr__(self, "momentum_sites", tuple(momentum_sites))
+        momentum_sites_set = frozenset(momentum_sites)
+        assert len(momentum_sites) == len(momentum_sites_set)
         assert valid_boundary_conditions(boundary_conditions, n_dimensions)
-        object.__setattr__(self, "boundary_conditions", tuple(boundary_conditions))
         object.__setattr__(self, "_orbitals_matrix", None)
+        return lattice, momentum_sites_set, tuple(boundary_conditions)
 
     def get_orbitals_matrix(self):
         if self._orbitals_matrix is None:
@@ -95,26 +89,6 @@ class MomentaOrbitals(Orbitals):
                                      for r in self.lattice])
             object.__setattr__(self, "_orbitals_matrix", numpy.array(orbital_defs, dtype=complex))
         return self._orbitals_matrix
-
-    def __eq__(self, other):
-        return (self.__class__ == other.__class__ and
-                self.lattice == other.lattice and
-                set(self.momentum_sites) == set(other.momentum_sites) and
-                self.boundary_conditions == other.boundary_conditions)
-
-    def __ne__(self, other):
-        return (self is not other) and not self.__eq__(other)
-
-    def __hash__(self):
-        return hash(self.lattice) | hash(self.momentum_sites) | hash(self.boundary_conditions)
-
-    def __repr__(self):
-        return "%s(%s, %s, %s)" % (
-            self.__class__.__name__,
-            repr(self.lattice),
-            repr(self.momentum_sites),
-            repr(self.boundary_conditions)
-        )
 
 class Bands(OrbitalsDescription):
     """Used for a 2d, quasi-1d system

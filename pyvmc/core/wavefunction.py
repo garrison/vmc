@@ -1,38 +1,30 @@
 import abc
-import collections
 
 from pyvmc.core.lattice import Lattice
 from pyvmc.core.orbitals import Orbitals
+from pyvmc.utils.immutable import Immutable
 
-class Wavefunction(collections.Hashable):
+class Wavefunction(Immutable):
     """Base class for all wavefunctions"""
-
-    __metaclass__ = abc.ABCMeta
 
     __slots__ = ('lattice',)
 
-    def __init__(self, lattice):
+    def init_validate(self, lattice):
         assert isinstance(lattice, Lattice)
-        object.__setattr__(self, "lattice", lattice)
+        return (lattice,)
 
     @abc.abstractmethod
     def to_json(self):
         return None
-
-    def __setattr__(self, name, value):
-        raise TypeError
-
-    def __delattr__(self, name):
-        raise TypeError
 
 class FreeFermionWavefunction(Wavefunction):
     """Free fermion wavefunction, consists of a single determinant"""
 
     __slots__ = ('lattice', 'orbitals')
 
-    def __init__(self, lattice, orbitals):
-        super(FreeFermionWavefunction, self).__init__(lattice)
-        object.__setattr__(self, "orbitals", Orbitals.from_description(orbitals, lattice))
+    def init_validate(self, lattice, orbitals):
+        (lattice,) = super(FreeFermionWavefunction, self).init_validate(lattice)
+        return lattice, Orbitals.from_description(orbitals, lattice)
 
     def to_json(self):
         return {
@@ -42,6 +34,3 @@ class FreeFermionWavefunction(Wavefunction):
                 'orbitals': self.orbitals.to_json(),
             }
         }
-
-    def __hash__(self):
-        return hash(self.lattice) | hash(self.orbitals)

@@ -7,16 +7,16 @@ import collections
 
 from pyvmc.utils import product
 from pyvmc.core.lattice import LatticeSite, Lattice
+from pyvmc.utils.immutable import Immutable
 
-class Subsystem(collections.Sequence, collections.Hashable):
+class Subsystem(Immutable, collections.Sequence):
     """Abstract base class representing a spatial subset of a lattice"""
 
-    __metaclass__ = abc.ABCMeta
     __slots__ = ('lattice',)
 
-    def __init__(self, lattice):
+    def init_validate(self, lattice):
         assert isinstance(lattice, Lattice)
-        object.__setattr__(self, 'lattice', lattice)
+        return (lattice,)
 
     @abc.abstractmethod
     def to_json(self):
@@ -29,31 +29,18 @@ class Subsystem(collections.Sequence, collections.Hashable):
                 count += 1
         return count
 
-    def __setattr__(self, name, value):
-        raise TypeError
-
-    def __delattr__(self, name):
-        raise TypeError
-
 class SimpleSubsystem(Subsystem):
     """Subsystem consisting of a hyper-rectangle bordering the origin"""
 
     __slots__ = ('dimensions', 'lattice')
 
-    def __init__(self, dimensions, lattice):
-        super(SimpleSubsystem, self).__init__(lattice)
-        object.__setattr__(self, 'dimensions', tuple(dimensions))
-        assert all(isinstance(d, numbers.Integral) and d > 0 for d in self.dimensions)
+    def init_validate(self, dimensions, lattice):
+        (lattice,) = super(SimpleSubsystem, self).init_validate(lattice)
+        assert isinstance(dimensions, collections.Sequence)
+        assert all(isinstance(d, numbers.Integral) and d > 0 for d in dimensions)
         if any(d1 > d2 for d1, d2 in zip(dimensions, lattice.dimensions)):
             raise Exception("subsystem cannot be larger than the system")
-
-    def __eq__(self, other):
-        return (self.__class__ == other.__class__ and
-                self.dimensions == other.dimensions and
-                self.lattice == other.lattice)
-
-    def __ne__(self, other):
-        return (self is not other) and not self.__eq__(other)
+        return tuple(dimensions), lattice
 
     def __len__(self):
         return product(self.dimensions) * self.lattice.basis_indices
@@ -110,13 +97,3 @@ class SimpleSubsystem(Subsystem):
             "type": "simple",
             "dimensions": self.dimensions,
         }
-
-    def __hash__(self):
-        return hash(self.dimensions) | hash(self.lattice)
-
-    def __repr__(self):
-        return "%s(%s, %s)" % (
-            self.__class__.__name__,
-            repr(self.dimensions),
-            repr(self.lattice)
-        )

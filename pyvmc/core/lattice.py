@@ -9,41 +9,38 @@ import numpy
 
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.utils import product
+from pyvmc.utils.immutable import Immutable
 from pyvmc.constants import two_pi, sqrt_three_over_two, pi
 
 class BravaisSite(tuple):
     pass
 
-_LatticeSite = collections.namedtuple('LatticeSite', ('bs', 'bi'))
-
-class LatticeSite(_LatticeSite):
+class LatticeSite(Immutable):
     """represents a site on a lattice
 
     bs == bravais site
     bi == basis index
     """
 
-    __slots__ = ()
+    __slots__ = ("bs", "bi")
 
-    def __new__(cls, bs, bi=0):
+    def init_validate(self, bs, bi=0):
         assert isinstance(bs, collections.Sequence)
         bs = BravaisSite(bs)
         assert all(isinstance(x, numbers.Integral) for x in bs)
         assert isinstance(bi, numbers.Integral) and bi >= 0
-        return _LatticeSite.__new__(cls, bs, bi)
+        return (bs, bi)
 
-class Lattice(collections.Sequence, collections.Hashable):
+class Lattice(Immutable, collections.Sequence):
     __slots__ = ('dimensions', 'basis_indices')
 
-    def __init__(self, dimensions, basis_indices=1):
+    def init_validate(self, dimensions, basis_indices=1):
         assert isinstance(dimensions, collections.Sequence)
         assert len(dimensions) != 0
         dimensions = tuple(dimensions)
         assert all(isinstance(x, numbers.Integral) and x > 0 for x in dimensions)
-        object.__setattr__(self, "dimensions", dimensions)
-
         assert isinstance(basis_indices, numbers.Integral) and basis_indices > 0
-        object.__setattr__(self, "basis_indices", basis_indices)
+        return (dimensions, basis_indices)
 
     def to_json(self):
         assert self.basis_indices == 1  # for now
@@ -77,14 +74,6 @@ class Lattice(collections.Sequence, collections.Hashable):
             phase_adjustment = sum((x // length) * bc for x, length, bc
                                    in zip(bravais_site, lattice_dimensions, boundary_conditions)) % 1
             return new_site, phase_adjustment
-
-    def __eq__(self, other):
-        return (self.__class__ == other.__class__ and
-                self.dimensions == other.dimensions and
-                self.basis_indices == other.basis_indices)
-
-    def __ne__(self, other):
-        return (self is not other) and not self.__eq__(other)
 
     def __len__(self):
         return product(self.dimensions) * self.basis_indices
@@ -137,22 +126,6 @@ class Lattice(collections.Sequence, collections.Hashable):
         return bool(len(site.bs) == len(self.dimensions) and
                     all(x < y for x, y in zip(site.bs, self.dimensions)) and
                     site.bi < self.basis_indices)
-
-    def __setattr__(self, name, value):
-        raise TypeError
-
-    def __delattr__(self, name):
-        raise TypeError
-
-    def __hash__(self):
-        return hash(self.dimensions) | hash(self.basis_indices)
-
-    def __repr__(self):
-        return "%s(%s, %s)" % (
-            self.__class__.__name__,
-            repr(self.dimensions),
-            repr(self.basis_indices)
-        )
 
 class LatticeRealization(Lattice):
     __metaclass__ = abc.ABCMeta
@@ -217,8 +190,8 @@ class HypercubicLattice(LatticeRealization):
 
     a = 1.0   # lattice spacing
 
-    def __init__(self, dimensions):
-        super(HypercubicLattice, self).__init__(dimensions, 1)
+    def init_validate(self, dimensions):
+        return super(HypercubicLattice, self).init_validate(dimensions, 1)
 
     @property
     def primitive_vectors(self):
@@ -259,9 +232,9 @@ class HexagonalLattice(LatticeRealization):
 
     a = 1.0   # lattice spacing
 
-    def __init__(self, dimensions):
+    def init_validate(self, dimensions):
         assert len(dimensions) == 2
-        super(HexagonalLattice, self).__init__(dimensions, 1)
+        return super(HexagonalLattice, self).init_validate(dimensions, 1)
 
     @property
     def primitive_vectors(self):

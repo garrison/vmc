@@ -31,7 +31,7 @@
 		    [38],
 		    [39]
 		],
-		"boundary-conditions": [1]
+		"boundary-conditions": [2] // antiperiodic
 	    },
 	    "orbitals-d2": {
 		"filling": [
@@ -56,7 +56,7 @@
 		    [38],
 		    [39]
 		],
-		"boundary-conditions": [1]
+		"boundary-conditions": [2] // antiperiodic
 	    }
 	}
     },

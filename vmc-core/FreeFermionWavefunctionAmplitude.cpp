@@ -14,7 +14,7 @@ FreeFermionWavefunctionAmplitude::FreeFermionWavefunctionAmplitude (const Positi
     reinitialize();
 }
 
-void FreeFermionWavefunctionAmplitude::move_particle_ (Particle particle, unsigned int new_site_index)
+void FreeFermionWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int new_site_index)
 {
     BOOST_ASSERT(r.particle_is_valid(particle));
     BOOST_ASSERT(new_site_index < r.get_N_sites());
@@ -30,7 +30,7 @@ amplitude_t FreeFermionWavefunctionAmplitude::psi_ (void) const
     return cmat.get_determinant();
 }
 
-void FreeFermionWavefunctionAmplitude::finish_particle_moved_update_ (void)
+void FreeFermionWavefunctionAmplitude::finish_move_ (void)
 {
     cmat.finish_column_update();
 }

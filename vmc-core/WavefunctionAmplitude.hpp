@@ -27,10 +27,9 @@ public:
      * Moves a particle to a new site
      *
      * After this is called, psi() will return the new amplitude, but further
-     * moves are not allowed until finish_particle_moved_update() has been
-     * called.
+     * moves are not allowed until finish_move() has been called.
      */
-    void move_particle (Particle particle, unsigned int new_site_index)
+    void perform_move (Particle particle, unsigned int new_site_index)
         {
             BOOST_ASSERT(!move_in_progress);
             BOOST_ASSERT(r.particle_is_valid(particle));
@@ -39,7 +38,7 @@ public:
             if (r[particle] == new_site_index)
                 std::cerr << "performing a no-op particle move" << std::endl;
 #endif
-            move_particle_(particle, new_site_index);
+            perform_move_(particle, new_site_index);
 #ifndef BOOST_DISABLE_ASSERTS
             move_in_progress = true;
 #endif
@@ -56,10 +55,10 @@ public:
     /**
      * Completes the current move, such that new moves are allowed
      */
-    void finish_particle_moved_update (void)
+    void finish_move (void)
         {
             BOOST_ASSERT(move_in_progress);
-            finish_particle_moved_update_();
+            finish_move_();
 #ifndef BOOST_DISABLE_ASSERTS
             move_in_progress = false;
 #endif
@@ -108,11 +107,11 @@ public:
     virtual void reset_with_filler (const RandomFiller &filler, rng_class &rng);
 
 private:
-    virtual void move_particle_ (Particle particle, unsigned int new_site_index) = 0;
+    virtual void perform_move_ (Particle particle, unsigned int new_site_index) = 0;
 
     virtual amplitude_t psi_ (void) const = 0;
 
-    virtual void finish_particle_moved_update_ (void) = 0;
+    virtual void finish_move_ (void) = 0;
 
     virtual void reset_ (const PositionArguments &r_) = 0;
 

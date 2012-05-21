@@ -126,8 +126,8 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 
         // update the phibeta's for the particles that left the system
         BOOST_ASSERT(!phibeta1_dirty && !phibeta2_dirty);
-        phibeta1->move_particle(*particle1, r1[*particle1]);
-        phibeta2->move_particle(*particle2, r2[*particle2]);
+        phibeta1->perform_move(*particle1, r1[*particle1]);
+        phibeta2->perform_move(*particle2, r2[*particle2]);
         phibeta1_dirty = true;
         phibeta2_dirty = true;
 
@@ -138,12 +138,12 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         if (pairing_index1 != pairing_index2) { // we must re-pair
             // update the phibeta's for the particles that are about to be paired
             BOOST_ASSERT(phibeta1_dirty && phibeta2_dirty);
-            phibeta1->finish_particle_moved_update();
-            phibeta2->finish_particle_moved_update();
-            phibeta1->move_particle(Particle(c1_s[pairing_index2], species),
-                                    r2[Particle(c2_s[pairing_index1], species)]);
-            phibeta2->move_particle(Particle(c2_s[pairing_index1], species),
-                                    r1[Particle(c1_s[pairing_index2], species)]);
+            phibeta1->finish_move();
+            phibeta2->finish_move();
+            phibeta1->perform_move(Particle(c1_s[pairing_index2], species),
+                                   r2[Particle(c2_s[pairing_index1], species)]);
+            phibeta2->perform_move(Particle(c2_s[pairing_index1], species),
+                                   r1[Particle(c1_s[pairing_index2], species)]);
 
             // update the subsystem indices so they become paired at the min_pairing_index
             if (pairing_index1 < pairing_index2)
@@ -193,7 +193,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             if (!phibeta.unique())
                 phibeta = phibeta->clone();
             BOOST_ASSERT(!phibeta_dirty); // will always be clean here, but not necessarily below
-            phibeta->move_particle(phibeta_particle, r1[*particle1]);
+            phibeta->perform_move(phibeta_particle, r1[*particle1]);
             phibeta_dirty = true;
         }
 
@@ -204,8 +204,8 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             if (!phibeta.unique())
                 phibeta = phibeta->clone();
             if (phibeta_dirty)
-                phibeta->finish_particle_moved_update();
-            phibeta->move_particle(phibeta_particle, r2[*particle2]);
+                phibeta->finish_move();
+            phibeta->perform_move(phibeta_particle, r2[*particle2]);
             phibeta_dirty = true;
         }
     }
@@ -219,12 +219,12 @@ void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const
     BOOST_ASSERT(subsystem_particle_counts_match());
 
     if (phibeta1_dirty) {
-        phibeta1->finish_particle_moved_update();
+        phibeta1->finish_move();
     }
     phibeta1_dirty = false;
 
     if (phibeta2_dirty) {
-        phibeta2->finish_particle_moved_update();
+        phibeta2->finish_move();
     }
     phibeta2_dirty = false;
 

@@ -21,7 +21,7 @@ DBLWavefunctionAmplitude::DBLWavefunctionAmplitude (const PositionArguments &r_,
     reinitialize();
 }
 
-void DBLWavefunctionAmplitude::move_particle_ (Particle particle, unsigned int new_site_index)
+void DBLWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int new_site_index)
 {
     BOOST_ASSERT(r.particle_is_valid(particle));
     BOOST_ASSERT(new_site_index < r.get_N_sites());
@@ -41,7 +41,7 @@ amplitude_t DBLWavefunctionAmplitude::psi_ (void) const
             * complex_pow(cmat2.get_determinant(), d2_exponent));
 }
 
-void DBLWavefunctionAmplitude::finish_particle_moved_update_ (void)
+void DBLWavefunctionAmplitude::finish_move_ (void)
 {
     cmat1.finish_column_update();
     cmat2.finish_column_update();

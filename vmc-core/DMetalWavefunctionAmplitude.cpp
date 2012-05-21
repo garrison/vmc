@@ -28,7 +28,7 @@ DMetalWavefunctionAmplitude::DMetalWavefunctionAmplitude (const PositionArgument
     reinitialize();
 }
 
-void DMetalWavefunctionAmplitude::move_particle_ (Particle particle, unsigned int new_site_index)
+void DMetalWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int new_site_index)
 {
     BOOST_ASSERT(r.particle_is_valid(particle));
     BOOST_ASSERT(new_site_index < r.get_N_sites());
@@ -56,7 +56,7 @@ amplitude_t DMetalWavefunctionAmplitude::psi_ (void) const
             * complex_pow(m_cmat_f_down.get_determinant(), m_f_down_exponent));
 }
 
-void DMetalWavefunctionAmplitude::finish_particle_moved_update_ (void)
+void DMetalWavefunctionAmplitude::finish_move_ (void)
 {
     m_cmat_d1.finish_column_update();
     m_cmat_d2.finish_column_update();

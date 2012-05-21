@@ -145,14 +145,14 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         const amplitude_t old_phialpha1_psi = phialpha1->psi();
         if (!phialpha1.unique()) // copy-on-write
             phialpha1 = phialpha1->clone();
-        phialpha1->move_particle(*chosen_particle1, (copy_A == 1) ? particle_A_destination : particle_B_destination);
+        phialpha1->perform_move(*chosen_particle1, (copy_A == 1) ? particle_A_destination : particle_B_destination);
         phialpha1_ratio = phialpha1->psi() / old_phialpha1_psi;
     }
     if (chosen_particle2) {
         const amplitude_t old_phialpha2_psi = phialpha2->psi();
         if (!phialpha2.unique()) // copy-on-write
             phialpha2 = phialpha2->clone();
-        phialpha2->move_particle(*chosen_particle2, (copy_A == 1) ? particle_B_destination : particle_A_destination);
+        phialpha2->perform_move(*chosen_particle2, (copy_A == 1) ? particle_B_destination : particle_A_destination);
         phialpha2_ratio = phialpha2->psi() / old_phialpha2_psi;
     }
 
@@ -211,11 +211,11 @@ void BaseSwapPossibleWalk::accept_transition (void)
 
     if (chosen_particle1) {
         BOOST_ASSERT(phialpha1.unique());
-        phialpha1->finish_particle_moved_update();
+        phialpha1->finish_move();
     }
     if (chosen_particle2) {
         BOOST_ASSERT(phialpha2.unique());
-        phialpha2->finish_particle_moved_update();
+        phialpha2->finish_move();
     }
 
     BOOST_ASSERT(swapped_system.unique());

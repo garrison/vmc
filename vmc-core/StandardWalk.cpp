@@ -26,7 +26,7 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (rng_
         return 0; // we aren't moving anything, so just reject this move
     if (!wf.unique()) // implement copy on write
         wf = wf->clone();
-    wf->move_particle(chosen_particle, new_site_index);
+    wf->perform_move(chosen_particle, new_site_index);
 
     // calculate and return a probability
     probability_t rv = std::norm(wf->psi() / old_amplitude);
@@ -44,7 +44,7 @@ void StandardWalk::accept_transition (void)
     BOOST_ASSERT(transition_in_progress);
 
     BOOST_ASSERT(wf.unique()); // ensure copy-on-write is implemented correctly
-    wf->finish_particle_moved_update();
+    wf->finish_move();
 
 #ifndef BOOST_DISABLE_ASSERTS
     transition_in_progress = false;

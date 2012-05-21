@@ -15,7 +15,7 @@ RVBWavefunctionAmplitude::RVBWavefunctionAmplitude (const PositionArguments &r_,
     reinitialize();
 }
 
-void RVBWavefunctionAmplitude::move_particle_ (Particle particle, unsigned int new_site_index)
+void RVBWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int new_site_index)
 {
     BOOST_ASSERT(r.particle_is_valid(particle));
     BOOST_ASSERT(new_site_index < r.get_N_sites());
@@ -70,7 +70,7 @@ amplitude_t RVBWavefunctionAmplitude::psi_ (void) const
     return m_cmat.get_determinant();
 }
 
-void RVBWavefunctionAmplitude::finish_particle_moved_update_ (void)
+void RVBWavefunctionAmplitude::finish_move_ (void)
 {
     m_cmat.finish_column_update();
 }

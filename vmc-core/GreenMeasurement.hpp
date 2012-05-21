@@ -97,7 +97,7 @@ private:
                         continue;
 
                     boost::shared_ptr<WavefunctionAmplitude> wf_operated = wf.clone();
-                    wf_operated->move_particle(particle, j);
+                    wf_operated->perform_move(particle, j);
 
                     typename NDLattice<DIM>::Site site_j(lattice->site_from_index(j));
                     phase_t phase = lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());

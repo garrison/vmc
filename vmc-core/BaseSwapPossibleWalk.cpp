@@ -28,8 +28,6 @@ BaseSwapPossibleWalk::BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction
     // same orbitals too.  In fact, it might be useful to make a function that
     // asserts two wave functions are identical except for the particle
     // positions ...
-
-    BOOST_ASSERT(swapped_system->subsystem_particle_counts_match());
 #endif
 
     swapped_system->initialize(*phialpha1, *phialpha2);
@@ -190,8 +188,6 @@ void BaseSwapPossibleWalk::accept_transition (void)
         // update phibeta's
         swapped_system->update(chosen_particle1, chosen_particle2, *phialpha1, *phialpha2);
     }
-
-    BOOST_ASSERT(swapped_system->subsystem_particle_counts_match());
 
 #if defined(DEBUG_VMC_BASE_SWAP_POSSIBLE_WALK) || defined(DEBUG_VMC_ALL)
     const PositionArguments &r1 = phialpha1->get_positions();

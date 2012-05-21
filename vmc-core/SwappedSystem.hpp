@@ -23,6 +23,9 @@ class Lattice;
  * time.  This is fine, as both RenyiModPossibleWalk and RenyiSignWalk obey
  * this restriction.
  *
+ * Also, this class now requires that the same number/types of particles be in
+ * the subsystem for each copy (i.e., a swap is always possible)
+ *
  * @see RenyiModPossibleWalk
  * @see RenyiSignWalk
  */
@@ -82,13 +85,13 @@ public:
             return copy2_subsystem_indices[species].size();
         }
 
+private:
     /**
      * Returns true if both subsystems have the same particle count for each
-     * species
+     * species (as we always require)
      */
     bool subsystem_particle_counts_match (void) const;
 
-private:
     void reinitialize_phibetas (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
     void verify_phibetas (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2) const;
     void swap_positions (PositionArguments &r1, PositionArguments &r2) const;

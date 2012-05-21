@@ -57,8 +57,8 @@ void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const Wa
         }
     }
 
-    if (subsystem_particle_counts_match())
-        reinitialize_phibetas(phialpha1, phialpha2);
+    BOOST_ASSERT(subsystem_particle_counts_match());
+    reinitialize_phibetas(phialpha1, phialpha2);
 
     next_step = UPDATE;
 }
@@ -79,13 +79,10 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         BOOST_ASSERT(r1.get_N_filled(i) == r2.get_N_filled(i));
 #endif
 
-    // index1 and index2 are the indices within r1, r2 of the particles that moved
     BOOST_ASSERT(!particle1 || r1.particle_is_valid(*particle1));
     BOOST_ASSERT(!particle2 || r2.particle_is_valid(*particle2));
 
     const Lattice &lattice = phialpha1.get_lattice();
-
-    const bool phibetas_were_up_to_date = subsystem_particle_counts_match();
 
     // these will be will be >= 0 if the particle was in the subsystem before,
     // -1 if the particle was not in the subsystem before, and -2 if the
@@ -97,16 +94,23 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
     const bool particle2_now_in_subsystem = (particle2 && subsystem->position_is_within(r2[*particle2], lattice));
 
     const int delta1 = (particle1_now_in_subsystem ? 1 : 0) + (pairing_index1 >= 0 ? -1 : 0);
+#ifndef BOOST_DISABLE_ASSERTS
     const int delta2 = (particle2_now_in_subsystem ? 1 : 0) + (pairing_index2 >= 0 ? -1 : 0);
+#endif
 
     BOOST_ASSERT(particle1 || delta1 == 0);
     BOOST_ASSERT(particle2 || delta2 == 0);
 
-    if (phibetas_were_up_to_date && delta1 == -1 && delta2 == -1 && particle1->species == particle2->species) {
-        // if the phibetas are up to date and a particle of the same type
-        // leaves each subsystem simultaneously, we need to use some special
-        // logic in case we have to re-pair the remaining particles in the
-        // subsystem.  (re-pair in the sense of what gets swapped with what)
+    BOOST_ASSERT(delta1 == delta2);
+    const int delta = delta1;
+
+    BOOST_ASSERT(delta == 0 || (particle1 && particle2 && particle1->species == particle2->species));
+
+    if (delta == -1) {
+        // if a particle of the same type leaves each subsystem simultaneously,
+        // we need to use some special logic in case we have to re-pair the
+        // remaining particles in the subsystem.  (re-pair in the sense of what
+        // gets swapped with what)
 
         // these repeat some logic in the "if" statement, but are a useful
         // sanity check nonetheless (for now)
@@ -157,70 +161,52 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         c2_s.pop_back();
     } else {
         // update the subsystem indices
-        if (delta1 != 0) {
+        if (delta != 0) {
             std::vector<unsigned int> &c1_s = copy1_subsystem_indices[particle1->species];
-            if (delta1 == 1) {
+            std::vector<unsigned int> &c2_s = copy2_subsystem_indices[particle2->species];
+            if (delta == 1) {
                 c1_s.push_back(particle1->index);
                 pairing_index1 = c1_s.size() - 1;
-            } else {
-                BOOST_ASSERT(delta1 == -1);
-                c1_s[pairing_index1] = c1_s[c1_s.size() - 1];
-                c1_s.pop_back();
-            }
-        }
-        if (delta2 != 0) {
-            std::vector<unsigned int> &c2_s = copy2_subsystem_indices[particle2->species];
-            if (delta2 == 1) {
                 c2_s.push_back(particle2->index);
                 pairing_index2 = c2_s.size() - 1;
             } else {
-                BOOST_ASSERT(delta2 == -1);
+                BOOST_ASSERT(delta == -1);
+                c1_s[pairing_index1] = c1_s[c1_s.size() - 1];
+                c1_s.pop_back();
                 c2_s[pairing_index2] = c2_s[c2_s.size() - 1];
                 c2_s.pop_back();
             }
         }
 
-        // if there is a different number of particles in each subsystem, we
-        // can't update the phibeta's, so we forget them for now and return.
-        if (!subsystem_particle_counts_match()) {
-            phibeta1.reset();
-            phibeta2.reset();
-            return;
+        BOOST_ASSERT(subsystem_particle_counts_match());
+
+        // either both particles moved within their respective subsystems
+        // (if they moved at all), or both entered the subsystem and paired
+        // with each other immediately
+        BOOST_ASSERT(delta == 0 || delta == 1);
+
+        // update the phibeta's, performing copy-on-write
+        if (particle1) {
+            boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
+            bool &phibeta_dirty = particle1_now_in_subsystem ? phibeta2_dirty : phibeta1_dirty;
+            const Particle phibeta_particle = particle1_now_in_subsystem ? Particle(copy2_subsystem_indices[particle1->species][pairing_index1], particle1->species) : *particle1;
+            if (!phibeta.unique())
+                phibeta = phibeta->clone();
+            BOOST_ASSERT(!phibeta_dirty); // will always be clean here, but not necessarily below
+            phibeta->move_particle(phibeta_particle, r1[*particle1]);
+            phibeta_dirty = true;
         }
 
-        if (!phibetas_were_up_to_date) {
-            reinitialize_phibetas(phialpha1, phialpha2);
-        } else {
-            // either both particles moved within their respective subsystems
-            // (if they moved at all), or both entered the subsystem and paired
-            // with each other immediately, or both particles were of the same
-            // type and left the subsystem.
-            BOOST_ASSERT(delta1 == delta2);
-            BOOST_ASSERT(delta1 == 0 || (particle1 && particle2 && particle1->species == particle2->species));
-
-            // update the phibeta's, performing copy-on-write
-            if (particle1) {
-                boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
-                bool &phibeta_dirty = particle1_now_in_subsystem ? phibeta2_dirty : phibeta1_dirty;
-                const Particle phibeta_particle = particle1_now_in_subsystem ? Particle(copy2_subsystem_indices[particle1->species][pairing_index1], particle1->species) : *particle1;
-                if (!phibeta.unique())
-                    phibeta = phibeta->clone();
-                BOOST_ASSERT(!phibeta_dirty); // will always be clean here, but not necessarily below
-                phibeta->move_particle(phibeta_particle, r1[*particle1]);
-                phibeta_dirty = true;
-            }
-
-            if (particle2) {
-                boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
-                bool &phibeta_dirty = particle2_now_in_subsystem ? phibeta1_dirty : phibeta2_dirty;
-                const Particle phibeta_particle = particle2_now_in_subsystem ? Particle(copy1_subsystem_indices[particle2->species][pairing_index2], particle2->species) : *particle2;
-                if (!phibeta.unique())
-                    phibeta = phibeta->clone();
-                if (phibeta_dirty)
-                    phibeta->finish_particle_moved_update();
-                phibeta->move_particle(phibeta_particle, r2[*particle2]);
-                phibeta_dirty = true;
-            }
+        if (particle2) {
+            boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
+            bool &phibeta_dirty = particle2_now_in_subsystem ? phibeta1_dirty : phibeta2_dirty;
+            const Particle phibeta_particle = particle2_now_in_subsystem ? Particle(copy1_subsystem_indices[particle2->species][pairing_index2], particle2->species) : *particle2;
+            if (!phibeta.unique())
+                phibeta = phibeta->clone();
+            if (phibeta_dirty)
+                phibeta->finish_particle_moved_update();
+            phibeta->move_particle(phibeta_particle, r2[*particle2]);
+            phibeta_dirty = true;
         }
     }
 }
@@ -230,21 +216,20 @@ void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const
     BOOST_ASSERT(next_step == FINISH_UPDATE);
     next_step = UPDATE;
 
+    BOOST_ASSERT(subsystem_particle_counts_match());
+
     if (phibeta1_dirty) {
-        BOOST_ASSERT(subsystem_particle_counts_match());
         phibeta1->finish_particle_moved_update();
     }
     phibeta1_dirty = false;
 
     if (phibeta2_dirty) {
-        BOOST_ASSERT(subsystem_particle_counts_match());
         phibeta2->finish_particle_moved_update();
     }
     phibeta2_dirty = false;
 
 #ifdef CAREFUL
-    if (subsystem_particle_counts_match())
-        verify_phibetas(phialpha1, phialpha2);
+    verify_phibetas(phialpha1, phialpha2);
 #else
     (void) phialpha1;
     (void) phialpha2;
@@ -315,8 +300,10 @@ void SwappedSystem::verify_phibetas (const WavefunctionAmplitude &phialpha1, con
             const Particle particle(i, species);
             const bool b1 = vector_find(copy1_subsystem_indices[species], i) != -1;
             const bool b2 = vector_find(copy2_subsystem_indices[species], i) != -1;
-            if (b1) ++c1;
-            if (b2) ++c2;
+            if (b1)
+                ++c1;
+            if (b2)
+                ++c2;
             BOOST_ASSERT(b1 == subsystem->position_is_within(r1[particle], lattice));
             BOOST_ASSERT(b2 == subsystem->position_is_within(r2[particle], lattice));
         }

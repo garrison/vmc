@@ -8,6 +8,7 @@
 
 #include "Measurement.hpp"
 #include "StandardWalk.hpp"
+#include "WavefunctionAmplitude.hpp"
 #include "Subsystem.hpp"
 
 /**

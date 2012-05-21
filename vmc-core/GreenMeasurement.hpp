@@ -7,6 +7,7 @@
 
 #include "Measurement.hpp"
 #include "StandardWalk.hpp"
+#include "WavefunctionAmplitude.hpp"
 #include "NDLattice.hpp"
 #include "PositionArguments.hpp"
 

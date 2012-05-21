@@ -20,10 +20,10 @@ class Lattice;
  *
  * Any time the phialpha's are updated, this object must be notified
  * immediately after.  At most one particle can be moved in each phialpha at a
- * time.  This is fine, as both RenyiModMeasurement and RenyiSignWalk obey this
- * restriction.
+ * time.  This is fine, as both RenyiModPossibleWalk and RenyiSignWalk obey
+ * this restriction.
  *
- * @see RenyiModMeasurement
+ * @see RenyiModPossibleWalk
  * @see RenyiSignWalk
  */
 class SwappedSystem

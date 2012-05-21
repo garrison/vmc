@@ -12,10 +12,6 @@
 
 #include "MetropolisSimulation.hpp"
 #include "StandardWalk.hpp"
-#include "RenyiModMeasurement.hpp"
-#include "RenyiModWalk.hpp"
-#include "RenyiSignMeasurement.hpp"
-#include "RenyiSignWalk.hpp"
 #include "DensityDensityMeasurement.hpp"
 #include "FilledOrbitals.hpp"
 #include "SimpleSubsystem.hpp"

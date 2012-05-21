@@ -13,8 +13,6 @@
 
 #include "MetropolisSimulation.hpp"
 #include "StandardWalk.hpp"
-#include "RenyiModMeasurement.hpp"
-#include "RenyiModWalk.hpp"
 #include "RenyiSignMeasurement.hpp"
 #include "RenyiSignWalk.hpp"
 #include "DensityDensityMeasurement.hpp"
@@ -64,17 +62,11 @@ int main ()
         return 1;
     }
 
-    // set up three monte carlo simulations and perform some number of steps to
+    // set up two monte carlo simulations and perform some number of steps to
     // get each to equilibrium
     StandardWalk walk(wf);
     boost::shared_ptr<DensityDensityMeasurement<DIMENSION> > density_measurement(new DensityDensityMeasurement<DIMENSION>(1, 0, 0));
     MetropolisSimulation<StandardWalk> sim(walk, density_measurement, 5000, rng());
-
-    std::list<boost::shared_ptr<Measurement<RenyiModWalk> > > mod_measurements;
-    mod_measurements.push_back(boost::make_shared<RenyiModMeasurement>(boost::make_shared<SimpleSubsystem<DIMENSION> >(4), 50));
-
-    RenyiModWalk mod_walk(wf, wf);
-    MetropolisSimulation<RenyiModWalk> mod_sim(mod_walk, mod_measurements, 5000, rng());
 
     boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem<DIMENSION>(4));
     RenyiSignWalk sign_walk(wf, wf, subsystem);
@@ -88,9 +80,6 @@ int main ()
         for (unsigned int i = 0; i < lattice->total_sites(); ++i)
             std::cerr << "  " << density_measurement->get(i);
         std::cerr << std::endl;
-
-        mod_sim.iterate(5000);
-        std::cerr << "swap,mod " << (100.0 * mod_sim.steps_accepted() / mod_sim.steps_completed()) << "%\t" << double(dynamic_cast<RenyiModMeasurement *>(&**mod_measurements.begin())->get()) << std::endl;
 
         sign_sim.iterate(5000);
         std::cerr << "swap,sign " << (100.0 * sign_sim.steps_accepted() / sign_sim.steps_completed()) << "%\t" << sign_measurement->get() << std::endl;

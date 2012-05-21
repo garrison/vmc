@@ -41,10 +41,8 @@ HEADER_FILES = \
                random-filling.hpp \
                random-move.hpp \
                RandomFiller.hpp \
-               RenyiModMeasurement.hpp \
                RenyiModPossibleMeasurement.hpp \
                RenyiModPossibleWalk.hpp \
-               RenyiModWalk.hpp \
                RenyiSignMeasurement.hpp \
                RenyiSignWalk.hpp \
                RunInformation.hpp \
@@ -68,7 +66,6 @@ SOURCES = \
           random-combination.cpp \
           random-move.cpp \
           RenyiModPossibleWalk.cpp \
-          RenyiModWalk.cpp \
           RenyiSignWalk.cpp \
           RunInformation.cpp \
           StandardWalk.cpp \

@@ -2,23 +2,6 @@ from pyvmc.core.measurement import WalkPlan, MeasurementPlan
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.subsystem import Subsystem
 
-class RenyiModWalkPlan(WalkPlan):
-    # NOTE: this is deprecated in favor of renyi-mod/possible
-
-    __slots__ = ("wavefunction",)
-
-    def to_json(self):
-        return {"walk-type": "renyi-mod"}
-
-class RenyiModMeasurementPlan(MeasurementPlan):
-    # NOTE: this is deprecated in favor of renyi-mod/possible
-
-    __slots__ = ("walk", "subsystem")
-
-    def __init__(self, wavefunction, subsystem):
-        walk = RenyiModWalkPlan(wavefunction)
-        super(RenyiModMeasurementPlan, self).__init__(walk, subsystem)
-
 class RenyiModPossibleWalkPlan(WalkPlan):
     __slots__ = ("wavefunction", "subsystem")
 

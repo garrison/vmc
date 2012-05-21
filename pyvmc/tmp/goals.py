@@ -43,31 +43,6 @@ class SubsystemOccupationNumberProbability(Goal):
     def get_swap_probability(self, index, n_swaps=2):
         return sum(v ** n_swaps for v in self.measurement_set[index].get_aggregate_result().values())
 
-class RenyiModDirect(Goal):
-    def __init__(self, system, subsystem, independent=30, universe=None):
-        if universe is None:
-            universe = get_default_universe()
-
-        measurement = RenyiModMeasurementPlan(wavefunction, subsystem)
-        plan = TmpMeasurementPlan(measurement, self.parse_result)
-        self.measurement_set = universe.get_measurement_set(plan, independent)
-
-        self.subsystem = subsystem
-
-    def advance(self):
-        return self.measurement_set.advance()
-
-    @staticmethod
-    def parse_result(result_json):
-        assert isinstance(result_json, float)
-        return result_json
-
-    def get_renyi_mod(self, index):
-        # fixme: we might be taking the log of zero, which is a non-fatal error
-        # (we just need to run longer), but which will kill things ...
-        from math import log
-        return -log(self.measurement_set[index].get_aggregate_result())
-
 class RenyiModPossible(Goal):
     def __init__(self, system, subsystem, independent=30, universe=None):
         if universe is None:

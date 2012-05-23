@@ -2,6 +2,7 @@
 #define _POSITION_ARGUMENTS_HPP
 
 #include <vector>
+#include <algorithm>
 
 #include <boost/assert.hpp>
 
@@ -94,6 +95,15 @@ public:
             --positions[particle.species][old_position];
             ++positions[particle.species][position];
             r[particle.species][particle.index] = position;
+        }
+
+    void swap_particles (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+        {
+            BOOST_ASSERT(species < get_N_species());
+            BOOST_ASSERT(particle1_index < get_N_filled(species));
+            BOOST_ASSERT(particle2_index < get_N_filled(species));
+            BOOST_ASSERT(particle1_index != particle2_index);
+            std::swap(r[species][particle1_index], r[species][particle2_index]);
         }
 
     /**

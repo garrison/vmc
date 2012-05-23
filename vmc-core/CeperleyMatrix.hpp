@@ -38,8 +38,10 @@ private:
     NextStep next_step;
 
     /**
-     * If the determinant falls below this value, we assume the matrix has
-     * become singular.
+     * As long as the determinant remains below this value, the O(N^2) update
+     * algorithm will be used.  However, if the determinant falls below this
+     * value we will recalculate the inverse from scratch to fight numerical
+     * error.  This also allows us to determine when the matrix is singular.
      */
     static const T ceperley_determinant_cutoff;
 

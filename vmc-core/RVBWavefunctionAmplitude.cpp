@@ -75,6 +75,16 @@ void RVBWavefunctionAmplitude::finish_move_ (void)
     m_cmat.finish_column_update();
 }
 
+void RVBWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+{
+    // we don't support Renyi calculations in RVBWavefunctionAmplitude yet
+    BOOST_ASSERT(false);
+
+    (void) particle1_index;
+    (void) particle2_index;
+    (void) species;
+}
+
 void RVBWavefunctionAmplitude::reset_ (const PositionArguments &r_)
 {
     r = r_;

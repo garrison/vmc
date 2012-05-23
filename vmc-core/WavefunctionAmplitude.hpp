@@ -64,6 +64,17 @@ public:
 #endif
         }
 
+    void swap_particles (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+        {
+            BOOST_ASSERT(!move_in_progress);
+            BOOST_ASSERT(species < r.get_N_species());
+            BOOST_ASSERT(particle1_index < r.get_N_filled(species));
+            BOOST_ASSERT(particle2_index < r.get_N_filled(species));
+            BOOST_ASSERT(particle1_index != particle2_index);
+            r.swap_particles(particle1_index, particle2_index, species);
+            swap_particles_(particle1_index, particle2_index, species);
+        }
+
     /**
      * Resets the wavefunction amplitude with a new set of positions
      */
@@ -112,6 +123,9 @@ private:
     virtual amplitude_t psi_ (void) const = 0;
 
     virtual void finish_move_ (void) = 0;
+
+    // this gets called *after* the particles have been updated in this->r
+    virtual void swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species) = 0;
 
     virtual void reset_ (const PositionArguments &r_) = 0;
 

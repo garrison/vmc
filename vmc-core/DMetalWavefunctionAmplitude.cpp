@@ -63,6 +63,16 @@ void DMetalWavefunctionAmplitude::finish_move_ (void)
     (m_particle_moved_is_up ? m_cmat_f_up : m_cmat_f_down).finish_column_update();
 }
 
+void DMetalWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+{
+    const unsigned int M = m_orbital_f_up->get_N_filled();
+    const unsigned int particle1_column_index = (species == 0) ? particle1_index : particle1_index + M;
+    const unsigned int particle2_column_index = (species == 0) ? particle2_index : particle2_index + M;
+    m_cmat_d1.swap_columns(particle1_column_index, particle2_column_index);
+    m_cmat_d2.swap_columns(particle1_column_index, particle2_column_index);
+    (species == 0 ? m_cmat_f_up : m_cmat_f_down).swap_columns(particle1_index, particle2_index);
+}
+
 void DMetalWavefunctionAmplitude::reset_ (const PositionArguments &r_)
 {
     r = r_;

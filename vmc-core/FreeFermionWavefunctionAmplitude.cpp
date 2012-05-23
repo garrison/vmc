@@ -35,6 +35,12 @@ void FreeFermionWavefunctionAmplitude::finish_move_ (void)
     cmat.finish_column_update();
 }
 
+void FreeFermionWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+{
+    (void) species; // will always be zero
+    cmat.swap_columns(particle1_index, particle2_index);
+}
+
 void FreeFermionWavefunctionAmplitude::reset_ (const PositionArguments &r_)
 {
     BOOST_ASSERT(r_.get_N_species() == 1);

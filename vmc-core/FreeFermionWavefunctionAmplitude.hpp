@@ -29,6 +29,8 @@ private:
 
     void finish_move_ (void);
 
+    void swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species);
+
     void reset_ (const PositionArguments &r_);
 
     boost::shared_ptr<WavefunctionAmplitude> clone_ (void) const;

@@ -47,6 +47,13 @@ void DBLWavefunctionAmplitude::finish_move_ (void)
     cmat2.finish_column_update();
 }
 
+void DBLWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+{
+    (void) species; // will always be 0
+    cmat1.swap_columns(particle1_index, particle2_index);
+    cmat2.swap_columns(particle1_index, particle2_index);
+}
+
 void DBLWavefunctionAmplitude::reset_ (const PositionArguments &r_)
 {
     BOOST_ASSERT(r_.get_N_species() == 1);

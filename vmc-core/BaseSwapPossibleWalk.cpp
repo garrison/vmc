@@ -119,7 +119,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         boost::variate_generator<rng_class&, boost::uniform_smallint<> > candidate_gen(rng, candidate_distribution);
         chosen_particle_B = Particle(candidate_particle_B_array[candidate_gen()], species);
 
-        // choose a destination such that the partice in copy B will change its
+        // choose a destination such that the particle in copy B will change its
         // subsystem status
         const bool destination_B_in_subsystem = !candidate_particle_B_subsystem_status;
         std::vector<unsigned int> candidate_destination_B_array;

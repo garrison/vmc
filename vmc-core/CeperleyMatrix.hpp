@@ -12,20 +12,20 @@
  * column) changes in a given step.  Also known as the
  * Sherman-Morrison-Woodbury formula.  This class acts as a finite state
  * machine; that is, its methods should be called in a specific order.  See
- * next_step.
+ * current_state.
  */
 template <typename T>
 class CeperleyMatrix
 {
 private:
     /**
-     * An enum for storing which operation should be called next on the object
+     * An enum for storing the current state of the object
      */
-    enum NextStep {
-        INITIALIZE,
-        UPDATE,
-        FINISH_ROW_UPDATE,
-        FINISH_COLUMN_UPDATE
+    enum State {
+        UNINITIALIZED,
+        READY_FOR_UPDATE,
+        ROW_UPDATE_IN_PROGRESS,
+        COLUMN_UPDATE_IN_PROGRESS
     };
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat;
@@ -35,7 +35,7 @@ private:
                              // it becomes zero only when the nullity is
                              // precisely zero (and the matrix is invertible)
     bool inverse_recently_calculated; // set to false every time in update_[row|column]
-    NextStep next_step;
+    State current_state;
 
     /**
      * As long as the determinant remains below this value, the O(N^2) update
@@ -52,7 +52,7 @@ public:
     CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
         : mat(initial_mat),
           inverse_recently_calculated(false),
-          next_step(UPDATE)
+          current_state(READY_FOR_UPDATE)
         {
             BOOST_ASSERT(initial_mat.rows() == initial_mat.cols());
 
@@ -64,7 +64,7 @@ public:
      * are useless until they are copied from an existing CeperleyMatrix.
      */
     CeperleyMatrix (void)
-        : next_step(INITIALIZE)
+        : current_state(UNINITIALIZED)
         {
         }
 
@@ -77,7 +77,7 @@ public:
      */
     void swap_rows (unsigned int r1, unsigned int r2)
         {
-            BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             BOOST_ASSERT(r1 < mat.rows());
             BOOST_ASSERT(r2 < mat.rows());
             BOOST_ASSERT(r1 != r2);
@@ -99,7 +99,7 @@ public:
      */
     void swap_columns (unsigned int c1, unsigned int c2)
         {
-            BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             BOOST_ASSERT(c1 < mat.cols());
             BOOST_ASSERT(c2 < mat.cols());
             BOOST_ASSERT(c1 != c2);
@@ -136,7 +136,7 @@ public:
         {
             BOOST_ASSERT(r < mat.rows());
             BOOST_ASSERT(row.rows() == mat.cols());
-            BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
 
             inverse_recently_calculated = false;
 
@@ -159,7 +159,7 @@ public:
                 perform_singular_update();
             }
 
-            next_step = FINISH_ROW_UPDATE;
+            current_state = ROW_UPDATE_IN_PROGRESS;
         }
 
     /**
@@ -172,7 +172,7 @@ public:
         {
             BOOST_ASSERT(c < mat.cols());
             BOOST_ASSERT(col.rows() == mat.rows());
-            BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
 
             inverse_recently_calculated = false;
 
@@ -195,7 +195,7 @@ public:
                 perform_singular_update();
             }
 
-            next_step = FINISH_COLUMN_UPDATE;
+            current_state = COLUMN_UPDATE_IN_PROGRESS;
         }
 
     /**
@@ -208,7 +208,7 @@ public:
      */
     void finish_row_update (void)
         {
-            BOOST_ASSERT(next_step == FINISH_ROW_UPDATE);
+            BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
 
             if (nullity_lower_bound == 0 && !inverse_recently_calculated) {
                 // implement equation (12) of Ceperley et al, correctly given
@@ -219,7 +219,7 @@ public:
                 invmat.col(pending_index) = oldcol / detrat;
             }
 
-            next_step = UPDATE;
+            current_state = READY_FOR_UPDATE;
 
 #ifdef CAREFUL
             be_careful();
@@ -234,7 +234,7 @@ public:
      */
     void finish_column_update (void)
         {
-            BOOST_ASSERT(next_step == FINISH_COLUMN_UPDATE);
+            BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
             if (nullity_lower_bound == 0 && !inverse_recently_calculated) {
                 // same as above in finish_row_update(): update the inverse
@@ -244,7 +244,7 @@ public:
                 invmat.row(pending_index) = oldrow / detrat;
             }
 
-            next_step = UPDATE;
+            current_state = READY_FOR_UPDATE;
 
 #ifdef CAREFUL
             be_careful();
@@ -256,7 +256,7 @@ public:
      */
     void refresh_state (void)
         {
-            BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             calculate_inverse();
         }
 
@@ -265,7 +265,7 @@ public:
      */
     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_matrix (void) const
         {
-            BOOST_ASSERT(next_step != INITIALIZE);
+            BOOST_ASSERT(current_state != UNINITIALIZED);
             return mat;
         }
 
@@ -274,7 +274,7 @@ public:
      */
     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_inverse (void) const
         {
-            BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             BOOST_ASSERT(nullity_lower_bound == 0);
             return invmat;
         }
@@ -286,7 +286,7 @@ public:
      */
     T get_determinant (void) const
         {
-            BOOST_ASSERT(next_step != INITIALIZE);
+            BOOST_ASSERT(current_state != UNINITIALIZED);
             return det;
         }
 
@@ -300,7 +300,7 @@ public:
      */
     double compute_inverse_matrix_error (void) const
         {
-            BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             return (mat * invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(mat.rows(), mat.cols())).array().abs().sum();
         }
 
@@ -312,7 +312,7 @@ public:
      */
     double compute_relative_determinant_error (void) const
         {
-            BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);
             if (lu_decomposition.isInvertible()) {
                 T d = lu_decomposition.determinant();
@@ -332,7 +332,7 @@ public:
      */
     unsigned int rows (void) const
         {
-            BOOST_ASSERT(next_step != INITIALIZE);
+            BOOST_ASSERT(current_state != UNINITIALIZED);
             return mat.rows();
         }
 
@@ -346,7 +346,7 @@ public:
      */
     unsigned int cols (void) const
         {
-            BOOST_ASSERT(next_step != INITIALIZE);
+            BOOST_ASSERT(current_state != UNINITIALIZED);
             return rows();
         }
 

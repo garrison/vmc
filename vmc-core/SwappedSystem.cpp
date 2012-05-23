@@ -106,6 +106,12 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 
     BOOST_ASSERT(delta == 0 || (particle1 && particle2 && particle1->species == particle2->species));
 
+    BOOST_ASSERT(delta == 0 || particle1_now_in_subsystem == particle2_now_in_subsystem);
+    // to ensure only a single update is necessary to the phibeta's, we require
+    // that a particle only be moved in one copy if the particle number is not
+    // changing
+    BOOST_ASSERT(delta != 0 || !(particle1 && particle2));
+
     if (delta == -1) {
         // if a particle of the same type leaves each subsystem simultaneously,
         // we need to use some special logic in case we have to re-pair the
@@ -192,7 +198,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             const Particle phibeta_particle = particle1_now_in_subsystem ? Particle(copy2_subsystem_indices[particle1->species][pairing_index1], particle1->species) : *particle1;
             if (!phibeta.unique())
                 phibeta = phibeta->clone();
-            BOOST_ASSERT(!phibeta_dirty); // will always be clean here, but not necessarily below
+            BOOST_ASSERT(!phibeta_dirty);
             phibeta->perform_move(phibeta_particle, r1[*particle1]);
             phibeta_dirty = true;
         }
@@ -203,8 +209,11 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             const Particle phibeta_particle = particle2_now_in_subsystem ? Particle(copy1_subsystem_indices[particle2->species][pairing_index2], particle2->species) : *particle2;
             if (!phibeta.unique())
                 phibeta = phibeta->clone();
-            if (phibeta_dirty)
-                phibeta->finish_move();
+            // the only time both particles will move here is when delta == 1,
+            // in which case this phibeta and the phibeta above will be
+            // different, so we know that phibeta_dirty will never be true
+            // here.
+            BOOST_ASSERT(!phibeta_dirty);
             phibeta->perform_move(phibeta_particle, r2[*particle2]);
             phibeta_dirty = true;
         }

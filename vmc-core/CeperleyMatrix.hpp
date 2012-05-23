@@ -34,7 +34,7 @@ private:
     int nullity_lower_bound; // in general, a lower bound on the nullity.  but
                              // it becomes zero only when the nullity is
                              // precisely zero (and the matrix is invertible)
-    bool inverse_recently_calculated; // set to false every time in update_[row|column]
+    bool inverse_recalculated_for_current_update;
     State current_state;
 
     /**
@@ -51,7 +51,7 @@ public:
      */
     CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
         : mat(initial_mat),
-          inverse_recently_calculated(false),
+          inverse_recalculated_for_current_update(false),
           current_state(READY_FOR_UPDATE)
         {
             BOOST_ASSERT(initial_mat.rows() == initial_mat.cols());
@@ -137,8 +137,7 @@ public:
             BOOST_ASSERT(r < mat.rows());
             BOOST_ASSERT(row.rows() == mat.cols());
             BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-
-            inverse_recently_calculated = false;
+            BOOST_ASSERT(!inverse_recalculated_for_current_update);
 
             // update matrix
             mat.row(r) = row;
@@ -153,8 +152,10 @@ public:
                 // If the determinant has become sufficiently small, the matrix
                 // might have become singular so we recompute its inverse from
                 // scratch.
-                if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                if (std::abs(det) < std::abs(ceperley_determinant_cutoff)) {
                     calculate_inverse();
+                    inverse_recalculated_for_current_update = true;
+                }
             } else {
                 perform_singular_update();
             }
@@ -173,8 +174,7 @@ public:
             BOOST_ASSERT(c < mat.cols());
             BOOST_ASSERT(col.rows() == mat.rows());
             BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-
-            inverse_recently_calculated = false;
+            BOOST_ASSERT(!inverse_recalculated_for_current_update);
 
             // update matrix
             mat.col(c) = col;
@@ -189,8 +189,10 @@ public:
                 // If the determinant has become sufficiently small, the matrix
                 // might have become singular so we recompute its inverse from
                 // scratch.
-                if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                if (std::abs(det) < std::abs(ceperley_determinant_cutoff)) {
                     calculate_inverse();
+                    inverse_recalculated_for_current_update = true;
+                }
             } else {
                 perform_singular_update();
             }
@@ -210,7 +212,7 @@ public:
         {
             BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
 
-            if (nullity_lower_bound == 0 && !inverse_recently_calculated) {
+            if (nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
                 // implement equation (12) of Ceperley et al, correctly given
                 // as eqn (4.22) of Kent's thesis
                 // http://www.ornl.gov/~pk7/thesis/thesis.ps.gz
@@ -219,6 +221,7 @@ public:
                 invmat.col(pending_index) = oldcol / detrat;
             }
 
+            inverse_recalculated_for_current_update = false;
             current_state = READY_FOR_UPDATE;
 
 #ifdef CAREFUL
@@ -236,7 +239,7 @@ public:
         {
             BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
-            if (nullity_lower_bound == 0 && !inverse_recently_calculated) {
+            if (nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
                 // same as above in finish_row_update(): update the inverse
                 // matrix
                 Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index));
@@ -244,6 +247,7 @@ public:
                 invmat.row(pending_index) = oldrow / detrat;
             }
 
+            inverse_recalculated_for_current_update = false;
             current_state = READY_FOR_UPDATE;
 
 #ifdef CAREFUL
@@ -373,8 +377,6 @@ private:
                 double inverse_error = compute_inverse_matrix_error();
                 if (inverse_error > .0001)
                     std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
-
-                inverse_recently_calculated = true;
             }
         }
 
@@ -388,8 +390,10 @@ private:
             BOOST_ASSERT(det == T(0));
             BOOST_ASSERT(nullity_lower_bound > 0);
             --nullity_lower_bound;
-            if (nullity_lower_bound == 0)
+            if (nullity_lower_bound == 0) {
                 calculate_inverse();
+                inverse_recalculated_for_current_update = true;
+            }
         }
 
 #ifdef CAREFUL

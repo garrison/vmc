@@ -79,7 +79,30 @@ public:
             invmat.col(r1).swap(invmat.col(r2));
 
             det = -det;
-            //detrat = -detrat;
+            // NOTE: we don't need to update detrat because it is only relevant
+            // when an update is in progress
+        }
+
+    /**
+     * Call this function to swap two columns in the matrix.  As a result, the
+     * determinant will change sign.
+     *
+     * @param r1 Index of one column to be swapped
+     * @param r2 Index of the column to the swapped with
+     */
+    void swap_columns (unsigned int c1, unsigned int c2)
+        {
+            BOOST_ASSERT(next_step == UPDATE);
+            BOOST_ASSERT(c1 < mat.cols());
+            BOOST_ASSERT(c2 < mat.cols());
+            BOOST_ASSERT(c1 != c2);
+
+            mat.col(c1).swap(mat.col(c2));
+            invmat.row(c1).swap(invmat.row(c2));
+
+            det = -det;
+            // NOTE: we don't need to update detrat because it is only relevant
+            // when an update is in progress
         }
 
     /**

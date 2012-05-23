@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "SwappedSystem.hpp"
 #include "Lattice.hpp"
 
@@ -124,43 +126,38 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         BOOST_ASSERT(!particle1_now_in_subsystem);
         BOOST_ASSERT(!particle2_now_in_subsystem);
 
+        const unsigned int species = particle1->species;
+        std::vector<unsigned int> &c1_s = copy1_subsystem_indices[species];
+        std::vector<unsigned int> &c2_s = copy2_subsystem_indices[species];
+
         // copy-on-write for the phibeta's
         if (!phibeta1.unique())
             phibeta1 = phibeta1->clone();
         if (!phibeta2.unique())
             phibeta2 = phibeta2->clone();
 
-        // update the phibeta's for the particles that left the system
+        if (pairing_index1 != pairing_index2) {
+            // in order to re-pair the particles left behind, we move the pair
+            // that is leaving the subsystem to the max_pairing_index, and move
+            // the pair that is staying behind to the min_pairing_index.
+            phibeta1->swap_particles(c1_s[pairing_index1], c1_s[pairing_index2], species);
+            phibeta2->swap_particles(c2_s[pairing_index1], c2_s[pairing_index2], species);
+            if (pairing_index1 < pairing_index2)
+                std::swap(c1_s[pairing_index1], c1_s[pairing_index2]);
+            else
+                std::swap(c2_s[pairing_index1], c2_s[pairing_index2]);
+        }
+
+        // update the phibeta's
+        const unsigned int max_pairing_index = std::max(pairing_index1, pairing_index2);
         BOOST_ASSERT(!phibeta1_dirty && !phibeta2_dirty);
-        phibeta1->perform_move(*particle1, r1[*particle1]);
-        phibeta2->perform_move(*particle2, r2[*particle2]);
+        phibeta1->perform_move(Particle(c1_s[max_pairing_index], species), r1[*particle1]);
+        phibeta2->perform_move(Particle(c2_s[max_pairing_index], species), r2[*particle2]);
         phibeta1_dirty = true;
         phibeta2_dirty = true;
 
-        const unsigned int species = particle1->species;
-        std::vector<unsigned int> &c1_s = copy1_subsystem_indices[species];
-        std::vector<unsigned int> &c2_s = copy2_subsystem_indices[species];
-
-        if (pairing_index1 != pairing_index2) { // we must re-pair
-            // update the phibeta's for the particles that are about to be paired
-            BOOST_ASSERT(phibeta1_dirty && phibeta2_dirty);
-            phibeta1->finish_move();
-            phibeta2->finish_move();
-            phibeta1->perform_move(Particle(c1_s[pairing_index2], species),
-                                   r2[Particle(c2_s[pairing_index1], species)]);
-            phibeta2->perform_move(Particle(c2_s[pairing_index1], species),
-                                   r1[Particle(c1_s[pairing_index2], species)]);
-
-            // update the subsystem indices so they become paired at the min_pairing_index
-            if (pairing_index1 < pairing_index2)
-                c1_s[pairing_index1] = c1_s[pairing_index2];
-            else
-                c2_s[pairing_index2] = c2_s[pairing_index1];
-        }
-
         // remove the empty pair in the subsystem indices (yes, these steps
         // make sense whether we had to re-pair or not)
-        const unsigned int max_pairing_index = std::max(pairing_index1, pairing_index2);
         c1_s[max_pairing_index] = c1_s[c1_s.size() - 1];
         c1_s.pop_back();
         c2_s[max_pairing_index] = c2_s[c2_s.size() - 1];
@@ -296,7 +293,7 @@ void SwappedSystem::verify_phibetas (const WavefunctionAmplitude &phialpha1, con
         const unsigned int N = r1.get_N_filled(species);
         BOOST_ASSERT(N == r2.get_N_filled(species));
 
-        // verify that the system index arrays have everything they need (and no duplicates!)
+        // verify that the subsystem index arrays have everything they need (and no duplicates!)
         unsigned int c1 = 0, c2 = 0;
         for (unsigned int i = 0; i < N; ++i) {
             const Particle particle(i, species);

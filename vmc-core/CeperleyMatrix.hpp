@@ -365,10 +365,4 @@ private:
 #endif
 };
 
-// fixme: this next bit assumes that CeperleyMatrix will always be instantiated
-// with an std::complex<> type.  I'm sure there's a way to fix this using
-// template specialization, but it's not worth doing unless we need to.
-template<typename T>
-const T CeperleyMatrix<T>::ceperley_determinant_cutoff = 1000 * std::numeric_limits<typename T::value_type>::min();
-
 #endif

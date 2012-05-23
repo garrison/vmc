@@ -58,6 +58,7 @@ HEADER_FILES = \
 SOURCES = \
           BaseSwapPossibleWalk.cpp \
           RVBWavefunctionAmplitude.cpp \
+          CeperleyMatrix.cpp \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \
           FreeFermionWavefunctionAmplitude.cpp \

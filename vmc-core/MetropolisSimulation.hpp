@@ -191,12 +191,12 @@ private:
             if (probability_ratio >= 1
                 || (probability_ratio > 0 && probability_ratio > uniform_distribution())) {
                 // accept transition
-                proposed_step.accept_transition();
-                walk = proposed_step;
-                ++m_steps_accepted;
 #if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
                 std::cerr << "A" << std::endl;
 #endif
+                proposed_step.accept_transition();
+                walk = proposed_step;
+                ++m_steps_accepted;
                 return true;
             } else {
                 if (probability_ratio == 0)

@@ -166,30 +166,23 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         c2_s[max_pairing_index] = c2_s[c2_s.size() - 1];
         c2_s.pop_back();
     } else {
-        // update the subsystem indices
-        if (delta != 0) {
-            std::vector<unsigned int> &c1_s = copy1_subsystem_indices[particle1->species];
-            std::vector<unsigned int> &c2_s = copy2_subsystem_indices[particle2->species];
-            if (delta == 1) {
-                c1_s.push_back(particle1->index);
-                pairing_index1 = c1_s.size() - 1;
-                c2_s.push_back(particle2->index);
-                pairing_index2 = c2_s.size() - 1;
-            } else {
-                BOOST_ASSERT(delta == -1);
-                c1_s[pairing_index1] = c1_s[c1_s.size() - 1];
-                c1_s.pop_back();
-                c2_s[pairing_index2] = c2_s[c2_s.size() - 1];
-                c2_s.pop_back();
-            }
-        }
-
-        BOOST_ASSERT(subsystem_particle_counts_match());
+        BOOST_ASSERT(delta == 0 || delta == 1);
 
         // either both particles moved within their respective subsystems
         // (if they moved at all), or both entered the subsystem and paired
         // with each other immediately
-        BOOST_ASSERT(delta == 0 || delta == 1);
+
+        // update the subsystem indices if necessary
+        if (delta == 1) {
+            std::vector<unsigned int> &c1_s = copy1_subsystem_indices[particle1->species];
+            std::vector<unsigned int> &c2_s = copy2_subsystem_indices[particle2->species];
+            c1_s.push_back(particle1->index);
+            pairing_index1 = c1_s.size() - 1;
+            c2_s.push_back(particle2->index);
+            pairing_index2 = c2_s.size() - 1;
+        }
+
+        BOOST_ASSERT(subsystem_particle_counts_match());
 
         // update the phibeta's, performing copy-on-write
         if (particle1) {

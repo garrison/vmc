@@ -92,8 +92,8 @@ public:
      * Call this function to swap two columns in the matrix.  As a result, the
      * determinant will change sign.
      *
-     * @param r1 Index of one column to be swapped
-     * @param r2 Index of the column to the swapped with
+     * @param c1 Index of one column to be swapped
+     * @param c2 Index of the column to the swapped with
      */
     void swap_columns (unsigned int c1, unsigned int c2)
         {

@@ -82,10 +82,9 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         const bool candidate_particle_B_subsystem_status = (copy_A_subsystem_particle_change == -1);
 
         // determine reverse/forward transition attempt probability ratios
-        BOOST_ASSERT(swapped_system->get_N_subsystem1(species) == swapped_system->get_N_subsystem2(species));
         const unsigned int N_sites = r_A.get_N_sites();
         const unsigned int N_filled = r_A.get_N_filled(species);
-        const unsigned int N_within_subsystem = swapped_system->get_N_subsystem1(species);
+        const unsigned int N_within_subsystem = swapped_system->get_N_subsystem(species);
         const unsigned int N_outside_subsystem = N_filled - N_within_subsystem;
         const unsigned int N_vacant_within_subsystem = N_subsystem_sites - N_within_subsystem;
         const unsigned int N_vacant_outside_subsystem = (N_sites - N_filled) - N_vacant_within_subsystem;

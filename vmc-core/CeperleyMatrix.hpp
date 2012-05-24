@@ -88,7 +88,8 @@ public:
             BOOST_ASSERT(r1 != r2);
 
             mat.row(r1).swap(mat.row(r2));
-            invmat.col(r1).swap(invmat.col(r2));
+            if (nullity_lower_bound == 0)
+                invmat.col(r1).swap(invmat.col(r2));
 
             det = -det;
             // NOTE: we don't need to update detrat because it is only relevant
@@ -110,7 +111,8 @@ public:
             BOOST_ASSERT(c1 != c2);
 
             mat.col(c1).swap(mat.col(c2));
-            invmat.row(c1).swap(invmat.row(c2));
+            if (nullity_lower_bound == 0)
+                invmat.row(c1).swap(invmat.row(c2));
 
             det = -det;
             // NOTE: we don't need to update detrat because it is only relevant

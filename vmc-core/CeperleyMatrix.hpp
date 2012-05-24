@@ -421,11 +421,13 @@ private:
                 det = lu_decomposition.determinant();
                 (update_in_progress ? new_invmat : invmat) = lu_decomposition.inverse();
 
+#ifndef DISABLE_CEPERLEY_MATRIX_INVERSE_CHECK
                 // if there is significant inverse error it probably means our
                 // orbitals are not linearly independent!
-                double inverse_error = compute_inverse_matrix_error(update_in_progress ? new_invmat : invmat);
+                const double inverse_error = compute_inverse_matrix_error(update_in_progress ? new_invmat : invmat);
                 if (inverse_error > .0001)
                     std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
+#endif
             }
 
             inverse_recalculated_for_current_update = update_in_progress;

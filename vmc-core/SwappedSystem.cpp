@@ -19,13 +19,13 @@ SwappedSystem::SwappedSystem (const boost::shared_ptr<const Subsystem> &subsyste
     : subsystem(subsystem_),
       phibeta1_dirty(false),
       phibeta2_dirty(false),
-      next_step(INITIALIZE)
+      current_state(UNINITIALIZED)
 {
 }
 
 void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
 {
-    BOOST_ASSERT(next_step == INITIALIZE);
+    BOOST_ASSERT(current_state == UNINITIALIZED);
 
     const PositionArguments &r1 = phialpha1.get_positions();
     const PositionArguments &r2 = phialpha2.get_positions();
@@ -62,15 +62,15 @@ void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const Wa
     BOOST_ASSERT(subsystem_particle_counts_match());
     reinitialize_phibetas(phialpha1, phialpha2);
 
-    next_step = UPDATE;
+    current_state = READY;
 }
 
 void SwappedSystem::update (const Particle *particle1, const Particle *particle2, const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
 {
     // this function should be called *after* the phialpha's have been updated
 
-    BOOST_ASSERT(next_step == UPDATE);
-    next_step = FINISH_UPDATE;
+    BOOST_ASSERT(current_state == READY);
+    current_state = UPDATE_IN_PROGRESS;
 
     const PositionArguments &r1 = phialpha1.get_positions();
     const PositionArguments &r2 = phialpha2.get_positions();
@@ -219,8 +219,8 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 
 void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
 {
-    BOOST_ASSERT(next_step == FINISH_UPDATE);
-    next_step = UPDATE;
+    BOOST_ASSERT(current_state == UPDATE_IN_PROGRESS);
+    current_state = READY;
 
     BOOST_ASSERT(subsystem_particle_counts_match());
 
@@ -244,8 +244,8 @@ void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const
 
 void SwappedSystem::cancel_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
 {
-    BOOST_ASSERT(next_step == FINISH_UPDATE);
-    next_step = UPDATE;
+    BOOST_ASSERT(current_state == UPDATE_IN_PROGRESS);
+    current_state = READY;
 
     BOOST_ASSERT(subsystem_particle_counts_match());
 

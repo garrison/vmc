@@ -66,14 +66,14 @@ public:
 
     const WavefunctionAmplitude & get_phibeta1 (void) const
         {
-            BOOST_ASSERT(next_step != INITIALIZE);
+            BOOST_ASSERT(current_state != UNINITIALIZED);
             BOOST_ASSERT(subsystem_particle_counts_match());
             return *phibeta1;
         }
 
     const WavefunctionAmplitude & get_phibeta2 (void) const
         {
-            BOOST_ASSERT(next_step != INITIALIZE);
+            BOOST_ASSERT(current_state != UNINITIALIZED);
             BOOST_ASSERT(subsystem_particle_counts_match());
             return *phibeta2;
         }
@@ -110,11 +110,11 @@ private:
     int recent_delta;
     Particle recent_particle1, recent_particle2;
 
-    enum NextStep {
-        INITIALIZE,
-        UPDATE,
-        FINISH_UPDATE
-    } next_step;
+    enum State {
+        UNINITIALIZED,
+        READY,
+        UPDATE_IN_PROGRESS
+    } current_state;
 };
 
 /**

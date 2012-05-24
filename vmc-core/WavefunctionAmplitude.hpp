@@ -98,10 +98,8 @@ public:
      */
     void reset (const PositionArguments &r_)
         {
+            BOOST_ASSERT(!move_in_progress);
             reset_(r_);
-#ifndef BOOST_DISABLE_ASSERTS
-            move_in_progress = false;
-#endif
         }
 
     /**

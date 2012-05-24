@@ -104,7 +104,7 @@ private:
     boost::shared_ptr<WavefunctionAmplitude> phibeta1, phibeta2; // copy on write
     const boost::shared_ptr<const Subsystem> subsystem;
     std::vector<std::vector<unsigned int> > copy1_subsystem_indices, copy2_subsystem_indices;
-    bool phibeta1_dirty, phibeta2_dirty; // helps save time on RenyiSign calculation
+    bool phibeta1_dirty, phibeta2_dirty;
 
     // we remember these things for when we need to cancel an update
     int recent_delta;

@@ -22,6 +22,7 @@ private:
     const boost::shared_ptr<const OrbitalDefinitions> m_orbital_d1, m_orbital_d2, m_orbital_f_up, m_orbital_f_down;
     const real_t m_d1_exponent, m_d2_exponent, m_f_up_exponent, m_f_down_exponent;
     bool m_particle_moved_is_up;
+    bool m_gutzwiller_rejection_in_progress;
 
 public:
     DMetalWavefunctionAmplitude (const PositionArguments &r_,

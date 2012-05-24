@@ -47,6 +47,13 @@ void DBLWavefunctionAmplitude::finish_move_ (void)
     cmat2.finish_column_update();
 }
 
+void DBLWavefunctionAmplitude::cancel_move_ (Particle particle, unsigned int old_site_index)
+{
+    r.update_position(particle, old_site_index);
+    cmat1.cancel_column_update();
+    cmat2.cancel_column_update();
+}
+
 void DBLWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     (void) species; // will always be 0

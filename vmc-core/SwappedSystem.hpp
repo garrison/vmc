@@ -54,6 +54,11 @@ public:
      */
     void finish_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
 
+    /**
+     * Cancel the update of the phibetas
+     */
+    void cancel_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2);
+
     const Subsystem & get_subsystem (void) const
         {
             return *subsystem;
@@ -100,6 +105,10 @@ private:
     const boost::shared_ptr<const Subsystem> subsystem;
     std::vector<std::vector<unsigned int> > copy1_subsystem_indices, copy2_subsystem_indices;
     bool phibeta1_dirty, phibeta2_dirty; // helps save time on RenyiSign calculation
+
+    // we remember these things for when we need to cancel an update
+    int recent_delta;
+    Particle recent_particle1, recent_particle2;
 
     enum NextStep {
         INITIALIZE,

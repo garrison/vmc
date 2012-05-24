@@ -34,11 +34,17 @@ public:
             BOOST_ASSERT(!move_in_progress);
             BOOST_ASSERT(r.particle_is_valid(particle));
             BOOST_ASSERT(!r.is_occupied(new_site_index, particle.species) || r[particle] == new_site_index);
+
+            current_move_particle = particle;
+            current_move_old_site_index = r[particle];
+
 #if defined(DEBUG_VMC_WAVEFUNCTION_AMPLITUDE) || defined(DEBUG_VMC_ALL)
             if (r[particle] == new_site_index)
                 std::cerr << "performing a no-op particle move" << std::endl;
 #endif
+
             perform_move_(particle, new_site_index);
+
 #ifndef BOOST_DISABLE_ASSERTS
             move_in_progress = true;
 #endif
@@ -59,6 +65,18 @@ public:
         {
             BOOST_ASSERT(move_in_progress);
             finish_move_();
+#ifndef BOOST_DISABLE_ASSERTS
+            move_in_progress = false;
+#endif
+        }
+
+    /**
+     * Cancels the current move, such that new moves are allowed
+     */
+    void cancel_move (void)
+        {
+            BOOST_ASSERT(move_in_progress);
+            cancel_move_(current_move_particle, current_move_old_site_index);
 #ifndef BOOST_DISABLE_ASSERTS
             move_in_progress = false;
 #endif
@@ -118,11 +136,23 @@ public:
     virtual void reset_with_filler (const RandomFiller &filler, rng_class &rng);
 
 private:
+    /**
+     * This method is responsible for updating the PositionArguments "r" as
+     * well as updating the state of the object such that psi_() returns the
+     * new amplitude.
+     */
     virtual void perform_move_ (Particle particle, unsigned int new_site_index) = 0;
 
     virtual amplitude_t psi_ (void) const = 0;
 
     virtual void finish_move_ (void) = 0;
+
+    /**
+     * This method is responsible for returning the particle (in the
+     * PositionArguments "r") to its original position, as well as restoring
+     * the state of everything to the way it was before.
+     */
+    virtual void cancel_move_ (Particle particle, unsigned int old_site_index) = 0;
 
     // this gets called *after* the particles have been updated in this->r
     virtual void swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species) = 0;
@@ -142,6 +172,10 @@ protected:
         }
 
     PositionArguments r;
+
+    // we remember these things for when we want to cancel a move
+    Particle current_move_particle;
+    unsigned int current_move_old_site_index;
 
     const boost::shared_ptr<const Lattice> lattice;
 

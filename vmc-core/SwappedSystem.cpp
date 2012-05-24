@@ -114,6 +114,13 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
     // changing
     BOOST_ASSERT(delta != 0 || !(particle1 && particle2));
 
+    // remember a few things in case we need to cancel
+    recent_delta = delta;
+    if (particle1)
+        recent_particle1 = *particle1;
+    if (particle2)
+        recent_particle2 = *particle2;
+
     if (delta == -1) {
         // if a particle of the same type leaves each subsystem simultaneously,
         // we need to use some special logic in case we have to re-pair the
@@ -226,6 +233,47 @@ void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const
         phibeta2->finish_move();
     }
     phibeta2_dirty = false;
+
+#ifdef CAREFUL
+    verify_phibetas(phialpha1, phialpha2);
+#else
+    (void) phialpha1;
+    (void) phialpha2;
+#endif
+}
+
+void SwappedSystem::cancel_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
+{
+    BOOST_ASSERT(next_step == FINISH_UPDATE);
+    next_step = UPDATE;
+
+    BOOST_ASSERT(subsystem_particle_counts_match());
+
+    if (phibeta1_dirty)
+        phibeta1->cancel_move();
+    phibeta1_dirty = false;
+
+    if (phibeta2_dirty)
+        phibeta2->cancel_move();
+    phibeta2_dirty = false;
+
+    if (recent_delta != 0) {
+        // we must revert our changes to copy[1|2]_subsystem_indices
+        BOOST_ASSERT(recent_particle1.species == recent_particle2.species);
+        const unsigned int species = recent_particle1.species;
+        if (recent_delta == 1) {
+            // the particles paired with each other immediately, so we get rid
+            // of them from the subsystem_indices
+            copy1_subsystem_indices[species].pop_back();
+            copy2_subsystem_indices[species].pop_back();
+        } else {
+            BOOST_ASSERT(recent_delta == -1);
+            // we must re-pair the particles since they returned to the
+            // subsystem
+            copy1_subsystem_indices[species].push_back(recent_particle1.index);
+            copy2_subsystem_indices[species].push_back(recent_particle2.index);
+        }
+    }
 
 #ifdef CAREFUL
     verify_phibetas(phialpha1, phialpha2);

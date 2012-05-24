@@ -16,6 +16,7 @@ BaseSwapPossibleWalk::BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction
       swapped_system(new SwappedSystem(subsystem)),
       N_subsystem_sites(count_subsystem_sites(*subsystem, phialpha1->get_lattice())),
       update_swapped_system_before_accepting(update_swapped_system_before_accepting_),
+      autoreject_in_progress(false),
       transition_in_progress(false)
 {
 #ifndef BOOST_DISABLE_ASSERTS
@@ -102,8 +103,10 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
             reverse_particle_possibilities = N_outside_subsystem + 1;
             reverse_vacant_possibilities = N_vacant_within_subsystem + 1;
         }
-        if (forward_particle_possibilities == 0 || forward_vacant_possibilities == 0)
+        if (forward_particle_possibilities == 0 || forward_vacant_possibilities == 0) {
+            autoreject_in_progress = true;
             return 0;
+        }
         transition_ratio = real_t(forward_particle_possibilities * forward_vacant_possibilities) / real_t(reverse_particle_possibilities * reverse_vacant_possibilities);
 
         // choose a particle from B with the same subsystem status as the
@@ -181,6 +184,11 @@ void BaseSwapPossibleWalk::accept_transition (void)
     BOOST_ASSERT(transition_in_progress);
     transition_in_progress = false;
 
+    if (autoreject_in_progress) {
+        autoreject_in_progress = false;
+        return;
+    }
+
     if (!update_swapped_system_before_accepting) {
         // implement copy-on-write
         if (!swapped_system.unique())
@@ -220,4 +228,33 @@ void BaseSwapPossibleWalk::accept_transition (void)
 
     BOOST_ASSERT(swapped_system.unique());
     swapped_system->finish_update(*phialpha1, *phialpha2);
+}
+
+void BaseSwapPossibleWalk::reject_transition (void)
+{
+    BOOST_ASSERT(transition_in_progress);
+    transition_in_progress = false;
+
+    if (autoreject_in_progress) {
+        autoreject_in_progress = false;
+        return;
+    }
+
+    // as usual, we modify (restore, in this case) the phialpha's before
+    // telling the swapped_system to restore itself
+    if (chosen_particle1) {
+        BOOST_ASSERT(phialpha1.unique());
+        phialpha1->cancel_move();
+    }
+    if (chosen_particle2) {
+        BOOST_ASSERT(phialpha2.unique());
+        phialpha2->cancel_move();
+    }
+
+    if (update_swapped_system_before_accepting) {
+        // ensure copy-on-write was implemented
+        BOOST_ASSERT(swapped_system.unique());
+        // cancel the phibeta updates
+        swapped_system->cancel_update(*phialpha1, *phialpha2);
+    }
 }

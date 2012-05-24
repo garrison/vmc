@@ -41,6 +41,8 @@ private:
 
     void finish_move_ (void);
 
+    void cancel_move_ (Particle particle, unsigned int old_site_index);
+
     void swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species);
 
     void reset_ (const PositionArguments &r_);

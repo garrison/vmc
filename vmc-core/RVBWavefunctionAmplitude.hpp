@@ -12,7 +12,11 @@
 class RVBWavefunctionAmplitude : public WavefunctionAmplitude
 {
 private:
-    CeperleyMatrix<amplitude_t> m_cmat;
+    // Because we don't yet have a way of doing row-column updates in a single
+    // step, on each step we copy m_cmat to m_new_cmat, update it twice, and
+    // copy it back if we choose to accept the move.
+    bool m_update_in_progress;
+    CeperleyMatrix<amplitude_t> m_cmat, m_new_cmat;
     const std::vector<complex_t> m_phi;
 
 public:
@@ -24,6 +28,8 @@ private:
     amplitude_t psi_ (void) const;
 
     void finish_move_ (void);
+
+    void cancel_move_ (Particle particle, unsigned int old_site_index);
 
     void swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species);
 

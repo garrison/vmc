@@ -83,6 +83,11 @@ private:
 
             current_step_green_accum.setZero();
 
+            // fixme: the only reason we perform a clone here is because we
+            // aren't allowed to write to the original wavefunction.  but there
+            // is no legitimate reason that a clone is necessary.
+            boost::shared_ptr<WavefunctionAmplitude> wf_operated = wf.clone();
+
             // loop through all (particle, empty site) pairs
             for (unsigned int i = 0; i < r.get_N_filled(species); ++i) {
                 const Particle particle(i, species);
@@ -96,13 +101,14 @@ private:
                     if (r.is_occupied(j, species))
                         continue;
 
-                    boost::shared_ptr<WavefunctionAmplitude> wf_operated = wf.clone();
                     wf_operated->perform_move(particle, j);
 
                     typename NDLattice<DIM>::Site site_j(lattice->site_from_index(j));
                     phase_t phase = lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
                     // fixme: check logic of multiplying by phase
                     current_step_green_accum(site_i.basis_index, lattice->site_to_index(site_j)) += std::conj(wf_operated->psi() * phase / wf.psi());
+
+                    wf_operated->cancel_move();
                 }
             }
 

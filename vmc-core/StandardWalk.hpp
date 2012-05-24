@@ -28,10 +28,16 @@ public:
     probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
 
     /**
-     * Perform any work necessary to accept a transition; this includes getting
-     * the walk object into a state such that new transitions can be attempted.
+     * Accept the transition, and get the walk object into a state such that
+     * new transitions can be attempted.
      */
     void accept_transition (void);
+
+    /**
+     * Reject the transition, and get the walk object into a state such that
+     * new transitions can be attempted.
+     */
+    void reject_transition (void);
 
     /**
      * Returns the current wavefunction
@@ -43,6 +49,7 @@ public:
 
 private:
     boost::shared_ptr<WavefunctionAmplitude> wf; // treat this as copy on write
+    bool autoreject_in_progress;
 
 #ifndef BOOST_DISABLE_ASSERTS
     bool transition_in_progress;

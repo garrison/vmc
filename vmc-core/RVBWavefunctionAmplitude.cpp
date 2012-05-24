@@ -10,6 +10,7 @@
 
 RVBWavefunctionAmplitude::RVBWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi)
     : WavefunctionAmplitude(r_, lattice_),
+      m_update_in_progress(false),
       m_phi(phi)
 {    
     reinitialize();
@@ -51,8 +52,11 @@ void RVBWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int ne
         new_row[i] = m_phi[nd_lattice->site_to_index(rup_minus_rdown)];
     }
 
-    m_cmat.update_row(moved_up_particle_index, new_row);
-    m_cmat.finish_row_update();
+    m_update_in_progress = true;
+    m_new_cmat = m_cmat;
+
+    m_new_cmat.update_row(moved_up_particle_index, new_row);
+    m_new_cmat.finish_row_update();
     
     Eigen::Matrix<complex_t, Eigen::Dynamic, 1> new_col(M);
     const std::vector<unsigned int> & up_pos = r.r_vector(0);
@@ -62,17 +66,30 @@ void RVBWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int ne
         new_col[i] = m_phi[nd_lattice->site_to_index(rup_minus_rdown)];
     }
 
-    m_cmat.update_column(moved_down_particle_index, new_col);
+    m_new_cmat.update_column(moved_down_particle_index, new_col);
 }
 
 amplitude_t RVBWavefunctionAmplitude::psi_ (void) const
 {
-    return m_cmat.get_determinant();
+    return (m_update_in_progress ? m_new_cmat : m_cmat).get_determinant();
 }
 
 void RVBWavefunctionAmplitude::finish_move_ (void)
 {
-    m_cmat.finish_column_update();
+    m_new_cmat.finish_column_update();
+    m_cmat = m_new_cmat;
+    m_update_in_progress = false;
+}
+
+void RVBWavefunctionAmplitude::cancel_move_ (Particle particle, unsigned int old_site_index)
+{
+    unsigned int other_species = particle.species ^ 1;
+    const int other_particle_index = r.particle_index_at_pos(old_site_index, other_species);
+    BOOST_ASSERT(other_particle_index >= 0);
+    r.update_position(Particle(other_particle_index, other_species), r[particle]);
+    r.update_position(particle, old_site_index);
+
+    m_update_in_progress = false;
 }
 
 void RVBWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)

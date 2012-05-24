@@ -28,8 +28,10 @@ public:
      * particles in the subsystem.
      */
     BaseSwapPossibleWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const boost::shared_ptr<WavefunctionAmplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem, bool update_swapped_system_before_accepting_=true);
+
     probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
     void accept_transition (void);
+    void reject_transition (void);
 
     const WavefunctionAmplitude & get_phialpha1 (void) const
         {
@@ -62,6 +64,7 @@ private:
     const Particle *chosen_particle1, *chosen_particle2;
     unsigned int N_subsystem_sites; // remains constant after initialization
     bool update_swapped_system_before_accepting; // remains constant after initialization
+    bool autoreject_in_progress;
     bool transition_in_progress;
 };
 

@@ -42,15 +42,11 @@ public:
      *
      * @param seed random seed
      *
-     * The Walk_T type must define two methods:
+     * The Walk_T type must define three methods:
      *
      * * probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
      * * void accept_transition ();
-     *
-     * Currently, we copy the walk object in full before attempting any
-     * transition.  If the transition is rejected, we simply resume from the
-     * old walk object.  This may not be the most efficient method, but it is
-     * very general and there is little risk of it working incorrectly.
+     * * void reject_transition ();
      *
      * @see StandardWalk for an example walk
      */
@@ -180,9 +176,7 @@ private:
 
     bool perform_single_step (void)
         {
-            Walk_T proposed_step(walk);
-
-            probability_t probability_ratio = proposed_step.compute_probability_ratio_of_random_transition(rng);
+            probability_t probability_ratio = walk.compute_probability_ratio_of_random_transition(rng);
             ++m_steps;
 #if 1
             if (!(probability_ratio >= 0))
@@ -194,16 +188,17 @@ private:
 #if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
                 std::cerr << "A" << std::endl;
 #endif
-                proposed_step.accept_transition();
-                walk = proposed_step;
+                walk.accept_transition();
                 ++m_steps_accepted;
                 return true;
             } else {
-                if (probability_ratio == 0)
-                    ++m_steps_fully_rejected;
+                // reject transition
 #if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
                 std::cerr << "-" << std::endl;
 #endif
+                walk.reject_transition();
+                if (probability_ratio == 0)
+                    ++m_steps_fully_rejected;
                 return false;
             }
         }

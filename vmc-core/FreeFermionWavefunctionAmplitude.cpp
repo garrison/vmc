@@ -35,6 +35,13 @@ void FreeFermionWavefunctionAmplitude::finish_move_ (void)
     cmat.finish_column_update();
 }
 
+void FreeFermionWavefunctionAmplitude::cancel_move_ (Particle particle, unsigned int old_site_index)
+{
+    r.update_position(particle, old_site_index);
+
+    cmat.cancel_column_update();
+}
+
 void FreeFermionWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     (void) species; // will always be zero

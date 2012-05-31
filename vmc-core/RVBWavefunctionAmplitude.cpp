@@ -5,7 +5,6 @@
 #include <boost/make_shared.hpp>
 #include <boost/cast.hpp>
 
-#include "NDLattice.hpp"
 #include "RVBWavefunctionAmplitude.hpp"
 
 RVBWavefunctionAmplitude::RVBWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi)

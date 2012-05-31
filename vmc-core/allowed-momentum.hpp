@@ -7,7 +7,7 @@
 #include <boost/assert.hpp>
 #include <boost/rational.hpp>
 
-#include "NDLattice.hpp"
+#include "Lattice.hpp"
 #include "vmc-math-utils.hpp"
 
 // returns things in terms of the primitive vectors of the reciprocal lattice

@@ -9,7 +9,7 @@
 #include <boost/math/constants/constants.hpp>
 
 #include "vmc-typedefs.hpp"
-#include "NDLattice.hpp"
+#include "Lattice.hpp"
 #include "vmc-math-utils.hpp"
 
 // this class currently assumes a bravais lattice.  if it's not a bravais

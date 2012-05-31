@@ -34,7 +34,6 @@ HEADER_FILES = \
                lowest-momenta.hpp \
                Measurement.hpp \
                MetropolisSimulation.hpp \
-               NDLattice.hpp \
                OrbitalDefinitions.hpp \
                PositionArguments.hpp \
                random-combination.hpp \

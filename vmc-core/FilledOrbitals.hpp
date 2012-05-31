@@ -11,7 +11,7 @@
 #include <boost/rational.hpp>
 #include <boost/math/constants/constants.hpp>
 
-#include "NDLattice.hpp"
+#include "Lattice.hpp"
 #include "OrbitalDefinitions.hpp"
 #include "allowed-momentum.hpp"
 

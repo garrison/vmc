@@ -20,7 +20,7 @@
 #include <boost/make_shared.hpp>
 #include <Eigen/Dense>
 
-#include "NDLattice.hpp"
+#include "Lattice.hpp"
 #include "random-filling.hpp"
 #include "PositionArguments.hpp"
 #include "OrbitalDefinitions.hpp"

@@ -9,7 +9,7 @@
 #include <boost/random/uniform_smallint.hpp>
 #include <boost/random/variate_generator.hpp>
 
-#include "NDLattice.hpp"
+#include "Lattice.hpp"
 #include "vmc-typedefs.hpp"
 #include "random-combination.hpp"
 #include "RandomFiller.hpp"

@@ -5,7 +5,7 @@
 #include <boost/assert.hpp>
 
 #include "Subsystem.hpp"
-#include "NDLattice.hpp"
+#include "Lattice.hpp"
 
 /**
  * Represents any subsystem that is a parallelpiped aligned with the lattice's

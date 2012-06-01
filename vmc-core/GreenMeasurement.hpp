@@ -3,7 +3,6 @@
 
 #include <Eigen/Core>
 #include <boost/assert.hpp>
-#include <boost/cast.hpp>
 
 #include "Measurement.hpp"
 #include "StandardWalk.hpp"
@@ -62,7 +61,7 @@ private:
         {
             const unsigned int total_sites = walk.get_wavefunction().get_lattice().total_sites();
             BOOST_ASSERT(total_sites > 0);
-            const NDLattice<DIM> *lattice = boost::polymorphic_downcast<const NDLattice<DIM>*>(&walk.get_wavefunction().get_lattice());
+            const Lattice *lattice = &walk.get_wavefunction().get_lattice();
 
             const unsigned int basis_indices = lattice->basis_indices;
             green_accum.setZero(basis_indices, total_sites);
@@ -78,7 +77,7 @@ private:
         {
             const WavefunctionAmplitude &wf = walk.get_wavefunction();
             const PositionArguments &r = wf.get_positions();
-            const NDLattice<DIM> *lattice = boost::polymorphic_downcast<const NDLattice<DIM>*>(&wf.get_lattice());
+            const Lattice *lattice = &wf.get_lattice();
 
             current_step_green_accum.setZero();
 
@@ -90,7 +89,7 @@ private:
             // loop through all (particle, empty site) pairs
             for (unsigned int i = 0; i < r.get_N_filled(species); ++i) {
                 const Particle particle(i, species);
-                const typename NDLattice<DIM>::Site site_i(lattice->site_from_index(r[particle]));
+                const LatticeSite site_i(lattice->site_from_index(r[particle]));
 
                 // amplitude of starting and ending on same site
                 current_step_green_accum(site_i.basis_index, 0) += amplitude_t(1);
@@ -102,7 +101,7 @@ private:
 
                     wf_operated->perform_move(particle, j);
 
-                    typename NDLattice<DIM>::Site site_j(lattice->site_from_index(j));
+                    LatticeSite site_j(lattice->site_from_index(j));
                     phase_t phase = lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
                     // fixme: check logic of multiplying by phase
                     current_step_green_accum(site_i.basis_index, lattice->site_to_index(site_j)) += std::conj(wf_operated->psi() * phase / wf.psi());

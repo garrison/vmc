@@ -26,7 +26,7 @@
  * e.g. want to fill the M lowest momenta.
  */
 template<std::size_t DIM>
-class LatticeRealization : public NDLattice<DIM>
+class LatticeRealization : public Lattice
 {
 public:
     /**
@@ -41,11 +41,12 @@ public:
      * \f$\vec{a}_i\f$ are the direct lattice primitive vectors and
      * \f$\vec{b}_j\f$ are the reciprocal lattice primitive vectors
      */
-    LatticeRealization (const boost::array<int, DIM> &length_, const boost::array<boost::array<real_position_t, DIM>, DIM> &primitive_vectors_, const boost::array<boost::array<real_position_t, DIM>, DIM> &reciprocal_primitive_vectors_)
-        : NDLattice<DIM>(length_, 1),
+    LatticeRealization (const lw_vector<int, MAX_DIMENSION> &length_, const boost::array<boost::array<real_position_t, DIM>, DIM> &primitive_vectors_, const boost::array<boost::array<real_position_t, DIM>, DIM> &reciprocal_primitive_vectors_)
+        : Lattice(length_, 1),
           primitive_vectors(primitive_vectors_),
           reciprocal_primitive_vectors(reciprocal_primitive_vectors_)
         {
+            BOOST_ASSERT(length_.size() == DIM);
 #ifndef BOOST_DISABLE_ASSERTS
             // check that reciprocal and primitive vectors make sense wrt orthogonality condition
             const real_position_t two_pi = 2 * boost::math::constants::pi<real_position_t>();
@@ -66,8 +67,9 @@ public:
      *
      * FIXME: currently this works only for hypercubic lattices
      */
-    void map_momentum_to_brillouin_zone (boost::array<boost::rational<int>, DIM> &momentum) const
+    void map_momentum_to_brillouin_zone (lw_vector<boost::rational<int>, MAX_DIMENSION> &momentum) const
         {
+            BOOST_ASSERT(momentum.size() == DIM);
             // first, get everything in interval [-1/2, 1/2)
             for (unsigned int i = 0; i < DIM; ++i) {
                 int numerator = momentum[i].numerator(), denominator = momentum[i].denominator();

@@ -32,6 +32,7 @@ HEADER_FILES = \
                Lattice.hpp \
                LatticeRealization.hpp \
                lowest-momenta.hpp \
+               lw_vector.hpp \
                Measurement.hpp \
                MetropolisSimulation.hpp \
                OrbitalDefinitions.hpp \
@@ -61,6 +62,7 @@ SOURCES = \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \
           FreeFermionWavefunctionAmplitude.cpp \
+          Lattice.cpp \
           PositionArguments.cpp \
           random-combination.cpp \
           random-move.cpp \

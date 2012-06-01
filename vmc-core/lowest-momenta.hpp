@@ -16,17 +16,19 @@ template<std::size_t DIM>
 class _MomentaSortFunctionObject
 {
 public:
-    bool operator() (const std::pair<boost::array<int, DIM>, real_position_t> &v1,
-                     const std::pair<boost::array<int, DIM>, real_position_t> &v2) const
+    bool operator() (const std::pair<lw_vector<int, MAX_DIMENSION>, real_position_t> &v1,
+                     const std::pair<lw_vector<int, MAX_DIMENSION>, real_position_t> &v2) const
         {
+            BOOST_ASSERT(v1.first.size() == v2.first.size());
             return (v1.second < v2.second);
         }
 };
 
 template<std::size_t DIM>
-real_position_t _euclidean_norm (const boost::array<boost::rational<int>, DIM> coords, const boost::array<boost::array<real_position_t, DIM>, DIM> &primitive_vectors)
+real_position_t _euclidean_norm (const lw_vector<boost::rational<int>, MAX_DIMENSION> coords, const boost::array<boost::array<real_position_t, DIM>, DIM> &primitive_vectors)
 {
     // returns distance squared, just like std::norm() does
+    BOOST_ASSERT(coords.size() == DIM);
     real_position_t rv = 0;
     // loop over each dimension
     for (unsigned int i = 0; i < DIM; ++i) {
@@ -42,14 +44,14 @@ real_position_t _euclidean_norm (const boost::array<boost::rational<int>, DIM> c
 }
 
 template<std::size_t DIM>
-std::vector<boost::array<int, DIM> > lowest_momenta (const LatticeRealization<DIM> &lattice, const typename NDLattice<DIM>::BoundaryConditions &bcs, unsigned int count)
+std::vector<lw_vector<int, MAX_DIMENSION> > lowest_momenta (const LatticeRealization<DIM> &lattice, const BoundaryConditions &bcs, unsigned int count)
 {
-    std::vector<std::pair<boost::array<int, DIM>, real_position_t> > pairs;
+    std::vector<std::pair<lw_vector<int, MAX_DIMENSION>, real_position_t> > pairs;
     //pairs.reserve(number of primitive cells) // (fixme)
 
     // loop over all momentum sites (yes, it really is this complicated)
-    boost::array<int, DIM> momentum_site;
-    momentum_site.assign(0);
+    lw_vector<int, MAX_DIMENSION> momentum_site;
+    momentum_site.resize(DIM, 0);
     int not_done = 0;
     boost::array<int*, DIM> overflow_target;
     for (unsigned int i = 0; i < DIM - 1; ++i)
@@ -65,7 +67,7 @@ std::vector<boost::array<int, DIM> > lowest_momenta (const LatticeRealization<DI
         // actual inner loop (what we're trying to accomplish)
         {
             // determine the norm of the momentum at the site, and save it away (in `pairs`)
-            boost::array<boost::rational<int>, DIM> momentum(allowed_momentum(momentum_site, lattice, bcs));
+            lw_vector<boost::rational<int>, MAX_DIMENSION> momentum(allowed_momentum<DIM>(momentum_site, lattice, bcs));
             lattice.map_momentum_to_brillouin_zone(momentum);
             const real_position_t euc_norm = _euclidean_norm(momentum, lattice.reciprocal_primitive_vectors);
             pairs.push_back(std::make_pair(momentum_site, euc_norm));
@@ -77,7 +79,7 @@ std::vector<boost::array<int, DIM> > lowest_momenta (const LatticeRealization<DI
         // move to next momentum site
         ++momentum_site[0];
         for (unsigned int i = 0; i < DIM; ++i) {
-            if (momentum_site[i] == lattice.length[i]) {
+            if (momentum_site[i] == lattice.dimensions[i]) {
                 momentum_site[i] = 0;
                 ++(*overflow_target[i]);
             } else {
@@ -90,7 +92,7 @@ std::vector<boost::array<int, DIM> > lowest_momenta (const LatticeRealization<DI
     std::nth_element(pairs.begin(), pairs.begin() + count, pairs.end(), _MomentaSortFunctionObject<DIM>());
 
     // construct the std::vector for returning
-    std::vector<boost::array<int, DIM> > rv;
+    std::vector<lw_vector<int, MAX_DIMENSION> > rv;
     rv.reserve(count);
     for (unsigned int i = 0; i < count; ++i)
         rv.push_back(pairs[i].first);

@@ -37,26 +37,26 @@ int main ()
     rng_class rng(seed);
 
     // set up a lattice
-    boost::array<int, DIMENSION> lattice_dimensions;
+    lw_vector<int, MAX_DIMENSION> lattice_dimensions(DIMENSION);
     for (unsigned int i = 0; i < DIMENSION; ++i)
         lattice_dimensions[i] = lattice_length;
     boost::shared_ptr<const HypercubicLattice<DIMENSION> > lattice(new HypercubicLattice<DIMENSION>(lattice_dimensions));
 
     // set up initial particle positions at random
     std::vector<std::vector<unsigned int> > vv;
-    vv.push_back(some_random_filling<DIMENSION>(F, *lattice, rng));
+    vv.push_back(some_random_filling(F, *lattice, rng));
     PositionArguments r(vv, lattice->total_sites());
 
     // set up the boundary conditions and orbitals.  this will give a DBL with
     // identical fermi seas.
-    HypercubicLattice<DIMENSION>::BoundaryConditions boundary_conditions;
+    BoundaryConditions boundary_conditions(DIMENSION);
     for (unsigned int i = 0; i < DIMENSION; ++i)
         boundary_conditions[i] = periodic_bc;
     boost::shared_ptr<const OrbitalDefinitions> orbitals(new FilledOrbitals<DIMENSION>(lowest_momenta(*lattice, boundary_conditions, F), lattice, boundary_conditions));
     boost::shared_ptr<WavefunctionAmplitude> wf(new DBLWavefunctionAmplitude(r, orbitals, orbitals, 1.0, 1.0));
 
     // try different initial particle positions until a non-zero amplitude is found
-    const bool success = search_for_filling_with_nonzero_amplitude<DIMENSION>(*wf, *lattice, rng);
+    const bool success = search_for_filling_with_nonzero_amplitude(*wf, *lattice, rng);
     if (!success) {
         std::cerr << "could not find filling with non-zero amplitude in a reasonable amount of time" << std::endl;
         return 1;
@@ -68,7 +68,10 @@ int main ()
     boost::shared_ptr<DensityDensityMeasurement<DIMENSION> > density_measurement(new DensityDensityMeasurement<DIMENSION>(1, 0, 0));
     MetropolisSimulation<StandardWalk> sim(walk, density_measurement, 5000, rng());
 
-    boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem<DIMENSION>(4));
+    lw_vector<unsigned int, MAX_DIMENSION> subsystem_length(DIMENSION);
+    for (unsigned int i = 0; i < DIMENSION; ++i)
+        subsystem_length[i] = 4;
+    boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem<DIMENSION>(subsystem_length));
     RenyiSignWalk sign_walk(wf, wf, subsystem);
     boost::shared_ptr<RenyiSignMeasurement> sign_measurement(new RenyiSignMeasurement);
     MetropolisSimulation<RenyiSignWalk> sign_sim(sign_walk, sign_measurement, 5000, rng());

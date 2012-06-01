@@ -3,7 +3,6 @@
 
 #include <Eigen/Core>
 #include <boost/assert.hpp>
-#include <boost/cast.hpp>
 
 #include "Measurement.hpp"
 #include "StandardWalk.hpp"
@@ -64,7 +63,7 @@ private:
         {
             const unsigned int total_sites = walk.get_wavefunction().get_lattice().total_sites();
             BOOST_ASSERT(total_sites > 0);
-            const NDLattice<DIM> *lattice = boost::polymorphic_downcast<const NDLattice<DIM>*>(&walk.get_wavefunction().get_lattice());
+            const Lattice *lattice = &walk.get_wavefunction().get_lattice();
 
             const unsigned int basis_indices = lattice->basis_indices;
             density_accum.setZero(basis_indices, total_sites);
@@ -86,15 +85,15 @@ private:
     void measure_ (const StandardWalk &walk)
         {
             const PositionArguments &r = walk.get_wavefunction().get_positions();
-            const NDLattice<DIM> *lattice = boost::polymorphic_downcast<const NDLattice<DIM>*>(&walk.get_wavefunction().get_lattice());
+            const Lattice *lattice = &walk.get_wavefunction().get_lattice();
 
             current_step_density_accum.setZero();
 
             // loop through all pairs of particles
             for (unsigned int i = 0; i < r.get_N_filled(species2); ++i) {
-                const typename NDLattice<DIM>::Site site_i(lattice->site_from_index(r[Particle(i, species2)]));
+                const LatticeSite site_i(lattice->site_from_index(r[Particle(i, species2)]));
                 for (unsigned int j = 0; j < r.get_N_filled(species1); ++j) {
-                    typename NDLattice<DIM>::Site site_j(lattice->site_from_index(r[Particle(j, species1)]));
+                    LatticeSite site_j(lattice->site_from_index(r[Particle(j, species1)]));
                     lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
                     ++current_step_density_accum(site_i.basis_index, lattice->site_to_index(site_j));
                 }

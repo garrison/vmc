@@ -3,7 +3,6 @@
 
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
-#include <boost/cast.hpp>
 
 #include "RVBWavefunctionAmplitude.hpp"
 
@@ -32,23 +31,21 @@ void RVBWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int ne
 
     r.update_position(other_particle, old_site_index);
 
-    const NDLattice<2> *nd_lattice = boost::polymorphic_downcast<const NDLattice<2> *>(&*lattice);
-
     const unsigned int M = r.get_N_filled(0);
     BOOST_ASSERT(M == r.get_N_filled(1));
 
     const unsigned int moved_up_particle_index = (particle.species == 0) ? particle.index : other_particle.index;
     const unsigned int moved_down_particle_index = (particle.species == 1) ? particle.index : other_particle.index;
 
-    const NDLattice<2>::Site new_site_for_up = nd_lattice->site_from_index(particle.species == 0 ? new_site_index : old_site_index);
-    const NDLattice<2>::Site new_site_for_down = nd_lattice->site_from_index(particle.species == 1 ? new_site_index : old_site_index);
+    const LatticeSite new_site_for_up(lattice->site_from_index(particle.species == 0 ? new_site_index : old_site_index));
+    const LatticeSite new_site_for_down(lattice->site_from_index(particle.species == 1 ? new_site_index : old_site_index));
 
     Eigen::Matrix<complex_t, Eigen::Dynamic, 1> new_row(M);
     const std::vector<unsigned int> & down_pos = r.r_vector(1);
     for (unsigned int i = 0; i < M; ++i) {
-        NDLattice<2>::Site rup_minus_rdown(new_site_for_up);
-        nd_lattice->asm_subtract_site_vector(rup_minus_rdown, nd_lattice->site_from_index(down_pos[i]).bravais_site());
-        new_row[i] = m_phi[nd_lattice->site_to_index(rup_minus_rdown)];
+        LatticeSite rup_minus_rdown(new_site_for_up);
+        lattice->asm_subtract_site_vector(rup_minus_rdown, lattice->site_from_index(down_pos[i]).bravais_site());
+        new_row[i] = m_phi[lattice->site_to_index(rup_minus_rdown)];
     }
 
     m_update_in_progress = true;
@@ -60,9 +57,9 @@ void RVBWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int ne
     Eigen::Matrix<complex_t, Eigen::Dynamic, 1> new_col(M);
     const std::vector<unsigned int> & up_pos = r.r_vector(0);
     for (unsigned int i = 0; i < M; ++i) {
-        NDLattice<2>::Site rup_minus_rdown(nd_lattice->site_from_index(up_pos[i]));
-        nd_lattice->asm_subtract_site_vector(rup_minus_rdown, new_site_for_down.bravais_site());
-        new_col[i] = m_phi[nd_lattice->site_to_index(rup_minus_rdown)];
+        LatticeSite rup_minus_rdown(lattice->site_from_index(up_pos[i]));
+        lattice->asm_subtract_site_vector(rup_minus_rdown, new_site_for_down.bravais_site());
+        new_col[i] = m_phi[lattice->site_to_index(rup_minus_rdown)];
     }
 
     m_new_cmat.update_column(moved_down_particle_index, new_col);
@@ -121,17 +118,15 @@ void RVBWavefunctionAmplitude::reinitialize (void)
 
     const unsigned int M = r.get_N_filled(0);
 
-    const NDLattice<2> *nd_lattice = boost::polymorphic_downcast<const NDLattice<2> *>(&*lattice);
-
     Eigen::Matrix<complex_t, Eigen::Dynamic, Eigen::Dynamic> mat_phi(M, M);
     const std::vector<unsigned int> & up_pos = r.r_vector(0);
     const std::vector<unsigned int> & down_pos = r.r_vector(1);
     for (unsigned int i = 0; i < M; ++i) {
-        const NDLattice<2>::Site rup(nd_lattice->site_from_index(up_pos[i]));
+        const LatticeSite rup(lattice->site_from_index(up_pos[i]));
         for (unsigned int j = 0; j < M; ++j) {
-            NDLattice<2>::Site rup_minus_rdown(rup);
-            nd_lattice->asm_subtract_site_vector(rup_minus_rdown, nd_lattice->site_from_index(down_pos[j]).bravais_site());
-            mat_phi(i, j) = m_phi[nd_lattice->site_to_index(rup_minus_rdown)];
+            LatticeSite rup_minus_rdown(rup);
+            lattice->asm_subtract_site_vector(rup_minus_rdown, lattice->site_from_index(down_pos[j]).bravais_site());
+            mat_phi(i, j) = m_phi[lattice->site_to_index(rup_minus_rdown)];
         }
     }
 

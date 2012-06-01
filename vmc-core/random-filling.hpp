@@ -23,10 +23,11 @@ static inline unsigned int random_small_uint (unsigned int min, unsigned int max
     return generator();
 }
 
-template <unsigned int DIM>
-std::vector<unsigned int> some_random_filling (unsigned int N_filled, const NDLattice<DIM> &lattice, rng_class &rng)
+std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Lattice &lattice, rng_class &rng)
 {
     BOOST_ASSERT(N_filled <= lattice.total_sites());
+
+    const unsigned int n_dimensions = lattice.n_dimensions();
 
     // If in more than one dimension, occasionally we want to try filling
     // particles such that they are distributed as well as possible over a
@@ -36,24 +37,24 @@ std::vector<unsigned int> some_random_filling (unsigned int N_filled, const NDLa
     //
     // This method could be further optimized, but it is fast enough for now
     // (and is unlikely to be the bottleneck anyway).
-    if (DIM > 1 && random_small_uint(0, 2, rng) == 0) {
+    if (n_dimensions > 1 && random_small_uint(0, 2, rng) == 0) {
         std::vector<unsigned int> v;
         std::set<unsigned int> vs;
-        unsigned int spread_dimension = random_small_uint(0, DIM - 1, rng);
+        unsigned int spread_dimension = random_small_uint(0, n_dimensions - 1, rng);
         unsigned int remaining = N_filled;
         while (remaining != 0) {
             std::vector<unsigned int> spread_coordinate;
             random_combination(spread_coordinate,
-                               std::min(remaining, (unsigned int) lattice.length[spread_dimension]),
-                               lattice.length[spread_dimension], rng);
+                               std::min(remaining, (unsigned int) lattice.dimensions[spread_dimension]),
+                               lattice.dimensions[spread_dimension], rng);
             for (unsigned int i = 0; i < spread_coordinate.size(); ++i) {
                 unsigned int proposed_site_index;
                 do {
-                    typename NDLattice<DIM>::Site proposed_site;
+                    LatticeSite proposed_site(lattice);
                     proposed_site[spread_dimension] = spread_coordinate[i];
-                    for (unsigned int j = 0; j < DIM; ++j) {
+                    for (unsigned int j = 0; j < n_dimensions; ++j) {
                         if (j != spread_dimension)
-                            proposed_site[j] = random_small_uint(0, lattice.length[j] - 1, rng);
+                            proposed_site[j] = random_small_uint(0, lattice.dimensions[j] - 1, rng);
                     }
                     proposed_site.basis_index = random_small_uint(0, lattice.basis_indices - 1, rng);
                     proposed_site_index = lattice.site_to_index(proposed_site);
@@ -76,28 +77,26 @@ std::vector<unsigned int> some_random_filling (unsigned int N_filled, const NDLa
  *
  * @see RandomFiller
  */
-template <unsigned int DIM>
 class NDRandomFiller : public RandomFiller
 {
 public:
-    NDRandomFiller (const NDLattice<DIM> &lattice_)
+    NDRandomFiller (const Lattice &lattice_)
         : lattice(lattice_)
         {
         }
 
     std::vector<unsigned int> some_random_filling (unsigned int N_filled, rng_class &rng) const
         {
-            return ::some_random_filling<DIM>(N_filled, lattice, rng);
+            return ::some_random_filling(N_filled, lattice, rng);
         }
 
 private:
-    const NDLattice<DIM> &lattice;
+    const Lattice &lattice;
 };
 
-template <unsigned int DIM>
-bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, const NDLattice<DIM> &lattice, rng_class &rng)
+bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, const Lattice &lattice, rng_class &rng)
 {
-    NDRandomFiller<DIM> filler(lattice);
+    NDRandomFiller filler(lattice);
     unsigned int attempts = 1; // assume that one attempt has already been completed
     while (wf.psi() == amplitude_t(0)) {
         if (attempts++ == 1000000)

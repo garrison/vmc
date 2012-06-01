@@ -23,7 +23,7 @@ public:
      *
      * @param a lattice spacing, defaults to 1
      */
-    HypercubicLattice (const boost::array<int, DIM> &length_, real_position_t a=1)
+    HypercubicLattice (const lw_vector<int, MAX_DIMENSION> &length_, real_position_t a=1)
         : LatticeRealization<DIM>(length_, generate_vectors(a), generate_vectors(2 * boost::math::constants::pi<real_position_t>() / a))
         {
         }

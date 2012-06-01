@@ -8,6 +8,7 @@
 #include <boost/rational.hpp>
 #include <boost/math/constants/constants.hpp>
 
+#include "lw_vector.hpp"
 #include "vmc-typedefs.hpp"
 
 // fixme: make this class not be inline?
@@ -116,6 +117,9 @@ private:
     boost::rational<int> m_p, m_p_floor;
     phase_t m_phase;
 };
+
+/** boundary conditions in each direction */
+typedef lw_vector<BoundaryCondition, MAX_DIMENSION> BoundaryConditions;
 
 // fixme: initialize these once only?
 static const BoundaryCondition periodic_bc(1);

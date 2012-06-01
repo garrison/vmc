@@ -1,45 +1,14 @@
 #ifndef _LATTICE_HPP
 #define _LATTICE_HPP
 
-#include "PositionArguments.hpp"
-#include "vmc-typedefs.hpp"
-#include "lw_vector.hpp"
-
-/**
- * Abstract base class for a lattice of any dimension.
- *
- * Any code that does not depend on the dimensionality of the lattice can use
- * this interface directly.
- */
-class BaseLattice
-{
-public:
-    virtual ~BaseLattice (void)
-        {
-        }
-
-    /**
-     * Returns the total number of sites on the lattice
-     */
-    unsigned int total_sites (void) const
-        {
-            return m_total_sites;
-        }
-
-protected:
-    BaseLattice (unsigned int total_sites)
-        : m_total_sites(total_sites)
-        {
-        }
-
-    const unsigned int m_total_sites;
-};
-
 #include <cstddef>
 #include <vector>
 
 #include <boost/assert.hpp>
 
+#include "PositionArguments.hpp"
+#include "vmc-typedefs.hpp"
+#include "lw_vector.hpp"
 #include "BoundaryCondition.hpp"
 #include "vmc-math-utils.hpp"
 
@@ -116,7 +85,7 @@ public:
  *
  * @see LatticeRealization
  */
-class Lattice : public BaseLattice
+class Lattice
 {
 protected:
     /**
@@ -136,9 +105,9 @@ public:
      * @param basis_indices_ the number of sites per unit cell of the Bravais lattice
      */
     Lattice (const lw_vector<int, MAX_DIMENSION> &dimensions_, int basis_indices_=1)
-        : BaseLattice(count_total_sites(dimensions_, basis_indices_)),
-          dimensions(dimensions_),
+        : dimensions(dimensions_),
           basis_indices(basis_indices_),
+          m_total_sites(count_total_sites(dimensions_, basis_indices_)),
           offset(dimensions_.size())
         {
             BOOST_ASSERT(dimensions.size() > 0);
@@ -174,6 +143,14 @@ public:
     unsigned int n_dimensions (void) const
         {
             return dimensions.size();
+        }
+
+    /**
+     * Returns the total number of sites on the lattice
+     */
+    unsigned int total_sites (void) const
+        {
+            return m_total_sites;
         }
 
     /**
@@ -295,7 +272,8 @@ public:
     const int basis_indices; /**< number of sites per Bravais unit cell */
 
 private:
-    // these both remain constant after initialization as well
+    // these all remain constant after initialization as well
+    const unsigned int m_total_sites;
     lw_vector<int, MAX_DIMENSION> offset;
     int basis_offset;
 

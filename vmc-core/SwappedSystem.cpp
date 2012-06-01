@@ -234,7 +234,7 @@ void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const
     }
     phibeta2_dirty = false;
 
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
     verify_phibetas(phialpha1, phialpha2);
 #else
     (void) phialpha1;
@@ -275,7 +275,7 @@ void SwappedSystem::cancel_update (const WavefunctionAmplitude &phialpha1, const
         }
     }
 
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
     verify_phibetas(phialpha1, phialpha2);
 #else
     (void) phialpha1;
@@ -315,7 +315,7 @@ void SwappedSystem::reinitialize_phibetas (const WavefunctionAmplitude &phialpha
     phibeta2->reset(swapped_r2);
     phibeta2_dirty = false;
 
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
     verify_phibetas(phialpha1, phialpha2);
 #endif
 }

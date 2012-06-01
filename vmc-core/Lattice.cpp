@@ -9,7 +9,7 @@ LatticeSite Lattice::site_from_index (unsigned int n) const
         n /= dimensions[i];
     }
     rv.basis_index = n;
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
     BOOST_ASSERT(site_is_valid(rv));
 #endif
     return rv;
@@ -24,7 +24,7 @@ unsigned int Lattice::site_to_index (const LatticeSite &site) const
         n += site[i] * offset[i];
     }
     n += site.basis_index * basis_offset;
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
     BOOST_ASSERT(site == site_from_index(n));
 #endif
     return n;

@@ -241,7 +241,7 @@ public:
             inverse_recalculated_for_current_update = false;
             current_state = READY_FOR_UPDATE;
 
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
             be_careful();
 #endif
         }
@@ -271,7 +271,7 @@ public:
             inverse_recalculated_for_current_update = false;
             current_state = READY_FOR_UPDATE;
 
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
             be_careful();
 #endif
         }
@@ -286,7 +286,7 @@ public:
 
             current_state = READY_FOR_UPDATE;
 
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
             be_careful();
 #endif
         }
@@ -301,7 +301,7 @@ public:
 
             current_state = READY_FOR_UPDATE;
 
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
             be_careful();
 #endif
         }
@@ -450,7 +450,7 @@ private:
                 calculate_inverse(true);
         }
 
-#ifdef CAREFUL
+#ifdef VMC_CAREFUL
     void be_careful (void) const
         {
             if (det != T(0) && compute_inverse_matrix_error(invmat) > 1)

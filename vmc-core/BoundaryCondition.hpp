@@ -2,7 +2,6 @@
 #define _BOUNDARY_CONDITION_HPP
 
 #include <cmath>
-#include <cstddef>
 
 #include <boost/assert.hpp>
 #include <boost/rational.hpp>

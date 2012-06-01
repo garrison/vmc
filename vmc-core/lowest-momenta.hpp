@@ -67,7 +67,7 @@ std::vector<lw_vector<int, MAX_DIMENSION> > lowest_momenta (const LatticeRealiza
         // actual inner loop (what we're trying to accomplish)
         {
             // determine the norm of the momentum at the site, and save it away (in `pairs`)
-            lw_vector<boost::rational<int>, MAX_DIMENSION> momentum(allowed_momentum<DIM>(momentum_site, lattice, bcs));
+            lw_vector<boost::rational<int>, MAX_DIMENSION> momentum(allowed_momentum(momentum_site, lattice, bcs));
             lattice.map_momentum_to_brillouin_zone(momentum);
             const real_position_t euc_norm = _euclidean_norm(momentum, lattice.reciprocal_primitive_vectors);
             pairs.push_back(std::make_pair(momentum_site, euc_norm));

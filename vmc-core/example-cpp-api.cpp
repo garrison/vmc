@@ -52,7 +52,7 @@ int main ()
     BoundaryConditions boundary_conditions(DIMENSION);
     for (unsigned int i = 0; i < DIMENSION; ++i)
         boundary_conditions[i] = periodic_bc;
-    boost::shared_ptr<const OrbitalDefinitions> orbitals(new FilledOrbitals<DIMENSION>(lowest_momenta(*lattice, boundary_conditions, F), lattice, boundary_conditions));
+    boost::shared_ptr<const OrbitalDefinitions> orbitals(new FilledOrbitals(lowest_momenta(*lattice, boundary_conditions, F), lattice, boundary_conditions));
     boost::shared_ptr<WavefunctionAmplitude> wf(new DBLWavefunctionAmplitude(r, orbitals, orbitals, 1.0, 1.0));
 
     // try different initial particle positions until a non-zero amplitude is found
@@ -65,13 +65,13 @@ int main ()
     // set up two monte carlo simulations and perform some number of steps to
     // get each to equilibrium
     StandardWalk walk(wf);
-    boost::shared_ptr<DensityDensityMeasurement<DIMENSION> > density_measurement(new DensityDensityMeasurement<DIMENSION>(1, 0, 0));
+    boost::shared_ptr<DensityDensityMeasurement> density_measurement(new DensityDensityMeasurement(1, 0, 0));
     MetropolisSimulation<StandardWalk> sim(walk, density_measurement, 5000, rng());
 
     lw_vector<unsigned int, MAX_DIMENSION> subsystem_length(DIMENSION);
     for (unsigned int i = 0; i < DIMENSION; ++i)
         subsystem_length[i] = 4;
-    boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem<DIMENSION>(subsystem_length));
+    boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem(subsystem_length));
     RenyiSignWalk sign_walk(wf, wf, subsystem);
     boost::shared_ptr<RenyiSignMeasurement> sign_measurement(new RenyiSignMeasurement);
     MetropolisSimulation<RenyiSignWalk> sign_sim(sign_walk, sign_measurement, 5000, rng());

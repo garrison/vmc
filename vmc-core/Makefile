@@ -55,12 +55,16 @@ HEADER_FILES = \
                WavefunctionAmplitude.hpp
 
 SOURCES = \
+          allowed-momentum.cpp \
           BaseSwapPossibleWalk.cpp \
           RVBWavefunctionAmplitude.cpp \
           CeperleyMatrix.cpp \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \
+          DensityDensityMeasurement.cpp \
+          FilledOrbitals.cpp \
           FreeFermionWavefunctionAmplitude.cpp \
+          GreenMeasurement.cpp \
           Lattice.cpp \
           PositionArguments.cpp \
           random-combination.cpp \
@@ -69,6 +73,7 @@ SOURCES = \
           RenyiModPossibleWalk.cpp \
           RenyiSignWalk.cpp \
           RunInformation.cpp \
+          SimpleSubsystem.cpp \
           StandardWalk.cpp \
           SwappedSystem.cpp \
           WavefunctionAmplitude.cpp

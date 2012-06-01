@@ -181,8 +181,7 @@ static void ensure_single_step_per_measurement (const Json::Value &json_measurem
         throw ParseError("given measurement requires a measurement on each step");
 }
 
-template <unsigned int DIM>
-boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_definitions (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice> &lattice)
+static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_definitions (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice> &lattice)
 {
     const char * const json_orbitals_required[] = { "definitions", NULL };
     ensure_required(json_orbitals, json_orbitals_required);
@@ -210,8 +209,7 @@ boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_definitions
     return boost::make_shared<OrbitalDefinitions>(orbitals, lattice);
 }
 
-template <unsigned int DIM>
-boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_filling (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice> &lattice)
+static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_filling (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice> &lattice)
 {
     const char * const json_orbitals_required[] = { "filling", "boundary-conditions", NULL };
     ensure_required(json_orbitals, json_orbitals_required);
@@ -249,21 +247,19 @@ boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_filling (co
             throw ParseError("momentum was specified twice for the same orbital definitions");
     }
 
-    return boost::make_shared<FilledOrbitals<DIM> >(filled_momenta, lattice, boundary_conditions);
+    return boost::make_shared<FilledOrbitals>(filled_momenta, lattice, boundary_conditions);
 }
 
-template <unsigned int DIM>
-boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice > &lattice)
+static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice > &lattice)
 {
     if (json_orbitals.isMember("definitions")) {
-        return parse_json_orbitals_from_definitions<DIM>(json_orbitals, lattice);
+        return parse_json_orbitals_from_definitions(json_orbitals, lattice);
     } else {
-        return parse_json_orbitals_from_filling<DIM>(json_orbitals, lattice);
+        return parse_json_orbitals_from_filling(json_orbitals, lattice);
     }
 }
 
-template <unsigned int DIM>
-boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Value &json_subsystem, const Lattice &lattice)
+static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Value &json_subsystem, const Lattice &lattice)
 {
     ensure_object_with_type_field_as_string(json_subsystem);
     if (std::strcmp(json_subsystem["type"].asCString(), "simple") == 0) {
@@ -281,14 +277,13 @@ boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Value &json
                 throw ParseError("subsystem length must fit within the lattice");
             lengths[i] = json_lengths[i].asUInt();
         }
-        return boost::make_shared<SimpleSubsystem<DIM> >(lengths);
+        return boost::make_shared<SimpleSubsystem>(lengths);
     } else {
         throw ParseError("invalid subsystem type");
     }
 }
 
-template <unsigned int DIM>
-boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_definition (const Json::Value &json_measurement_def, const WavefunctionAmplitude &wf)
+static boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_definition (const Json::Value &json_measurement_def, const WavefunctionAmplitude &wf)
 {
     const unsigned int N_species = wf.get_positions().get_N_species();
     ensure_object_with_type_field_as_string(json_measurement_def);
@@ -309,7 +304,7 @@ boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_de
         } else if (N_species != 1) {
             throw ParseError("species must be given, as this wave function contains multiple species of particles");
         }
-        return boost::make_shared<DensityDensityMeasurement<DIM> >(steps_per_measurement, species1, species2);
+        return boost::make_shared<DensityDensityMeasurement>(steps_per_measurement, species1, species2);
     } else if (std::strcmp(json_measurement_def["type"].asCString(), "green") == 0) {
         const char * const json_density_density_allowed[] = { "type", "steps-per-measurement", "species", NULL };
         ensure_only(json_measurement_def, json_density_density_allowed);
@@ -320,22 +315,21 @@ boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_de
         } else if (N_species != 1) {
             throw ParseError("species must be given, as this wave function contains multiple species of particles");
         }
-        return boost::make_shared<GreenMeasurement<DIM> >(steps_per_measurement, species);
+        return boost::make_shared<GreenMeasurement>(steps_per_measurement, species);
     } else if (std::strcmp(json_measurement_def["type"].asCString(), "subsystem-occupation-number-probability") == 0) {
         const char * const json_subsystem_occupation_required[] = { "type", "subsystem", NULL };
         const char * const json_subsystem_occupation_allowed[] = { "type", "subsystem", "steps-per-measurement", NULL };
         ensure_required(json_measurement_def, json_subsystem_occupation_required);
         ensure_only(json_measurement_def, json_subsystem_occupation_allowed);
         unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
-        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem<DIM>(json_measurement_def["subsystem"], wf.get_lattice()));
+        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_measurement_def["subsystem"], wf.get_lattice()));
         return boost::make_shared<SubsystemOccupationNumberProbabilityMeasurement>(subsystem, steps_per_measurement);
     } else {
         throw ParseError("invalid standard walk measurement type");
     }
 }
 
-template <unsigned int DIM>
-boost::shared_ptr<Measurement<RenyiModPossibleWalk> > parse_renyi_mod_possible_walk_measurement_definition (const Json::Value &json_measurement_def)
+static boost::shared_ptr<Measurement<RenyiModPossibleWalk> > parse_renyi_mod_possible_walk_measurement_definition (const Json::Value &json_measurement_def)
 {
     ensure_object_with_type_field_as_string(json_measurement_def);
     if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-mod/possible") == 0) {
@@ -348,8 +342,7 @@ boost::shared_ptr<Measurement<RenyiModPossibleWalk> > parse_renyi_mod_possible_w
     }
 }
 
-template <unsigned int DIM>
-boost::shared_ptr<Measurement<RenyiSignWalk> > parse_renyi_sign_walk_measurement_definition (const Json::Value &json_measurement_def)
+static boost::shared_ptr<Measurement<RenyiSignWalk> > parse_renyi_sign_walk_measurement_definition (const Json::Value &json_measurement_def)
 {
     ensure_object_with_type_field_as_string(json_measurement_def);
     if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-sign") == 0) {
@@ -429,11 +422,10 @@ static Json::Value complex_to_json_array (const complex_t &v)
     return rv;
 }
 
-template <unsigned int DIM>
 static Json::Value standard_walk_measurement_json_repr (const Measurement<StandardWalk> *measurement_ptr, const WavefunctionAmplitude &wf)
 {
-    const DensityDensityMeasurement<DIM> *ddm = dynamic_cast<const DensityDensityMeasurement<DIM>*>(measurement_ptr);
-    const GreenMeasurement<DIM> *gm = dynamic_cast<const GreenMeasurement<DIM>*>(measurement_ptr);
+    const DensityDensityMeasurement *ddm = dynamic_cast<const DensityDensityMeasurement *>(measurement_ptr);
+    const GreenMeasurement *gm = dynamic_cast<const GreenMeasurement *>(measurement_ptr);
     const SubsystemOccupationNumberProbabilityMeasurement *sonpm = dynamic_cast<const SubsystemOccupationNumberProbabilityMeasurement *>(measurement_ptr);
     if (ddm) {
         // density-density measurement
@@ -506,101 +498,54 @@ static Json::Value renyi_sign_walk_measurement_json_repr (const Measurement<Reny
     return complex_to_json_array(rsm->get());
 }
 
-template <unsigned int DIM>
-static int do_simulation (const Json::Value &json_input, rng_class &rng);
-
-int main (int argc, char *argv[])
+static Json::Value parse_and_run_simulation (const Json::Value &json_input)
 {
-    // take json input and perform a simulation
+    ensure_object(json_input);
+    const char * const json_input_required[] = { "rng", "system", "simulation", NULL };
+    ensure_required(json_input, json_input_required);
+    ensure_only(json_input, json_input_required);
 
-    Json::Value json_input;
-
-    if (argc < 2) {
-        // read from STDIN
-        std::cin >> json_input;
-    } else if (argc == 2) {
-        // read from given file
-        std::ifstream input_file(argv[1]);
-        if (!input_file.good()) {
-            std::cerr << "cannot open file: " << argv[1] << std::endl;
-            return 1;
-        }
-        input_file >> json_input;
-        input_file.close();
+    // initialize random number generator
+    unsigned int seed;
+    const Json::Value &json_rng = json_input["rng"];
+    ensure_object(json_rng);
+    const char * const json_rng_allowed[] = { "seed", NULL };
+    ensure_only(json_rng, json_rng_allowed);
+    if (json_rng.isMember("seed")) {
+        if (!json_rng["seed"].isIntegral())
+            throw ParseError("seed must be correct data type");
+        seed = json_rng["seed"].asUInt();
     } else {
-        std::cerr << "invalid number of commandline arguments" << std::endl;
-        return 1;
+        throw ParseError("seed must be given");
     }
+    rng_class rng(seed);
 
-    try {
-        ensure_object(json_input);
-        const char * const json_input_required[] = { "rng", "system", "simulation", NULL };
-        ensure_required(json_input, json_input_required);
-        ensure_only(json_input, json_input_required);
+    // begin setting up the physical system
+    const Json::Value &json_system = json_input["system"];
+    ensure_object(json_system);
+    const char * const json_system_required[] = { "lattice", "wavefunction", NULL };
+    ensure_required(json_system, json_system_required);
+    ensure_only(json_system, json_system_required);
 
-        // initialize random number generator
-        unsigned int seed;
-        const Json::Value &json_rng = json_input["rng"];
-        ensure_object(json_rng);
-        const char * const json_rng_allowed[] = { "seed", NULL };
-        ensure_only(json_rng, json_rng_allowed);
-        if (json_rng.isMember("seed")) {
-            if (!json_rng["seed"].isIntegral())
-                throw ParseError("seed must be correct data type");
-            seed = json_rng["seed"].asUInt();
-        } else {
-            throw ParseError("seed must be given");
-        }
-        rng_class rng(seed);
+    // begin setting up the lattice
+    const Json::Value &json_lattice = json_system["lattice"];
+    ensure_object(json_lattice);
+    const char * const json_lattice_required[] = { "size", NULL };
+    ensure_required(json_lattice, json_lattice_required);
+    ensure_only(json_lattice, json_lattice_required);
 
-        // begin setting up the physical system
-        const Json::Value &json_system = json_input["system"];
-        ensure_object(json_system);
-        const char * const json_system_required[] = { "lattice", "wavefunction", NULL };
-        ensure_required(json_system, json_system_required);
-        ensure_only(json_system, json_system_required);
-
-        // begin setting up the lattice
-        const Json::Value &json_lattice = json_system["lattice"];
-        ensure_object(json_lattice);
-        const char * const json_lattice_required[] = { "size", NULL };
-        ensure_required(json_lattice, json_lattice_required);
-        ensure_only(json_lattice, json_lattice_required);
-
-        // determine the lattice size/dimension
-        const Json::Value &json_lattice_size = json_lattice["size"];
-        ensure_array(json_lattice_size);
-        const unsigned int n_dimensions = json_lattice_size.size();
-        if (n_dimensions > MAX_DIMENSION)
-            throw ParseError("unsupported number of dimensions on the lattice");
-        for (unsigned int i = 0; i < n_dimensions; ++i) {
-            if (!(json_lattice_size[i].isIntegral() && json_lattice_size[i].asInt() > 0))
-                throw ParseError("lattice dimensions must be positive integers");
-        }
-
-        // dispatch the remainder of the simulation based on the number of
-        // dimensions in the system
-        switch (n_dimensions) {
-        case 1:
-            return do_simulation<1>(json_input, rng);
-        case 2:
-            return do_simulation<2>(json_input, rng);
-        default:
-            throw ParseError("lattice given has a number of dimensions that is not supported by this build");
-        }
-    } catch (ParseError e) {
-        std::cerr << e.what() << std::endl;
-        return 1;
+    // set up the lattice
+    const Json::Value &json_lattice_size = json_lattice["size"];
+    ensure_array(json_lattice_size);
+    const unsigned int n_dimensions = json_lattice_size.size();
+    if (n_dimensions > MAX_DIMENSION)
+        throw ParseError("lattice given has a number of dimensions that is not supported by this build");
+    for (unsigned int i = 0; i < n_dimensions; ++i) {
+        if (!(json_lattice_size[i].isIntegral() && json_lattice_size[i].asInt() > 0))
+            throw ParseError("lattice dimensions must be positive integers");
     }
-}
-
-template <unsigned int DIM>
-static int do_simulation (const Json::Value &json_input, rng_class &rng)
-{
-    const unsigned int n_dimensions = DIM;
 
     // finish setting up the lattice
-    const Json::Value &json_lattice_size = json_input["system"]["lattice"]["size"];
     lw_vector<int, MAX_DIMENSION> lattice_size_array(n_dimensions);
     for (unsigned int i = 0; i < n_dimensions; ++i)
         lattice_size_array[i] = json_lattice_size[i].asInt();
@@ -619,7 +564,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         const char * const json_free_fermion_wavefunction_required[] = { "type", "orbitals", NULL };
         ensure_required(json_wavefunction, json_free_fermion_wavefunction_required);
         ensure_only(json_wavefunction, json_free_fermion_wavefunction_required);
-        boost::shared_ptr<const OrbitalDefinitions> orbitals = parse_json_orbitals<DIM>(json_wavefunction["orbitals"], lattice);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals = parse_json_orbitals(json_wavefunction["orbitals"], lattice);
         std::vector<std::vector<unsigned int> > filling;
         filling.push_back(some_random_filling(orbitals->get_N_filled(), *lattice, rng));
         wf.reset(new FreeFermionWavefunctionAmplitude(PositionArguments(filling, lattice->total_sites()), orbitals));
@@ -629,8 +574,8 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         const char * const json_dbl_wavefunction_allowed[] = { "type", "orbitals-d1", "orbitals-d2", "exponent-d1", "exponent-d2", NULL };
         ensure_required(json_wavefunction, json_dbl_wavefunction_required);
         ensure_only(json_wavefunction, json_dbl_wavefunction_allowed);
-        boost::shared_ptr<const OrbitalDefinitions> orbitals_d1 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d1"], lattice);
-        boost::shared_ptr<const OrbitalDefinitions> orbitals_d2 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d2"], lattice);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals_d1 = parse_json_orbitals(json_wavefunction["orbitals-d1"], lattice);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals_d2 = parse_json_orbitals(json_wavefunction["orbitals-d2"], lattice);
         if (orbitals_d1->get_N_filled() != orbitals_d2->get_N_filled())
             throw ParseError("d1 and d2 have different number of orbitals");
         std::vector<std::vector<unsigned int> > filling;
@@ -645,10 +590,10 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         const char * const json_dmetal_wavefunction_allowed[] = { "type", "orbitals-d1", "orbitals-d2", "orbitals-f_up", "orbitals-f_down", "exponent-d1", "exponent-d2", "exponent-f_up", "exponent-f_down", NULL };
         ensure_required(json_wavefunction, json_dmetal_wavefunction_required);
         ensure_only(json_wavefunction, json_dmetal_wavefunction_allowed);
-        boost::shared_ptr<const OrbitalDefinitions> orbitals_d1 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d1"], lattice);
-        boost::shared_ptr<const OrbitalDefinitions> orbitals_d2 = parse_json_orbitals<DIM>(json_wavefunction["orbitals-d2"], lattice);
-        boost::shared_ptr<const OrbitalDefinitions> orbitals_f_up = parse_json_orbitals<DIM>(json_wavefunction["orbitals-f_up"], lattice);
-        boost::shared_ptr<const OrbitalDefinitions> orbitals_f_down = parse_json_orbitals<DIM>(json_wavefunction["orbitals-f_down"], lattice);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals_d1 = parse_json_orbitals(json_wavefunction["orbitals-d1"], lattice);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals_d2 = parse_json_orbitals(json_wavefunction["orbitals-d2"], lattice);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals_f_up = parse_json_orbitals(json_wavefunction["orbitals-f_up"], lattice);
+        boost::shared_ptr<const OrbitalDefinitions> orbitals_f_down = parse_json_orbitals(json_wavefunction["orbitals-f_down"], lattice);
         if (orbitals_d1->get_N_filled() != orbitals_d2->get_N_filled())
             throw ParseError("d1 and d2 have different number of orbitals");
         if (orbitals_f_up->get_N_filled() + orbitals_f_down->get_N_filled() != orbitals_d1->get_N_filled())
@@ -751,7 +696,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         ensure_array(json_measurements);
         std::list<boost::shared_ptr<Measurement<StandardWalk> > > measurements;
         for (unsigned int i = 0; i < json_measurements.size(); ++i)
-            measurements.push_back(parse_standard_walk_measurement_definition<DIM>(json_measurements[i], *wf));
+            measurements.push_back(parse_standard_walk_measurement_definition(json_measurements[i], *wf));
 
         // set up and perform walk
         StandardWalk walk(wf);
@@ -760,7 +705,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
 
         // store json
         for (std::list<boost::shared_ptr<Measurement<StandardWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
-            json_measurement_output.append(standard_walk_measurement_json_repr<DIM>(i->get(), walk.get_wavefunction()));
+            json_measurement_output.append(standard_walk_measurement_json_repr(i->get(), walk.get_wavefunction()));
         }
         json_final_positions_output = positions_json_repr(sim.get_walk().get_wavefunction().get_positions());
         json_monte_carlo_stats_output = monte_carlo_stats_json_repr(sim);
@@ -776,7 +721,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         ensure_only(json_simulation, json_simulation_only);
 
         // set up subsystem
-        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem<DIM>(json_simulation["subsystem"], *lattice));
+        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], *lattice));
 
         // set up initial positions of wavefunctions
         boost::shared_ptr<WavefunctionAmplitude> wf2(wf->clone());
@@ -801,7 +746,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         ensure_array(json_measurements);
         std::list<boost::shared_ptr<Measurement<RenyiModPossibleWalk> > > measurements;
         for (unsigned int i = 0; i < json_measurements.size(); ++i)
-            measurements.push_back(parse_renyi_mod_possible_walk_measurement_definition<DIM>(json_measurements[i]));
+            measurements.push_back(parse_renyi_mod_possible_walk_measurement_definition(json_measurements[i]));
 
         // set up and perform walk
         RenyiModPossibleWalk walk(wf, wf2, subsystem);
@@ -828,7 +773,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         ensure_only(json_simulation, json_simulation_only);
 
         // set up subsystem
-        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem<DIM>(json_simulation["subsystem"], *lattice));
+        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], *lattice));
 
         // set up initial positions of wavefunctions
         boost::shared_ptr<WavefunctionAmplitude> wf2(wf->clone());
@@ -853,7 +798,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
         ensure_array(json_measurements);
         std::list<boost::shared_ptr<Measurement<RenyiSignWalk> > > measurements;
         for (unsigned int i = 0; i < json_measurements.size(); ++i)
-            measurements.push_back(parse_renyi_sign_walk_measurement_definition<DIM>(json_measurements[i]));
+            measurements.push_back(parse_renyi_sign_walk_measurement_definition(json_measurements[i]));
 
         // set up and perform walk
         RenyiSignWalk walk(wf, wf2, subsystem);
@@ -878,7 +823,36 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
     json_output["measurements"] = json_measurement_output;
     json_output["run-information"] = run_information.json_info();
     json_output["monte-carlo-stats"] = json_monte_carlo_stats_output;
-    std::cout << json_output;
+    return json_output;
+}
 
-    return 0;
+int main (int argc, char *argv[])
+{
+    // take json input and perform a simulation
+
+    Json::Value json_input;
+
+    if (argc < 2) {
+        // read from STDIN
+        std::cin >> json_input;
+    } else if (argc == 2) {
+        // read from given file
+        std::ifstream input_file(argv[1]);
+        if (!input_file.good()) {
+            std::cerr << "cannot open file: " << argv[1] << std::endl;
+            return 1;
+        }
+        input_file >> json_input;
+        input_file.close();
+    } else {
+        std::cerr << "invalid number of commandline arguments" << std::endl;
+        return 1;
+    }
+
+    try {
+        std::cout << parse_and_run_simulation(json_input);
+    } catch (ParseError e) {
+        std::cerr << e.what() << std::endl;
+        return 1;
+    }
 }

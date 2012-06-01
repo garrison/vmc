@@ -60,7 +60,7 @@ int main ()
     // set up three monte carlo simulations and perform some number of steps to
     // get each to equilibrium
     StandardWalk walk(wf);
-    boost::shared_ptr<DensityDensityMeasurement<DIMENSION> > density_measurement(new DensityDensityMeasurement<DIMENSION>(10, 0, 0));
+    boost::shared_ptr<DensityDensityMeasurement> density_measurement(new DensityDensityMeasurement(10, 0, 0));
     MetropolisSimulation<StandardWalk> sim(walk, density_measurement, 5000, rng());
         
     // continue iterating on each simulation, outputting results periodically

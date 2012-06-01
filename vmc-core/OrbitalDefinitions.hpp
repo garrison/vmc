@@ -5,7 +5,8 @@
 #include <boost/assert.hpp>
 
 #include "vmc-typedefs.hpp"
-#include "Lattice.hpp"
+
+class Lattice;
 
 /**
  * "Abstract base class" for defining the orbitals in a determinantal

@@ -5,6 +5,7 @@
 
 #include "vmc-math-utils.hpp"
 #include "DMetalWavefunctionAmplitude.hpp"
+#include "random-filling.hpp"
 
 DMetalWavefunctionAmplitude::DMetalWavefunctionAmplitude (const PositionArguments &r_,
                                                           const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1,
@@ -156,14 +157,14 @@ boost::shared_ptr<WavefunctionAmplitude> DMetalWavefunctionAmplitude::clone_ (vo
     return boost::make_shared<DMetalWavefunctionAmplitude>(*this);
 }
 
-void DMetalWavefunctionAmplitude::reset_with_filler (const RandomFiller &filler, rng_class &rng)
+void DMetalWavefunctionAmplitude::reset_with_random_positions (rng_class &rng)
 {
     const unsigned int N = m_orbital_d1->get_N_filled();
     const unsigned int M = m_orbital_f_up->get_N_filled();
 
     // take into account the Gutzwiller projection
     std::vector<std::vector<unsigned int> > vv(2);
-    vv[0] = filler.some_random_filling(N, rng);
+    vv[0] = some_random_filling(N, *lattice, rng);
     for (unsigned int i = M; i < N; ++i)
         vv[1].push_back(vv[0][i]);
     vv[0].resize(M);

@@ -51,7 +51,7 @@ int main ()
     boost::shared_ptr<WavefunctionAmplitude> wf(new RVBWavefunctionAmplitude(r, lattice, phi));
     
     // try different initial particle positions until a non-zero amplitude is found
-    const bool success = search_for_filling_with_nonzero_amplitude(*wf, *lattice, rng);
+    const bool success = search_for_filling_with_nonzero_amplitude(*wf, rng);
     if (!success) {
         std::cerr << "could not find filling with non-zero amplitude in a reasonable amount of time" << std::endl;
         return 1;

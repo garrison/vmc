@@ -741,7 +741,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
             if (wf->psi() == amplitude_t(0))
                 throw ParseError("wavefunction has zero amplitude at given initial-positions");
         } else {
-            bool success = search_for_filling_with_nonzero_amplitude(*wf, *lattice, rng);
+            bool success = search_for_filling_with_nonzero_amplitude(*wf, rng);
             if (!success)
                 throw ParseError("could not find a filling with nonzero amplitude");
         }
@@ -787,7 +787,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
             if (!count_subsystem_particle_counts_for_match(*wf, *wf2, *subsystem))
                 throw ParseError("The initial positions of each copy must have the same numbers/types of particles in the subsystem");
         } else {
-            bool success = search_for_filling_with_nonzero_amplitude(*wf, *lattice, rng);
+            bool success = search_for_filling_with_nonzero_amplitude(*wf, rng);
             if (!success)
                 throw ParseError("could not find a filling with nonzero amplitude");
             // We need two copies of the system, each of which has the same
@@ -839,7 +839,7 @@ static int do_simulation (const Json::Value &json_input, rng_class &rng)
             if (!count_subsystem_particle_counts_for_match(*wf, *wf2, *subsystem))
                 throw ParseError("The initial positions of each copy must have the same numbers/types of particles in the subsystem");
         } else {
-            bool success = search_for_filling_with_nonzero_amplitude(*wf, *lattice, rng);
+            bool success = search_for_filling_with_nonzero_amplitude(*wf, rng);
             if (!success)
                 throw ParseError("could not find a filling with nonzero amplitude");
             // We need two copies of the system, each of which has the same

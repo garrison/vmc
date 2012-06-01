@@ -5,6 +5,7 @@
 #include <boost/make_shared.hpp>
 
 #include "RVBWavefunctionAmplitude.hpp"
+#include "random-filling.hpp"
 
 RVBWavefunctionAmplitude::RVBWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi)
     : WavefunctionAmplitude(r_, lattice_),
@@ -138,7 +139,7 @@ boost::shared_ptr<WavefunctionAmplitude> RVBWavefunctionAmplitude::clone_ (void)
     return boost::make_shared<RVBWavefunctionAmplitude>(*this);
 }
 
-void RVBWavefunctionAmplitude::reset_with_filler (const RandomFiller &filler, rng_class &rng)
+void RVBWavefunctionAmplitude::reset_with_random_positions (rng_class &rng)
 {
     BOOST_ASSERT(r.get_N_species() == 2);
 
@@ -152,7 +153,7 @@ void RVBWavefunctionAmplitude::reset_with_filler (const RandomFiller &filler, rn
 
     // Take into account Gutzwiller projection [exactly one spinon ("particle") per site]
     std::vector<std::vector<unsigned int> > vv(2);
-    vv[0] = filler.some_random_filling(M, rng);
+    vv[0] = some_random_filling(M, *lattice, rng);
     // NOTE: this method requires O(N ^ 2) time, but this could technically be
     // done in O(N) time.  Not a big deal here.
     for (unsigned int i = 0; i < N_sites; ++i) {

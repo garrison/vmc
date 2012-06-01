@@ -37,7 +37,7 @@ private:
 
     boost::shared_ptr<WavefunctionAmplitude> clone_ (void) const;
 
-    void reset_with_filler (const RandomFiller &filler, rng_class &rng);
+    void reset_with_random_positions (rng_class &rng);
 
     void reinitialize (void);
 };

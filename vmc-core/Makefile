@@ -40,7 +40,6 @@ HEADER_FILES = \
                random-combination.hpp \
                random-filling.hpp \
                random-move.hpp \
-               RandomFiller.hpp \
                RenyiModPossibleMeasurement.hpp \
                RenyiModPossibleWalk.hpp \
                RenyiSignMeasurement.hpp \
@@ -65,6 +64,7 @@ SOURCES = \
           Lattice.cpp \
           PositionArguments.cpp \
           random-combination.cpp \
+          random-filling.cpp \
           random-move.cpp \
           RenyiModPossibleWalk.cpp \
           RenyiSignWalk.cpp \

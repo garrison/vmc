@@ -55,9 +55,29 @@ unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const P
     if (method_gen() == 0)
         return choose_random_empty_site(r, particle.species, rng);
 
-    // we want this to execute slightly different code based on the number of
-    // dimensions in the lattice.  unfortunately, the only way to handle this
-    // is through a virtual function in a Lattice subclass, so we call that
-    // here
-    return lattice.plan_particle_move_to_nearby_empty_site_virtual(particle, r, rng);
+    // otherwise, we find a "nearby" site
+    BOOST_ASSERT(r.particle_is_valid(particle));
+
+    unsigned int move_axis;
+    if (lattice.move_axes_count() == 1) {
+        move_axis = 0;
+    } else {
+        boost::uniform_smallint<> axis_distribution(0, lattice.move_axes_count() - 1);
+        boost::variate_generator<rng_class&, boost::uniform_smallint<> > axis_gen(rng, axis_distribution);
+        move_axis = axis_gen();
+    }
+
+    boost::uniform_smallint<> direction_distribution(0, 1);
+    boost::variate_generator<rng_class&, boost::uniform_smallint<> > direction_gen(rng, direction_distribution);
+    int step_direction = direction_gen() * 2 - 1;
+
+    const unsigned int original_site_index = r[particle];
+    LatticeSite site(lattice.site_from_index(original_site_index));
+    unsigned int site_index;
+    do {
+        lattice.move_site(site, move_axis, step_direction);
+        site_index = lattice.site_to_index(site);
+    } while (r.is_occupied(site_index, particle.species) && site_index != original_site_index);
+
+    return site_index;
 }

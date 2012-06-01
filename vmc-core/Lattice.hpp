@@ -26,18 +26,6 @@ public:
             return m_total_sites;
         }
 
-    /**
-     * Virtual function, called by plan_particle_move_to_nearby_empty_site()
-     *
-     * (plan_particle_move_to_nearby_empty_site() in random-move.hpp provides a
-     * more natural API, but since the implementation depends on the details of
-     * the underlying lattice, our only choice is to implement it as a virtual
-     * function, which we do here.)
-     *
-     * @see plan_particle_move_to_nearby_empty_site()
-     */
-    virtual unsigned int plan_particle_move_to_nearby_empty_site_virtual (Particle particle, const PositionArguments &r, rng_class &rng) const = 0;
-
 protected:
     BaseLattice (unsigned int total_sites)
         : m_total_sites(total_sites)
@@ -51,9 +39,6 @@ protected:
 #include <vector>
 
 #include <boost/assert.hpp>
-#include <boost/random/uniform_smallint.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <boost/random.hpp>
 
 #include "BoundaryCondition.hpp"
 #include "vmc-math-utils.hpp"
@@ -265,7 +250,6 @@ public:
      * there are only two primitive vectors.)
      *
      * @see plan_particle_move_to_nearby_empty_site()
-     * @see plan_particle_move_to_nearby_empty_site_virtual()
      */
     unsigned int move_axes_count (void) const
         {
@@ -290,42 +274,6 @@ public:
                 site[i] += step_direction * m.bravais_site[i];
             site.basis_index += step_direction * m.basis_index;
             enforce_boundary(site);
-        }
-
-    /**
-     * Returns an empty site index that is "near" a given particle.
-     *
-     * Typically you should call the corresponding function in random-move.hpp
-     * instead, which is a wrapper for this.
-     *
-     * @see plan_particle_move_to_nearby_empty_site()
-     */
-    unsigned int plan_particle_move_to_nearby_empty_site_virtual (Particle particle, const PositionArguments &r, rng_class &rng) const
-        {
-            BOOST_ASSERT(r.particle_is_valid(particle));
-
-            unsigned int move_axis;
-            if (this->move_axes_count() == 1) {
-                move_axis = 0;
-            } else {
-                boost::uniform_smallint<> axis_distribution(0, this->move_axes_count() - 1);
-                boost::variate_generator<rng_class&, boost::uniform_smallint<> > axis_gen(rng, axis_distribution);
-                move_axis = axis_gen();
-            }
-
-            boost::uniform_smallint<> direction_distribution(0, 1);
-            boost::variate_generator<rng_class&, boost::uniform_smallint<> > direction_gen(rng, direction_distribution);
-            int step_direction = direction_gen() * 2 - 1;
-
-            const unsigned int original_site_index = r[particle];
-            LatticeSite site(this->site_from_index(original_site_index));
-            unsigned int site_index;
-            do {
-                this->move_site(site, move_axis, step_direction);
-                site_index = this->site_to_index(site);
-            } while (r.is_occupied(site_index, particle.species) && site_index != original_site_index);
-
-            return site_index;
         }
 
 private:

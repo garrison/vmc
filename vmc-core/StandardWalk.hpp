@@ -6,6 +6,7 @@
 #include "vmc-typedefs.hpp"
 
 class WavefunctionAmplitude;
+class RandomNumberGenerator;
 
 /**
  * The standard walk used in VMC calculations
@@ -25,7 +26,7 @@ public:
     /**
      * Attempt a transition and return its probability ratio
      */
-    probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
+    probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng);
 
     /**
      * Accept the transition, and get the walk object into a state such that

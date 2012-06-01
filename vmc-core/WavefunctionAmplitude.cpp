@@ -3,7 +3,7 @@
 #include "WavefunctionAmplitude.hpp"
 #include "random-filling.hpp"
 
-void WavefunctionAmplitude::reset_with_random_positions (rng_class &rng)
+void WavefunctionAmplitude::reset_with_random_positions (RandomNumberGenerator &rng)
 {
     std::vector<std::vector<unsigned int> > vv;
     for (unsigned int i = 0; i < r.get_N_species(); ++i)

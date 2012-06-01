@@ -8,6 +8,8 @@
 #include "Lattice.hpp"
 #include "vmc-typedefs.hpp"
 
+class RandomNumberGenerator;
+
 /**
  * Abstract base class representing a wavefunction amplitude
  *
@@ -129,7 +131,7 @@ public:
      * projection properties, e.g., no spin-up and spin-down particle allowed
      * on the same site.
      */
-    virtual void reset_with_random_positions (rng_class &rng);
+    virtual void reset_with_random_positions (RandomNumberGenerator &rng);
 
 private:
     /**

@@ -5,6 +5,8 @@
 #include "vmc-typedefs.hpp"
 #include "Lattice.hpp"
 
+class RandomNumberGenerator;
+
 /**
  * Chooses a random particle index.
  *
@@ -12,7 +14,7 @@
  * @param rng random number generator
  * @return the chosen particle
  */
-extern Particle choose_random_particle (const PositionArguments &r, rng_class &rng);
+extern Particle choose_random_particle (const PositionArguments &r, RandomNumberGenerator &rng);
 
 /**
  * Chooses a random empty site
@@ -22,7 +24,7 @@ extern Particle choose_random_particle (const PositionArguments &r, rng_class &r
  * @return index of chosen empty site, which is a number less than
  *         r.get_N_sites()
  */
-extern unsigned int choose_random_empty_site (const PositionArguments &r, unsigned int species, rng_class &rng);
+extern unsigned int choose_random_empty_site (const PositionArguments &r, unsigned int species, RandomNumberGenerator &rng);
 
 /**
  * Returns an empty site index that is "near" a given particle.
@@ -40,6 +42,6 @@ extern unsigned int choose_random_empty_site (const PositionArguments &r, unsign
  * @return index of chosen nearby empty site, which is a number less than
  *         r.get_N_sites()
  */
-extern unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const PositionArguments &r, const Lattice &lattice, rng_class &rng);
+extern unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const PositionArguments &r, const Lattice &lattice, RandomNumberGenerator &rng);
 
 #endif

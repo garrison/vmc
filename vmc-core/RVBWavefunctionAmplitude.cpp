@@ -139,7 +139,7 @@ boost::shared_ptr<WavefunctionAmplitude> RVBWavefunctionAmplitude::clone_ (void)
     return boost::make_shared<RVBWavefunctionAmplitude>(*this);
 }
 
-void RVBWavefunctionAmplitude::reset_with_random_positions (rng_class &rng)
+void RVBWavefunctionAmplitude::reset_with_random_positions (RandomNumberGenerator &rng)
 {
     BOOST_ASSERT(r.get_N_species() == 2);
 

@@ -19,6 +19,7 @@
 #include <boost/make_shared.hpp>
 #include <Eigen/Dense>
 
+#include "RandomNumberGenerator.hpp"
 #include "Lattice.hpp"
 #include "random-filling.hpp"
 #include "PositionArguments.hpp"
@@ -506,7 +507,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
     ensure_only(json_input, json_input_required);
 
     // initialize random number generator
-    unsigned int seed;
+    unsigned long seed;
     const Json::Value &json_rng = json_input["rng"];
     ensure_object(json_rng);
     const char * const json_rng_allowed[] = { "seed", NULL };
@@ -518,7 +519,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
     } else {
         throw ParseError("seed must be given");
     }
-    rng_class rng(seed);
+    std::auto_ptr<RandomNumberGenerator> rng(RandomNumberGenerator::create("boost::mt19937", seed));
 
     // begin setting up the physical system
     const Json::Value &json_system = json_input["system"];
@@ -566,7 +567,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         ensure_only(json_wavefunction, json_free_fermion_wavefunction_required);
         boost::shared_ptr<const OrbitalDefinitions> orbitals = parse_json_orbitals(json_wavefunction["orbitals"], lattice);
         std::vector<std::vector<unsigned int> > filling;
-        filling.push_back(some_random_filling(orbitals->get_N_filled(), *lattice, rng));
+        filling.push_back(some_random_filling(orbitals->get_N_filled(), *lattice, *rng));
         wf.reset(new FreeFermionWavefunctionAmplitude(PositionArguments(filling, lattice->total_sites()), orbitals));
     } else if (std::strcmp(json_wavefunction_type_cstr, "dbl") == 0) {
         // dbl wavefunction
@@ -579,7 +580,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         if (orbitals_d1->get_N_filled() != orbitals_d2->get_N_filled())
             throw ParseError("d1 and d2 have different number of orbitals");
         std::vector<std::vector<unsigned int> > filling;
-        filling.push_back(some_random_filling(orbitals_d1->get_N_filled(), *lattice, rng));
+        filling.push_back(some_random_filling(orbitals_d1->get_N_filled(), *lattice, *rng));
         wf.reset(new DBLWavefunctionAmplitude(PositionArguments(filling, lattice->total_sites()),
                                               orbitals_d1, orbitals_d2,
                                               json_get_double(json_wavefunction, "exponent-d1", 1.0),
@@ -599,8 +600,8 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         if (orbitals_f_up->get_N_filled() + orbitals_f_down->get_N_filled() != orbitals_d1->get_N_filled())
             throw ParseError("number of orbitals in f_up and f_down must sum to number of orbitals in d1");
         std::vector<std::vector<unsigned int> > filling;
-        filling.push_back(some_random_filling(orbitals_f_up->get_N_filled(), *lattice, rng));
-        filling.push_back(some_random_filling(orbitals_f_down->get_N_filled(), *lattice, rng));
+        filling.push_back(some_random_filling(orbitals_f_up->get_N_filled(), *lattice, *rng));
+        filling.push_back(some_random_filling(orbitals_f_down->get_N_filled(), *lattice, *rng));
         wf.reset(new DMetalWavefunctionAmplitude(PositionArguments(filling, lattice->total_sites()),
                                                  orbitals_d1, orbitals_d2, orbitals_f_up, orbitals_f_down,
                                                  json_get_double(json_wavefunction, "exponent-d1", 1.0),
@@ -623,7 +624,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
 
         // find some initial positions with no double occupancy
         std::vector<std::vector<unsigned int> > filling;
-        filling.push_back(some_random_filling(N_sites / 2, *lattice, rng));
+        filling.push_back(some_random_filling(N_sites / 2, *lattice, *rng));
         filling.push_back(std::vector<unsigned int>());
         std::vector<unsigned int> occupied_sites(N_sites);
         for (unsigned int i = 0; i < filling[0].size(); ++i) {
@@ -686,7 +687,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
             if (wf->psi() == amplitude_t(0))
                 throw ParseError("wavefunction has zero amplitude at given initial-positions");
         } else {
-            bool success = search_for_filling_with_nonzero_amplitude(*wf, rng);
+            bool success = search_for_filling_with_nonzero_amplitude(*wf, *rng);
             if (!success)
                 throw ParseError("could not find a filling with nonzero amplitude");
         }
@@ -700,7 +701,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
 
         // set up and perform walk
         StandardWalk walk(wf);
-        MetropolisSimulation<StandardWalk> sim(walk, measurements, equilibrium_steps, rng());
+        MetropolisSimulation<StandardWalk> sim(walk, measurements, equilibrium_steps, *rng);
         sim.iterate(measurement_steps);
 
         // store json
@@ -732,7 +733,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
             if (!count_subsystem_particle_counts_for_match(*wf, *wf2, *subsystem))
                 throw ParseError("The initial positions of each copy must have the same numbers/types of particles in the subsystem");
         } else {
-            bool success = search_for_filling_with_nonzero_amplitude(*wf, rng);
+            bool success = search_for_filling_with_nonzero_amplitude(*wf, *rng);
             if (!success)
                 throw ParseError("could not find a filling with nonzero amplitude");
             // We need two copies of the system, each of which has the same
@@ -750,7 +751,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
 
         // set up and perform walk
         RenyiModPossibleWalk walk(wf, wf2, subsystem);
-        MetropolisSimulation<RenyiModPossibleWalk> sim(walk, measurements, equilibrium_steps, rng());
+        MetropolisSimulation<RenyiModPossibleWalk> sim(walk, measurements, equilibrium_steps, *rng);
         sim.iterate(measurement_steps);
 
         // store json
@@ -784,7 +785,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
             if (!count_subsystem_particle_counts_for_match(*wf, *wf2, *subsystem))
                 throw ParseError("The initial positions of each copy must have the same numbers/types of particles in the subsystem");
         } else {
-            bool success = search_for_filling_with_nonzero_amplitude(*wf, rng);
+            bool success = search_for_filling_with_nonzero_amplitude(*wf, *rng);
             if (!success)
                 throw ParseError("could not find a filling with nonzero amplitude");
             // We need two copies of the system, each of which has the same
@@ -802,7 +803,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
 
         // set up and perform walk
         RenyiSignWalk walk(wf, wf2, subsystem);
-        MetropolisSimulation<RenyiSignWalk> sim(walk, measurements, equilibrium_steps, rng());
+        MetropolisSimulation<RenyiSignWalk> sim(walk, measurements, equilibrium_steps, *rng);
         sim.iterate(measurement_steps);
 
         // store json

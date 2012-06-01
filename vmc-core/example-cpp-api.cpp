@@ -34,7 +34,7 @@ const unsigned int F = 20;
 int main ()
 {
     // initialize random number generator
-    rng_class rng(seed);
+    std::auto_ptr<RandomNumberGenerator> rng(RandomNumberGenerator::create("boost::mt19937", seed));
 
     // set up a lattice
     lw_vector<int, MAX_DIMENSION> lattice_dimensions(DIMENSION);
@@ -44,7 +44,7 @@ int main ()
 
     // set up initial particle positions at random
     std::vector<std::vector<unsigned int> > vv;
-    vv.push_back(some_random_filling(F, *lattice, rng));
+    vv.push_back(some_random_filling(F, *lattice, *rng));
     PositionArguments r(vv, lattice->total_sites());
 
     // set up the boundary conditions and orbitals.  this will give a DBL with
@@ -56,7 +56,7 @@ int main ()
     boost::shared_ptr<WavefunctionAmplitude> wf(new DBLWavefunctionAmplitude(r, orbitals, orbitals, 1.0, 1.0));
 
     // try different initial particle positions until a non-zero amplitude is found
-    const bool success = search_for_filling_with_nonzero_amplitude(*wf, rng);
+    const bool success = search_for_filling_with_nonzero_amplitude(*wf, *rng);
     if (!success) {
         std::cerr << "could not find filling with non-zero amplitude in a reasonable amount of time" << std::endl;
         return 1;
@@ -66,7 +66,7 @@ int main ()
     // get each to equilibrium
     StandardWalk walk(wf);
     boost::shared_ptr<DensityDensityMeasurement> density_measurement(new DensityDensityMeasurement(1, 0, 0));
-    MetropolisSimulation<StandardWalk> sim(walk, density_measurement, 5000, rng());
+    MetropolisSimulation<StandardWalk> sim(walk, density_measurement, 5000, *rng);
 
     lw_vector<unsigned int, MAX_DIMENSION> subsystem_length(DIMENSION);
     for (unsigned int i = 0; i < DIMENSION; ++i)
@@ -74,7 +74,7 @@ int main ()
     boost::shared_ptr<Subsystem> subsystem(new SimpleSubsystem(subsystem_length));
     RenyiSignWalk sign_walk(wf, wf, subsystem);
     boost::shared_ptr<RenyiSignMeasurement> sign_measurement(new RenyiSignMeasurement);
-    MetropolisSimulation<RenyiSignWalk> sign_sim(sign_walk, sign_measurement, 5000, rng());
+    MetropolisSimulation<RenyiSignWalk> sign_sim(sign_walk, sign_measurement, 5000, *rng);
 
     // continue iterating on each simulation, outputting results periodically
     for (unsigned int i = 0; i < 20; ++i) {

@@ -1,20 +1,14 @@
-#include <boost/random/uniform_smallint.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <boost/random.hpp>
 #include <boost/assert.hpp>
 
+#include "RandomNumberGenerator.hpp"
 #include "random-move.hpp"
 
-Particle choose_random_particle (const PositionArguments &r, rng_class &rng)
+Particle choose_random_particle (const PositionArguments &r, RandomNumberGenerator &rng)
 {
-    // each particle has an equal probability of being chosen, regardless of
-    // which species it is
-    boost::uniform_smallint<> integer_distribution(0, r.get_N_filled_total() - 1);
-    boost::variate_generator<rng_class&, boost::uniform_smallint<> > particle_gen(rng, integer_distribution);
-
-    // this will be less than the total number of all particles in the system,
-    // regardless of species
-    unsigned int particle = particle_gen();
+    // Each particle has an equal probability of being chosen, regardless of
+    // which species it is.  The following quantity will be fewer than the
+    // total number of all particles in the system, regardless of species.
+    unsigned int particle = rng.random_small_uint(r.get_N_filled_total());
 
     // now we need to convert it into a species and particle number, which we
     // return
@@ -26,15 +20,12 @@ Particle choose_random_particle (const PositionArguments &r, rng_class &rng)
     }
 }
 
-unsigned int choose_random_empty_site (const PositionArguments &r, unsigned int species, rng_class &rng)
+unsigned int choose_random_empty_site (const PositionArguments &r, unsigned int species, RandomNumberGenerator &rng)
 {
     const unsigned int empty_sites = r.get_N_sites() - r.get_N_filled(species);
     BOOST_ASSERT(empty_sites > 0);
 
-    boost::uniform_smallint<> empty_site_distribution(0, empty_sites - 1);
-    boost::variate_generator<rng_class&, boost::uniform_smallint<> > empty_site_gen(rng, empty_site_distribution);
-
-    int empty_site = empty_site_gen();
+    int empty_site = rng.random_small_uint(empty_sites);
     for (unsigned int current_site = 0; ; ++current_site) {
         BOOST_ASSERT(current_site < r.get_N_sites());
         if (!r.is_occupied(current_site, species)) {
@@ -45,14 +36,11 @@ unsigned int choose_random_empty_site (const PositionArguments &r, unsigned int 
     }
 }
 
-unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const PositionArguments &r, const Lattice &lattice, rng_class &rng)
+unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const PositionArguments &r, const Lattice &lattice, RandomNumberGenerator &rng)
 {
-    boost::uniform_smallint<> method_distribution(0, 9);
-    boost::variate_generator<rng_class&, boost::uniform_smallint<> > method_gen(rng, method_distribution);
-
     // occasionally, in order to make sure things are ergodic, we should
     // attempt to move to a random empty site in the lattice
-    if (method_gen() == 0)
+    if (rng.random_small_uint(10) == 0)
         return choose_random_empty_site(r, particle.species, rng);
 
     // otherwise, we find a "nearby" site
@@ -62,14 +50,11 @@ unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const P
     if (lattice.move_axes_count() == 1) {
         move_axis = 0;
     } else {
-        boost::uniform_smallint<> axis_distribution(0, lattice.move_axes_count() - 1);
-        boost::variate_generator<rng_class&, boost::uniform_smallint<> > axis_gen(rng, axis_distribution);
-        move_axis = axis_gen();
+        move_axis = rng.random_small_uint(lattice.move_axes_count());
     }
 
-    boost::uniform_smallint<> direction_distribution(0, 1);
-    boost::variate_generator<rng_class&, boost::uniform_smallint<> > direction_gen(rng, direction_distribution);
-    int step_direction = direction_gen() * 2 - 1;
+    // will be either +1 or -1
+    int step_direction = rng.random_small_uint(2) * 2 - 1;
 
     const unsigned int original_site_index = r[particle];
     LatticeSite site(lattice.site_from_index(original_site_index));

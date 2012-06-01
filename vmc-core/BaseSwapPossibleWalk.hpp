@@ -9,6 +9,8 @@
 #include "SwappedSystem.hpp"
 #include "WavefunctionAmplitude.hpp"
 
+class RandomNumberGenerator;
+
 /**
  * Base class for Renyi walks that require the same number/types of particles
  * in the subsystem for each copy (i.e., a swap is always possible)
@@ -29,7 +31,7 @@ public:
      */
     BaseSwapPossibleWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const boost::shared_ptr<WavefunctionAmplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem, bool update_swapped_system_before_accepting_=true);
 
-    probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
+    probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng);
     void accept_transition (void);
     void reject_transition (void);
 

@@ -2,10 +2,6 @@
 #define _VMC_TYPEDEFS_HPP
 
 #include <complex>
-#include <boost/random.hpp>
-
-typedef boost::mt19937 rng_class;
-typedef unsigned long long rng_seed_t;
 
 typedef double real_t;
 typedef std::complex<real_t> complex_t;

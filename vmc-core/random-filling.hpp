@@ -8,8 +8,10 @@
 #include "WavefunctionAmplitude.hpp"
 #include "random-combination.hpp"
 
-extern std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Lattice &lattice, rng_class &rng);
+class RandomNumberGenerator;
 
-extern bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, rng_class &rng);
+extern std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Lattice &lattice, RandomNumberGenerator &rng);
+
+extern bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, RandomNumberGenerator &rng);
 
 #endif

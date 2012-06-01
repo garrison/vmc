@@ -12,7 +12,7 @@ StandardWalk::StandardWalk (boost::shared_ptr<WavefunctionAmplitude> &wf_)
 {
 }
 
-probability_t StandardWalk::compute_probability_ratio_of_random_transition (rng_class &rng)
+probability_t StandardWalk::compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng)
 {
     BOOST_ASSERT(!transition_in_progress);
 

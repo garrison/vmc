@@ -2,19 +2,11 @@
 #include <algorithm>
 
 #include <boost/assert.hpp>
-#include <boost/random/uniform_smallint.hpp>
-#include <boost/random/variate_generator.hpp>
 
 #include "random-filling.hpp"
+#include "RandomNumberGenerator.hpp"
 
-static inline unsigned int random_small_uint (unsigned int min, unsigned int max, rng_class &rng)
-{
-    boost::uniform_smallint<> distribution(min, max);
-    boost::variate_generator<rng_class&, boost::uniform_smallint<> > generator(rng, distribution);
-    return generator();
-}
-
-std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Lattice &lattice, rng_class &rng)
+std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Lattice &lattice, RandomNumberGenerator &rng)
 {
     BOOST_ASSERT(N_filled <= lattice.total_sites());
 
@@ -28,10 +20,10 @@ std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Latt
     //
     // This method could be further optimized, but it is fast enough for now
     // (and is unlikely to be the bottleneck anyway).
-    if (n_dimensions > 1 && random_small_uint(0, 2, rng) == 0) {
+    if (n_dimensions > 1 && rng.random_small_uint(3) == 0) {
         std::vector<unsigned int> v;
         std::set<unsigned int> vs;
-        unsigned int spread_dimension = random_small_uint(0, n_dimensions - 1, rng);
+        unsigned int spread_dimension = rng.random_small_uint(n_dimensions);
         unsigned int remaining = N_filled;
         while (remaining != 0) {
             std::vector<unsigned int> spread_coordinate;
@@ -45,9 +37,9 @@ std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Latt
                     proposed_site[spread_dimension] = spread_coordinate[i];
                     for (unsigned int j = 0; j < n_dimensions; ++j) {
                         if (j != spread_dimension)
-                            proposed_site[j] = random_small_uint(0, lattice.dimensions[j] - 1, rng);
+                            proposed_site[j] = rng.random_small_uint(lattice.dimensions[j]);
                     }
-                    proposed_site.basis_index = random_small_uint(0, lattice.basis_indices - 1, rng);
+                    proposed_site.basis_index = rng.random_small_uint(lattice.basis_indices);
                     proposed_site_index = lattice.site_to_index(proposed_site);
                 } while (!vs.insert(proposed_site_index).second); // try again until successful
                 v.push_back(proposed_site_index);
@@ -63,7 +55,7 @@ std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Latt
     return v;
 }
 
-bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, rng_class &rng)
+bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, RandomNumberGenerator &rng)
 {
     unsigned int attempts = 1; // assume that one attempt has already been completed
     while (wf.psi() == amplitude_t(0)) {

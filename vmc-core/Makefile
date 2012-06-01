@@ -36,6 +36,7 @@ HEADER_FILES = \
                MetropolisSimulation.hpp \
                OrbitalDefinitions.hpp \
                PositionArguments.hpp \
+               RandomNumberGenerator.hpp \
                random-combination.hpp \
                random-filling.hpp \
                random-move.hpp \
@@ -66,6 +67,7 @@ SOURCES = \
           GreenMeasurement.cpp \
           Lattice.cpp \
           PositionArguments.cpp \
+          RandomNumberGenerator.cpp \
           random-combination.cpp \
           random-filling.cpp \
           random-move.cpp \

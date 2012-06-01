@@ -1,12 +1,10 @@
 #include <cmath>
 #include <vector>
 
-#include <boost/random/uniform_smallint.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <boost/random.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/assert.hpp>
 
+#include "RandomNumberGenerator.hpp"
 #include "BaseSwapPossibleWalk.hpp"
 #include "random-move.hpp"
 
@@ -45,7 +43,7 @@ unsigned int BaseSwapPossibleWalk::count_subsystem_sites (const Subsystem &subsy
     return N_subsystem_sites;
 }
 
-probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transition (rng_class &rng)
+probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng)
 {
     BOOST_ASSERT(!transition_in_progress);
     transition_in_progress = true;
@@ -53,14 +51,12 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
     const Lattice &lattice = phialpha1->get_lattice();
     const Subsystem &subsystem = swapped_system->get_subsystem();
 
-    // decide which copy of the system to base this move around.  We call the
-    // chosen copy "copy A."
-    boost::uniform_smallint<> copy_distribution(1, 2);
-    boost::variate_generator<rng_class&, boost::uniform_smallint<> > copy_gen(rng, copy_distribution);
-    unsigned int copy_A = copy_gen();
+    // decide which (zero-indexed) copy of the system to base this move around.
+    // We call the chosen copy "copy A."
+    const unsigned int copy_A = rng.random_small_uint(2);
 
-    const PositionArguments &r_A = (copy_A == 1) ? phialpha1->get_positions() : phialpha2->get_positions();
-    const PositionArguments &r_B = (copy_A == 1) ? phialpha2->get_positions() : phialpha1->get_positions();
+    const PositionArguments &r_A = (copy_A == 0) ? phialpha1->get_positions() : phialpha2->get_positions();
+    const PositionArguments &r_B = (copy_A == 0) ? phialpha2->get_positions() : phialpha1->get_positions();
 
     // first choose a random move in copy A
     chosen_particle_A = choose_random_particle(r_A, rng);
@@ -117,9 +113,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
                 candidate_particle_B_array.push_back(i);
         }
         BOOST_ASSERT(forward_particle_possibilities == candidate_particle_B_array.size());
-        boost::uniform_smallint<> candidate_distribution(0, candidate_particle_B_array.size() - 1);
-        boost::variate_generator<rng_class&, boost::uniform_smallint<> > candidate_gen(rng, candidate_distribution);
-        chosen_particle_B = Particle(candidate_particle_B_array[candidate_gen()], species);
+        chosen_particle_B = Particle(candidate_particle_B_array[rng.random_small_uint(candidate_particle_B_array.size())], species);
 
         // choose a destination such that the particle in copy B will change its
         // subsystem status
@@ -131,15 +125,13 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
             candidate_destination_B_array.push_back(i);
         }
         BOOST_ASSERT(forward_vacant_possibilities == candidate_destination_B_array.size());
-        boost::uniform_smallint<> destination_distribution(0, candidate_destination_B_array.size() - 1);
-        boost::variate_generator<rng_class&, boost::uniform_smallint<> > destination_gen(rng, destination_distribution);
-        particle_B_destination = candidate_destination_B_array[destination_gen()];
+        particle_B_destination = candidate_destination_B_array[rng.random_small_uint(candidate_destination_B_array.size())];
     }
 
     // translate from "copy A or B" language back to "copy 1 or 2"
     const Particle * const chosen_particle_B_ptr = (copy_A_subsystem_particle_change != 0) ? &chosen_particle_B : 0;
-    chosen_particle1 = (copy_A == 1) ? &chosen_particle_A : chosen_particle_B_ptr;
-    chosen_particle2 = (copy_A == 1) ? chosen_particle_B_ptr : &chosen_particle_A;
+    chosen_particle1 = (copy_A == 0) ? &chosen_particle_A : chosen_particle_B_ptr;
+    chosen_particle2 = (copy_A == 0) ? chosen_particle_B_ptr : &chosen_particle_A;
 
     // move particles, determining phialpha probability ratios
     amplitude_t phialpha1_ratio(1), phialpha2_ratio(1);
@@ -147,14 +139,14 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         const amplitude_t old_phialpha1_psi = phialpha1->psi();
         if (!phialpha1.unique()) // copy-on-write
             phialpha1 = phialpha1->clone();
-        phialpha1->perform_move(*chosen_particle1, (copy_A == 1) ? particle_A_destination : particle_B_destination);
+        phialpha1->perform_move(*chosen_particle1, (copy_A == 0) ? particle_A_destination : particle_B_destination);
         phialpha1_ratio = phialpha1->psi() / old_phialpha1_psi;
     }
     if (chosen_particle2) {
         const amplitude_t old_phialpha2_psi = phialpha2->psi();
         if (!phialpha2.unique()) // copy-on-write
             phialpha2 = phialpha2->clone();
-        phialpha2->perform_move(*chosen_particle2, (copy_A == 1) ? particle_B_destination : particle_A_destination);
+        phialpha2->perform_move(*chosen_particle2, (copy_A == 0) ? particle_B_destination : particle_A_destination);
         phialpha2_ratio = phialpha2->psi() / old_phialpha2_psi;
     }
 

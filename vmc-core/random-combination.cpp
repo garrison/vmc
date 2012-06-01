@@ -1,14 +1,12 @@
 #include <set>
 
-#include <boost/random/uniform_smallint.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <boost/random.hpp>
 #include <boost/assert.hpp>
 
+#include "RandomNumberGenerator.hpp"
 #include "random-combination.hpp"
 
 // http://stackoverflow.com/questions/2394246/algorithm-to-select-a-single-random-combination-of-values
-void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned int n, rng_class &rng, unsigned int keep)
+void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned int n, RandomNumberGenerator &rng, unsigned int keep)
 {
     // per Jon Bentley's article in CACM, September 1987, Volume 30, Number 9
     BOOST_ASSERT(n > 0);
@@ -35,10 +33,7 @@ void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned 
 
     for (unsigned int k = n - r + keep; k < n; ++k) {
         BOOST_ASSERT(k > 0);
-        boost::uniform_smallint<> dist(0, k - 1);
-        // fixme: make sure we can use the same rng again and again here without updating it
-        boost::variate_generator<rng_class&, boost::uniform_smallint<> > gen(rng, dist);
-        unsigned int x = gen();
+        unsigned int x = rng.random_small_uint(k);
         unsigned int a = (vs.find(x) != vs.end()) ? k : x;
         v.push_back(a);
         vs.insert(a);

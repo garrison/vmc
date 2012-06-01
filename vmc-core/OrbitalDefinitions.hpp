@@ -3,6 +3,7 @@
 
 #include <Eigen/Dense>
 #include <boost/assert.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "vmc-typedefs.hpp"
 

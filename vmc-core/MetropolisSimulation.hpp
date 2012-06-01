@@ -9,10 +9,9 @@
 
 #include <boost/assert.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/random/uniform_01.hpp>
-#include <boost/random.hpp>
 
 #include "vmc-typedefs.hpp"
+#include "RandomNumberGenerator.hpp"
 #include "Measurement.hpp"
 
 /**
@@ -44,22 +43,21 @@ public:
      *
      * The Walk_T type must define three methods:
      *
-     * * probability_t compute_probability_ratio_of_random_transition (rng_class &rng);
+     * * probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng);
      * * void accept_transition ();
      * * void reject_transition ();
      *
      * @see StandardWalk for an example walk
      */
     MetropolisSimulation (const Walk_T &walk_, const std::list<boost::shared_ptr<Measurement<Walk_T> > > &measurements_,
-                          unsigned int initialization_sweeps, const rng_seed_t &seed)
+                          unsigned int initialization_sweeps, RandomNumberGenerator &rng_)
         : walk(walk_),
           measurements(measurements_),
           m_steps(0),
           m_steps_accepted(0),
           m_steps_fully_rejected(0),
           measurement_not_yet_updated(true),
-          rng(seed),
-          uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
+          rng(rng_)
         {
             perform_initialization(initialization_sweeps);
         }
@@ -79,14 +77,13 @@ public:
      * @param seed random seed
      */
     MetropolisSimulation (const Walk_T &walk_, const boost::shared_ptr<Measurement<Walk_T> > &measurement_,
-                          unsigned int initialization_sweeps, const rng_seed_t &seed)
+                          unsigned int initialization_sweeps, RandomNumberGenerator &rng_)
         : walk(walk_),
           m_steps(0),
           m_steps_accepted(0),
           m_steps_fully_rejected(0),
           measurement_not_yet_updated(true),
-          rng(seed),
-          uniform_distribution(rng_class(rng())) // see http://www.bnikolic.co.uk/blog/cpp-boost-uniform01.html
+          rng(rng_)
         {
             measurements.push_back(measurement_);
             perform_initialization(initialization_sweeps);
@@ -171,8 +168,7 @@ private:
     unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
     bool measurement_not_yet_updated;
 
-    rng_class rng;
-    boost::uniform_01<rng_class> uniform_distribution;
+    RandomNumberGenerator &rng;
 
     bool perform_single_step (void)
         {
@@ -183,7 +179,7 @@ private:
                 std::cerr << "invalid probability ratio: " << probability_ratio << std::endl;
 #endif
             if (probability_ratio >= 1
-                || (probability_ratio > 0 && probability_ratio > uniform_distribution())) {
+                || (probability_ratio > 0 && probability_ratio > rng.random_uniform01())) {
                 // accept transition
 #if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
                 std::cerr << "A" << std::endl;

@@ -28,11 +28,11 @@ public:
         {
         }
 
-    lw_vector (unsigned int initial_size)
+    lw_vector (unsigned int initial_size, const T &value=T())
     : n(initial_size)
         {
             BOOST_ASSERT(n <= MAX_SIZE);
-            v.assign(T());
+            v.assign(value);
         }
 
     std::size_t size (void) const
@@ -47,18 +47,7 @@ public:
             v[n - 1] = value;
         }
 
-    void resize(unsigned int new_size)
-        {
-            BOOST_ASSERT(new_size <= MAX_SIZE);
-            while (new_size > n) {
-                v[n] = T();
-                ++n;
-            }
-            // in case new_size <= n
-            n = new_size;
-        }
-    
-    void resize(unsigned int new_size, const T &value)
+    void resize(unsigned int new_size, const T &value=T())
         {
             BOOST_ASSERT(new_size <= MAX_SIZE);
             while (new_size > n) {

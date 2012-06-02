@@ -50,8 +50,7 @@ std::vector<lw_vector<int, MAX_DIMENSION> > lowest_momenta (const LatticeRealiza
     //pairs.reserve(number of primitive cells) // (fixme)
 
     // loop over all momentum sites (yes, it really is this complicated)
-    lw_vector<int, MAX_DIMENSION> momentum_site;
-    momentum_site.resize(DIM, 0);
+    lw_vector<int, MAX_DIMENSION> momentum_site(DIM, 0);
     int not_done = 0;
     boost::array<int*, DIM> overflow_target;
     for (unsigned int i = 0; i < DIM - 1; ++i)

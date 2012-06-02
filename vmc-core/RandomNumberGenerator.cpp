@@ -1,7 +1,8 @@
 #include <cstring>
 
 #include <boost/assert.hpp>
-#include <boost/random.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/lagged_fibonacci.hpp>
 #include <boost/random/uniform_smallint.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/uniform_01.hpp>
@@ -40,10 +41,28 @@ private:
     boost::uniform_01<T> uniform01_distribution;
 };
 
+static const char * const rng_names[] = {
+    "boost::mt19937",
+    "boost::lagged_fibonacci607",
+    0 // a null pointer marks the end of the array
+};
+
+bool RandomNumberGenerator::name_is_valid (const char *rng_name)
+{
+    for (const char * const * current_rng_name = rng_names; *current_rng_name; ++current_rng_name) {
+        if (std::strcmp(rng_name, *current_rng_name) == 0)
+            return true;
+    }
+    return false;
+}
+
 std::auto_ptr<RandomNumberGenerator> RandomNumberGenerator::create (const char *rng_name, RandomNumberGenerator::rng_seed_t seed)
 {
+    BOOST_ASSERT(name_is_valid(rng_name));
     if (std::strcmp(rng_name, "boost::mt19937") == 0)
         return std::auto_ptr<RandomNumberGenerator>(new RandomNumberGeneratorBoostImpl<boost::mt19937>(seed));
+    if (std::strcmp(rng_name, "boost::lagged_fibonacci607") == 0)
+        return std::auto_ptr<RandomNumberGenerator>(new RandomNumberGeneratorBoostImpl<boost::lagged_fibonacci607>(seed));
 
     BOOST_ASSERT(false); // invalid rng specified
     return std::auto_ptr<RandomNumberGenerator>(); // suppress non-void return warning

@@ -1,5 +1,6 @@
 {
     "rng": {
+        //"type": "boost::lagged_fibonacci607",
 	"seed": 23
     },
     "system": {

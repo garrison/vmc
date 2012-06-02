@@ -510,7 +510,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
     unsigned long seed;
     const Json::Value &json_rng = json_input["rng"];
     ensure_object(json_rng);
-    const char * const json_rng_allowed[] = { "seed", NULL };
+    const char * const json_rng_allowed[] = { "seed", "type", NULL };
     ensure_only(json_rng, json_rng_allowed);
     if (json_rng.isMember("seed")) {
         if (!json_rng["seed"].isIntegral())
@@ -519,7 +519,15 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
     } else {
         throw ParseError("seed must be given");
     }
-    std::auto_ptr<RandomNumberGenerator> rng(RandomNumberGenerator::create("boost::mt19937", seed));
+    const char *rng_type_name = "boost::mt19937"; // by default
+    if (json_rng.isMember("type")) {
+        const Json::Value &json_rng_type_name = json_rng["type"];
+        ensure_string(json_rng_type_name);
+        rng_type_name = json_rng_type_name.asCString();
+        if (!RandomNumberGenerator::name_is_valid(rng_type_name))
+            throw ParseError("invalid random number generator type specified");
+    }
+    std::auto_ptr<RandomNumberGenerator> rng(RandomNumberGenerator::create(rng_type_name, seed));
 
     // begin setting up the physical system
     const Json::Value &json_system = json_input["system"];

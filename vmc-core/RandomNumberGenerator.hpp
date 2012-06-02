@@ -36,6 +36,12 @@ public:
     virtual double random_uniform01 (void) = 0;
 
     /**
+     * Returns true if the given name represents a valid random number
+     * generator
+     */
+    static bool name_is_valid (const char *rng_name);
+
+    /**
      * Creates a specific type of RandomNumberGenerator, given by name
      */
     static std::auto_ptr<RandomNumberGenerator> create (const char *rng_name, rng_seed_t seed);

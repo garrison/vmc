@@ -93,7 +93,7 @@ protected:
      *
      * Each member here represents some step size.
      */
-    struct Move {
+    struct MoveAxis {
         BravaisSite bravais_site;
         int basis_index;
     };
@@ -123,14 +123,14 @@ public:
 
             // set up default move axes
             for (unsigned int i = 0; i < dimensions.size(); ++i) {
-                Move m;
+                MoveAxis m;
                 m.bravais_site.resize(dimensions.size(), 0);
                 m.bravais_site[i] = 1;
                 m.basis_index = 0;
                 move_axes.push_back(m);
             }
             if (basis_indices > 1) {
-                Move m;
+                MoveAxis m;
                 m.bravais_site.resize(dimensions.size(), 0);
                 m.basis_index = 1;
                 move_axes.push_back(m);
@@ -245,7 +245,7 @@ public:
             BOOST_ASSERT(site_is_valid(site));
             BOOST_ASSERT(move_axis < move_axes.size());
             BOOST_ASSERT(step_direction == -1 || step_direction == 1);
-            const Move &m = move_axes[move_axis];
+            const MoveAxis &m = move_axes[move_axis];
             BOOST_ASSERT(m.bravais_site.size() == n_dimensions());
             for (unsigned int i = 0; i < n_dimensions(); ++i)
                 site[i] += step_direction * m.bravais_site[i];
@@ -280,7 +280,7 @@ private:
 protected:
     // this can be modified at will until the object is fully instantiated, but
     // after that it should not be changed
-    std::vector<struct Move> move_axes;
+    std::vector<struct MoveAxis> move_axes;
 };
 
 inline LatticeSite::LatticeSite (const Lattice &lattice)

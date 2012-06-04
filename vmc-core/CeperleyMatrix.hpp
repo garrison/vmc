@@ -236,8 +236,11 @@ public:
 
             nullity_lower_bound = new_nullity_lower_bound;
             if (inverse_recalculated_for_current_update)
-                invmat = new_invmat; // fixme: really we should only need to
-                                     // update a pointer here...
+                // in theory, invmat.swap(new_invmat) would only swap the
+                // pointers (see Eigen/src/Core/Matrix.h), but the code runs
+                // slower if we do that instead of a matrix copy here.  it's
+                // not at all clear why.
+                invmat = new_invmat;
             inverse_recalculated_for_current_update = false;
             current_state = READY_FOR_UPDATE;
 
@@ -266,8 +269,7 @@ public:
 
             nullity_lower_bound = new_nullity_lower_bound;
             if (inverse_recalculated_for_current_update)
-                invmat = new_invmat; // fixme: really we should only need to
-                                     // update a pointer here...
+                invmat = new_invmat;
             inverse_recalculated_for_current_update = false;
             current_state = READY_FOR_UPDATE;
 

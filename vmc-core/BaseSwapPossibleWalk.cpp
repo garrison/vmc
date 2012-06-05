@@ -175,10 +175,7 @@ void BaseSwapPossibleWalk::accept_transition (void)
     BOOST_ASSERT(transition_in_progress);
     transition_in_progress = false;
 
-    if (autoreject_in_progress) {
-        autoreject_in_progress = false;
-        return;
-    }
+    BOOST_ASSERT(!autoreject_in_progress);
 
     if (!update_swapped_system_before_accepting) {
         // implement copy-on-write

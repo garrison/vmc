@@ -48,11 +48,10 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (Rand
 void StandardWalk::accept_transition (void)
 {
     BOOST_ASSERT(transition_in_progress);
+    BOOST_ASSERT(!autoreject_in_progress);
 
     BOOST_ASSERT(wf.unique()); // ensure copy-on-write is implemented correctly
-    if (!autoreject_in_progress)
-        wf->finish_move();
-    autoreject_in_progress = false;
+    wf->finish_move();
 
 #ifndef BOOST_DISABLE_ASSERTS
     transition_in_progress = false;
@@ -63,9 +62,10 @@ void StandardWalk::reject_transition (void)
 {
     BOOST_ASSERT(transition_in_progress);
 
-    BOOST_ASSERT(wf.unique()); // ensure copy-on-write is implemented correctly
-    if (!autoreject_in_progress)
+    if (!autoreject_in_progress) {
+        BOOST_ASSERT(wf.unique()); // ensure copy-on-write is implemented correctly
         wf->cancel_move();
+    }
     autoreject_in_progress = false;
 
 #ifndef BOOST_DISABLE_ASSERTS

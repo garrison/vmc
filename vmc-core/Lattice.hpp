@@ -47,7 +47,7 @@ public:
             return bs;
         }
 
-    unsigned int size (void) const
+    unsigned int n_dimensions (void) const
         {
             return bs.size();
         }

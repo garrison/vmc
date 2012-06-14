@@ -1,4 +1,33 @@
+#include <boost/noncopyable.hpp>
+
 #include "GreenMeasurement.hpp"
+
+/**
+ * Manages a temporary move on a wave function.
+ *
+ * When it goes out of scope, the move is automatically cancelled.
+ *
+ * NEVER allow an update while this is in scope, or create a second one on a
+ * wavefunction when it is in scope.  Keep it around for as little time as
+ * possible.
+ */
+class TemporaryMove : boost::noncopyable
+{
+public:
+    TemporaryMove (const WavefunctionAmplitude &wf_,
+                   Particle particle, unsigned int new_site_index)
+        : wf(wf_)
+        {
+            const_cast<WavefunctionAmplitude &>(wf).perform_move(particle, new_site_index);
+        }
+
+    ~TemporaryMove (void)
+        {
+            const_cast<WavefunctionAmplitude &>(wf).cancel_move();
+        }
+
+    const WavefunctionAmplitude &wf;
+};
 
 void GreenMeasurement::initialize_ (const StandardWalk &walk)
 {
@@ -21,10 +50,7 @@ void GreenMeasurement::measure_ (const StandardWalk &walk)
 
     current_step_green_accum.setZero();
 
-    // fixme: the only reason we perform a clone here is because we
-    // aren't allowed to write to the original wavefunction.  but there
-    // is no legitimate reason that a clone is necessary.
-    boost::shared_ptr<WavefunctionAmplitude> wf_operated = wf.clone();
+    const amplitude_t old_psi = wf.psi();
 
     // loop through all (particle, empty site) pairs
     for (unsigned int i = 0; i < r.get_N_filled(species); ++i) {
@@ -39,14 +65,12 @@ void GreenMeasurement::measure_ (const StandardWalk &walk)
             if (r.is_occupied(j, species))
                 continue;
 
-            wf_operated->perform_move(particle, j);
+            TemporaryMove temp_move(wf, particle, j);
 
             LatticeSite site_j(lattice->site_from_index(j));
             phase_t phase = lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
             // fixme: check logic of multiplying by phase
-            current_step_green_accum(site_i.basis_index, lattice->site_to_index(site_j)) += std::conj(wf_operated->psi() * phase / wf.psi());
-
-            wf_operated->cancel_move();
+            current_step_green_accum(site_i.basis_index, lattice->site_to_index(site_j)) += std::conj(wf.psi() * phase / old_psi);
         }
     }
 

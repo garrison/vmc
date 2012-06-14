@@ -29,8 +29,8 @@ struct Particle
  * Stores each particle's position such that we can also quickly query to see
  * whether a given site is vacant or not.
  *
- * The assertions only allow one particle per site, but this restriction could
- * easily be removed.
+ * The assertions enforce Pauli exclusion, but this restriction could easily be
+ * removed.
  */
 class PositionArguments
 {

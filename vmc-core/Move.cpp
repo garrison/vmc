@@ -13,7 +13,7 @@ bool Move::is_valid_for (const PositionArguments &r) const
     for (Move::const_iterator i = this->begin(); i != this->end(); ++i) {
         if (!(r.particle_is_valid(i->particle)
               && i->destination < N_sites
-              && r[i->particle] != i->destination // null single particle moves are not allowed.  FIXME: fix all code to make sure this never happens
+              && r[i->particle] != i->destination // null single particle moves are not allowed.
               && !r.is_occupied(i->destination, i->particle.species) // enforce PAULI
               && unique_pair_set.insert(std::make_pair(i->particle.species, r[i->particle])).second
               && unique_pair_set.insert(std::make_pair(i->particle.species, i->destination)).second))

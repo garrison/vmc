@@ -6,6 +6,7 @@
 
 #include "PositionArguments.hpp"
 #include "Lattice.hpp"
+#include "Move.hpp"
 #include "vmc-typedefs.hpp"
 
 class RandomNumberGenerator;
@@ -29,27 +30,10 @@ public:
      *
      * After this is called, psi() will return the new amplitude, but further
      * moves are not allowed until finish_move() has been called.
+     *
+     * A null move should never be sent to this method.
      */
-    void perform_move (Particle particle, unsigned int new_site_index)
-        {
-            BOOST_ASSERT(!move_in_progress);
-            BOOST_ASSERT(r.particle_is_valid(particle));
-            BOOST_ASSERT(!r.is_occupied(new_site_index, particle.species) || r[particle] == new_site_index);
-
-            current_move_particle = particle;
-            current_move_old_site_index = r[particle];
-
-#if defined(DEBUG_VMC_WAVEFUNCTION_AMPLITUDE) || defined(DEBUG_VMC_ALL)
-            if (r[particle] == new_site_index)
-                std::cerr << "performing a no-op particle move" << std::endl;
-#endif
-
-            perform_move_(particle, new_site_index);
-
-#ifndef BOOST_DISABLE_ASSERTS
-            move_in_progress = true;
-#endif
-        }
+    void perform_move (const Move &move);
 
     /**
      * Returns the current amplitude of the wavefunction
@@ -74,14 +58,7 @@ public:
     /**
      * Cancels the current move, such that new moves are allowed
      */
-    void cancel_move (void)
-        {
-            BOOST_ASSERT(move_in_progress);
-            cancel_move_(current_move_particle, current_move_old_site_index);
-#ifndef BOOST_DISABLE_ASSERTS
-            move_in_progress = false;
-#endif
-        }
+    void cancel_move (void);
 
     void swap_particles (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
         {
@@ -133,24 +110,38 @@ public:
      */
     virtual void reset_with_random_positions (RandomNumberGenerator &rng);
 
+    /**
+     * Propose a move.
+     *
+     * This does not actually perform the move.  Just proposes a sensible one
+     * randomly.
+     *
+     * Must maintain balance.
+     *
+     * It is allowed for this to return the null move occasionally (which may
+     * be useful to obtain balance).
+     */
+    virtual Move propose_move (RandomNumberGenerator &rng) const;
+
 private:
     /**
-     * This method is responsible for updating the PositionArguments "r" as
-     * well as updating the state of the object such that psi_() returns the
-     * new amplitude.
+     * This method is responsible for updating the state of the object such
+     * that psi_() returns the new amplitude.  The PositionArguments "r" will
+     * be updated before this method is called.  Also, a null move should
+     * never be sent to this method.
      */
-    virtual void perform_move_ (Particle particle, unsigned int new_site_index) = 0;
+    virtual void perform_move_ (const Move &move) = 0;
 
     virtual amplitude_t psi_ (void) const = 0;
 
     virtual void finish_move_ (void) = 0;
 
     /**
-     * This method is responsible for returning the particle (in the
-     * PositionArguments "r") to its original position, as well as restoring
-     * the state of everything to the way it was before.
+     * This method is responsible for restoring the state of everything to the
+     * way it was before.  After this is called, the PositionArguments r will
+     * be reverted to its original state.
      */
-    virtual void cancel_move_ (Particle particle, unsigned int old_site_index) = 0;
+    virtual void cancel_move_ (void) = 0;
 
     // this gets called *after* the particles have been updated in this->r
     virtual void swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species) = 0;
@@ -169,15 +160,19 @@ protected:
         {
         }
 
-    PositionArguments r;
+    const Move & get_reverse_move (void) const
+        {
+            return reverse_move;
+        }
 
-    // we remember these things for when we want to cancel a move
-    Particle current_move_particle;
-    unsigned int current_move_old_site_index;
+    PositionArguments r;
 
     const boost::shared_ptr<const Lattice> lattice;
 
 private:
+    // for when we need to cancel a move
+    Move reverse_move;
+
 #ifndef BOOST_DISABLE_ASSERTS
     bool move_in_progress;
 #endif

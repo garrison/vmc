@@ -42,3 +42,12 @@ vmc-core/docs/generated/html/index.html
 
 If PDF output is desired, change directory to
 vmc-core/docs/generated/latex/ and run "make".
+
+Caveats
+-------
+
+Only wavefunctions whose (slave) particles obey Pauli exclusions are
+currently supported (i.e. fermions and hard-core bosons).
+
+Renyi can only be calculated for wavefunctions that move at most one
+particle at a time.

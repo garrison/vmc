@@ -1,7 +1,6 @@
 #include "StandardWalk.hpp"
 #include "WavefunctionAmplitude.hpp"
 #include "PositionArguments.hpp"
-#include "random-move.hpp"
 
 StandardWalk::StandardWalk (boost::shared_ptr<WavefunctionAmplitude> &wf_)
     : wf(wf_),
@@ -23,11 +22,9 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (Rand
     // remember old amplitude so we can later compute a new:old ratio
     amplitude_t old_amplitude = wf->psi();
 
-    // move a particle and update things
-    const PositionArguments &r = wf->get_positions();
-    Particle chosen_particle = choose_random_particle(r, rng);
-    unsigned int new_site_index = plan_particle_move_to_nearby_empty_site(chosen_particle, r, wf->get_lattice(), rng);
-    if (new_site_index == r[chosen_particle]) {
+    // choose a move and update things
+    const Move move(wf->propose_move(rng));
+    if (move.size() == 0) {
         // we aren't actually moving anything, so just auto-reject this move to
         // preserve balance
         autoreject_in_progress = true;
@@ -35,7 +32,7 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (Rand
     }
     if (!wf.unique()) // implement copy on write
         wf = wf->clone();
-    wf->perform_move(chosen_particle, new_site_index);
+    wf->perform_move(move);
 
     // calculate and return a probability
     probability_t rv = std::norm(wf->psi() / old_amplitude);

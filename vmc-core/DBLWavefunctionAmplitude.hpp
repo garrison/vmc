@@ -24,13 +24,13 @@ public:
     DBLWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_);
 
 private:
-    void perform_move_ (Particle particle, unsigned int new_site_index);
+    void perform_move_ (const Move &move);
 
     amplitude_t psi_ (void) const;
 
     void finish_move_ (void);
 
-    void cancel_move_ (Particle particle, unsigned int old_site_index);
+    void cancel_move_ (void);
 
     void swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species);
 

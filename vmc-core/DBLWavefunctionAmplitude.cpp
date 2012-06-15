@@ -21,16 +21,13 @@ DBLWavefunctionAmplitude::DBLWavefunctionAmplitude (const PositionArguments &r_,
     reinitialize();
 }
 
-void DBLWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int new_site_index)
+void DBLWavefunctionAmplitude::perform_move_ (const Move &move)
 {
-    BOOST_ASSERT(r.particle_is_valid(particle));
-    BOOST_ASSERT(new_site_index < r.get_N_sites());
-
-    r.update_position(particle, new_site_index);
+    BOOST_ASSERT(move.size() == 1);
 
     // update the Ceperley matrices
-    cmat1.update_column(particle.index, orbital_def1->at_position(new_site_index));
-    cmat2.update_column(particle.index, orbital_def2->at_position(new_site_index));
+    cmat1.update_column(move[0].particle.index, orbital_def1->at_position(move[0].destination));
+    cmat2.update_column(move[0].particle.index, orbital_def2->at_position(move[0].destination));
 }
 
 amplitude_t DBLWavefunctionAmplitude::psi_ (void) const
@@ -47,9 +44,8 @@ void DBLWavefunctionAmplitude::finish_move_ (void)
     cmat2.finish_column_update();
 }
 
-void DBLWavefunctionAmplitude::cancel_move_ (Particle particle, unsigned int old_site_index)
+void DBLWavefunctionAmplitude::cancel_move_ (void)
 {
-    r.update_position(particle, old_site_index);
     cmat1.cancel_column_update();
     cmat2.cancel_column_update();
 }

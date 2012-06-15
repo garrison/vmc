@@ -14,11 +14,10 @@
 class TemporaryMove : boost::noncopyable
 {
 public:
-    TemporaryMove (const WavefunctionAmplitude &wf_,
-                   Particle particle, unsigned int new_site_index)
+    TemporaryMove (const WavefunctionAmplitude &wf_, const Move &move)
         : wf(wf_)
         {
-            const_cast<WavefunctionAmplitude &>(wf).perform_move(particle, new_site_index);
+            const_cast<WavefunctionAmplitude &>(wf).perform_move(move);
         }
 
     ~TemporaryMove (void)
@@ -65,7 +64,9 @@ void GreenMeasurement::measure_ (const StandardWalk &walk)
             if (r.is_occupied(j, species))
                 continue;
 
-            TemporaryMove temp_move(wf, particle, j);
+            Move move;
+            move.push_back(SingleParticleMove(particle, j));
+            TemporaryMove temp_move(wf, move);
 
             LatticeSite site_j(lattice->site_from_index(j));
             phase_t phase = lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());

@@ -158,8 +158,16 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         // update the phibeta's
         const unsigned int max_pairing_index = std::max(pairing_index1, pairing_index2);
         BOOST_ASSERT(!phibeta1_dirty && !phibeta2_dirty);
-        phibeta1->perform_move(Particle(c1_s[max_pairing_index], species), r1[*particle1]);
-        phibeta2->perform_move(Particle(c2_s[max_pairing_index], species), r2[*particle2]);
+        {
+            Move move;
+            move.push_back(SingleParticleMove(Particle(c1_s[max_pairing_index], species), r1[*particle1]));
+            phibeta1->perform_move(move);
+        }
+        {
+            Move move;
+            move.push_back(SingleParticleMove(Particle(c2_s[max_pairing_index], species), r2[*particle2]));
+            phibeta2->perform_move(move);
+        }
         phibeta1_dirty = true;
         phibeta2_dirty = true;
 
@@ -196,7 +204,9 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             if (!phibeta.unique())
                 phibeta = phibeta->clone();
             BOOST_ASSERT(!phibeta_dirty);
-            phibeta->perform_move(phibeta_particle, r1[*particle1]);
+            Move move;
+            move.push_back(SingleParticleMove(phibeta_particle, r1[*particle1]));
+            phibeta->perform_move(move);
             phibeta_dirty = true;
         }
 
@@ -211,7 +221,9 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             // different, so we know that phibeta_dirty will never be true
             // here.
             BOOST_ASSERT(!phibeta_dirty);
-            phibeta->perform_move(phibeta_particle, r2[*particle2]);
+            Move move;
+            move.push_back(SingleParticleMove(phibeta_particle, r2[*particle2]));
+            phibeta->perform_move(move);
             phibeta_dirty = true;
         }
     }

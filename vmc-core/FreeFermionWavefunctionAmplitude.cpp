@@ -14,15 +14,12 @@ FreeFermionWavefunctionAmplitude::FreeFermionWavefunctionAmplitude (const Positi
     reinitialize();
 }
 
-void FreeFermionWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int new_site_index)
+void FreeFermionWavefunctionAmplitude::perform_move_ (const Move &move)
 {
-    BOOST_ASSERT(r.particle_is_valid(particle));
-    BOOST_ASSERT(new_site_index < r.get_N_sites());
-
-    r.update_position(particle, new_site_index);
+    BOOST_ASSERT(move.size() == 1);
 
     // update the Ceperley matrix
-    cmat.update_column(particle.index, orbital_def->at_position(new_site_index));
+    cmat.update_column(move[0].particle.index, orbital_def->at_position(move[0].destination));
 }
 
 amplitude_t FreeFermionWavefunctionAmplitude::psi_ (void) const
@@ -35,10 +32,8 @@ void FreeFermionWavefunctionAmplitude::finish_move_ (void)
     cmat.finish_column_update();
 }
 
-void FreeFermionWavefunctionAmplitude::cancel_move_ (Particle particle, unsigned int old_site_index)
+void FreeFermionWavefunctionAmplitude::cancel_move_ (void)
 {
-    r.update_position(particle, old_site_index);
-
     cmat.cancel_column_update();
 }
 

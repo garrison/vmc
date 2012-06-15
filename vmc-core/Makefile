@@ -34,6 +34,7 @@ HEADER_FILES = \
                lw_vector.hpp \
                Measurement.hpp \
                MetropolisSimulation.hpp \
+               Move.hpp \
                OrbitalDefinitions.hpp \
                PositionArguments.hpp \
                RandomNumberGenerator.hpp \
@@ -66,6 +67,7 @@ SOURCES = \
           FreeFermionWavefunctionAmplitude.cpp \
           GreenMeasurement.cpp \
           Lattice.cpp \
+          Move.cpp \
           PositionArguments.cpp \
           RandomNumberGenerator.cpp \
           random-combination.cpp \

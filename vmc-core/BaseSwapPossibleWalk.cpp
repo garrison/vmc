@@ -62,6 +62,11 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
     chosen_particle_A = choose_random_particle(r_A, rng);
     const unsigned int particle_A_destination = plan_particle_move_to_nearby_empty_site(chosen_particle_A, r_A, lattice, rng);
 
+    if (r_A[chosen_particle_A] == particle_A_destination) {
+        autoreject_in_progress = true;
+        return 0;
+    }
+
     // If the particle we are moving in copy A is not going to change its
     // subsystem status, then we go ahead and make that move.  If, however, the
     // particle we are moving in copy A changes its subsystem status (i.e.,
@@ -139,14 +144,18 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         const amplitude_t old_phialpha1_psi = phialpha1->psi();
         if (!phialpha1.unique()) // copy-on-write
             phialpha1 = phialpha1->clone();
-        phialpha1->perform_move(*chosen_particle1, (copy_A == 0) ? particle_A_destination : particle_B_destination);
+        Move move;
+        move.push_back(SingleParticleMove(*chosen_particle1, (copy_A == 0) ? particle_A_destination : particle_B_destination));
+        phialpha1->perform_move(move);
         phialpha1_ratio = phialpha1->psi() / old_phialpha1_psi;
     }
     if (chosen_particle2) {
         const amplitude_t old_phialpha2_psi = phialpha2->psi();
         if (!phialpha2.unique()) // copy-on-write
             phialpha2 = phialpha2->clone();
-        phialpha2->perform_move(*chosen_particle2, (copy_A == 0) ? particle_B_destination : particle_A_destination);
+        Move move;
+        move.push_back(SingleParticleMove(*chosen_particle2, (copy_A == 0) ? particle_B_destination : particle_A_destination));
+        phialpha2->perform_move(move);
         phialpha2_ratio = phialpha2->psi() / old_phialpha2_psi;
     }
 

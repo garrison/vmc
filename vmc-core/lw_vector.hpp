@@ -93,6 +93,18 @@ public:
             return false;
         }
 
+    typedef const T *const_iterator;
+
+    const_iterator begin (void) const
+        {
+            return v.data();
+        }
+
+    const_iterator end (void) const
+        {
+            return v.data() + n;
+        }
+
 private:
     boost::array<T, MAX_SIZE> v;
     unsigned int n;

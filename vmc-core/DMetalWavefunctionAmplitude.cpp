@@ -30,12 +30,11 @@ DMetalWavefunctionAmplitude::DMetalWavefunctionAmplitude (const PositionArgument
     reinitialize();
 }
 
-void DMetalWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int new_site_index)
+void DMetalWavefunctionAmplitude::perform_move_ (const Move &move)
 {
-    BOOST_ASSERT(r.particle_is_valid(particle));
-    BOOST_ASSERT(new_site_index < r.get_N_sites());
-
-    r.update_position(particle, new_site_index);
+    BOOST_ASSERT(move.size() == 1);
+    const Particle &particle = move[0].particle;
+    const unsigned int new_site_index = move[0].destination;
 
     BOOST_ASSERT(!m_gutzwiller_rejection_in_progress);
     if (r.is_occupied(new_site_index, particle.species ^ 1)) {
@@ -70,20 +69,15 @@ amplitude_t DMetalWavefunctionAmplitude::psi_ (void) const
 
 void DMetalWavefunctionAmplitude::finish_move_ (void)
 {
-    if (m_gutzwiller_rejection_in_progress) {
-        m_gutzwiller_rejection_in_progress = false;
-        return;
-    }
+    BOOST_ASSERT(!m_gutzwiller_rejection_in_progress);
 
     m_cmat_d1.finish_column_update();
     m_cmat_d2.finish_column_update();
     (m_particle_moved_is_up ? m_cmat_f_up : m_cmat_f_down).finish_column_update();
 }
 
-void DMetalWavefunctionAmplitude::cancel_move_ (Particle particle, unsigned int old_site_index)
+void DMetalWavefunctionAmplitude::cancel_move_ (void)
 {
-    r.update_position(particle, old_site_index);
-
     if (m_gutzwiller_rejection_in_progress) {
         m_gutzwiller_rejection_in_progress = false;
         return;

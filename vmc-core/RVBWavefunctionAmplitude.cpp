@@ -6,6 +6,7 @@
 
 #include "RVBWavefunctionAmplitude.hpp"
 #include "random-filling.hpp"
+#include "random-move.hpp"
 
 RVBWavefunctionAmplitude::RVBWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi)
     : WavefunctionAmplitude(r_, lattice_),
@@ -15,31 +16,22 @@ RVBWavefunctionAmplitude::RVBWavefunctionAmplitude (const PositionArguments &r_,
     reinitialize();
 }
 
-void RVBWavefunctionAmplitude::perform_move_ (Particle particle, unsigned int new_site_index)
+void RVBWavefunctionAmplitude::perform_move_ (const Move &move)
 {
-    BOOST_ASSERT(r.particle_is_valid(particle));
-    BOOST_ASSERT(new_site_index < r.get_N_sites());
-
-    const unsigned int species = particle.species;
-    const unsigned int old_site_index = r[particle];
-
-    r.update_position(particle, new_site_index);
-
-    const unsigned int other_species = (species == 0) ? 1 : 0;
-    const int other_particle_index = r.particle_index_at_pos(new_site_index, other_species);
-    BOOST_ASSERT(other_particle_index != -1);
-    const Particle other_particle(other_particle_index, other_species);
-
-    r.update_position(other_particle, old_site_index);
+    // first assert that it's a swap
+    BOOST_ASSERT(move.size() == 2);
+    BOOST_ASSERT(move[0].particle.species != move[1].particle.species);
+    BOOST_ASSERT(r[move[0].particle] == move[1].destination);
+    BOOST_ASSERT(r[move[1].particle] == move[0].destination);
 
     const unsigned int M = r.get_N_filled(0);
     BOOST_ASSERT(M == r.get_N_filled(1));
 
-    const unsigned int moved_up_particle_index = (particle.species == 0) ? particle.index : other_particle.index;
-    const unsigned int moved_down_particle_index = (particle.species == 1) ? particle.index : other_particle.index;
-
-    const LatticeSite new_site_for_up(lattice->site_from_index(particle.species == 0 ? new_site_index : old_site_index));
-    const LatticeSite new_site_for_down(lattice->site_from_index(particle.species == 1 ? new_site_index : old_site_index));
+    // the next four lines are a bit opaque, but correct
+    const unsigned int moved_up_particle_index = move[move[0].particle.species].particle.index;
+    const unsigned int moved_down_particle_index = move[move[1].particle.species].particle.index;
+    const LatticeSite new_site_for_up(lattice->site_from_index(move[move[0].particle.species].destination));
+    const LatticeSite new_site_for_down(lattice->site_from_index(move[move[1].particle.species].destination));
 
     Eigen::Matrix<complex_t, Eigen::Dynamic, 1> new_row(M);
     const std::vector<unsigned int> & down_pos = r.r_vector(1);
@@ -78,25 +70,19 @@ void RVBWavefunctionAmplitude::finish_move_ (void)
     m_update_in_progress = false;
 }
 
-void RVBWavefunctionAmplitude::cancel_move_ (Particle particle, unsigned int old_site_index)
+void RVBWavefunctionAmplitude::cancel_move_ (void)
 {
-    unsigned int other_species = particle.species ^ 1;
-    const int other_particle_index = r.particle_index_at_pos(old_site_index, other_species);
-    BOOST_ASSERT(other_particle_index >= 0);
-    r.update_position(Particle(other_particle_index, other_species), r[particle]);
-    r.update_position(particle, old_site_index);
-
     m_update_in_progress = false;
 }
 
 void RVBWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
-    // we don't support Renyi calculations in RVBWavefunctionAmplitude yet
-    BOOST_ASSERT(false);
-
-    (void) particle1_index;
-    (void) particle2_index;
-    (void) species;
+    if (species == 0) {
+        m_cmat.swap_rows(particle1_index, particle2_index);
+    } else {
+        BOOST_ASSERT(species == 1);
+        m_cmat.swap_columns(particle1_index, particle2_index);
+    }
 }
 
 void RVBWavefunctionAmplitude::reset_ (const PositionArguments &r_)
@@ -164,4 +150,22 @@ void RVBWavefunctionAmplitude::reset_with_random_positions (RandomNumberGenerato
 
     BOOST_ASSERT(vv[0].size() == vv[1].size());
     reset(PositionArguments(vv, N_sites));
+}
+
+Move RVBWavefunctionAmplitude::propose_move (RandomNumberGenerator &rng) const
+{
+    // choose a particle of each species and swap their positions
+    Move move;
+    const Particle particle(choose_random_particle(r, rng));
+    const unsigned int proposed_site_index = plan_particle_move_to_nearby_empty_site(particle, r, *lattice, rng);
+    if (proposed_site_index != r[particle]) {
+        const unsigned int other_species = particle.species ^ 1;
+        const int other_particle_index = r.particle_index_at_pos(proposed_site_index, other_species);
+        BOOST_ASSERT(other_particle_index >= 0);
+        const Particle other_particle(other_particle_index, other_species);
+
+        move.push_back(SingleParticleMove(particle, proposed_site_index));
+        move.push_back(SingleParticleMove(other_particle, r[particle]));
+    }
+    return move;
 }

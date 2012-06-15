@@ -10,7 +10,7 @@ CXX = g++
 COMPILER_OPTIMIZATIONS = -O3 #-march=native
 COMPILER_WARNINGS = -Wall #-Wextra -Wno-unused-parameter
 COMPILER_DEFINES = #-DBOOST_DISABLE_ASSERTS -DEIGEN_NO_DEBUG
-COMPILE = $(CXX) $(COMPILER_OPTIMIZATIONS) $(COMPILER_WARNINGS) $(COMPILER_DEFINES)
+COMPILE = $(CXX) $(COMPILER_OPTIMIZATIONS) $(COMPILER_WARNINGS)
 
 DOXYGEN = doxygen
 
@@ -96,7 +96,7 @@ rvb-api: $(OBJECTS) rvb-api.o
 	$(COMPILE) $(LIBS) -o rvb-api $(OBJECTS) rvb-api.o
 
 %.o: %.cpp $(HEADER_FILES) Makefile Makefile-vmc.local
-	$(COMPILE) $(INCLUDES) -DVMC_COMPILER_COMMANDLINE="$(COMPILE)" -c -o $@ $<
+	$(COMPILE) $(INCLUDES) $(COMPILER_DEFINES) -DVMC_COMPILER_COMMANDLINE="$(COMPILE)" -c -o $@ $<
 
 docs: Doxyfile $(HEADER_FILES) $(SOURCES) clean_docs
 	mkdir -p docs/

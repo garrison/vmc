@@ -46,7 +46,7 @@ vmc-core/docs/generated/latex/ and run "make".
 Caveats
 -------
 
-Only wavefunctions whose (slave) particles obey Pauli exclusions are
+Only wavefunctions whose (slave) particles obey Pauli exclusion are
 currently supported (i.e. fermions and hard-core bosons).
 
 Renyi can only be calculated for wavefunctions that move at most one

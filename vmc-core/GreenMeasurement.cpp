@@ -69,7 +69,8 @@ void GreenMeasurement::measure_ (const StandardWalk &walk)
             TemporaryMove temp_move(wf, move);
 
             LatticeSite site_j(lattice->site_from_index(j));
-            phase_t phase = lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
+            lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
+            const phase_t phase = lattice->enforce_boundary(site_j);
             // fixme: check logic of multiplying by phase
             current_step_green_accum(site_i.basis_index, lattice->site_to_index(site_j)) += std::conj(wf.psi() * phase / old_psi);
         }

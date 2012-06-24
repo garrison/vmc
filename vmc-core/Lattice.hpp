@@ -178,12 +178,12 @@ public:
      * Addition is done in place.  (The prefix "asm" is meant to remind of
      * this, since addition is typically done in-place in assembly language.)
      *
-     * @return phase change due to any crossings in the boundary.  If boundary
-     * conditions are not given, the phase returned will always be 1.
+     * This may return a site that is off the lattice.  You may wish to call
+     * enforce_boundary() after calling this.
      *
      * @see asm_subtract_site_vector()
      */
-    phase_t asm_add_site_vector (LatticeSite &site, const BravaisSite &other, const BoundaryConditions *bcs=0) const;
+    void asm_add_site_vector (LatticeSite &site, const BravaisSite &other) const;
 
     /**
      * Subtracts from a LatticeSite the vector corresponding to the given BravaisSite
@@ -191,12 +191,12 @@ public:
      * Subtraction is done in place.  (The prefix "asm" is meant to remind of
      * this, since addition is typically done in-place in assembly language.)
      *
-     * @return phase change due to any crossings in the boundary.  If boundary
-     * conditions are not given, the phase returned will always be 1.
+     * This may return a site that is off the lattice.  You may wish to call
+     * enforce_boundary() after calling this.
      *
      * @see asm_add_site_vector()
      */
-    phase_t asm_subtract_site_vector (LatticeSite &site, const BravaisSite &other, const BoundaryConditions *bcs=0) const;
+    void asm_subtract_site_vector (LatticeSite &site, const BravaisSite &other) const;
 
     /**
      * If the site is outside the lattice, move it to the corresponding site

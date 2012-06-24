@@ -43,24 +43,22 @@ bool Lattice::site_is_valid (const LatticeSite &site) const
     return true;
 }
 
-phase_t Lattice::asm_add_site_vector (LatticeSite &site, const BravaisSite &other, const BoundaryConditions *bcs) const
+void Lattice::asm_add_site_vector (LatticeSite &site, const BravaisSite &other) const
 {
     BOOST_ASSERT(site.n_dimensions() == n_dimensions());
     BOOST_ASSERT(site.basis_index < basis_indices);
     BOOST_ASSERT(other.size() == n_dimensions());
     for (unsigned int i = 0; i < n_dimensions(); ++i)
         site[i] += other[i];
-    return enforce_boundary(site, bcs);
 }
 
-phase_t Lattice::asm_subtract_site_vector (LatticeSite &site, const BravaisSite &other, const BoundaryConditions *bcs) const
+void Lattice::asm_subtract_site_vector (LatticeSite &site, const BravaisSite &other) const
 {
     BOOST_ASSERT(site.n_dimensions() == n_dimensions());
     BOOST_ASSERT(site.basis_index < basis_indices);
     BOOST_ASSERT(other.size() == n_dimensions());
     for (unsigned int i = 0; i < n_dimensions(); ++i)
         site[i] -= other[i];
-    return enforce_boundary(site, bcs);
 }
 
 phase_t Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions *bcs) const

@@ -41,6 +41,7 @@ void DensityDensityMeasurement::measure_ (const StandardWalk &walk)
         for (unsigned int j = 0; j < r.get_N_filled(species1); ++j) {
             LatticeSite site_j(lattice->site_from_index(r[Particle(j, species1)]));
             lattice->asm_subtract_site_vector(site_j, site_i.bravais_site());
+            lattice->enforce_boundary(site_j);
             ++current_step_density_accum(site_i.basis_index, lattice->site_to_index(site_j));
         }
     }

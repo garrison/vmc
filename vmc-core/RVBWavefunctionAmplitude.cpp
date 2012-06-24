@@ -38,6 +38,7 @@ void RVBWavefunctionAmplitude::perform_move_ (const Move &move)
     for (unsigned int i = 0; i < M; ++i) {
         LatticeSite rup_minus_rdown(new_site_for_up);
         lattice->asm_subtract_site_vector(rup_minus_rdown, lattice->site_from_index(down_pos[i]).bravais_site());
+        lattice->enforce_boundary(rup_minus_rdown);
         new_row[i] = m_phi[lattice->site_to_index(rup_minus_rdown)];
     }
 
@@ -52,6 +53,7 @@ void RVBWavefunctionAmplitude::perform_move_ (const Move &move)
     for (unsigned int i = 0; i < M; ++i) {
         LatticeSite rup_minus_rdown(lattice->site_from_index(up_pos[i]));
         lattice->asm_subtract_site_vector(rup_minus_rdown, new_site_for_down.bravais_site());
+        lattice->enforce_boundary(rup_minus_rdown);
         new_col[i] = m_phi[lattice->site_to_index(rup_minus_rdown)];
     }
 
@@ -113,6 +115,7 @@ void RVBWavefunctionAmplitude::reinitialize (void)
         for (unsigned int j = 0; j < M; ++j) {
             LatticeSite rup_minus_rdown(rup);
             lattice->asm_subtract_site_vector(rup_minus_rdown, lattice->site_from_index(down_pos[j]).bravais_site());
+            lattice->enforce_boundary(rup_minus_rdown);
             mat_phi(i, j) = m_phi[lattice->site_to_index(rup_minus_rdown)];
         }
     }

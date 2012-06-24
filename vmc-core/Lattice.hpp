@@ -178,6 +178,10 @@ public:
 
     /**
      * Returns true if the given site is on the lattice
+     *
+     * Before calling this method, one should ensure that the LatticeSite has
+     * the correct number of dimensions such that it would even make sense on
+     * this lattice.
      */
     bool site_is_valid (const LatticeSite &site) const;
 

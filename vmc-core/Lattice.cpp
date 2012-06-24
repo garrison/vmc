@@ -32,8 +32,7 @@ unsigned int Lattice::site_to_index (const LatticeSite &site) const
 
 bool Lattice::site_is_valid (const LatticeSite &site) const
 {
-    if (site.n_dimensions() != n_dimensions())
-        return false;
+    BOOST_ASSERT(site.n_dimensions() == n_dimensions());
     for (unsigned int i = 0; i < n_dimensions(); ++i) {
         if (site[i] >= dimensions[i] || site[i] < 0)
             return false;

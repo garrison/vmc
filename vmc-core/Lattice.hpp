@@ -71,6 +71,15 @@ public:
         {
             return (bs != other.bs) || (basis_index != other.basis_index);
         }
+
+    bool operator< (const LatticeSite &other) const
+        {
+            if (this->n_dimensions() != other.n_dimensions())
+                return bool(this->n_dimensions() < other.n_dimensions());
+            if (this->basis_index != other.basis_index)
+                return bool(this->basis_index < other.basis_index);
+            return bool(this->bs < other.bs);
+        }
 };
 
 /**

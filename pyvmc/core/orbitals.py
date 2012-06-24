@@ -14,6 +14,15 @@ logger = logging.getLogger(__name__)
 two_pi_i = 2j * numpy.pi
 
 def allowed_momentum(momentum_site, lattice, boundary_conditions):
+    """Given a tuple representing a momentum site (along with some boundary
+    conditions), return the corresponding momentum vector divided by 2pi
+
+    A brief explanation of how momentum sites are addressed: If the tuple of
+    all zeroes is passed as momentum_site, this will return the first momentum
+    site in either the first quadrant, or, in the case of all periodic boundary
+    conditions, at the origin.  Other tuples are considered as an offset in
+    relation to this site.
+    """
     from fractions import Fraction
     from pyvmc.core.lattice import LatticeSite
     assert LatticeSite(momentum_site) in lattice

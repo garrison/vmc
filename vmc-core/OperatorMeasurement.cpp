@@ -83,10 +83,26 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
 
             // now perform the move (if necessary)
             if (move.size() != 0) {
-                TemporaryMove temp_move(wf, move);
-                // fixme: check logic of multiplying by phase (c.f. above), as
-                // well as logic of source and destination
-                meas += std::conj(wf.psi() * phase / old_psi);
+                // XXX: temporary hack for now, since we don't yet support
+                // multiple-particle updates everywhere
+                if (move.size() == 1) {
+                    TemporaryMove temp_move(wf, move);
+                    // fixme: check logic of multiplying by phase (c.f. above), as
+                    // well as logic of source and destination
+                    meas += std::conj(wf.psi() * phase / old_psi);
+                } else {
+                    boost::shared_ptr<WavefunctionAmplitude> wf_operated(wf.clone());
+                    for (unsigned int k = 0; k < move.size(); ++k) {
+                        if (k != 0)
+                            wf_operated->finish_move();
+                        Move single_move;
+                        single_move.push_back(move[k]);
+                        wf_operated->perform_move(single_move);
+                    }
+                    // fixme: check logic of multiplying by phase (c.f. above), as
+                    // well as logic of source and destination
+                    meas += std::conj(wf_operated->psi() * phase / old_psi);
+                }
             } else {
                 meas += 1;
             }

@@ -33,6 +33,7 @@
 #include "StandardWalk.hpp"
 #include "DensityDensityMeasurement.hpp"
 #include "GreenMeasurement.hpp"
+#include "OperatorMeasurement.hpp"
 #include "SubsystemOccupationNumberProbabilityMeasurement.hpp"
 #include "RenyiModPossibleWalk.hpp"
 #include "RenyiModPossibleMeasurement.hpp"
@@ -210,6 +211,18 @@ static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_defi
     return boost::make_shared<OrbitalDefinitions>(orbitals, lattice);
 }
 
+static BoundaryConditions parse_json_boundary_conditions (const Json::Value &json_bcs, unsigned int n_dimensions)
+{
+    ensure_array(json_bcs, n_dimensions);
+    BoundaryConditions boundary_conditions(n_dimensions);
+    for (unsigned int i = 0; i < n_dimensions; ++i) {
+        if (!(json_bcs[i].isIntegral() && json_bcs[i].asInt() > 0))
+            throw ParseError("invalid boundary condition specifier");
+        boundary_conditions[i] = BoundaryCondition(json_bcs[i].asUInt());
+    }
+    return boundary_conditions;
+}
+
 static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_filling (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice> &lattice)
 {
     const char * const json_orbitals_required[] = { "filling", "boundary-conditions", NULL };
@@ -219,14 +232,7 @@ static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_fill
     const unsigned int n_dimensions = lattice->n_dimensions();
 
     // set up the boundary conditions
-    const Json::Value &json_bcs = json_orbitals["boundary-conditions"];
-    ensure_array(json_bcs, n_dimensions);
-    BoundaryConditions boundary_conditions(n_dimensions);
-    for (unsigned int i = 0; i < n_dimensions; ++i) {
-        if (!(json_bcs[i].isIntegral() && json_bcs[i].asInt() > 0))
-            throw ParseError("invalid boundary condition specifier");
-        boundary_conditions[i] = BoundaryCondition(json_bcs[i].asUInt());
-    }
+    BoundaryConditions boundary_conditions(parse_json_boundary_conditions(json_orbitals["boundary-conditions"], n_dimensions));
 
     // set up the orbitals' filled momenta
     const Json::Value &json_filling = json_orbitals["filling"];
@@ -284,7 +290,7 @@ static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Valu
     }
 }
 
-static boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_definition (const Json::Value &json_measurement_def, const WavefunctionAmplitude &wf)
+static boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_definition (const Json::Value &json_measurement_def, const WavefunctionAmplitude &wf, const boost::shared_ptr<const Lattice> &lattice)
 {
     const unsigned int N_species = wf.get_positions().get_N_species();
     ensure_object_with_type_field_as_string(json_measurement_def);
@@ -317,13 +323,51 @@ static boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measure
             throw ParseError("species must be given, as this wave function contains multiple species of particles");
         }
         return boost::make_shared<GreenMeasurement>(steps_per_measurement, species);
+    } else if (std::strcmp(json_measurement_def["type"].asCString(), "operator") == 0) {
+        const char * const json_operator_required[] = { "type", "hops", NULL };
+        const char * const json_operator_allowed[] = { "type", "hops", "sum", "boundary-conditions", "steps-per-measurement", NULL };
+        ensure_required(json_measurement_def, json_operator_required);
+        ensure_only(json_measurement_def, json_operator_allowed);
+        unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
+        const Json::Value &json_hops = json_measurement_def["hops"];
+        ensure_array(json_hops);
+        std::vector<SiteHop> site_hop_v;
+        for (unsigned int i = 0; i < json_hops.size(); ++i) {
+            const Json::Value &json_current_hop = json_hops[i];
+            ensure_object(json_current_hop);
+            const char * const json_current_hop_required[] = { "source", "destination", "species", NULL };
+            ensure_required(json_current_hop, json_current_hop_required);
+            ensure_only(json_current_hop, json_current_hop_required);
+            const unsigned int N_sites = wf.get_positions().get_N_sites();
+            const unsigned int N_species = wf.get_positions().get_N_species();
+            const LatticeSite source(lattice->site_from_index(parse_uint(json_current_hop["source"], N_sites)));
+            const LatticeSite destination(lattice->site_from_index(parse_uint(json_current_hop["destination"], N_sites)));
+            const unsigned int species = parse_uint(json_current_hop["species"], N_species);
+            site_hop_v.push_back(SiteHop(source, destination, species));
+        }
+        if (!ParticleOperator::is_valid(site_hop_v, *lattice, N_species))
+            throw ParseError("invalid operator provided for operator measurement");
+        bool sum = false;
+        if (json_measurement_def.isMember("sum")) {
+            if (!json_measurement_def["sum"].isBool())
+                throw ParseError("boolean expected");
+            sum = json_measurement_def["sum"].asBool();
+        }
+        boost::shared_ptr<const BoundaryConditions> bcs;
+        if (json_measurement_def.isMember("boundary-conditions") && !json_measurement_def["boundary-conditions"].isNull()) {
+            if (!sum)
+                throw ParseError("if boundary conditions are given for an operator, it must be a sum over sites");
+            bcs.reset(new BoundaryConditions(parse_json_boundary_conditions(json_measurement_def["boundary-conditions"],
+                                                                            lattice->n_dimensions())));
+        }
+        return boost::make_shared<OperatorMeasurement>(steps_per_measurement, ParticleOperator(site_hop_v, lattice), sum, bcs.get());
     } else if (std::strcmp(json_measurement_def["type"].asCString(), "subsystem-occupation-number-probability") == 0) {
         const char * const json_subsystem_occupation_required[] = { "type", "subsystem", NULL };
         const char * const json_subsystem_occupation_allowed[] = { "type", "subsystem", "steps-per-measurement", NULL };
         ensure_required(json_measurement_def, json_subsystem_occupation_required);
         ensure_only(json_measurement_def, json_subsystem_occupation_allowed);
         unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
-        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_measurement_def["subsystem"], wf.get_lattice()));
+        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_measurement_def["subsystem"], *lattice));
         return boost::make_shared<SubsystemOccupationNumberProbabilityMeasurement>(subsystem, steps_per_measurement);
     } else {
         throw ParseError("invalid standard walk measurement type");
@@ -427,6 +471,7 @@ static Json::Value standard_walk_measurement_json_repr (const Measurement<Standa
 {
     const DensityDensityMeasurement *ddm = dynamic_cast<const DensityDensityMeasurement *>(measurement_ptr);
     const GreenMeasurement *gm = dynamic_cast<const GreenMeasurement *>(measurement_ptr);
+    const OperatorMeasurement *om = dynamic_cast<const OperatorMeasurement *>(measurement_ptr);
     const SubsystemOccupationNumberProbabilityMeasurement *sonpm = dynamic_cast<const SubsystemOccupationNumberProbabilityMeasurement *>(measurement_ptr);
     if (ddm) {
         // density-density measurement
@@ -448,6 +493,9 @@ static Json::Value standard_walk_measurement_json_repr (const Measurement<Standa
             rv.append(a);
         }
         return rv;
+    } else if (om) {
+        // operator measurement
+        return Json::Value(complex_to_json_array(om->get()));
     } else if (sonpm) {
         // subsystem occupation number probability measurement
         const PositionArguments &r = wf.get_positions();
@@ -705,7 +753,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         ensure_array(json_measurements);
         std::list<boost::shared_ptr<Measurement<StandardWalk> > > measurements;
         for (unsigned int i = 0; i < json_measurements.size(); ++i)
-            measurements.push_back(parse_standard_walk_measurement_definition(json_measurements[i], *wf));
+            measurements.push_back(parse_standard_walk_measurement_definition(json_measurements[i], *wf, lattice));
 
         // set up and perform walk
         StandardWalk walk(wf);

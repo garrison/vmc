@@ -35,7 +35,9 @@ HEADER_FILES = \
                Measurement.hpp \
                MetropolisSimulation.hpp \
                Move.hpp \
+               OperatorMeasurement.hpp \
                OrbitalDefinitions.hpp \
+               ParticleOperator.hpp \
                PositionArguments.hpp \
                RandomNumberGenerator.hpp \
                random-combination.hpp \
@@ -68,6 +70,8 @@ SOURCES = \
           GreenMeasurement.cpp \
           Lattice.cpp \
           Move.cpp \
+          OperatorMeasurement.cpp \
+          ParticleOperator.cpp \
           PositionArguments.cpp \
           RandomNumberGenerator.cpp \
           random-combination.cpp \

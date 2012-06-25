@@ -68,7 +68,11 @@
 	"measurement-steps": 50000,
 	"measurements": [
 	    { "type": "density-density" },
-	    { "type": "green" }
+            { "type": "operator", "sum": true, "hops": [ { "source": 0, "destination": 0, "species": 0 } ], "boundary-conditions": null },
+            { "type": "operator", "sum": true, "hops": [ { "source": 0, "destination": 0, "species": 0 }, { "source": 1, "destination": 1, "species": 0 } ], "boundary-conditions": [1] },
+	    { "type": "green" },
+            { "type": "operator", "sum": true, "hops": [ { "source": 0, "destination": 1, "species": 0 } ], "boundary-conditions": null },
+            { "type": "operator", "sum": true, "hops": [ { "source": 0, "destination": 1, "species": 0 } ], "boundary-conditions": [1] }
 	]
     }
 }

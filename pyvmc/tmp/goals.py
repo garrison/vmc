@@ -1,7 +1,7 @@
 from twisted.internet import defer
 
 from pyvmc.core import SimpleSubsystem
-from pyvmc.core.measurement import SubsystemOccupationProbabilityMeasurementPlan
+from pyvmc.core.measurement import SubsystemOccupationProbabilityMeasurementPlan, OperatorMeasurementPlan
 from pyvmc.library.renyi import RenyiSignMeasurementPlan, RenyiModPossibleMeasurementPlan
 from pyvmc.tmp.universe import TmpMeasurementPlan, get_default_universe
 
@@ -205,6 +205,83 @@ class Green(Goal):
             for position_index, value in enumerate(bi_result):
                 rv[Point(basis_index, position_index)] = json_to_complex(value)
         return rv
+
+class Operator(Goal):
+    def __init__(self, system, hops, sum, boundary_conditions, independent=30, universe=None):
+        if universe is None:
+            universe = get_default_universe()
+
+        measurement = OperatorMeasurementPlan(system, hops, sum, boundary_conditions)
+        plan = TmpMeasurementPlan(measurement, self.parse_result)
+        self.measurement_set = universe.get_measurement_set(plan, independent)
+
+    def advance(self):
+        return self.measurement_set.advance()
+
+    @staticmethod
+    def parse_result(result_json):
+        return json_to_complex(result_json)
+
+    def get_expectation_value(self, index):
+        return self.measurement_set[index].get_aggregate_result()
+
+class SingletPairOperator(Goal):
+    def __init__(self, system, r1, r2, r1p, r2p, sum, boundary_conditions, independent=30, universe=None):
+        """r1, r2, r1p, r2p should all be unique sites"""
+        from pyvmc.core.measurement import SiteHop
+        hops1 = (
+            SiteHop(r2p, r2, 1),
+            SiteHop(r1p, r1, 0),
+        )
+        hops2 = (
+            SiteHop(r1p, r2, 1),
+            SiteHop(r2p, r1, 0),
+        )
+        hops3 = (
+            SiteHop(r2p, r1, 1),
+            SiteHop(r1p, r2, 0),
+        )
+        hops4 = (
+            SiteHop(r1p, r1, 1),
+            SiteHop(r2p, r2, 0),
+        )
+        self.operators = (
+            Operator(system, hops1, sum, boundary_conditions, independent, universe),
+            Operator(system, hops2, sum, boundary_conditions, independent, universe),
+            Operator(system, hops3, sum, boundary_conditions, independent, universe),
+            Operator(system, hops4, sum, boundary_conditions, independent, universe),
+        )
+
+    def advance(self):
+        d = defer.gatherResults([o.advance() for o in self.operators], consumeErrors=True)
+        return d
+
+    def get_expectation_value(self, index):
+        return sum([o.get_expectation_value(index) for o in self.operators])
+
+class DiagonalDWaveCooperPairOperator(Goal):
+    def __init__(self, system, x, sum, boundary_conditions, independent=30, universe=None):
+        # assert two leg ladder
+        assert len(system.lattice.dimensions) == 2 and system.lattice.dimensions[1] == 2
+        from pyvmc.core.lattice import LatticeSite
+        r1 = LatticeSite([0, 0])
+        r2 = LatticeSite([1, 1])
+        r1p = LatticeSite([x, 0])
+        r2p = LatticeSite([x + 1, 1])
+        r1ps = LatticeSite([x, 1])
+        r2ps = LatticeSite([x + 1, 0])
+        self.operators = (
+            SingletPairOperator(system, r1, r2, r1p, r2p, sum, boundary_conditions, independent, universe),
+            SingletPairOperator(system, r1, r2, r1ps, r2ps, sum, boundary_conditions, independent, universe),
+        )
+
+    def advance(self):
+        d = defer.gatherResults([o.advance() for o in self.operators], consumeErrors=True)
+        return d
+
+    def get_expectation_value(self, index):
+        return 2 * (self.operators[0].get_expectation_value(index)
+                    - self.operators[1].get_expectation_value(index))
 
 class DensityDensityFourier(Goal):
     pass

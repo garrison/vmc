@@ -37,11 +37,13 @@ void DMetalWavefunctionAmplitude::perform_move_ (const Move &move)
     const unsigned int new_site_index = move[0].destination;
 
     BOOST_ASSERT(!m_gutzwiller_rejection_in_progress);
+#if 0
     if (r.is_occupied(new_site_index, particle.species ^ 1)) {
         // explicitly enforce Gutzwiller projection
         m_gutzwiller_rejection_in_progress = true;
         return;
     }
+#endif
 
     const unsigned int M = m_orbital_f_up->get_N_filled();
 

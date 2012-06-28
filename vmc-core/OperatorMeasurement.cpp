@@ -64,20 +64,20 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
             if (bcs.get())
                 phase /= lattice.enforce_boundary(src, bcs.get());
             else if (!lattice.site_is_valid(src))
-                goto outer_continue;
+                goto current_measurement_is_zero;
             const int particle_index = r.particle_index_at_pos(lattice.site_to_index(src), species);
             if (particle_index < 0)
-                goto outer_continue;
+                goto current_measurement_is_zero;
             if (m_operator.hopv[j].get_source() != m_operator.hopv[j].get_destination()) {
                 LatticeSite dest(m_operator.hopv[j].get_destination());
                 lattice.asm_add_site_vector(dest, site_offset.bravais_site());
                 if (bcs.get())
                     phase *= lattice.enforce_boundary(dest, bcs.get());
                 else if (!lattice.site_is_valid(dest))
-                    goto outer_continue;
+                    goto current_measurement_is_zero;
                 const unsigned int dest_index = lattice.site_to_index(dest);
                 if (r.is_occupied(dest_index, species))
-                    goto outer_continue;
+                    goto current_measurement_is_zero;
                 move.push_back(SingleParticleMove(Particle(particle_index, species), dest_index));
             }
 
@@ -108,7 +108,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
             }
         }
 
-    outer_continue: ;
+    current_measurement_is_zero: ;
     }
 
     most_recent_numerator = meas;

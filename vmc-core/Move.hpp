@@ -3,6 +3,7 @@
 
 #include "lw_vector.hpp"
 #include "PositionArguments.hpp"
+#include "vmc-typedefs.hpp"
 
 struct SingleParticleMove
 {
@@ -21,7 +22,7 @@ struct SingleParticleMove
         }
 };
 
-struct Move : public lw_vector<SingleParticleMove, 2>
+struct Move : public lw_vector<SingleParticleMove, MAX_MOVE_SIZE>
 {
     bool is_valid_for (const PositionArguments &r) const;
 };

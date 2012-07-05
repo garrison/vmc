@@ -20,4 +20,4 @@ cd `git rev-parse --show-toplevel`
 
 
 # Check for pep8 compliance, at least to the extent that we follow it
-pep8 `git ls-files | grep \\\\.py` --ignore=E501,E401,E225,E301,E302,E201 --repeat
+pep8 `git ls-files | grep \\\\.py` --ignore=E501,E401,E225,E301,E302,E201,E202 --repeat

@@ -161,11 +161,16 @@ public:
                 detrat = mat.row(pending_index) * invmat.col(pending_index);
                 det *= detrat;
 
-                // If the determinant has become sufficiently small, the matrix
-                // might have become singular so we recompute its inverse from
-                // scratch.
-                if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
-                    calculate_inverse(true);
+                if (det != T(0)) {
+                    // If the determinant has become sufficiently small, the
+                    // matrix might have become singular so we recompute its
+                    // inverse from scratch.
+                    if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                        calculate_inverse(true);
+                } else {
+                    // the matrix must have become singular
+                    new_nullity_lower_bound = 1;
+                }
             } else {
                 perform_singular_update();
             }
@@ -201,11 +206,16 @@ public:
                 detrat = invmat.row(pending_index) * mat.col(pending_index);
                 det *= detrat;
 
-                // If the determinant has become sufficiently small, the matrix
-                // might have become singular so we recompute its inverse from
-                // scratch.
-                if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
-                    calculate_inverse(true);
+                if (det != T(0)) {
+                    // If the determinant has become sufficiently small, the
+                    // matrix might have become singular so we recompute its
+                    // inverse from scratch.
+                    if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                        calculate_inverse(true);
+                } else {
+                    // the matrix must have become singular
+                    new_nullity_lower_bound = 1;
+                }
             } else {
                 perform_singular_update();
             }

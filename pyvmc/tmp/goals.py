@@ -283,6 +283,30 @@ class DiagonalDWaveCooperPairOperator(Goal):
         return 2 * (self.operators[0].get_expectation_value(index)
                     - self.operators[1].get_expectation_value(index))
 
+class LegDWaveCooperPairOperator(Goal):
+    def __init__(self, system, x, sum, boundary_conditions, independent=30, universe=None):
+        # assert two leg ladder
+        assert len(system.lattice.dimensions) == 2 and system.lattice.dimensions[1] == 2
+        from pyvmc.core.lattice import LatticeSite
+        r1 = LatticeSite([0, 0])
+        r2 = LatticeSite([1, 0])
+        r1p = LatticeSite([x, 0])
+        r2p = LatticeSite([x + 1, 0])
+        r1ps = LatticeSite([x, 1])
+        r2ps = LatticeSite([x + 1, 1])
+        self.operators = (
+            SingletPairOperator(system, r1, r2, r1p, r2p, sum, boundary_conditions, independent, universe),
+            SingletPairOperator(system, r1, r2, r1ps, r2ps, sum, boundary_conditions, independent, universe),
+        )
+
+    def advance(self):
+        d = defer.gatherResults([o.advance() for o in self.operators], consumeErrors=True)
+        return d
+
+    def get_expectation_value(self, index):
+        return 2 * (self.operators[0].get_expectation_value(index)
+                    - self.operators[1].get_expectation_value(index))
+
 class DensityDensityFourier(Goal):
     pass
 

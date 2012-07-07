@@ -49,5 +49,17 @@ Caveats
 Only wavefunctions whose (slave) particles obey Pauli exclusion are
 currently supported (i.e. fermions and hard-core bosons).
 
-Renyi can only be calculated for wavefunctions that move at most one
-particle at a time.
+Ways in which things are currently in flux
+------------------------------------------
+
+We are currently generalizing things so that multi-particle moves can
+be made.  Instead of doing this all at once, we are making progress in
+phases.  At the moment the following things are broken:
+
+* finish_update() can only be called with a single particle move
+
+* Renyi stuff assumes only single particle moves
+
+* only the d-metal supports multi-particle updates so far (and as a
+  result, greater than one-point correlators can only be measured on
+  the dmetal)

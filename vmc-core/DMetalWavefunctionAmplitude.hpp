@@ -21,8 +21,11 @@ private:
     CeperleyMatrix<amplitude_t> m_cmat_d1, m_cmat_d2, m_cmat_f_up, m_cmat_f_down;
     const boost::shared_ptr<const OrbitalDefinitions> m_orbital_d1, m_orbital_d2, m_orbital_f_up, m_orbital_f_down;
     const real_t m_d1_exponent, m_d2_exponent, m_f_up_exponent, m_f_down_exponent;
-    bool m_particle_moved_is_up;
-    bool m_gutzwiller_rejection_in_progress;
+    int m_partial_update_step;
+
+    // the following variables only need be set when a move is in progress
+    unsigned int m_up_particles_in_progress, m_down_particles_in_progress;
+    Move m_current_move;
 
 public:
     DMetalWavefunctionAmplitude (const PositionArguments &r_,
@@ -37,6 +40,9 @@ public:
 
 private:
     void perform_move_ (const Move &move);
+
+    template <bool first_pass>
+    void do_perform_move (const Move &move);
 
     amplitude_t psi_ (void) const;
 

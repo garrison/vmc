@@ -25,42 +25,132 @@ DMetalWavefunctionAmplitude::DMetalWavefunctionAmplitude (const PositionArgument
       m_d2_exponent(d2_exponent),
       m_f_up_exponent(f_up_exponent),
       m_f_down_exponent(f_down_exponent),
-      m_gutzwiller_rejection_in_progress(false)
+      m_partial_update_step(0)
 {
     reinitialize();
 }
 
 void DMetalWavefunctionAmplitude::perform_move_ (const Move &move)
 {
-    BOOST_ASSERT(move.size() == 1);
-    const Particle &particle = move[0].particle;
-    const unsigned int new_site_index = move[0].destination;
+    // we require that m_partial_update_step == 0 between moves; otherwise, psi_() will
+    // return zero when it shouldn't.
+    BOOST_ASSERT(m_partial_update_step == 0);
 
-    BOOST_ASSERT(!m_gutzwiller_rejection_in_progress);
-#if 0
-    if (r.is_occupied(new_site_index, particle.species ^ 1)) {
-        // explicitly enforce Gutzwiller projection
-        m_gutzwiller_rejection_in_progress = true;
-        return;
+    m_down_particles_in_progress = 0;
+    for (unsigned int i = 0; i < move.size(); ++i) {
+        BOOST_ASSERT(move[i].particle.species < 2);
+        m_down_particles_in_progress += move[i].particle.species;
     }
-#endif
+    m_up_particles_in_progress = move.size() - m_down_particles_in_progress;
 
+    m_current_move = move;
+
+    do_perform_move<true>(move);
+}
+
+// this function exists solely to get around a bug in which clang++ fails to
+// compile if we perform this operation directly
+static inline void set_column_from_orbitals (Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int column, const OrbitalDefinitions &orbitals, unsigned int destination)
+{
+    mat.col(column) = orbitals.at_position(destination);
+}
+
+// During perform_move(), we want to short-circuit out as soon as any of the
+// determinants is zero, as we already know what psi_() will be.  However,
+// doing so means we must later make a second pass to finish all the
+// determinant updates if finish_update() is called.  This templated function
+// allows us to use the same code in both passes, with only minor differences.
+template <bool first_pass>
+void DMetalWavefunctionAmplitude::do_perform_move (const Move &move)
+{
+    const unsigned int N = m_orbital_d1->get_N_filled();
     const unsigned int M = m_orbital_f_up->get_N_filled();
 
-    // update the Ceperley matrices
-    m_particle_moved_is_up = bool(particle.species == 0);
-    const unsigned int particle_column_index = m_particle_moved_is_up ? particle.index : particle.index + M;
-    m_cmat_d1.update_column(particle_column_index, m_orbital_d1->at_position(new_site_index));
-    m_cmat_d2.update_column(particle_column_index, m_orbital_d2->at_position(new_site_index));
-    if (m_particle_moved_is_up)
-        m_cmat_f_up.update_column(particle.index, m_orbital_f_up->at_position(new_site_index));
-    else
-        m_cmat_f_down.update_column(particle.index, m_orbital_f_down->at_position(new_site_index));
+    if (first_pass) {
+        // explicitly enforce Gutzwiller projection
+        for (unsigned int i = 0; i < move.size(); ++i) {
+            if (r.is_occupied(move[i].destination, move[i].particle.species ^ 1)) {
+                m_partial_update_step = 4;
+                return;
+            }
+        }
+    }
+
+    switch (first_pass ? 4 : m_partial_update_step) {
+    case 4:
+        {
+            lw_vector<unsigned int, MAX_MOVE_SIZE> d_c;
+            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> d2_cols(N, move.size());
+            for (unsigned int i = 0; i < move.size(); ++i) {
+                const Particle &particle = move[i].particle;
+                d_c.push_back((particle.species == 0) ? particle.index : particle.index + M);
+                set_column_from_orbitals(d2_cols, i, *m_orbital_d2, move[i].destination);
+            }
+            m_cmat_d2.update_columns(d_c, d2_cols);
+        }
+        if (first_pass && m_cmat_d2.get_determinant() == amplitude_t(0)) {
+            m_partial_update_step = 3;
+            return;
+        }
+
+    case 3:
+        {
+            lw_vector<unsigned int, MAX_MOVE_SIZE> d_c; // (identical to above d_c)
+            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> d1_cols(N, move.size());
+            for (unsigned int i = 0; i < move.size(); ++i) {
+                const Particle &particle = move[i].particle;
+                d_c.push_back((particle.species == 0) ? particle.index : particle.index + M);
+                set_column_from_orbitals(d1_cols, i, *m_orbital_d1, move[i].destination);
+            }
+            m_cmat_d1.update_columns(d_c, d1_cols);
+        }
+        if (first_pass && m_cmat_d1.get_determinant() == amplitude_t(0)) {
+            m_partial_update_step = 2;
+            return;
+        }
+
+    case 2:
+        if (m_up_particles_in_progress) {
+            lw_vector<unsigned int, MAX_MOVE_SIZE> f_up_c;
+            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> f_up_cols(M, m_up_particles_in_progress);
+            for (unsigned int i = 0; i < move.size(); ++i) {
+                if (move[i].particle.species == 0) {
+                    set_column_from_orbitals(f_up_cols, f_up_c.size(), *m_orbital_f_up, move[i].destination);
+                    f_up_c.push_back(move[i].particle.index);
+                }
+            }
+            BOOST_ASSERT(f_up_c.size() == m_up_particles_in_progress);
+            if (m_up_particles_in_progress)
+                m_cmat_f_up.update_columns(f_up_c, f_up_cols);
+        }
+        if (first_pass && m_cmat_f_up.get_determinant() == amplitude_t(0)) {
+            m_partial_update_step = 1;
+            return;
+        }
+
+    case 1:
+        if (m_down_particles_in_progress) {
+            lw_vector<unsigned int, MAX_MOVE_SIZE> f_down_c;
+            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> f_down_cols(M, m_down_particles_in_progress);
+            for (unsigned int i = 0; i < move.size(); ++i) {
+                if (move[i].particle.species != 0) {
+                    set_column_from_orbitals(f_down_cols, f_down_c.size(), *m_orbital_f_down, move[i].destination);
+                    f_down_c.push_back(move[i].particle.index);
+                }
+            }
+            BOOST_ASSERT(f_down_c.size() == m_down_particles_in_progress);
+            if (m_down_particles_in_progress)
+                m_cmat_f_down.update_columns(f_down_c, f_down_cols);
+        }
+        m_partial_update_step = 0;
+
+    case 0: ;
+    }
 }
 
 amplitude_t DMetalWavefunctionAmplitude::psi_ (void) const
 {
-    if (m_gutzwiller_rejection_in_progress)
+    if (m_partial_update_step != 0)
         return amplitude_t(0);
 
     return (complex_pow(m_cmat_d1.get_determinant(), m_d1_exponent)
@@ -71,23 +161,34 @@ amplitude_t DMetalWavefunctionAmplitude::psi_ (void) const
 
 void DMetalWavefunctionAmplitude::finish_move_ (void)
 {
-    BOOST_ASSERT(!m_gutzwiller_rejection_in_progress);
+    do_perform_move<false>(m_current_move);
 
-    m_cmat_d1.finish_column_update();
-    m_cmat_d2.finish_column_update();
-    (m_particle_moved_is_up ? m_cmat_f_up : m_cmat_f_down).finish_column_update();
+    m_cmat_d1.finish_columns_update();
+    m_cmat_d2.finish_columns_update();
+    if (m_up_particles_in_progress)
+        m_cmat_f_up.finish_columns_update();
+    if (m_down_particles_in_progress)
+        m_cmat_f_down.finish_columns_update();
 }
 
 void DMetalWavefunctionAmplitude::cancel_move_ (void)
 {
-    if (m_gutzwiller_rejection_in_progress) {
-        m_gutzwiller_rejection_in_progress = false;
-        return;
+    switch (m_partial_update_step) {
+    case 0:
+        if (m_down_particles_in_progress)
+            m_cmat_f_down.cancel_columns_update();
+    case 1:
+        if (m_up_particles_in_progress)
+            m_cmat_f_up.cancel_columns_update();
+    case 2:
+        m_cmat_d1.cancel_columns_update();
+    case 3:
+        m_cmat_d2.cancel_columns_update();
+    case 4:
+        ;
     }
 
-    m_cmat_d1.cancel_column_update();
-    m_cmat_d2.cancel_column_update();
-    (m_particle_moved_is_up ? m_cmat_f_up : m_cmat_f_down).cancel_column_update();
+    m_partial_update_step = 0;
 }
 
 void DMetalWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)

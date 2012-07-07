@@ -7,9 +7,12 @@
 #include <Eigen/Dense>
 #include <boost/assert.hpp>
 
+#include "lw_vector.hpp"
+#include "vmc-typedefs.hpp"
+
 /**
- * O(N^2) method for keeping track of a determinant when only one row (or
- * column) changes in a given step.  Also known as the
+ * O(N^2) method for keeping track of a determinant when only one or a few
+ * row(s) or column(s) change in a given step.  Also known as the
  * Sherman-Morrison-Woodbury formula.  This class acts as a finite state
  * machine; that is, its methods should be called in a specific order.  See
  * current_state.
@@ -25,7 +28,8 @@ private:
         UNINITIALIZED,
         READY_FOR_UPDATE,
         ROW_UPDATE_IN_PROGRESS,
-        COLUMN_UPDATE_IN_PROGRESS
+        COLUMN_UPDATE_IN_PROGRESS,
+        COLUMNS_UPDATE_IN_PROGRESS
     };
 
     // old_det, new_invmat, old_data, and new_nullity_lower_bound all exist so
@@ -41,6 +45,10 @@ private:
     int new_nullity_lower_bound;
     bool inverse_recalculated_for_current_update;
     State current_state;
+
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_m;
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> old_data_m;
+    lw_vector<unsigned int, MAX_MOVE_SIZE> pending_index_m;
 
     /**
      * As long as the determinant remains below this value, the O(N^2) update
@@ -172,7 +180,7 @@ public:
                     new_nullity_lower_bound = 1;
                 }
             } else {
-                perform_singular_update();
+                perform_singular_update(1);
             }
 
             current_state = ROW_UPDATE_IN_PROGRESS;
@@ -217,10 +225,70 @@ public:
                     new_nullity_lower_bound = 1;
                 }
             } else {
-                perform_singular_update();
+                perform_singular_update(1);
             }
 
             current_state = COLUMN_UPDATE_IN_PROGRESS;
+        }
+
+    /**
+     * Update one or more columns in the matrix.
+     *
+     * @see finish_columns_update()
+     */
+    void update_columns (const lw_vector<unsigned int, MAX_MOVE_SIZE> &c, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &cols)
+        {
+            BOOST_ASSERT(c.size() > 0);
+            BOOST_ASSERT(cols.rows() == mat.rows());
+            BOOST_ASSERT(c.size() == (unsigned int) cols.cols());
+            BOOST_ASSERT(c.size() <= (unsigned int) mat.cols());
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
+            BOOST_ASSERT(!inverse_recalculated_for_current_update);
+            BOOST_ASSERT(nullity_lower_bound >= 0);
+
+            // remember some things in case we decide to cancel the update
+            old_data_m.resizeLike(cols);
+            for (unsigned int i = 0; i < c.size(); ++i) {
+#ifndef BOOST_DISABLE_ASSERTS
+                for (unsigned int j = 0; j < i; ++j)
+                    BOOST_ASSERT(c[i] != c[j]);
+                BOOST_ASSERT(c[i] < mat.cols());
+#endif
+                old_data_m.col(i) = mat.col(c[i]);
+                // might as well update the matrix within this loop as well
+                mat.col(c[i]) = cols.col(i);
+            }
+            old_det = det;
+            new_nullity_lower_bound = nullity_lower_bound;
+
+            pending_index_m = c;
+
+            if (nullity_lower_bound != 0) {
+                perform_singular_update(c.size());
+            } else {
+                // The matrix is not singular, so we calculate the new
+                // determinant using the Sherman-Morrison-Woodbury formula.
+                {
+                    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_part(c.size(), mat.cols());
+                    for (unsigned int i = 0; i < c.size(); ++i)
+                        invmat_part.row(i) = invmat.row(c[i]);
+                    detrat_m = invmat_part * cols;
+                }
+                Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(detrat_m);
+                if (lu_decomposition.isInvertible()) {
+                    det *= lu_decomposition.determinant();
+                    // If the determinant has become sufficiently small, the matrix
+                    // might have become singular so we recompute its inverse from
+                    // scratch.
+                    if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                        calculate_inverse(true);
+                } else {
+                    det = 0;
+                    new_nullity_lower_bound = 1;
+                }
+            }
+
+            current_state = COLUMNS_UPDATE_IN_PROGRESS;
         }
 
     /**
@@ -288,6 +356,38 @@ public:
 #endif
         }
 
+    /**
+     * Finish a [multi-]column update.  Must be called after update_columns().
+     *
+     * @see update_columns()
+     */
+    void finish_columns_update (void)
+        {
+            BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
+
+            // XXX: for now this method only supports single-particle updates
+            BOOST_ASSERT(pending_index_m.size() == 1);
+            detrat = detrat_m.determinant();
+
+            if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
+                // same as above in finish_row_update(): update the inverse
+                // matrix
+                Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index_m[0]));
+                invmat -= ((invmat * mat.col(pending_index_m[0])) * (invmat.row(pending_index_m[0]) / detrat)).eval();
+                invmat.row(pending_index_m[0]) = oldrow / detrat;
+            }
+
+            nullity_lower_bound = new_nullity_lower_bound;
+            if (inverse_recalculated_for_current_update)
+                invmat = new_invmat;
+            inverse_recalculated_for_current_update = false;
+            current_state = READY_FOR_UPDATE;
+
+#ifdef VMC_CAREFUL
+            be_careful();
+#endif
+        }
+
     void cancel_row_update (void)
         {
             BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
@@ -308,6 +408,22 @@ public:
             BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
             mat.col(pending_index) = old_data;
+            det = old_det;
+            inverse_recalculated_for_current_update = false;
+
+            current_state = READY_FOR_UPDATE;
+
+#ifdef VMC_CAREFUL
+            be_careful();
+#endif
+        }
+
+    void cancel_columns_update (void)
+        {
+            BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
+
+            for (unsigned int i = 0; i < pending_index_m.size(); ++i)
+                mat.col(pending_index_m[i]) = old_data_m.col(i);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 
@@ -447,7 +563,7 @@ private:
             inverse_recalculated_for_current_update = update_in_progress;
         }
 
-    void perform_singular_update (void)
+    void perform_singular_update (unsigned int update_rank)
         {
             // The matrix was singular on the last step, so we may need to
             // check to see if it is still singular
@@ -457,8 +573,8 @@ private:
             BOOST_ASSERT(det == T(0));
             BOOST_ASSERT(new_nullity_lower_bound == nullity_lower_bound);
             BOOST_ASSERT(new_nullity_lower_bound > 0);
-            --new_nullity_lower_bound;
-            if (new_nullity_lower_bound == 0)
+            new_nullity_lower_bound -= update_rank;
+            if (new_nullity_lower_bound <= 0)
                 calculate_inverse(true);
         }
 

@@ -66,8 +66,11 @@ class OperatorMeasurementPlan(MeasurementPlan):
         hops = tuple(hops)
         assert all([isinstance(hop, SiteHop) and hop.is_valid_for(wavefunction) for hop in hops])
         assert isinstance(sum, bool)
+        if not sum and boundary_conditions is not None:
+            from warnings import warn
+            warn("boundary_conditions are needlessly given, as sum==False", RuntimeWarning)
+            boundary_conditions = None
         if boundary_conditions is not None:
-            assert sum is True
             assert valid_boundary_conditions(boundary_conditions, len(wavefunction.lattice.dimensions))
             boundary_conditions = tuple(boundary_conditions)
         super(OperatorMeasurementPlan, self).__init__(walk, hops, sum, boundary_conditions)

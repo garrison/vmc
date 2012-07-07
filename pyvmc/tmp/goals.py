@@ -279,9 +279,16 @@ class DiagonalDWaveCooperPairOperator(Goal):
         d = defer.gatherResults([o.advance() for o in self.operators], consumeErrors=True)
         return d
 
-    def get_expectation_value(self, index):
+    def get_symmetric_expectation_value(self, index):
+        return 2 * (self.operators[0].get_expectation_value(index)
+                    + self.operators[1].get_expectation_value(index))
+
+    def get_antisymmetric_expectation_value(self, index):
         return 2 * (self.operators[0].get_expectation_value(index)
                     - self.operators[1].get_expectation_value(index))
+
+    # temporary, for backwards compatibility
+    get_expectation_value = get_antisymmetric_expectation_value
 
 class LegDWaveCooperPairOperator(Goal):
     def __init__(self, system, x, sum, boundary_conditions, independent=30, universe=None):
@@ -303,9 +310,16 @@ class LegDWaveCooperPairOperator(Goal):
         d = defer.gatherResults([o.advance() for o in self.operators], consumeErrors=True)
         return d
 
-    def get_expectation_value(self, index):
+    def get_symmetric_expectation_value(self, index):
+        return 2 * (self.operators[0].get_expectation_value(index)
+                    + self.operators[1].get_expectation_value(index))
+
+    def get_antisymmetric_expectation_value(self, index):
         return 2 * (self.operators[0].get_expectation_value(index)
                     - self.operators[1].get_expectation_value(index))
+
+    # temporary, for backwards compatibility
+    get_expectation_value = get_antisymmetric_expectation_value
 
 class DensityDensityFourier(Goal):
     pass

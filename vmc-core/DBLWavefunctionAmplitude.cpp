@@ -9,7 +9,8 @@ DBLWavefunctionAmplitude::DBLWavefunctionAmplitude (const PositionArguments &r_,
       orbital_def1(orbital_def_1),
       orbital_def2(orbital_def_2),
       d1_exponent(d1_exponent_),
-      d2_exponent(d2_exponent_)
+      d2_exponent(d2_exponent_),
+      m_partial_update_step(0)
 {
     BOOST_ASSERT(r.get_N_species() == 1);
     BOOST_ASSERT(r.get_N_sites() == orbital_def1->get_N_sites());
@@ -23,15 +24,72 @@ DBLWavefunctionAmplitude::DBLWavefunctionAmplitude (const PositionArguments &r_,
 
 void DBLWavefunctionAmplitude::perform_move_ (const Move &move)
 {
-    BOOST_ASSERT(move.size() == 1);
+    // we require that m_partial_update_step == 0 between moves; otherwise, psi_() will
+    // return zero when it shouldn't.
+    BOOST_ASSERT(m_partial_update_step == 0);
 
-    // update the Ceperley matrices
-    cmat1.update_column(move[0].particle.index, orbital_def1->at_position(move[0].destination));
-    cmat2.update_column(move[0].particle.index, orbital_def2->at_position(move[0].destination));
+    m_current_move = move;
+
+    do_perform_move<true>(move);
+}
+
+// this function exists solely to get around a bug in which clang++ fails to
+// compile if we perform this operation directly
+static inline void set_column_from_orbitals (Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int column, const OrbitalDefinitions &orbitals, unsigned int destination)
+{
+    mat.col(column) = orbitals.at_position(destination);
+}
+
+// During perform_move(), we want to short-circuit out as soon as either of the
+// determinants is zero, as we already know what psi_() will be.  However,
+// doing so means we must later make a second pass to finish the (possibly)
+// remaining determinant update if finish_update() is called.  This templated
+// function allows us to use the same code in both passes, with only minor
+// differences.
+template <bool first_pass>
+void DBLWavefunctionAmplitude::do_perform_move (const Move &move)
+{
+    if (!first_pass && m_partial_update_step == 0)
+        return;
+
+    const unsigned int N = orbital_def1->get_N_filled();
+
+    lw_vector<unsigned int, MAX_MOVE_SIZE> c;
+    for (unsigned int i = 0; i < move.size(); ++i)
+        c.push_back(move[i].particle.index);
+
+    switch (first_pass ? 2 : m_partial_update_step)
+    {
+    case 2:
+        {
+            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> d2_cols(N, move.size());
+            for (unsigned int i = 0; i < move.size(); ++i)
+                set_column_from_orbitals(d2_cols, i, *orbital_def2, move[i].destination);
+            cmat2.update_columns(c, d2_cols);
+        }
+        if (first_pass && cmat2.get_determinant() == amplitude_t(0)) {
+            m_partial_update_step = 1;
+            return;
+        }
+
+    case 1:
+        {
+            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> d1_cols(N, move.size());
+            for (unsigned int i = 0; i < move.size(); ++i)
+                set_column_from_orbitals(d1_cols, i, *orbital_def1, move[i].destination);
+            cmat1.update_columns(c, d1_cols);
+        }
+    }
+
+    if (!first_pass)
+        m_partial_update_step = 0;
 }
 
 amplitude_t DBLWavefunctionAmplitude::psi_ (void) const
 {
+    if (m_partial_update_step != 0)
+        return amplitude_t(0);
+
     // fixme: we could cache or precalculate this ... but i doubt it would make
     // much difference really
     return (complex_pow(cmat1.get_determinant(), d1_exponent)
@@ -40,14 +98,22 @@ amplitude_t DBLWavefunctionAmplitude::psi_ (void) const
 
 void DBLWavefunctionAmplitude::finish_move_ (void)
 {
-    cmat1.finish_column_update();
-    cmat2.finish_column_update();
+    do_perform_move<false>(m_current_move);
+
+    cmat1.finish_columns_update();
+    cmat2.finish_columns_update();
 }
 
 void DBLWavefunctionAmplitude::cancel_move_ (void)
 {
-    cmat1.cancel_column_update();
-    cmat2.cancel_column_update();
+    switch (m_partial_update_step) {
+    case 0:
+        cmat1.cancel_columns_update();
+    case 1:
+        cmat2.cancel_columns_update();
+    }
+
+    m_partial_update_step = 0;
 }
 
 void DBLWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)

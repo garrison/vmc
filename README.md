@@ -60,6 +60,6 @@ phases.  At the moment the following things are broken:
 
 * Renyi stuff assumes only single particle moves
 
-* only the d-metal supports multi-particle updates so far (and as a
-  result, greater than one-point correlators can only be measured on
-  the dmetal)
+* updates are now ~3 times slower than they were before the change
+
+* RVB wave function has not yet been updated

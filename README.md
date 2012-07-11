@@ -60,6 +60,4 @@ phases.  At the moment the following things are broken:
 
 * Renyi stuff assumes only single particle moves
 
-* updates are now ~3 times slower than they were before the change
-
 * RVB wave function has not yet been updated

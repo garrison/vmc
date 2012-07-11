@@ -281,17 +281,17 @@ public:
                     }
                 }
 
-                Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(detrat_m);
-                if (lu_decomposition.isInvertible()) {
-                    det *= lu_decomposition.determinant();
+                detrat = calculate_determinant(detrat_m);
+                det *= detrat;
+                if (det == T(0)) {
+                    // mark that the matrix has become singular
+                    new_nullity_lower_bound = 1;
+                } else {
                     // If the determinant has become sufficiently small, the matrix
                     // might have become singular so we recompute its inverse from
-                    // scratch.
+                    // scratch just to be safe.
                     if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
-                } else {
-                    det = T(0);
-                    new_nullity_lower_bound = 1;
                 }
             }
 
@@ -374,7 +374,6 @@ public:
 
             // XXX: for now this method only supports single-particle updates
             BOOST_ASSERT(pending_index_m.size() == 1);
-            detrat = detrat_m.determinant();
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
                 // same as above in finish_row_update(): update the inverse
@@ -541,6 +540,31 @@ public:
         }
 
 private:
+    /**
+     * Utility function to calculate the determinant of a matrix
+     *
+     * FIXME: Since this function is typically called for very small matrices,
+     * we should implement a quicker way than using an LU decomposition for
+     * 2x2, 3x3, and 4x4 matrices.
+     */
+    static T calculate_determinant (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &m)
+        {
+            BOOST_ASSERT(m.rows() == m.cols());
+
+            // if it's a 1x1 matrix, there's no need to do a decomposition
+            if (m.rows() == 1)
+                return m(0, 0);
+
+            // otherwise do a lu decomposition
+            Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(m);
+            if (!lu_decomposition.isInvertible()) {
+                // oddly enough, lu_decomposition.determinant() is not
+                // guaranteed to be zero, so we handle this case explicitly
+                return T(0);
+            }
+            return lu_decomposition.determinant();
+        }
+
     void calculate_inverse (bool update_in_progress)
         {
             Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);

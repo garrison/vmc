@@ -48,13 +48,6 @@ void DMetalWavefunctionAmplitude::perform_move_ (const Move &move)
     do_perform_move<true>(move);
 }
 
-// this function exists solely to get around a bug in which clang++ fails to
-// compile if we perform this operation directly
-static inline void set_column_from_orbitals (Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int column, const OrbitalDefinitions &orbitals, unsigned int destination)
-{
-    mat.col(column) = orbitals.at_position(destination);
-}
-
 // During perform_move(), we want to short-circuit out as soon as any of the
 // determinants is zero, as we already know what psi_() will be.  However,
 // doing so means we must later make a second pass to finish all the
@@ -63,7 +56,6 @@ static inline void set_column_from_orbitals (Eigen::Matrix<amplitude_t, Eigen::D
 template <bool first_pass>
 void DMetalWavefunctionAmplitude::do_perform_move (const Move &move)
 {
-    const unsigned int N = m_orbital_d1->get_N_filled();
     const unsigned int M = m_orbital_f_up->get_N_filled();
 
     if (first_pass) {
@@ -79,14 +71,13 @@ void DMetalWavefunctionAmplitude::do_perform_move (const Move &move)
     switch (first_pass ? 4 : m_partial_update_step) {
     case 4:
         {
-            lw_vector<unsigned int, MAX_MOVE_SIZE> d_c;
-            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> d2_cols(N, move.size());
+            lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> d2_cols;
             for (unsigned int i = 0; i < move.size(); ++i) {
                 const Particle &particle = move[i].particle;
-                d_c.push_back((particle.species == 0) ? particle.index : particle.index + M);
-                set_column_from_orbitals(d2_cols, i, *m_orbital_d2, move[i].destination);
+                const unsigned int col_index = (particle.species == 0) ? particle.index : particle.index + M;
+                d2_cols.push_back(std::make_pair(col_index, move[i].destination));
             }
-            m_cmat_d2.update_columns(d_c, d2_cols);
+            m_cmat_d2.update_columns(d2_cols, m_orbital_d2->get_orbitals());
         }
         if (first_pass && m_cmat_d2.get_determinant() == amplitude_t(0)) {
             m_partial_update_step = 3;
@@ -95,14 +86,13 @@ void DMetalWavefunctionAmplitude::do_perform_move (const Move &move)
 
     case 3:
         {
-            lw_vector<unsigned int, MAX_MOVE_SIZE> d_c; // (identical to above d_c)
-            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> d1_cols(N, move.size());
+            lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> d1_cols;
             for (unsigned int i = 0; i < move.size(); ++i) {
                 const Particle &particle = move[i].particle;
-                d_c.push_back((particle.species == 0) ? particle.index : particle.index + M);
-                set_column_from_orbitals(d1_cols, i, *m_orbital_d1, move[i].destination);
+                const unsigned int col_index = (particle.species == 0) ? particle.index : particle.index + M;
+                d1_cols.push_back(std::make_pair(col_index, move[i].destination));
             }
-            m_cmat_d1.update_columns(d_c, d1_cols);
+            m_cmat_d1.update_columns(d1_cols, m_orbital_d1->get_orbitals());
         }
         if (first_pass && m_cmat_d1.get_determinant() == amplitude_t(0)) {
             m_partial_update_step = 2;
@@ -111,17 +101,14 @@ void DMetalWavefunctionAmplitude::do_perform_move (const Move &move)
 
     case 2:
         if (m_up_particles_in_progress) {
-            lw_vector<unsigned int, MAX_MOVE_SIZE> f_up_c;
-            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> f_up_cols(M, m_up_particles_in_progress);
+            lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> f_up_cols;
             for (unsigned int i = 0; i < move.size(); ++i) {
-                if (move[i].particle.species == 0) {
-                    set_column_from_orbitals(f_up_cols, f_up_c.size(), *m_orbital_f_up, move[i].destination);
-                    f_up_c.push_back(move[i].particle.index);
-                }
+                if (move[i].particle.species == 0)
+                    f_up_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
             }
-            BOOST_ASSERT(f_up_c.size() == m_up_particles_in_progress);
+            BOOST_ASSERT(f_up_cols.size() == m_up_particles_in_progress);
             if (m_up_particles_in_progress)
-                m_cmat_f_up.update_columns(f_up_c, f_up_cols);
+                m_cmat_f_up.update_columns(f_up_cols, m_orbital_f_up->get_orbitals());
         }
         if (first_pass && m_cmat_f_up.get_determinant() == amplitude_t(0)) {
             m_partial_update_step = 1;
@@ -130,17 +117,14 @@ void DMetalWavefunctionAmplitude::do_perform_move (const Move &move)
 
     case 1:
         if (m_down_particles_in_progress) {
-            lw_vector<unsigned int, MAX_MOVE_SIZE> f_down_c;
-            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> f_down_cols(M, m_down_particles_in_progress);
+            lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> f_down_cols;
             for (unsigned int i = 0; i < move.size(); ++i) {
-                if (move[i].particle.species != 0) {
-                    set_column_from_orbitals(f_down_cols, f_down_c.size(), *m_orbital_f_down, move[i].destination);
-                    f_down_c.push_back(move[i].particle.index);
-                }
+                if (move[i].particle.species != 0)
+                    f_down_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
             }
-            BOOST_ASSERT(f_down_c.size() == m_down_particles_in_progress);
+            BOOST_ASSERT(f_down_cols.size() == m_down_particles_in_progress);
             if (m_down_particles_in_progress)
-                m_cmat_f_down.update_columns(f_down_c, f_down_cols);
+                m_cmat_f_down.update_columns(f_down_cols, m_orbital_f_down->get_orbitals());
         }
         m_partial_update_step = 0;
 

@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <utility>
 
 #include <Eigen/Dense>
 #include <boost/assert.hpp>
@@ -234,46 +235,52 @@ public:
     /**
      * Update one or more columns in the matrix.
      *
+     * The first element of each pair represents the column in the matrix to be
+     * replaced.  The second element of the pair represents which column of
+     * srcmat it should be replaced with.  (The point of this scheme is to
+     * prevent memory from being needlessly copied.)
+     *
      * @see finish_columns_update()
      */
-    void update_columns (const lw_vector<unsigned int, MAX_MOVE_SIZE> &c, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &cols)
+    void update_columns (const lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> &cols, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &srcmat)
         {
-            BOOST_ASSERT(c.size() > 0);
-            BOOST_ASSERT(cols.rows() == mat.rows());
-            BOOST_ASSERT(c.size() == (unsigned int) cols.cols());
-            BOOST_ASSERT(c.size() <= (unsigned int) mat.cols());
+            BOOST_ASSERT(cols.size() > 0);
+            BOOST_ASSERT(cols.size() <= (unsigned int) mat.cols());
+            BOOST_ASSERT(srcmat.rows() == mat.rows());
             BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             BOOST_ASSERT(!inverse_recalculated_for_current_update);
             BOOST_ASSERT(nullity_lower_bound >= 0);
 
             // remember some things in case we decide to cancel the update
-            old_data_m.resizeLike(cols);
-            for (unsigned int i = 0; i < c.size(); ++i) {
+            old_data_m.resize(mat.rows(), cols.size());
+            pending_index_m.resize(0);
+            for (unsigned int i = 0; i < cols.size(); ++i) {
 #ifndef BOOST_DISABLE_ASSERTS
+                BOOST_ASSERT(cols[i].second < srcmat.cols());
+                BOOST_ASSERT(cols[i].first < mat.cols());
                 for (unsigned int j = 0; j < i; ++j)
-                    BOOST_ASSERT(c[i] != c[j]);
-                BOOST_ASSERT(c[i] < mat.cols());
+                    BOOST_ASSERT(cols[i].first != cols[j].first);
 #endif
-                old_data_m.col(i) = mat.col(c[i]);
+                old_data_m.col(i) = mat.col(cols[i].first);
+                pending_index_m.push_back(cols[i].first);
                 // might as well update the matrix within this loop as well
-                mat.col(c[i]) = cols.col(i);
+                mat.col(cols[i].first) = srcmat.col(cols[i].second);
             }
             old_det = det;
             new_nullity_lower_bound = nullity_lower_bound;
 
-            pending_index_m = c;
-
             if (nullity_lower_bound != 0) {
-                perform_singular_update(c.size());
+                perform_singular_update(cols.size());
             } else {
                 // The matrix is not singular, so we calculate the new
                 // determinant using the Sherman-Morrison-Woodbury formula.
-                {
-                    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_part(c.size(), mat.cols());
-                    for (unsigned int i = 0; i < c.size(); ++i)
-                        invmat_part.row(i) = invmat.row(c[i]);
-                    detrat_m = invmat_part * cols;
+                detrat_m.resize(cols.size(), cols.size());
+                for (unsigned int i = 0; i < cols.size(); ++i) {
+                    for (unsigned int j = 0; j < cols.size(); ++j) {
+                        detrat_m(i, j) = invmat.row(cols[i].first) * srcmat.col(cols[j].second);
+                    }
                 }
+
                 Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(detrat_m);
                 if (lu_decomposition.isInvertible()) {
                     det *= lu_decomposition.determinant();

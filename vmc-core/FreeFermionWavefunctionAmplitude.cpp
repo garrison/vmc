@@ -14,22 +14,12 @@ FreeFermionWavefunctionAmplitude::FreeFermionWavefunctionAmplitude (const Positi
     reinitialize();
 }
 
-// this function exists solely to get around a bug in which clang++ fails to
-// compile if we perform this operation directly
-static inline void set_column_from_orbitals (Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int column, const OrbitalDefinitions &orbitals, unsigned int destination)
-{
-    mat.col(column) = orbitals.at_position(destination);
-}
-
 void FreeFermionWavefunctionAmplitude::perform_move_ (const Move &move)
 {
-    lw_vector<unsigned int, MAX_MOVE_SIZE> c;
-    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> cols(orbital_def->get_N_filled(), move.size());
-    for (unsigned int i = 0; i < move.size(); ++i) {
-        c.push_back(move[i].particle.index);
-        set_column_from_orbitals(cols, i, *orbital_def, move[i].destination);
-    }
-    cmat.update_columns(c, cols);
+    lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> cols;
+    for (unsigned int i = 0; i < move.size(); ++i)
+        cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
+    cmat.update_columns(cols, orbital_def->get_orbitals());
 }
 
 amplitude_t FreeFermionWavefunctionAmplitude::psi_ (void) const

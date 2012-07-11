@@ -39,6 +39,17 @@ public:
             return orbitals.col(site_index);
         }
 
+    /**
+     * Returns the matrix representing the orbitals
+     *
+     * The rows of the matrix represent the orbitals, and the columns represent
+     * each possible position.
+     */
+    const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> & get_orbitals (void) const
+        {
+            return orbitals;
+        }
+
     unsigned int get_N_filled (void) const
         {
             return orbitals.rows();

@@ -33,13 +33,6 @@ void DBLWavefunctionAmplitude::perform_move_ (const Move &move)
     do_perform_move<true>(move);
 }
 
-// this function exists solely to get around a bug in which clang++ fails to
-// compile if we perform this operation directly
-static inline void set_column_from_orbitals (Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int column, const OrbitalDefinitions &orbitals, unsigned int destination)
-{
-    mat.col(column) = orbitals.at_position(destination);
-}
-
 // During perform_move(), we want to short-circuit out as soon as either of the
 // determinants is zero, as we already know what psi_() will be.  However,
 // doing so means we must later make a second pass to finish the (possibly)
@@ -52,20 +45,14 @@ void DBLWavefunctionAmplitude::do_perform_move (const Move &move)
     if (!first_pass && m_partial_update_step == 0)
         return;
 
-    const unsigned int N = orbital_def1->get_N_filled();
-
-    lw_vector<unsigned int, MAX_MOVE_SIZE> c;
-    for (unsigned int i = 0; i < move.size(); ++i)
-        c.push_back(move[i].particle.index);
-
     switch (first_pass ? 2 : m_partial_update_step)
     {
     case 2:
         {
-            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> d2_cols(N, move.size());
+            lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> d2_cols;
             for (unsigned int i = 0; i < move.size(); ++i)
-                set_column_from_orbitals(d2_cols, i, *orbital_def2, move[i].destination);
-            cmat2.update_columns(c, d2_cols);
+                d2_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
+            cmat2.update_columns(d2_cols, orbital_def2->get_orbitals());
         }
         if (first_pass && cmat2.get_determinant() == amplitude_t(0)) {
             m_partial_update_step = 1;
@@ -74,10 +61,10 @@ void DBLWavefunctionAmplitude::do_perform_move (const Move &move)
 
     case 1:
         {
-            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> d1_cols(N, move.size());
+            lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> d1_cols;
             for (unsigned int i = 0; i < move.size(); ++i)
-                set_column_from_orbitals(d1_cols, i, *orbital_def1, move[i].destination);
-            cmat1.update_columns(c, d1_cols);
+                d1_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
+            cmat1.update_columns(d1_cols, orbital_def1->get_orbitals());
         }
     }
 

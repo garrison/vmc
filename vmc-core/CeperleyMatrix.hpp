@@ -290,7 +290,7 @@ public:
                     if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
                 } else {
-                    det = 0;
+                    det = T(0);
                     new_nullity_lower_bound = 1;
                 }
             }

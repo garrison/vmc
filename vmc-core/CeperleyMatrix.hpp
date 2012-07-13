@@ -47,7 +47,10 @@ private:
     bool inverse_recalculated_for_current_update;
     State current_state;
 
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_m;
+    // this must be set during a columns update, unless
+    // new_nullity_lower_bound > 0
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_inv_m;
+    // these must be set during a columns update
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> old_data_m;
     lw_vector<unsigned int, MAX_MOVE_SIZE> pending_index_m;
 
@@ -274,15 +277,39 @@ public:
             } else {
                 // The matrix is not singular, so we calculate the new
                 // determinant using the Sherman-Morrison-Woodbury formula.
-                detrat_m.resize(cols.size(), cols.size());
+                Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_m(cols.size(), cols.size());
                 for (unsigned int i = 0; i < cols.size(); ++i) {
                     for (unsigned int j = 0; j < cols.size(); ++j) {
                         detrat_m(i, j) = invmat.row(cols[i].first) * srcmat.col(cols[j].second);
                     }
                 }
 
-                detrat = calculate_determinant(detrat_m);
+                // we need the determinant and inverse of detrat_m
+                if (cols.size() == 1) {
+                    // for a 1x1 matrix, there's no need to do a decomposition
+                    detrat = detrat_m(0, 0);
+                    if (detrat != T(0)) {
+                        detrat_inv_m.resize(1, 1);
+                        detrat_inv_m(0, 0) = T(1) / detrat;
+                    }
+                } else {
+                    // lu decomposition
+                    Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(detrat_m);
+                    if (lu_decomposition.isInvertible()) {
+                        detrat = lu_decomposition.determinant();
+                        detrat_inv_m = lu_decomposition.inverse();
+                    } else {
+                        // oddly enough, lu_decomposition.determinant() is not
+                        // guaranteed to be zero, so we handle this case explicitly
+                        detrat = T(0);
+                    }
+                }
+
+                // update the value of the determinant
                 det *= detrat;
+
+                // handle cases in which the matrix has (possibly) become
+                // singular
                 if (det == T(0)) {
                     // mark that the matrix has become singular
                     new_nullity_lower_bound = 1;
@@ -540,31 +567,6 @@ public:
         }
 
 private:
-    /**
-     * Utility function to calculate the determinant of a matrix
-     *
-     * FIXME: Since this function is typically called for very small matrices,
-     * we should implement a quicker way than using an LU decomposition for
-     * 2x2, 3x3, and 4x4 matrices.
-     */
-    static T calculate_determinant (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &m)
-        {
-            BOOST_ASSERT(m.rows() == m.cols());
-
-            // if it's a 1x1 matrix, there's no need to do a decomposition
-            if (m.rows() == 1)
-                return m(0, 0);
-
-            // otherwise do a lu decomposition
-            Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(m);
-            if (!lu_decomposition.isInvertible()) {
-                // oddly enough, lu_decomposition.determinant() is not
-                // guaranteed to be zero, so we handle this case explicitly
-                return T(0);
-            }
-            return lu_decomposition.determinant();
-        }
-
     void calculate_inverse (bool update_in_progress)
         {
             Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);

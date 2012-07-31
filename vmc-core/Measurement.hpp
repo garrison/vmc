@@ -141,8 +141,7 @@ private:
      */
     virtual void repeat_measurement_ (const Walk_T &walk)
         {
-            // by default, call measure_(), NOT measure().  Calling measure()
-            // would increment m_measurements_completed redundantly.
+            // by default, simply call measure_()
             measure_(walk);
         }
 

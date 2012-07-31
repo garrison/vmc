@@ -31,8 +31,6 @@
 #include "RVBWavefunctionAmplitude.hpp"
 #include "MetropolisSimulation.hpp"
 #include "StandardWalk.hpp"
-#include "DensityDensityMeasurement.hpp"
-#include "GreenMeasurement.hpp"
 #include "OperatorMeasurement.hpp"
 #include "SubsystemOccupationNumberProbabilityMeasurement.hpp"
 #include "RenyiModPossibleWalk.hpp"
@@ -294,36 +292,7 @@ static boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measure
 {
     const unsigned int N_species = wf.get_positions().get_N_species();
     ensure_object_with_type_field_as_string(json_measurement_def);
-    if (std::strcmp(json_measurement_def["type"].asCString(), "density-density") == 0) {
-        const char * const json_density_density_allowed[] = { "type", "steps-per-measurement", "species", NULL };
-        ensure_only(json_measurement_def, json_density_density_allowed);
-        unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
-        unsigned int species1 = 0, species2 = 0;
-        if (json_measurement_def.isMember("species")) {
-            if (json_measurement_def["species"].isArray()) {
-                ensure_array(json_measurement_def["species"], 2);
-                species1 = parse_uint(json_measurement_def["species"][0], N_species);
-                species2 = parse_uint(json_measurement_def["species"][1], N_species);
-            } else {
-                species1 = parse_uint(json_measurement_def["species"], N_species);
-                species2 = species1;
-            }
-        } else if (N_species != 1) {
-            throw ParseError("species must be given, as this wave function contains multiple species of particles");
-        }
-        return boost::make_shared<DensityDensityMeasurement>(steps_per_measurement, species1, species2);
-    } else if (std::strcmp(json_measurement_def["type"].asCString(), "green") == 0) {
-        const char * const json_density_density_allowed[] = { "type", "steps-per-measurement", "species", NULL };
-        ensure_only(json_measurement_def, json_density_density_allowed);
-        unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
-        unsigned int species = 0;
-        if (json_measurement_def.isMember("species")) {
-            species = parse_uint(json_measurement_def["species"], N_species);
-        } else if (N_species != 1) {
-            throw ParseError("species must be given, as this wave function contains multiple species of particles");
-        }
-        return boost::make_shared<GreenMeasurement>(steps_per_measurement, species);
-    } else if (std::strcmp(json_measurement_def["type"].asCString(), "operator") == 0) {
+    if (std::strcmp(json_measurement_def["type"].asCString(), "operator") == 0) {
         const char * const json_operator_required[] = { "type", "hops", NULL };
         const char * const json_operator_allowed[] = { "type", "hops", "sum", "boundary-conditions", "steps-per-measurement", NULL };
         ensure_required(json_measurement_def, json_operator_required);
@@ -469,31 +438,9 @@ static Json::Value complex_to_json_array (const complex_t &v)
 
 static Json::Value standard_walk_measurement_json_repr (const Measurement<StandardWalk> *measurement_ptr, const WavefunctionAmplitude &wf)
 {
-    const DensityDensityMeasurement *ddm = dynamic_cast<const DensityDensityMeasurement *>(measurement_ptr);
-    const GreenMeasurement *gm = dynamic_cast<const GreenMeasurement *>(measurement_ptr);
     const OperatorMeasurement *om = dynamic_cast<const OperatorMeasurement *>(measurement_ptr);
     const SubsystemOccupationNumberProbabilityMeasurement *sonpm = dynamic_cast<const SubsystemOccupationNumberProbabilityMeasurement *>(measurement_ptr);
-    if (ddm) {
-        // density-density measurement
-        Json::Value rv(Json::arrayValue);
-        for (unsigned int i = 0; i < ddm->basis_indices(); ++i) {
-            Json::Value a(Json::arrayValue);
-            for (unsigned int j = 0; j < ddm->get_N_sites(); ++j)
-                a.append(Json::Value(jsoncpp_real_cast(ddm->get(j, i))));
-            rv.append(a);
-        }
-        return rv;
-    } else if (gm) {
-        // green measurement
-        Json::Value rv(Json::arrayValue);
-        for (unsigned int i = 0; i < gm->basis_indices(); ++i) {
-            Json::Value a(Json::arrayValue);
-            for (unsigned int j = 0; j < gm->get_N_sites(); ++j)
-                a.append(Json::Value(complex_to_json_array(gm->get(j, i))));
-            rv.append(a);
-        }
-        return rv;
-    } else if (om) {
+    if (om) {
         // operator measurement
         return Json::Value(complex_to_json_array(om->get()));
     } else if (sonpm) {

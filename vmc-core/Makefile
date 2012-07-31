@@ -23,10 +23,8 @@ HEADER_FILES = \
                CeperleyMatrix.hpp \
                DBLWavefunctionAmplitude.hpp \
                DMetalWavefunctionAmplitude.hpp \
-               DensityDensityMeasurement.hpp \
                FilledOrbitals.hpp \
                FreeFermionWavefunctionAmplitude.hpp \
-               GreenMeasurement.hpp \
                HypercubicLattice.hpp \
                Lattice.hpp \
                LatticeRealization.hpp \
@@ -64,10 +62,8 @@ SOURCES = \
           CeperleyMatrix.cpp \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \
-          DensityDensityMeasurement.cpp \
           FilledOrbitals.cpp \
           FreeFermionWavefunctionAmplitude.cpp \
-          GreenMeasurement.cpp \
           Lattice.cpp \
           Move.cpp \
           OperatorMeasurement.cpp \

@@ -21,8 +21,6 @@
 	"equilibrium-steps": 5000,
 	"measurement-steps": 50000,
 	"measurements": [
-	    { "type": "density-density", "species": 0 },
-	    { "type": "green", "species": 0 }
 	]
     }
 }

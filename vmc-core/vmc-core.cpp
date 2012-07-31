@@ -337,7 +337,7 @@ static boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measure
         ensure_only(json_measurement_def, json_subsystem_occupation_allowed);
         unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
         boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_measurement_def["subsystem"], *lattice));
-        return boost::make_shared<SubsystemOccupationNumberProbabilityMeasurement>(subsystem, steps_per_measurement);
+        return boost::make_shared<SubsystemOccupationNumberProbabilityMeasurement>(steps_per_measurement, subsystem);
     } else {
         throw ParseError("invalid standard walk measurement type");
     }

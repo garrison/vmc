@@ -21,8 +21,7 @@
 class SubsystemOccupationNumberProbabilityMeasurement : public Measurement<StandardWalk>
 {
 public:
-    SubsystemOccupationNumberProbabilityMeasurement (const boost::shared_ptr<const Subsystem> &subsystem_,
-                                                     unsigned int steps_per_measurement)
+    SubsystemOccupationNumberProbabilityMeasurement (unsigned int steps_per_measurement, const boost::shared_ptr<const Subsystem> &subsystem_)
         : Measurement<StandardWalk>(steps_per_measurement),
           subsystem(subsystem_)
         {

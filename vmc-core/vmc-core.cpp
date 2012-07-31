@@ -21,7 +21,7 @@
 
 #include "RandomNumberGenerator.hpp"
 #include "Lattice.hpp"
-#include "random-filling.hpp"
+#include "random-configuration.hpp"
 #include "PositionArguments.hpp"
 #include "OrbitalDefinitions.hpp"
 #include "FilledOrbitals.hpp"
@@ -569,9 +569,9 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         ensure_required(json_wavefunction, json_free_fermion_wavefunction_required);
         ensure_only(json_wavefunction, json_free_fermion_wavefunction_required);
         boost::shared_ptr<const OrbitalDefinitions> orbitals = parse_json_orbitals(json_wavefunction["orbitals"], lattice);
-        std::vector<std::vector<unsigned int> > filling;
-        filling.push_back(some_random_filling(orbitals->get_N_filled(), *lattice, *rng));
-        wf.reset(new FreeFermionWavefunctionAmplitude(PositionArguments(filling, lattice->total_sites()), orbitals));
+        std::vector<std::vector<unsigned int> > configuration;
+        configuration.push_back(some_random_configuration(orbitals->get_N_filled(), *lattice, *rng));
+        wf.reset(new FreeFermionWavefunctionAmplitude(PositionArguments(configuration, lattice->total_sites()), orbitals));
     } else if (std::strcmp(json_wavefunction_type_cstr, "dbl") == 0) {
         // dbl wavefunction
         const char * const json_dbl_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", NULL };
@@ -582,9 +582,9 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         boost::shared_ptr<const OrbitalDefinitions> orbitals_d2 = parse_json_orbitals(json_wavefunction["orbitals-d2"], lattice);
         if (orbitals_d1->get_N_filled() != orbitals_d2->get_N_filled())
             throw ParseError("d1 and d2 have different number of orbitals");
-        std::vector<std::vector<unsigned int> > filling;
-        filling.push_back(some_random_filling(orbitals_d1->get_N_filled(), *lattice, *rng));
-        wf.reset(new DBLWavefunctionAmplitude(PositionArguments(filling, lattice->total_sites()),
+        std::vector<std::vector<unsigned int> > configuration;
+        configuration.push_back(some_random_configuration(orbitals_d1->get_N_filled(), *lattice, *rng));
+        wf.reset(new DBLWavefunctionAmplitude(PositionArguments(configuration, lattice->total_sites()),
                                               orbitals_d1, orbitals_d2,
                                               json_get_double(json_wavefunction, "exponent-d1", 1.0),
                                               json_get_double(json_wavefunction, "exponent-d2", 1.0)));
@@ -602,10 +602,10 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
             throw ParseError("d1 and d2 have different number of orbitals");
         if (orbitals_f_up->get_N_filled() + orbitals_f_down->get_N_filled() != orbitals_d1->get_N_filled())
             throw ParseError("number of orbitals in f_up and f_down must sum to number of orbitals in d1");
-        std::vector<std::vector<unsigned int> > filling;
-        filling.push_back(some_random_filling(orbitals_f_up->get_N_filled(), *lattice, *rng));
-        filling.push_back(some_random_filling(orbitals_f_down->get_N_filled(), *lattice, *rng));
-        wf.reset(new DMetalWavefunctionAmplitude(PositionArguments(filling, lattice->total_sites()),
+        std::vector<std::vector<unsigned int> > configuration;
+        configuration.push_back(some_random_configuration(orbitals_f_up->get_N_filled(), *lattice, *rng));
+        configuration.push_back(some_random_configuration(orbitals_f_down->get_N_filled(), *lattice, *rng));
+        wf.reset(new DMetalWavefunctionAmplitude(PositionArguments(configuration, lattice->total_sites()),
                                                  orbitals_d1, orbitals_d2, orbitals_f_up, orbitals_f_down,
                                                  json_get_double(json_wavefunction, "exponent-d1", 1.0),
                                                  json_get_double(json_wavefunction, "exponent-d2", 1.0),
@@ -626,21 +626,21 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
             phi[i] = parse_complex(json_phi[i]);
 
         // find some initial positions with no double occupancy
-        std::vector<std::vector<unsigned int> > filling;
-        filling.push_back(some_random_filling(N_sites / 2, *lattice, *rng));
-        filling.push_back(std::vector<unsigned int>());
+        std::vector<std::vector<unsigned int> > configuration;
+        configuration.push_back(some_random_configuration(N_sites / 2, *lattice, *rng));
+        configuration.push_back(std::vector<unsigned int>());
         std::vector<unsigned int> occupied_sites(N_sites);
-        for (unsigned int i = 0; i < filling[0].size(); ++i) {
-            BOOST_ASSERT(filling[0][i] < N_sites);
-            BOOST_ASSERT(occupied_sites[filling[0][i]] == 0);
-            ++occupied_sites[filling[0][i]];
+        for (unsigned int i = 0; i < configuration[0].size(); ++i) {
+            BOOST_ASSERT(configuration[0][i] < N_sites);
+            BOOST_ASSERT(occupied_sites[configuration[0][i]] == 0);
+            ++occupied_sites[configuration[0][i]];
         }
         for (unsigned int i = 0; i < N_sites; ++i) {
             if (occupied_sites[i] == 0)
-                filling[1].push_back(i);
+                configuration[1].push_back(i);
         }
-        BOOST_ASSERT(filling[0].size() == filling[1].size());
-        wf.reset(new RVBWavefunctionAmplitude(PositionArguments(filling, lattice->total_sites()), lattice, phi));
+        BOOST_ASSERT(configuration[0].size() == configuration[1].size());
+        wf.reset(new RVBWavefunctionAmplitude(PositionArguments(configuration, lattice->total_sites()), lattice, phi));
     } else {
         throw ParseError("invalid wavefunction type");
     }
@@ -690,9 +690,9 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
             if (wf->psi() == amplitude_t(0))
                 throw ParseError("wavefunction has zero amplitude at given initial-positions");
         } else {
-            bool success = search_for_filling_with_nonzero_amplitude(*wf, *rng);
+            bool success = search_for_configuration_with_nonzero_amplitude(*wf, *rng);
             if (!success)
-                throw ParseError("could not find a filling with nonzero amplitude");
+                throw ParseError("could not find a configuration with nonzero amplitude");
         }
 
         // set up measurement(s)
@@ -736,9 +736,9 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
             if (!count_subsystem_particle_counts_for_match(*wf, *wf2, *subsystem))
                 throw ParseError("The initial positions of each copy must have the same numbers/types of particles in the subsystem");
         } else {
-            bool success = search_for_filling_with_nonzero_amplitude(*wf, *rng);
+            bool success = search_for_configuration_with_nonzero_amplitude(*wf, *rng);
             if (!success)
-                throw ParseError("could not find a filling with nonzero amplitude");
+                throw ParseError("could not find a configuration with nonzero amplitude");
             // We need two copies of the system, each of which has the same
             // number of particles in the subsystem.  So for now we just
             // initialize both copies with the same exact positions.
@@ -788,9 +788,9 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
             if (!count_subsystem_particle_counts_for_match(*wf, *wf2, *subsystem))
                 throw ParseError("The initial positions of each copy must have the same numbers/types of particles in the subsystem");
         } else {
-            bool success = search_for_filling_with_nonzero_amplitude(*wf, *rng);
+            bool success = search_for_configuration_with_nonzero_amplitude(*wf, *rng);
             if (!success)
-                throw ParseError("could not find a filling with nonzero amplitude");
+                throw ParseError("could not find a configuration with nonzero amplitude");
             // We need two copies of the system, each of which has the same
             // number of particles in the subsystem.  So for now we just
             // initialize both copies with the same exact positions.

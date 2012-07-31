@@ -1,7 +1,7 @@
 #include <vector>
 
 #include "WavefunctionAmplitude.hpp"
-#include "random-filling.hpp"
+#include "random-configuration.hpp"
 #include "random-move.hpp"
 
 void WavefunctionAmplitude::perform_move (const Move &move)
@@ -55,7 +55,7 @@ void WavefunctionAmplitude::reset_with_random_positions (RandomNumberGenerator &
 {
     std::vector<std::vector<unsigned int> > vv;
     for (unsigned int i = 0; i < r.get_N_species(); ++i)
-        vv.push_back(some_random_filling(r.get_N_filled(i), *lattice, rng));
+        vv.push_back(some_random_configuration(r.get_N_filled(i), *lattice, rng));
     reset(PositionArguments(vv, lattice->total_sites()));
 }
 

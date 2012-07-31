@@ -3,16 +3,16 @@
 
 #include <boost/assert.hpp>
 
-#include "random-filling.hpp"
+#include "random-configuration.hpp"
 #include "RandomNumberGenerator.hpp"
 
-std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Lattice &lattice, RandomNumberGenerator &rng)
+std::vector<unsigned int> some_random_configuration (unsigned int N_filled, const Lattice &lattice, RandomNumberGenerator &rng)
 {
     BOOST_ASSERT(N_filled <= lattice.total_sites());
 
     const unsigned int n_dimensions = lattice.n_dimensions();
 
-    // If in more than one dimension, occasionally we want to try filling
+    // If in more than one dimension, occasionally we want to try placing
     // particles such that they are distributed as well as possible over a
     // certain dimension (rungs, legs, etc).  For determinantal wavefunctions
     // with certain orbital configurations, this can often be necessary to find
@@ -55,7 +55,7 @@ std::vector<unsigned int> some_random_filling (unsigned int N_filled, const Latt
     return v;
 }
 
-bool search_for_filling_with_nonzero_amplitude (WavefunctionAmplitude &wf, RandomNumberGenerator &rng)
+bool search_for_configuration_with_nonzero_amplitude (WavefunctionAmplitude &wf, RandomNumberGenerator &rng)
 {
     unsigned int attempts = 1; // assume that one attempt has already been completed
     while (wf.psi() == amplitude_t(0)) {

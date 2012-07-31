@@ -39,7 +39,7 @@ HEADER_FILES = \
                PositionArguments.hpp \
                RandomNumberGenerator.hpp \
                random-combination.hpp \
-               random-filling.hpp \
+               random-configuration.hpp \
                random-move.hpp \
                RenyiModPossibleMeasurement.hpp \
                RenyiModPossibleWalk.hpp \
@@ -71,7 +71,7 @@ SOURCES = \
           PositionArguments.cpp \
           RandomNumberGenerator.cpp \
           random-combination.cpp \
-          random-filling.cpp \
+          random-configuration.cpp \
           random-move.cpp \
           RenyiModPossibleWalk.cpp \
           RenyiSignWalk.cpp \

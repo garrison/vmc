@@ -61,7 +61,7 @@ bool search_for_configuration_with_nonzero_amplitude (WavefunctionAmplitude &wf,
     while (wf.psi() == amplitude_t(0)) {
         if (attempts++ == 1000000)
             return false;
-        wf.reset_with_random_positions(rng);
+        wf.reset_with_random_configuration(rng);
     }
     return true;
 }

@@ -108,7 +108,7 @@ public:
      * projection properties, e.g., no spin-up and spin-down particle allowed
      * on the same site.
      */
-    virtual void reset_with_random_positions (RandomNumberGenerator &rng);
+    virtual void reset_with_random_configuration (RandomNumberGenerator &rng);
 
     /**
      * Propose a move.

@@ -51,7 +51,7 @@ void WavefunctionAmplitude::cancel_move (void)
 #endif
 }
 
-void WavefunctionAmplitude::reset_with_random_positions (RandomNumberGenerator &rng)
+void WavefunctionAmplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
 {
     std::vector<std::vector<unsigned int> > vv;
     for (unsigned int i = 0; i < r.get_N_species(); ++i)

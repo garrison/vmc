@@ -238,7 +238,7 @@ boost::shared_ptr<WavefunctionAmplitude> DMetalWavefunctionAmplitude::clone_ (vo
     return boost::make_shared<DMetalWavefunctionAmplitude>(*this);
 }
 
-void DMetalWavefunctionAmplitude::reset_with_random_positions (RandomNumberGenerator &rng)
+void DMetalWavefunctionAmplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
 {
     const unsigned int N = m_orbital_d1->get_N_filled();
     const unsigned int M = m_orbital_f_up->get_N_filled();

@@ -49,7 +49,7 @@ public:
         {
         }
 
-    void add_value (T value)
+    virtual void add_value (T value)
         {
             m_total_value += value;
             ++m_num_values;
@@ -67,7 +67,6 @@ public:
         }
 
 protected:
-    // fixme: will we actually use this function?
     T get_total_value (void) const
         {
             return m_total_value;

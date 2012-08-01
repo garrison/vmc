@@ -54,6 +54,7 @@ protected:
             }
     };
 
+    // binlevel_data[n] puts 2^n consecutive measurements in the same bin
     std::vector<BinnedSum> binlevel_data;
 };
 

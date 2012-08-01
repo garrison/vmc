@@ -53,7 +53,6 @@ public:
 protected:
     Measurement (unsigned int steps_per_measurement)
         : m_steps_per_measurement(steps_per_measurement),
-          m_measurements_completed(0),
           m_steps_since_last_measurement(0),
           m_state_changed_since_last_measurement(false),
           initialized(false),
@@ -61,14 +60,6 @@ protected:
           measurement_in_progress(false)
         {
             BOOST_ASSERT(steps_per_measurement > 0);
-        }
-
-    /**
-     * Returns how many measurements have been tallied
-     */
-    unsigned int get_measurements_completed (void) const
-        {
-            return m_measurements_completed;
         }
 
     /**
@@ -100,7 +91,6 @@ private:
             BOOST_ASSERT(!measurement_in_progress);
             ++m_steps_since_last_measurement;
             if (m_steps_since_last_measurement % m_steps_per_measurement == 0) {
-                ++m_measurements_completed;
                 measurement_in_progress = true;
                 if (m_state_changed_since_last_measurement) {
                     measure_(walk);
@@ -146,7 +136,7 @@ private:
         }
 
     const unsigned int m_steps_per_measurement;
-    unsigned int m_measurements_completed, m_steps_since_last_measurement;
+    unsigned int m_steps_since_last_measurement;
     bool m_state_changed_since_last_measurement;
 
     // these are used only for assertions

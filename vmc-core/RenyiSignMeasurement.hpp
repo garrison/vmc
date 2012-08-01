@@ -5,6 +5,7 @@
 
 #include "Measurement.hpp"
 #include "RenyiSignWalk.hpp"
+#include "BinnedEstimate.hpp"
 
 /**
  * Renyi "sign" measurement
@@ -18,23 +19,20 @@ class RenyiSignMeasurement : public Measurement<RenyiSignWalk>
     // fixme: in the case of a real wave function, we know that the sign will
     // always evaluate to 1 or -1.  In this case, it may make more sense to
     // store as integers how many measurements were of each value, instead of
-    // using a complex<double> as an accumulator.
+    // using amplitude_t as an accumulator.
 
 public:
-    typedef amplitude_t measurement_value_t;
-
     RenyiSignMeasurement (void)
-        : Measurement<RenyiSignWalk>(1), // we must measure after every step
-          accum(0)
+        : Measurement<RenyiSignWalk>(1) // we must measure after every step
         {
         }
 
     /**
      * Returns the current value of the measurement
      */
-    measurement_value_t get (void) const
+    amplitude_t get (void) const
         {
-            return accum / (measurement_value_t) get_measurements_completed();
+            return estimate.get_result();
         }
 
 private:
@@ -53,10 +51,10 @@ private:
 #if 0
             std::cerr << std::real(std::exp(i * a)) << "   " << std::arg(walk.get_phialpha1().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phialpha2().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta1().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta2().psi())/boost::math::constants::pi<double>() << ' ' << std::endl;
 #endif
-            accum += std::exp(i * a);
+            estimate.add_value(std::exp(i * a));
         }
 
-    measurement_value_t accum; // fixme: complex accumulator_t needed
+    BinnedEstimate<amplitude_t> estimate;
 };
 
 #endif

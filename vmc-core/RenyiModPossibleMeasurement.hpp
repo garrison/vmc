@@ -5,6 +5,7 @@
 
 #include "Measurement.hpp"
 #include "RenyiModPossibleWalk.hpp"
+#include "BinnedEstimate.hpp"
 
 /**
  * Renyi "mod/possible" measurement
@@ -16,32 +17,29 @@
 class RenyiModPossibleMeasurement : public Measurement<RenyiModPossibleWalk>
 {
 public:
-    typedef real_t measurement_value_t;
-
     RenyiModPossibleMeasurement (void)
-        : Measurement<RenyiModPossibleWalk>(1), // we must measure after every step
-          accum(0)
+        : Measurement<RenyiModPossibleWalk>(1) // we must measure after every step
         {
         }
 
     /**
      * Returns the current value of the measurement
      */
-    measurement_value_t get (void) const
+    real_t get (void) const
         {
-            return accum / (measurement_value_t) get_measurements_completed();
+            return estimate.get_result();
         }
 
 private:
     void measure_ (const RenyiModPossibleWalk &walk)
         {
-            accum += std::abs(walk.get_phibeta1().psi()
-                              / walk.get_phialpha1().psi()
-                              * walk.get_phibeta2().psi()
-                              / walk.get_phialpha2().psi());
+            estimate.add_value(std::abs(walk.get_phibeta1().psi()
+                                        / walk.get_phialpha1().psi()
+                                        * walk.get_phibeta2().psi()
+                                        / walk.get_phialpha2().psi()));
         }
 
-    accumulator_t accum;
+    BinnedEstimate<real_t> estimate;
 };
 
 #endif

@@ -10,6 +10,7 @@
 #include "WavefunctionAmplitude.hpp"
 #include "PositionArguments.hpp"
 #include "ParticleOperator.hpp"
+#include "BinnedEstimate.hpp"
 
 template <class T>
 static inline std::auto_ptr<T> ptr_to_auto_ptr (T *p)
@@ -40,8 +41,7 @@ public:
         : Measurement<StandardWalk>(steps_per_measurement),
           m_operator(operator_),
           sum(sum_),
-          bcs(ptr_to_auto_ptr(bcs_)),
-          numerator(0)
+          bcs(ptr_to_auto_ptr(bcs_))
         {
             // boundary conditions should only be given if (sum == true)
             BOOST_ASSERT(!bcs_ || sum_);
@@ -52,7 +52,7 @@ public:
      */
     amplitude_t get (void) const
         {
-            return numerator / real_t(get_measurements_completed());
+            return estimate.get_result();
         }
 
 private:
@@ -75,7 +75,8 @@ private:
     bool sum;
     const std::auto_ptr<const BoundaryConditions> bcs;
 
-    amplitude_t numerator, most_recent_numerator;
+    BinnedEstimate<amplitude_t> estimate;
+    amplitude_t most_recent_value;
 };
 
 #endif

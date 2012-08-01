@@ -95,12 +95,12 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
     current_measurement_is_zero: ;
     }
 
-    most_recent_numerator = meas;
-    numerator += most_recent_numerator;
+    most_recent_value = meas;
+    estimate.add_value(most_recent_value);
 }
 
 void OperatorMeasurement::repeat_measurement_ (const StandardWalk &walk)
 {
     (void) walk;
-    numerator += most_recent_numerator;
+    estimate.add_value(most_recent_value);
 }

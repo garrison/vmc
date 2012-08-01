@@ -53,19 +53,19 @@ public:
             // if the following assertion fails, the occupation must contain an
             // invalid value that is greater than the respective
             // r.get_N_filled(species)
-            BOOST_ASSERT(offset < data.size());
+            BOOST_ASSERT(offset < estimate.size());
 
-            return real_t(data[offset]) / get_measurements_completed();
+            return estimate[offset].get_result();
         }
 
 private:
     void initialize_ (const StandardWalk &walk)
         {
-            BOOST_ASSERT(data.size() == 0);
+            BOOST_ASSERT(estimate.size() == 0);
 
             const PositionArguments &r = walk.get_wavefunction().get_positions();
 
-            // set up the `offsets` and `data` vectors
+            // set up the `offsets` and `estimate` vectors
             offsets.resize(r.get_N_species());
             unsigned int n = 1;
             for (unsigned int i = 0; i < r.get_N_species(); ++i) {
@@ -74,7 +74,7 @@ private:
                 // subsystem will be in the range 0 .. N_filled
                 n *= r.get_N_filled(i) + 1;
             }
-            data.resize(n);
+            estimate.resize(n);
         }
 
     void measure_ (const StandardWalk &walk)
@@ -85,16 +85,22 @@ private:
             unsigned int offset = 0;
             for (unsigned int i = 0; i < offsets.size(); ++i)
                 offset += do_subsystem_particle_count(wf, i) * offsets[i];
-            BOOST_ASSERT(offset < data.size());
+            BOOST_ASSERT(offset < estimate.size());
 
-            last_data_ptr = &data[offset];
-            ++data[offset];
+            last_offset = offset;
+            repeat_measurement_(walk);
         }
 
     void repeat_measurement_ (const StandardWalk &walk)
         {
             (void) walk;
-            ++(*last_data_ptr);
+            // tally the value 1 for the current occupation, and 0 for each
+            // other possible occupation
+            estimate[last_offset].add_value(1);
+            for (unsigned int i = 0; i < estimate.size(); ++i) {
+                if (i != last_offset)
+                    estimate[i].add_value(0);
+            }
         }
 
     unsigned int do_subsystem_particle_count (const WavefunctionAmplitude &wf, unsigned int species) const
@@ -110,9 +116,9 @@ private:
         }
 
     const boost::shared_ptr<const Subsystem> subsystem;
-    std::vector<unsigned int> data;
+    std::vector<BinnedEstimate<unsigned int> > estimate;
     std::vector<unsigned int> offsets;
-    unsigned int *last_data_ptr; // saves us from recalculating the offset on repeat measurements
+    unsigned int last_offset; // saves us from recalculating the offset on repeat measurements
 };
 
 #endif

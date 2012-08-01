@@ -19,6 +19,7 @@ DOXYGEN = doxygen
 HEADER_FILES = \
                allowed-momentum.hpp \
                BaseSwapPossibleWalk.hpp \
+               BinnedEstimate.hpp \
                BoundaryCondition.hpp \
                CeperleyMatrix.hpp \
                DBLWavefunctionAmplitude.hpp \
@@ -46,6 +47,7 @@ HEADER_FILES = \
                RenyiSignMeasurement.hpp \
                RenyiSignWalk.hpp \
                RunInformation.hpp \
+               RunningEstimate.hpp \
                RVBWavefunctionAmplitude.hpp \
                SimpleSubsystem.hpp \
                StandardWalk.hpp \

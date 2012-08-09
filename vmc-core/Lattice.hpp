@@ -98,11 +98,7 @@ public:
  * This class represents an N-dimensional lattice, where N is specified.  Most
  * of the operations we do don't depend on the particular primitive vectors of
  * the Bravais lattice, so Lattice turns out to be immensely useful, even
- * though it contains no knowledge of the primitive vectors.  For physical
- * realizations of lattices in real space, see LatticeRealization and its
- * subclasses, e.g. HypercubicLattice.
- *
- * @see LatticeRealization
+ * though it contains no knowledge of the primitive vectors.
  */
 class Lattice
 {

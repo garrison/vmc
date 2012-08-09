@@ -26,10 +26,7 @@ HEADER_FILES = \
                DMetalWavefunctionAmplitude.hpp \
                FilledOrbitals.hpp \
                FreeFermionWavefunctionAmplitude.hpp \
-               HypercubicLattice.hpp \
                Lattice.hpp \
-               LatticeRealization.hpp \
-               lowest-momenta.hpp \
                lw_vector.hpp \
                Measurement.hpp \
                MetropolisSimulation.hpp \

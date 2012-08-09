@@ -46,6 +46,9 @@ cdef class LatticeSite(object):
             self.thisptr.set_bs_coordinate(i, x)
         self.thisptr.basis_index = bi
 
+    def __dealloc__(self):
+        del self.thisptr
+
     property bs:
         def __get__(self):
             cdef int i

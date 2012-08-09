@@ -8,6 +8,6 @@
 # http://pypi.python.org/pypi/virtualenv for details.
 
 numpy
-scipy
+Cython
 Twisted
 pytest

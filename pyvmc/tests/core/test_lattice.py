@@ -6,6 +6,10 @@ from pyvmc.utils import complex_json as json
 from pyvmc.core.boundary_conditions import periodic, antiperiodic
 from pyvmc.core import LatticeSite, Lattice, HypercubicLattice, HexagonalLattice
 
+# this should not be necessary.  see my bug report at
+# https://bitbucket.org/hpk42/pytest/issue/176/pytestraises-assertionerror-fails-with
+AssertionError = Exception
+
 def test_lattice_site():
     assert LatticeSite((1, 4)) == LatticeSite((1, 4), 0)
 

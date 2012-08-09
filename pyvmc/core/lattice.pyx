@@ -6,32 +6,79 @@ import numbers
 import collections
 
 import numpy
+from cython.operator cimport dereference as deref
 
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.utils import product
 from pyvmc.utils.immutable import Immutable
 from pyvmc.constants import two_pi, sqrt_three_over_two, pi
 
-class BravaisSite(tuple):
-    pass
+cdef extern from "Lattice.hpp":
+    cdef unsigned int MAX_DIMENSION
 
-class LatticeSite(Immutable):
+    cdef cppclass CppLatticeSite "LatticeSite":
+        CppLatticeSite(unsigned int)
+        int operator[](int)
+        void set_bs_coordinate(int, int)
+        int n_dimensions()
+        int basis_index
+
+cdef class LatticeSite(object):
     """represents a site on a lattice
 
     bs == bravais site
     bi == basis index
+
+    remains constant after initialization
     """
 
-    __slots__ = ("bs", "bi")
+    cdef CppLatticeSite *thisptr
 
-    def init_validate(self, bs, bi=0):
+    def __cinit__(self, bs, bi=0):
         assert isinstance(bs, collections.Sequence)
-        bs = BravaisSite(bs)
+        assert len(bs) > 0
         assert all(isinstance(x, numbers.Integral) for x in bs)
         assert isinstance(bi, numbers.Integral) and bi >= 0
-        return (bs, bi)
+        if len(bs) > MAX_DIMENSION:
+            raise ValueError("provided site has greater than {} dimensions".format(MAX_DIMENSION))
+        self.thisptr = new CppLatticeSite(len(bs))
+        cdef int i, x
+        for i, x in enumerate(bs):
+            self.thisptr.set_bs_coordinate(i, x)
+        self.thisptr.basis_index = bi
 
-class Lattice(Immutable, collections.Sequence):
+    property bs:
+        def __get__(self):
+            cdef int i
+            return tuple([deref(self.thisptr)[i] for i in range(self.thisptr.n_dimensions())])
+
+    property bi:
+        def __get__(self):
+            return self.thisptr.basis_index
+
+    def __hash__(self):
+        return hash(self.bs) | hash(self.bi)
+
+    def __richcmp__(self, other, int op):
+        if op == 2:  # ==
+            return (self.__class__ == other.__class__ and
+                    self.bs == other.bs and
+                    self.bi == other.bi)
+        elif op == 3:  # !=
+            return (self.__class__ != other.__class__ or
+                    self.bs != other.bs or
+                    self.bi != other.bi)
+        # we don't implement <, <=, >, >=
+        raise NotImplementedError
+
+    def __repr__(self):
+        return "{}({}, {})".format(self.__class__.__name__,
+                                   repr(self.bs),
+                                   self.bi)
+
+collections.Hashable.register(LatticeSite)
+
+class Lattice(Immutable):
     __slots__ = ('dimensions', 'basis_indices')
 
     def init_validate(self, dimensions, basis_indices=1):
@@ -126,6 +173,12 @@ class Lattice(Immutable, collections.Sequence):
         return bool(len(site.bs) == len(self.dimensions) and
                     all(x < y for x, y in zip(site.bs, self.dimensions)) and
                     site.bi < self.basis_indices)
+
+    def count(self, x):
+        return 1 if x in self else 0
+
+collections.Hashable.register(Lattice)
+collections.Sequence.register(Lattice)
 
 class LatticeRealization(Lattice):
     __metaclass__ = abc.ABCMeta

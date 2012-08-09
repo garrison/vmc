@@ -35,6 +35,12 @@ struct LatticeSite
 private:
     BravaisSite bs;
 public:
+    explicit LatticeSite (unsigned int n_dimensions)
+        : bs(n_dimensions)
+        {
+        }
+
+    // fixme: deprecate this second constructor
     explicit LatticeSite (const Lattice &lattice);
 
     int basis_index;
@@ -60,6 +66,13 @@ public:
     int & operator[] (std::size_t index)
         {
             return bs[index];
+        }
+
+    // CYTHON-LIMITATION:
+    // http://docs.cython.org/src/userguide/wrapping_CPlusPlus.html#c-left-values
+    void set_bs_coordinate (std::size_t index, int v)
+        {
+            bs[index] = v;
         }
 
     bool operator== (const LatticeSite &other) const

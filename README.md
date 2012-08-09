@@ -13,8 +13,9 @@ This package is made up of two distinct components:
 
 Currently, the two components communicate by using JSON over a pipe.
 A lot of functionality is duplicated in each component so that they
-can talk to each other in the same terms.  Over time, we'd like to
-remove this complexity by migrating toward Cython.
+can talk to each other in the same terms.  A migration to Cython is
+currently in progress, which should eventually help to remove this
+complexity.
 
 Compiling vmc-core
 ------------------
@@ -77,6 +78,21 @@ pyvmc
 
 Documentation on performing a simple calculation using pyvmc is coming
 soon.
+
+compiling pyvmc
+---------------
+
+First make sure a recent python2 is installed, along with virtualenv.
+The following uses clang++ for both compiling (CC) and linking (CXX),
+and assumes certain (typical) directories for boost and eigen.
+
+    $ virtualenv venv
+    $ source venv/bin/activate
+    $ pip install -r requirements.txt
+    $ CC=clang++ CXX=clang++ python setup.py build_ext -I/usr/include/boost:/usr/include/eigen3 --inplace --force
+
+The --force would not be necessary if we tracked dependencies
+correctly, but we do not at the moment.
 
 pyvmc tests
 -----------

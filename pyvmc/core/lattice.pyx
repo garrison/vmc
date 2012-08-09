@@ -102,6 +102,11 @@ cdef class LatticeSite(object):
                                    repr(self.bs),
                                    self.bi)
 
+cdef LatticeSite_from_cpp(CppLatticeSite cpp_lattice_site):
+    cdef LatticeSite lattice_site = LatticeSite.__new__(LatticeSite)
+    lattice_site.thisptr = new CppLatticeSite(cpp_lattice_site)
+    return lattice_site
+
 collections.Hashable.register(LatticeSite)
 
 cdef class Lattice(object):
@@ -189,9 +194,7 @@ cdef class Lattice(object):
     def __getitem__(self, unsigned int index):
         if index >= len(self):
             raise ValueError
-        cdef LatticeSite lattice_site = LatticeSite.__new__(LatticeSite)
-        lattice_site.thisptr = new CppLatticeSite(self.thisptr.site_from_index(index))
-        return lattice_site
+        return LatticeSite_from_cpp(self.thisptr.site_from_index(index))
 
     def index(self, LatticeSite site not None):
         if site not in self:

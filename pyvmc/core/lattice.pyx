@@ -12,6 +12,15 @@ from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.utils import product
 from pyvmc.constants import two_pi, sqrt_three_over_two, pi
 
+cdef extern from "<boost/shared_ptr.hpp>" namespace "boost":
+    cdef cppclass shared_ptr[T]:
+        shared_ptr()
+        shared_ptr(T*)
+        void reset()
+        void reset(T*)
+        T& operator*()
+        T* get()
+
 cdef extern from "Lattice.hpp":
     cdef unsigned int MAX_DIMENSION
 
@@ -110,7 +119,7 @@ cdef LatticeSite_from_cpp(CppLatticeSite cpp_lattice_site):
 collections.Hashable.register(LatticeSite)
 
 cdef class Lattice(object):
-    cdef CppLattice *thisptr
+    cdef shared_ptr[CppLattice] *thisptr
 
     def __init__(self, dimensions, basis_indices=1):
         if self.thisptr is not NULL:
@@ -125,7 +134,7 @@ cdef class Lattice(object):
         cdef DimensionVector v
         for i, x in enumerate(dimensions):
             v.push_back(x)
-        self.thisptr = new CppLattice(v, basis_indices)
+        self.thisptr = new shared_ptr[CppLattice](new CppLattice(v, basis_indices))
 
     def __dealloc__(self):
         del self.thisptr
@@ -133,11 +142,11 @@ cdef class Lattice(object):
     property dimensions:
         def __get__(self):
             cdef int i
-            return tuple([self.thisptr.dimensions[i] for i in range(self.thisptr.n_dimensions())])
+            return tuple([self.thisptr.get().dimensions[i] for i in range(self.thisptr.get().n_dimensions())])
 
     property basis_indices:
         def __get__(self):
-            return self.thisptr.basis_indices
+            return self.thisptr.get().basis_indices
 
     def to_json(self):
         assert self.basis_indices == 1  # for now
@@ -173,7 +182,7 @@ cdef class Lattice(object):
             return new_site, phase_adjustment
 
     def __len__(self):
-        return self.thisptr.total_sites()
+        return self.thisptr.get().total_sites()
 
     def __iter__(self):
         dimensions = self.dimensions
@@ -194,16 +203,16 @@ cdef class Lattice(object):
     def __getitem__(self, unsigned int index):
         if index >= len(self):
             raise ValueError
-        return LatticeSite_from_cpp(self.thisptr.site_from_index(index))
+        return LatticeSite_from_cpp(self.thisptr.get().site_from_index(index))
 
     def index(self, LatticeSite site not None):
         if site not in self:
             raise ValueError
-        return <int>self.thisptr.site_to_index(deref(site.thisptr))
+        return <int>self.thisptr.get().site_to_index(deref(site.thisptr))
 
     def __contains__(self, LatticeSite site not None):
-        return bool(site.thisptr.n_dimensions() == self.thisptr.n_dimensions() and
-                    self.thisptr.site_is_valid(deref(site.thisptr)))
+        return bool(site.thisptr.n_dimensions() == self.thisptr.get().n_dimensions() and
+                    self.thisptr.get().site_is_valid(deref(site.thisptr)))
 
     def count(self, x):
         return 1 if x in self else 0

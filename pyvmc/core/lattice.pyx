@@ -17,10 +17,29 @@ cdef extern from "Lattice.hpp":
 
     cdef cppclass CppLatticeSite "LatticeSite":
         CppLatticeSite(unsigned int)
+        CppLatticeSite(CppLatticeSite&)
+
         int operator[](int)
         void set_bs_coordinate(int, int)
         int n_dimensions()
+
         int basis_index
+
+    cppclass DimensionVector:
+        int operator[](int)
+        void push_back(int)
+
+    cdef cppclass CppLattice "Lattice":
+        CppLattice(DimensionVector, int)
+
+        int total_sites()
+        int n_dimensions()
+        CppLatticeSite site_from_index(unsigned int)
+        unsigned int site_to_index(CppLatticeSite)
+        int site_is_valid(CppLatticeSite)
+
+        DimensionVector dimensions
+        int basis_indices
 
 cdef class LatticeSite(object):
     """represents a site on a lattice
@@ -33,7 +52,12 @@ cdef class LatticeSite(object):
 
     cdef CppLatticeSite *thisptr
 
-    def __cinit__(self, bs, bi=0):
+    def __init__(self, bs, bi=0):
+        if self.thisptr is not NULL:
+            # __init__() can under some (?) circumstances be called more than
+            # once, according to
+            # http://docs.cython.org/src/userguide/special_methods.html#initialisation-methods-cinit-and-init
+            return
         assert isinstance(bs, collections.Sequence)
         assert len(bs) > 0
         assert all(isinstance(x, numbers.Integral) for x in bs)
@@ -81,25 +105,34 @@ cdef class LatticeSite(object):
 collections.Hashable.register(LatticeSite)
 
 cdef class Lattice(object):
-    cdef object dimensions_
-    cdef int basis_indices_
+    cdef CppLattice *thisptr
 
     def __init__(self, dimensions, basis_indices=1):
+        if self.thisptr is not NULL:
+            # __init__() can under some (?) circumstances be called more than
+            # once, according to
+            # http://docs.cython.org/src/userguide/special_methods.html#initialisation-methods-cinit-and-init
+            return
         assert isinstance(dimensions, collections.Sequence)
         assert len(dimensions) != 0
-        dimensions = tuple(dimensions)
         assert all(isinstance(x, numbers.Integral) and x > 0 for x in dimensions)
         assert isinstance(basis_indices, numbers.Integral) and basis_indices > 0
-        self.dimensions_ = dimensions
-        self.basis_indices_ = basis_indices
+        cdef DimensionVector v
+        for i, x in enumerate(dimensions):
+            v.push_back(x)
+        self.thisptr = new CppLattice(v, basis_indices)
+
+    def __dealloc__(self):
+        del self.thisptr
 
     property dimensions:
         def __get__(self):
-            return self.dimensions_
+            cdef int i
+            return tuple([self.thisptr.dimensions[i] for i in range(self.thisptr.n_dimensions())])
 
     property basis_indices:
         def __get__(self):
-            return self.basis_indices_
+            return self.thisptr.basis_indices
 
     def to_json(self):
         assert self.basis_indices == 1  # for now
@@ -135,7 +168,7 @@ cdef class Lattice(object):
             return new_site, phase_adjustment
 
     def __len__(self):
-        return product(self.dimensions) * self.basis_indices
+        return self.thisptr.total_sites()
 
     def __iter__(self):
         dimensions = self.dimensions
@@ -153,38 +186,21 @@ cdef class Lattice(object):
             else:
                 raise StopIteration
 
-    def __getitem__(self, index):
-        assert isinstance(index, numbers.Integral)
-        if index < 0 or index >= len(self):
+    def __getitem__(self, unsigned int index):
+        if index >= len(self):
             raise ValueError
-        dimensions = self.dimensions
-        bs = []
-        for d in dimensions:
-            bs.append(index % d)
-            index //= d
-        # "index" now represents the bravais index
-        site = LatticeSite(bs, index)
-        assert site in self
-        return site
+        cdef LatticeSite lattice_site = LatticeSite.__new__(LatticeSite)
+        lattice_site.thisptr = new CppLatticeSite(self.thisptr.site_from_index(index))
+        return lattice_site
 
-    def index(self, site):
+    def index(self, LatticeSite site not None):
         if site not in self:
             raise ValueError
-        dimensions = self.dimensions
-        index = 0
-        offset = 1
-        for i, x in enumerate(site.bs):
-            index += x * offset
-            offset *= dimensions[i]
-        index += site.bi * offset
-        assert index < len(self)
-        return index
+        return <int>self.thisptr.site_to_index(deref(site.thisptr))
 
-    def __contains__(self, site):
-        assert isinstance(site, LatticeSite)
-        return bool(len(site.bs) == len(self.dimensions) and
-                    all(x < y for x, y in zip(site.bs, self.dimensions)) and
-                    site.bi < self.basis_indices)
+    def __contains__(self, LatticeSite site not None):
+        return bool(site.thisptr.n_dimensions() == self.thisptr.n_dimensions() and
+                    self.thisptr.site_is_valid(deref(site.thisptr)))
 
     def count(self, x):
         return 1 if x in self else 0

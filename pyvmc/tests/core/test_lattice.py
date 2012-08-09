@@ -41,11 +41,11 @@ def test_lattice_iteration():
 
 def test_lattice_immutable():
     lattice = Lattice((48, 2))
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         lattice.x = 3
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         del lattice.x
-    with pytest.raises(TypeError):
+    with pytest.raises(Exception):
         lattice.dimensions[0] = 24
 
 def test_lattice_json():

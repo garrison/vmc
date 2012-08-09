@@ -10,7 +10,6 @@ from cython.operator cimport dereference as deref
 
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.utils import product
-from pyvmc.utils.immutable import Immutable
 from pyvmc.constants import two_pi, sqrt_three_over_two, pi
 
 cdef extern from "Lattice.hpp":
@@ -78,16 +77,26 @@ cdef class LatticeSite(object):
 
 collections.Hashable.register(LatticeSite)
 
-class Lattice(Immutable):
-    __slots__ = ('dimensions', 'basis_indices')
+cdef class Lattice(object):
+    cdef object dimensions_
+    cdef int basis_indices_
 
-    def init_validate(self, dimensions, basis_indices=1):
+    def __init__(self, dimensions, basis_indices=1):
         assert isinstance(dimensions, collections.Sequence)
         assert len(dimensions) != 0
         dimensions = tuple(dimensions)
         assert all(isinstance(x, numbers.Integral) and x > 0 for x in dimensions)
         assert isinstance(basis_indices, numbers.Integral) and basis_indices > 0
-        return (dimensions, basis_indices)
+        self.dimensions_ = dimensions
+        self.basis_indices_ = basis_indices
+
+    property dimensions:
+        def __get__(self):
+            return self.dimensions_
+
+    property basis_indices:
+        def __get__(self):
+            return self.basis_indices_
 
     def to_json(self):
         assert self.basis_indices == 1  # for now
@@ -177,13 +186,31 @@ class Lattice(Immutable):
     def count(self, x):
         return 1 if x in self else 0
 
+    def __hash__(self):
+        return hash(self.dimensions) | hash(self.basis_indices)
+
+    def __richcmp__(self, other, int op):
+        if op == 2:  # ==
+            return (self.__class__ == other.__class__ and
+                    self.dimensions == other.dimensions and
+                    self.basis_indices == other.basis_indices)
+        elif op == 3:  # !=
+            return (self.__class__ != other.__class__ or
+                    self.dimensions != other.dimensions or
+                    self.basis_indices != other.basis_indices)
+        # we don't implement <, <=, >, >=
+        raise NotImplementedError
+
+    def __repr__(self):
+        return "{}({}, {})".format(self.__class__.__name__,
+                                   repr(self.dimensions),
+                                   self.basis_indices)
+
 collections.Hashable.register(Lattice)
 collections.Sequence.register(Lattice)
 
 class LatticeRealization(Lattice):
     __metaclass__ = abc.ABCMeta
-
-    __slots__ = ('dimensions', 'basis_indices')
 
     def abstract_lattice(self):
         return Lattice(self.dimensions, self.basis_indices)
@@ -239,12 +266,10 @@ class LatticeRealization(Lattice):
         )
 
 class HypercubicLattice(LatticeRealization):
-    __slots__ = ('dimensions', 'basis_indices')
-
     a = 1.0   # lattice spacing
 
-    def init_validate(self, dimensions):
-        return super(HypercubicLattice, self).init_validate(dimensions, 1)
+    def __init__(self, dimensions):
+        super(HypercubicLattice, self).__init__(dimensions, 1)
 
     @property
     def primitive_vectors(self):
@@ -281,13 +306,11 @@ class HypercubicLattice(LatticeRealization):
         return rv
 
 class HexagonalLattice(LatticeRealization):
-    __slots__ = ('dimensions', 'basis_indices')
-
     a = 1.0   # lattice spacing
 
-    def init_validate(self, dimensions):
+    def __init__(self, dimensions):
         assert len(dimensions) == 2
-        return super(HexagonalLattice, self).init_validate(dimensions, 1)
+        super(HexagonalLattice, self).__init__(dimensions, 1)
 
     @property
     def primitive_vectors(self):

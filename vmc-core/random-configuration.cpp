@@ -33,7 +33,7 @@ std::vector<unsigned int> some_random_configuration (unsigned int N_filled, cons
             for (unsigned int i = 0; i < spread_coordinate.size(); ++i) {
                 unsigned int proposed_site_index;
                 do {
-                    LatticeSite proposed_site(lattice);
+                    LatticeSite proposed_site(lattice.n_dimensions());
                     proposed_site[spread_dimension] = spread_coordinate[i];
                     for (unsigned int j = 0; j < n_dimensions; ++j) {
                         if (j != spread_dimension)

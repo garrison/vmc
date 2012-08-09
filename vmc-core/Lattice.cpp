@@ -3,7 +3,7 @@
 LatticeSite Lattice::site_from_index (unsigned int n) const
 {
     BOOST_ASSERT(n < total_sites());
-    LatticeSite rv(*this);
+    LatticeSite rv(this->n_dimensions());
     for (unsigned int i = 0; i < n_dimensions(); ++i) {
         rv[i] = n % dimensions[i];
         n /= dimensions[i];

@@ -40,9 +40,6 @@ public:
         {
         }
 
-    // fixme: deprecate this second constructor
-    explicit LatticeSite (const Lattice &lattice);
-
     int basis_index;
 
     /**
@@ -308,10 +305,5 @@ protected:
     // after that it should not be changed
     std::vector<struct MoveAxis> move_axes;
 };
-
-inline LatticeSite::LatticeSite (const Lattice &lattice)
-  : bs(lattice.n_dimensions())
-{
-}
 
 #endif

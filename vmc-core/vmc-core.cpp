@@ -42,8 +42,6 @@
 #include "SimpleSubsystem.hpp"
 #include "RunInformation.hpp"
 
-static RunInformation run_information;
-
 class ParseError : public std::exception
 {
 public:
@@ -459,6 +457,8 @@ static Json::Value renyi_sign_walk_measurement_json_repr (const Measurement<Reny
 
 static Json::Value parse_and_run_simulation (const Json::Value &json_input)
 {
+    RunInformation run_information;
+
     ensure_object(json_input);
     const char * const json_input_required[] = { "rng", "system", "simulation", NULL };
     ensure_required(json_input, json_input_required);

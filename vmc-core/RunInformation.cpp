@@ -55,7 +55,9 @@ Json::Value RunInformation::json_info (void) const
 #else
     rv["compiler"] = Json::Value(Json::nullValue);
 #endif
+#if 0
     rv["compiler_commandline"] = STRINGIFY(VMC_COMPILER_COMMANDLINE);
+#endif
 
     rv["platform"] = platform;
 
@@ -65,7 +67,6 @@ Json::Value RunInformation::json_info (void) const
 
     rv["version"]["boost"] = BOOST_LIB_VERSION;
     rv["version"]["eigen"] = STRINGIFY(EIGEN_WORLD_VERSION) "." STRINGIFY(EIGEN_MAJOR_VERSION) "." STRINGIFY(EIGEN_MINOR_VERSION);
-    rv["version"]["vmc"] = "0";
 
     std::time_t finish_time;
     std::time(&finish_time);
@@ -73,6 +74,7 @@ Json::Value RunInformation::json_info (void) const
     rv["datetime"]["finish"] = time_to_string(finish_time);
     rv["walltime"] = Json::Int(finish_time - start_time);
 
+#if 0
     struct rusage res_usage;
     if (getrusage(RUSAGE_SELF, &res_usage) == 0) {
         rv["rusage"]["utime"] = timeval_to_double(res_usage.ru_utime);
@@ -85,6 +87,7 @@ Json::Value RunInformation::json_info (void) const
     } else {
         rv["rusage"] = Json::Value(Json::nullValue);
     }
+#endif
 
     return rv;
 }

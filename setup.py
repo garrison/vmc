@@ -23,6 +23,33 @@ def make_extension(ext_name, ext_extras=(), ext_libraries=()):
 
 extensions = [
     make_extension("pyvmc.core.lattice", ["Lattice.cpp"]),
+    make_extension("pyvmc.core.simulation", [
+        "BaseSwapPossibleWalk.cpp",
+        "CeperleyMatrix.cpp",
+        "DBLWavefunctionAmplitude.cpp",
+        "DMetalWavefunctionAmplitude.cpp",
+        "FilledOrbitals.cpp",
+        "FreeFermionWavefunctionAmplitude.cpp",
+        "Lattice.cpp",
+        "Move.cpp",
+        "OperatorMeasurement.cpp",
+        "ParticleOperator.cpp",
+        "PositionArguments.cpp",
+        "RVBWavefunctionAmplitude.cpp",
+        "RandomNumberGenerator.cpp",
+        "RenyiModPossibleWalk.cpp",
+        "RenyiSignWalk.cpp",
+        "RunInformation.cpp",
+        "SimpleSubsystem.cpp",
+        "StandardWalk.cpp",
+        "SwappedSystem.cpp",
+        "WavefunctionAmplitude.cpp",
+        "allowed-momentum.cpp",
+        "random-combination.cpp",
+        "random-configuration.cpp",
+        "random-move.cpp",
+        "vmc-core.cpp",
+    ], ['jsoncpp']),
 ]
 
 setup(**{

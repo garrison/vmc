@@ -11,6 +11,8 @@
 #include <memory>
 #include <exception>
 #include <cstring>
+#include <sstream>
+#include <string>
 
 #include <json/json.h>
 #include <boost/assert.hpp>
@@ -830,33 +832,17 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
     return json_output;
 }
 
-int main (int argc, char *argv[])
+std::string simulation_entry (const char *json_input_str)
 {
     // take json input and perform a simulation
 
     Json::Value json_input;
-
-    if (argc < 2) {
-        // read from STDIN
-        std::cin >> json_input;
-    } else if (argc == 2) {
-        // read from given file
-        std::ifstream input_file(argv[1]);
-        if (!input_file.good()) {
-            std::cerr << "cannot open file: " << argv[1] << std::endl;
-            return 1;
-        }
-        input_file >> json_input;
-        input_file.close();
-    } else {
-        std::cerr << "invalid number of commandline arguments" << std::endl;
-        return 1;
+    {
+        std::istringstream iss(json_input_str, std::istringstream::in);
+        iss >> json_input;
     }
 
-    try {
-        std::cout << parse_and_run_simulation(json_input);
-    } catch (ParseError e) {
-        std::cerr << e.what() << std::endl;
-        return 1;
-    }
+    std::ostringstream oss(std::ostringstream::out);
+    oss << parse_and_run_simulation(json_input);
+    return oss.str();
 }

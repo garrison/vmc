@@ -84,12 +84,13 @@ compiling pyvmc
 
 First make sure a recent python2 is installed, along with virtualenv.
 The following uses clang++ for both compiling (CC) and linking (CXX),
-and assumes certain (typical) directories for boost and eigen.
+and assumes certain (typical) directories for boost, eigen and
+jsoncpp.
 
     $ virtualenv venv
     $ source venv/bin/activate
     $ pip install -r requirements.txt
-    $ CC=clang++ CXX=clang++ python setup.py build_ext -I/usr/include/boost:/usr/include/eigen3 --inplace --force
+    $ CC=clang++ CXX=clang++ python setup.py build_ext -I/usr/include/boost:/usr/include/eigen3:/usr/include/jsoncpp --inplace --force
 
 The --force would not be necessary if we tracked dependencies
 correctly, but we do not at the moment.

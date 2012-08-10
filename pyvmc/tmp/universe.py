@@ -9,8 +9,10 @@ import logging
 
 from twisted.internet import defer, task, reactor
 
-# fixme: or we pass a scheduler in advance()
-from pyvmc.control.scheduler import default_scheduler
+## fixme: or we pass a scheduler in advance()
+#from pyvmc.control.scheduler import default_scheduler
+
+from pyvmc.core.simulation import perform_simulation
 
 logger = logging.getLogger(__name__)
 
@@ -21,14 +23,6 @@ def hashable_json(obj):
         return tuple(hashable_json(a) for a in obj)
     else:
         return obj
-
-def get_vmc_core_path():
-    import os
-    try:
-        return os.environ["VMC_CORE_PATH"]
-    except KeyError:
-        # look in ../../vmc-core/vmc-core
-        return os.path.join(os.path.dirname(__file__), "..", "..", "vmc-core", "vmc-core")
 
 class TmpMeasurementPlan(object):
     def __init__(self, measurement_plan, parse_result):
@@ -79,8 +73,12 @@ class Walk(object):
         vmc_core_input["simulation"]["measurements"] = [m[0].measurement_plan.measurement
                                                         for m in self.measurements_in_progress]
         vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
-        d = default_scheduler.submit(get_vmc_core_path(), json.dumps(vmc_core_input))
-        d.addCallbacks(self._advancement_completed, self._advancement_failed)
+        try:
+            output_string = perform_simulation(json.dumps(vmc_core_input))
+        except Exception as e:
+            self._advancement_failed(None)
+        else:
+            self._advancement_completed((output_string, None))
 
     def advance_measurement(self, measurement):
         assert (measurement not in self.measurements_pending)

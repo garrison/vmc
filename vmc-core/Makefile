@@ -17,14 +17,12 @@ DOXYGEN = doxygen
 -include Makefile-vmc.local
 
 HEADER_FILES = \
-               allowed-momentum.hpp \
                BaseSwapPossibleWalk.hpp \
                BinnedEstimate.hpp \
                BoundaryCondition.hpp \
                CeperleyMatrix.hpp \
                DBLWavefunctionAmplitude.hpp \
                DMetalWavefunctionAmplitude.hpp \
-               FilledOrbitals.hpp \
                FreeFermionWavefunctionAmplitude.hpp \
                Lattice.hpp \
                lw_vector.hpp \
@@ -56,12 +54,10 @@ HEADER_FILES = \
                WavefunctionAmplitude.hpp
 
 SOURCES = \
-          allowed-momentum.cpp \
           BaseSwapPossibleWalk.cpp \
           CeperleyMatrix.cpp \
           DBLWavefunctionAmplitude.cpp \
           DMetalWavefunctionAmplitude.cpp \
-          FilledOrbitals.cpp \
           FreeFermionWavefunctionAmplitude.cpp \
           Lattice.cpp \
           Move.cpp \

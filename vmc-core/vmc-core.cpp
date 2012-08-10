@@ -26,7 +26,6 @@
 #include "random-configuration.hpp"
 #include "PositionArguments.hpp"
 #include "OrbitalDefinitions.hpp"
-#include "FilledOrbitals.hpp"
 #include "FreeFermionWavefunctionAmplitude.hpp"
 #include "DBLWavefunctionAmplitude.hpp"
 #include "DMetalWavefunctionAmplitude.hpp"
@@ -223,47 +222,9 @@ static BoundaryConditions parse_json_boundary_conditions (const Json::Value &jso
     return boundary_conditions;
 }
 
-static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_filling (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice> &lattice)
-{
-    const char * const json_orbitals_required[] = { "filling", "boundary-conditions", NULL };
-    ensure_required(json_orbitals, json_orbitals_required);
-    ensure_only(json_orbitals, json_orbitals_required);
-
-    const unsigned int n_dimensions = lattice->n_dimensions();
-
-    // set up the boundary conditions
-    BoundaryConditions boundary_conditions(parse_json_boundary_conditions(json_orbitals["boundary-conditions"], n_dimensions));
-
-    // set up the orbitals' filled momenta
-    const Json::Value &json_filling = json_orbitals["filling"];
-    ensure_array(json_filling);
-    std::vector<lw_vector<int, MAX_DIMENSION> > filled_momenta;
-    std::set<lw_vector<int, MAX_DIMENSION> > filled_momenta_set;
-    filled_momenta.reserve(json_filling.size());
-    for (unsigned int i = 0; i < json_filling.size(); ++i) {
-        const Json::Value &json_current_filling = json_filling[i];
-        ensure_array(json_current_filling, n_dimensions);
-        lw_vector<int, MAX_DIMENSION> current_filling(n_dimensions);
-        for (unsigned int j = 0; j < n_dimensions; ++j) {
-            if (!(json_current_filling[j].isIntegral() && json_current_filling[j].asInt() >= 0 && json_current_filling[j].asInt() < lattice->dimensions[j]))
-                throw ParseError("invalid momentum index");
-            current_filling[j] = json_current_filling[j].asInt();
-        }
-        filled_momenta.push_back(current_filling);
-        if (!filled_momenta_set.insert(current_filling).second)
-            throw ParseError("momentum was specified twice for the same orbital definitions");
-    }
-
-    return boost::make_shared<FilledOrbitals>(filled_momenta, lattice, boundary_conditions);
-}
-
 static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice > &lattice)
 {
-    if (json_orbitals.isMember("definitions")) {
-        return parse_json_orbitals_from_definitions(json_orbitals, lattice);
-    } else {
-        return parse_json_orbitals_from_filling(json_orbitals, lattice);
-    }
+    return parse_json_orbitals_from_definitions(json_orbitals, lattice);
 }
 
 static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Value &json_subsystem, const Lattice &lattice)

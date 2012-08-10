@@ -1,5 +1,6 @@
 Makefile-vmc.local
 *.[oa]
+*.so
 *.pyc
 __pycache__
 vmc-core/vmc-core

@@ -9,106 +9,24 @@
 
 #include <boost/assert.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/noncopyable.hpp>
 
 #include "vmc-typedefs.hpp"
 #include "RandomNumberGenerator.hpp"
 #include "Measurement.hpp"
 
-/**
- * Metropolis Simulation
- *
- * This class performs the Metropolis Monte Carlo algorithm using some given
- * walk.  First it does some number of steps to (hopefully) reach
- * "equilibrium," and after that it does some more steps, taking a measurement
- * after each move.
- */
-template <class Walk_T>
-class MetropolisSimulation
+class BaseMetropolisSimulation : boost::noncopyable
 {
 public:
-    /**
-     * Constructor
-     *
-     * Note: the initialization sweeps are performed during object
-     * construction.
-     *
-     * @param walk_ walk in its initial state
-     *
-     * @param measurements_ a list of measurements to perform
-     *
-     * @param initialization_sweeps number of steps to take before beginning to
-     * take measurements
-     *
-     * @param seed random seed
-     *
-     * The Walk_T type must define three methods:
-     *
-     * * probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng);
-     * * void accept_transition ();
-     * * void reject_transition ();
-     *
-     * @see StandardWalk for an example walk
-     */
-    MetropolisSimulation (const Walk_T &walk_, const std::list<boost::shared_ptr<Measurement<Walk_T> > > &measurements_,
-                          unsigned int initialization_sweeps, RandomNumberGenerator &rng_)
-        : walk(walk_),
-          measurements(measurements_),
-          m_steps(0),
+    BaseMetropolisSimulation (void)
+        : m_steps(0),
           m_steps_accepted(0),
-          m_steps_fully_rejected(0),
-          measurement_not_yet_updated(true),
-          rng(rng_)
+          m_steps_fully_rejected(0)
         {
-            perform_initialization(initialization_sweeps);
         }
 
-    /**
-     * Convenience constructor, if only one measurement is being performed
-     *
-     * The initialization sweeps are performed during object construction.
-     *
-     * @param walk_ walk in its initial state
-     *
-     * @param measurement_ the measurement to perform
-     *
-     * @param initialization_sweeps number of steps to take before beginning to
-     * take measurements
-     *
-     * @param seed random seed
-     */
-    MetropolisSimulation (const Walk_T &walk_, const boost::shared_ptr<Measurement<Walk_T> > &measurement_,
-                          unsigned int initialization_sweeps, RandomNumberGenerator &rng_)
-        : walk(walk_),
-          m_steps(0),
-          m_steps_accepted(0),
-          m_steps_fully_rejected(0),
-          measurement_not_yet_updated(true),
-          rng(rng_)
+    virtual ~BaseMetropolisSimulation (void)
         {
-            measurements.push_back(measurement_);
-            perform_initialization(initialization_sweeps);
-        }
-
-    /**
-     * Perform some number of steps on the system, taking a measurement each
-     * time
-     */
-    void iterate (unsigned int sweeps)
-        {
-            for (unsigned int i = 0; i < sweeps; ++i) {
-                // perform a single step
-                const bool accepted = perform_single_step();
-
-                // perform the measurement(s)
-                if (accepted || measurement_not_yet_updated) {
-                    for (typename std::list<boost::shared_ptr<Measurement<Walk_T> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
-                        (*m)->step_advanced(walk);
-                    measurement_not_yet_updated = false;
-                } else {
-                    for (typename std::list<boost::shared_ptr<Measurement<Walk_T> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
-                        (*m)->step_repeated(walk);
-                }
-            }
         }
 
     /**
@@ -155,6 +73,103 @@ public:
         }
 
     /**
+     * Perform some number of steps on the system, taking a measurement each
+     * time
+     */
+    virtual void iterate (unsigned int sweeps) = 0;
+
+protected:
+    unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
+};
+
+/**
+ * Metropolis Simulation
+ *
+ * This class performs the Metropolis Monte Carlo algorithm using some given
+ * walk.  First it does some number of steps to (hopefully) reach
+ * "equilibrium," and after that it does some more steps, taking a measurement
+ * after each move.
+ */
+template <class Walk_T>
+class MetropolisSimulation : public BaseMetropolisSimulation
+{
+public:
+    /**
+     * Constructor
+     *
+     * Note: the initialization sweeps are performed during object
+     * construction.
+     *
+     * @param walk_ walk in its initial state
+     *
+     * @param measurements_ a list of measurements to perform
+     *
+     * @param initialization_sweeps number of steps to take before beginning to
+     * take measurements
+     *
+     * @param seed random seed
+     *
+     * The Walk_T type must define three methods:
+     *
+     * * probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng);
+     * * void accept_transition ();
+     * * void reject_transition ();
+     *
+     * @see StandardWalk for an example walk
+     */
+    MetropolisSimulation (const Walk_T &walk_, const std::list<boost::shared_ptr<Measurement<Walk_T> > > &measurements_,
+                          unsigned int initialization_sweeps, RandomNumberGenerator &rng_)
+        : walk(walk_),
+          measurements(measurements_),
+          measurement_not_yet_updated(true),
+          rng(rng_)
+        {
+            perform_initialization(initialization_sweeps);
+        }
+
+    /**
+     * Convenience constructor, if only one measurement is being performed
+     *
+     * The initialization sweeps are performed during object construction.
+     *
+     * @param walk_ walk in its initial state
+     *
+     * @param measurement_ the measurement to perform
+     *
+     * @param initialization_sweeps number of steps to take before beginning to
+     * take measurements
+     *
+     * @param seed random seed
+     */
+    MetropolisSimulation (const Walk_T &walk_, const boost::shared_ptr<Measurement<Walk_T> > &measurement_,
+                          unsigned int initialization_sweeps, RandomNumberGenerator &rng_)
+        : walk(walk_),
+          measurement_not_yet_updated(true),
+          rng(rng_)
+        {
+            measurements.push_back(measurement_);
+            perform_initialization(initialization_sweeps);
+        }
+
+    void iterate (unsigned int sweeps)
+        {
+            for (unsigned int i = 0; i < sweeps; ++i) {
+                // perform a single step
+                const bool accepted = perform_single_step();
+
+                // perform the measurement(s)
+                if (accepted || measurement_not_yet_updated) {
+                    for (typename std::list<boost::shared_ptr<Measurement<Walk_T> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+                        (*m)->step_advanced(walk);
+                    measurement_not_yet_updated = false;
+                } else {
+                    for (typename std::list<boost::shared_ptr<Measurement<Walk_T> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+                        (*m)->step_repeated(walk);
+                }
+            }
+        }
+
+    /**
      * Returns the walk object
      */
     const Walk_T & get_walk (void) const
@@ -165,7 +180,6 @@ public:
 private:
     Walk_T walk;
     std::list<boost::shared_ptr<Measurement<Walk_T> > > measurements;
-    unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
     bool measurement_not_yet_updated;
 
     RandomNumberGenerator &rng;

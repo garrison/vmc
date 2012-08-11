@@ -12,7 +12,7 @@ from twisted.internet import defer, task, reactor
 ## fixme: or we pass a scheduler in advance()
 #from pyvmc.control.scheduler import default_scheduler
 
-from pyvmc.core.simulation import perform_simulation
+from pyvmc.core.simulation import HighlevelSimulation
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class Walk(object):
     def __init__(self, walk_json):
         self.walk_json = deepcopy(walk_json)
         self.walk_json["simulation"]["equilibrium-steps"] = 500000
-        self.walk_json["simulation"]["measurement-steps"] = 500000
+        self.measurement_steps = 500000
         self.measurements_in_progress = []
         self.measurements_pending = []
         self.waiting_on_walk = False
@@ -52,7 +52,7 @@ class Walk(object):
         self.walk_json["simulation"]["equilibrium-steps"] = 0
         self.walk_json["simulation"]["initial-positions"] = output["final-positions"]
         for result_json, (measurement, deferred) in zip(output["measurements"], self.measurements_in_progress):
-            deferred.callback((result_json, self.walk_json["simulation"]["measurement-steps"]))
+            deferred.callback((result_json, self.measurement_steps))
         del self.measurements_in_progress[:]
         if self.measurements_pending:
             reactor.callLater(0, self._advance_pending_measurements)
@@ -74,7 +74,9 @@ class Walk(object):
                                                         for m in self.measurements_in_progress]
         vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
         try:
-            output_string = perform_simulation(json.dumps(vmc_core_input))
+            sim = HighlevelSimulation(json.dumps(vmc_core_input))
+            sim.iterate(self.measurement_steps)
+            output_string = sim.output()
         except Exception as e:
             self._advancement_failed(None)
         else:

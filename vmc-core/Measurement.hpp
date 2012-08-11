@@ -4,15 +4,20 @@
 #include <boost/assert.hpp>
 #include <boost/noncopyable.hpp>
 
+class BaseMeasurement : boost::noncopyable
+// common (non-templated) abstract base class
+{
+public:
+    virtual ~BaseMeasurement (void)
+        {
+        }
+};
+
 template <class Walk_T>
-class Measurement : boost::noncopyable
+class Measurement : public BaseMeasurement
 // abstract base class
 {
 public:
-    virtual ~Measurement (void)
-        {
-        }
-
     /**
      * Initializes the object for taking measurements.
      *

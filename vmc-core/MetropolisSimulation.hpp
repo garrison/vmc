@@ -1,10 +1,7 @@
 #ifndef _METROPOLIS_SIMULATION_HPP
 #define _METROPOLIS_SIMULATION_HPP
 
-#if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
 #include <iostream>
-#endif
-
 #include <list>
 
 #include <boost/assert.hpp>
@@ -77,6 +74,8 @@ public:
      * time
      */
     virtual void iterate (unsigned int sweeps) = 0;
+
+    virtual const void * get_walk_ptr (void) const = 0;
 
 protected:
     unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
@@ -175,6 +174,11 @@ public:
     const Walk_T & get_walk (void) const
         {
             return walk;
+        }
+
+    const void * get_walk_ptr (void) const
+        {
+            return &walk;
         }
 
 private:

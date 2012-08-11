@@ -8,7 +8,6 @@
 #include <vector>
 #include <set>
 #include <list>
-#include <memory>
 #include <exception>
 #include <cstring>
 #include <sstream>
@@ -41,6 +40,7 @@
 #include "Subsystem.hpp"
 #include "SimpleSubsystem.hpp"
 #include "RunInformation.hpp"
+#include "vmc-core.hpp"
 
 class ParseError : public std::exception
 {
@@ -371,8 +371,7 @@ static Json::Value positions_json_repr (const PositionArguments &r)
     return rv;
 }
 
-template <class Walk_T>
-static Json::Value monte_carlo_stats_json_repr (const MetropolisSimulation<Walk_T> &sim)
+static Json::Value monte_carlo_stats_json_repr (const BaseMetropolisSimulation &sim)
 {
     Json::Value rv(Json::objectValue);
     rv["steps-completed"] = Json::UInt(sim.steps_completed());
@@ -455,9 +454,13 @@ static Json::Value renyi_sign_walk_measurement_json_repr (const Measurement<Reny
     return complex_to_json_array(rsm->get());
 }
 
-static Json::Value parse_and_run_simulation (const Json::Value &json_input)
+HighlevelSimulation::HighlevelSimulation (const char *json_input_str)
 {
-    RunInformation run_information;
+    Json::Value json_input;
+    {
+        std::istringstream iss(json_input_str, std::istringstream::in);
+        iss >> json_input;
+    }
 
     ensure_object(json_input);
     const char * const json_input_required[] = { "rng", "system", "simulation", NULL };
@@ -485,7 +488,7 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         if (!RandomNumberGenerator::name_is_valid(rng_type_name))
             throw ParseError("invalid random number generator type specified");
     }
-    std::auto_ptr<RandomNumberGenerator> rng(RandomNumberGenerator::create(rng_type_name, seed));
+    rng.reset(RandomNumberGenerator::create(rng_type_name, seed).release());
 
     // begin setting up the physical system
     const Json::Value &json_system = json_input["system"];
@@ -611,16 +614,12 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
     // begin setting up the simulation
     const Json::Value &json_simulation = json_input["simulation"];
     ensure_object(json_simulation);
-    const char * const json_simulation_required[] = { "walk-type", "measurement-steps", NULL };
+    const char * const json_simulation_required[] = { "walk-type", NULL };
     ensure_required(json_simulation, json_simulation_required);
-#define JSON_SIMULATION_GLOBAL_ALLOWED "walk-type", "measurement-steps", "equilibrium-steps", "initial-positions"
+#define JSON_SIMULATION_GLOBAL_ALLOWED "walk-type", "equilibrium-steps", "initial-positions"
 
     // determine how many steps to do
-    unsigned int measurement_steps, equilibrium_steps = 0;
-    const Json::Value &json_measurement_steps = json_simulation["measurement-steps"];
-    if (!(json_measurement_steps.isIntegral() && json_measurement_steps.asInt() > 0))
-        throw ParseError("measurement-steps must be a positive integer");
-    measurement_steps = json_measurement_steps.asUInt();
+    unsigned int equilibrium_steps = 0;
     if (json_simulation.isMember("equilibrium-steps")) {
         const Json::Value &json_equilibrium_steps = json_simulation["equilibrium-steps"];
         if (!(json_equilibrium_steps.isIntegral() && json_equilibrium_steps.asInt() >= 0))
@@ -633,8 +632,6 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         throw ParseError("initial positions must be given if there are no equilibrium steps");
 
     // from here forward, we have special logic per walk type
-    Json::Value json_measurement_output(Json::arrayValue);
-    Json::Value json_final_positions_output, json_monte_carlo_stats_output;
     ensure_string(json_simulation["walk-type"]);
     const char *json_walk_type_cstr = json_simulation["walk-type"].asCString();
     if (std::strcmp(json_walk_type_cstr, "standard") == 0) {
@@ -661,21 +658,16 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         // set up measurement(s)
         const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
-        std::list<boost::shared_ptr<Measurement<StandardWalk> > > measurements;
-        for (unsigned int i = 0; i < json_measurements.size(); ++i)
-            measurements.push_back(parse_standard_walk_measurement_definition(json_measurements[i], *wf, lattice));
+        std::list<boost::shared_ptr<Measurement<StandardWalk> > > measurements_;
+        for (unsigned int i = 0; i < json_measurements.size(); ++i) {
+            boost::shared_ptr<Measurement<StandardWalk> > walk_ptr(parse_standard_walk_measurement_definition(json_measurements[i], *wf, lattice));
+            measurements.push_back(walk_ptr);
+            measurements_.push_back(walk_ptr);
+        }
 
         // set up and perform walk
         StandardWalk walk(wf);
-        MetropolisSimulation<StandardWalk> sim(walk, measurements, equilibrium_steps, *rng);
-        sim.iterate(measurement_steps);
-
-        // store json
-        for (std::list<boost::shared_ptr<Measurement<StandardWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
-            json_measurement_output.append(standard_walk_measurement_json_repr(i->get(), walk.get_wavefunction()));
-        }
-        json_final_positions_output = positions_json_repr(sim.get_walk().get_wavefunction().get_positions());
-        json_monte_carlo_stats_output = monte_carlo_stats_json_repr(sim);
+        sim.reset(new MetropolisSimulation<StandardWalk>(walk, measurements_, equilibrium_steps, *rng));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-mod/possible") == 0) {
 
@@ -711,23 +703,16 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         // set up measurement(s)
         const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
-        std::list<boost::shared_ptr<Measurement<RenyiModPossibleWalk> > > measurements;
-        for (unsigned int i = 0; i < json_measurements.size(); ++i)
-            measurements.push_back(parse_renyi_mod_possible_walk_measurement_definition(json_measurements[i]));
+        std::list<boost::shared_ptr<Measurement<RenyiModPossibleWalk> > > measurements_;
+        for (unsigned int i = 0; i < json_measurements.size(); ++i) {
+            boost::shared_ptr<Measurement<RenyiModPossibleWalk> > walk_ptr(parse_renyi_mod_possible_walk_measurement_definition(json_measurements[i]));
+            measurements.push_back(walk_ptr);
+            measurements_.push_back(walk_ptr);
+        }
 
         // set up and perform walk
         RenyiModPossibleWalk walk(wf, wf2, subsystem);
-        MetropolisSimulation<RenyiModPossibleWalk> sim(walk, measurements, equilibrium_steps, *rng);
-        sim.iterate(measurement_steps);
-
-        // store json
-        for (std::list<boost::shared_ptr<Measurement<RenyiModPossibleWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
-            json_measurement_output.append(renyi_mod_possible_walk_measurement_json_repr(i->get()));
-        }
-        json_final_positions_output = Json::Value(Json::arrayValue);
-        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha1().get_positions()));
-        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha2().get_positions()));
-        json_monte_carlo_stats_output = monte_carlo_stats_json_repr(sim);
+        sim.reset(new MetropolisSimulation<RenyiModPossibleWalk>(walk, measurements_, equilibrium_steps, *rng));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-sign") == 0) {
 
@@ -763,47 +748,62 @@ static Json::Value parse_and_run_simulation (const Json::Value &json_input)
         // set up measurement(s)
         const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
-        std::list<boost::shared_ptr<Measurement<RenyiSignWalk> > > measurements;
-        for (unsigned int i = 0; i < json_measurements.size(); ++i)
-            measurements.push_back(parse_renyi_sign_walk_measurement_definition(json_measurements[i]));
+        std::list<boost::shared_ptr<Measurement<RenyiSignWalk> > > measurements_;
+        for (unsigned int i = 0; i < json_measurements.size(); ++i) {
+            boost::shared_ptr<Measurement<RenyiSignWalk> > walk_ptr(parse_renyi_sign_walk_measurement_definition(json_measurements[i]));
+            measurements.push_back(walk_ptr);
+            measurements_.push_back(walk_ptr);
+        }
 
         // set up and perform walk
         RenyiSignWalk walk(wf, wf2, subsystem);
-        MetropolisSimulation<RenyiSignWalk> sim(walk, measurements, equilibrium_steps, *rng);
-        sim.iterate(measurement_steps);
-
-        // store json
-        for (std::list<boost::shared_ptr<Measurement<RenyiSignWalk> > >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
-            json_measurement_output.append(renyi_sign_walk_measurement_json_repr(i->get()));
-        }
-        json_final_positions_output = Json::Value(Json::arrayValue);
-        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha1().get_positions()));
-        json_final_positions_output.append(positions_json_repr(sim.get_walk().get_phialpha2().get_positions()));
-        json_monte_carlo_stats_output = monte_carlo_stats_json_repr(sim);
+        sim.reset(new MetropolisSimulation<RenyiSignWalk>(walk, measurements_, equilibrium_steps, *rng));
 
     } else {
         throw ParseError("invalid walk type");
     }
 
+    walk_type = json_walk_type_cstr;
+}
+
+std::string HighlevelSimulation::output (void) const
+{
+    Json::Value json_measurement_output(Json::arrayValue);
+    Json::Value json_final_positions_output, json_monte_carlo_stats_output;
+    if (walk_type == "standard") {
+        const StandardWalk *walk_ptr = static_cast<const StandardWalk *>(sim->get_walk_ptr());
+        for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
+            json_measurement_output.append(standard_walk_measurement_json_repr(static_cast<const Measurement<StandardWalk> *>(i->get()), walk_ptr->get_wavefunction()));
+        }
+        json_final_positions_output = positions_json_repr(walk_ptr->get_wavefunction().get_positions());
+    } else if (walk_type == "renyi-mod/possible") {
+        const RenyiModPossibleWalk *walk_ptr = static_cast<const RenyiModPossibleWalk *>(sim->get_walk_ptr());
+        for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
+            json_measurement_output.append(renyi_mod_possible_walk_measurement_json_repr(static_cast<const Measurement<RenyiModPossibleWalk> *>(i->get())));
+        }
+        json_final_positions_output = Json::Value(Json::arrayValue);
+        json_final_positions_output.append(positions_json_repr(walk_ptr->get_phialpha1().get_positions()));
+        json_final_positions_output.append(positions_json_repr(walk_ptr->get_phialpha2().get_positions()));
+    } else if (walk_type == "renyi-sign") {
+        const RenyiSignWalk *walk_ptr = static_cast<const RenyiSignWalk *>(sim->get_walk_ptr());
+        for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
+            json_measurement_output.append(renyi_sign_walk_measurement_json_repr(static_cast<const Measurement<RenyiSignWalk> *>(i->get())));
+        }
+        json_final_positions_output = Json::Value(Json::arrayValue);
+        json_final_positions_output.append(positions_json_repr(walk_ptr->get_phialpha1().get_positions()));
+        json_final_positions_output.append(positions_json_repr(walk_ptr->get_phialpha2().get_positions()));
+    } else {
+        BOOST_ASSERT(false);
+    }
+    json_monte_carlo_stats_output = monte_carlo_stats_json_repr(*sim);
+
     Json::Value json_output(Json::objectValue);
     json_output["final-positions"] = json_final_positions_output;
     json_output["measurements"] = json_measurement_output;
-    json_output["run-information"] = run_information.json_info();
+    json_output["run-information"] = RunInformation::json_info();
     json_output["monte-carlo-stats"] = json_monte_carlo_stats_output;
-    return json_output;
-}
-
-std::string simulation_entry (const char *json_input_str)
-{
-    // take json input and perform a simulation
-
-    Json::Value json_input;
-    {
-        std::istringstream iss(json_input_str, std::istringstream::in);
-        iss >> json_input;
-    }
 
     std::ostringstream oss(std::ostringstream::out);
-    oss << parse_and_run_simulation(json_input);
+    oss << json_output;
     return oss.str();
 }

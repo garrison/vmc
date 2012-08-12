@@ -36,6 +36,7 @@ class TmpMeasurementPlan(object):
 
 class Walk(object):
     equilibrium = False
+    sim = None
 
     def __init__(self, walk_json):
         self.walk_json = deepcopy(walk_json)
@@ -52,7 +53,7 @@ class Walk(object):
         self.walk_json["simulation"]["equilibrium-steps"] = 0
         self.walk_json["simulation"]["initial-positions"] = output["final-positions"]
         for result_json, (measurement, deferred) in zip(output["measurements"], self.measurements_in_progress):
-            deferred.callback((result_json, self.measurement_steps))
+            deferred.callback((result_json,))
         del self.measurements_in_progress[:]
         if self.measurements_pending:
             reactor.callLater(0, self._advance_pending_measurements)
@@ -68,15 +69,19 @@ class Walk(object):
         self.waiting_on_walk = False
         self.measurements_in_progress = self.measurements_pending
         self.measurements_pending = []
-        vmc_core_input = copy(self.walk_json)
-        vmc_core_input["simulation"] = copy(vmc_core_input["simulation"])
-        vmc_core_input["simulation"]["measurements"] = [m[0].measurement_plan.measurement
-                                                        for m in self.measurements_in_progress]
-        vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
         try:
-            sim = HighlevelSimulation(json.dumps(vmc_core_input))
-            sim.iterate(self.measurement_steps)
-            output_string = sim.output()
+            if self.sim is None:
+                # XXX FIXME: if measurements_in_progress changes between
+                # advances, this WILL NOT notice and will continue with the
+                # old measurements.
+                vmc_core_input = copy(self.walk_json)
+                vmc_core_input["simulation"] = copy(vmc_core_input["simulation"])
+                vmc_core_input["simulation"]["measurements"] = [m[0].measurement_plan.measurement
+                                                                for m in self.measurements_in_progress]
+                vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
+                self.sim = HighlevelSimulation(json.dumps(vmc_core_input))
+            self.sim.iterate(self.measurement_steps)
+            output_string = self.sim.output()
         except Exception as e:
             self._advancement_failed(None)
         else:
@@ -118,7 +123,7 @@ class Measurement(object):
     def __init__(self, measurement_plan):
         self.measurement_plan = measurement_plan
         self.result = None
-        self.total_measurements = 0
+        self.has_been_advanced = False
 
     def _record_result(self, args):
         self._add_result(*args)
@@ -129,53 +134,18 @@ class Measurement(object):
         d.addCallback(self._record_result)
         return d
 
-    def _add_result(self, result_json, n_measurements):
+    def _add_result(self, result_json):
         result = self.measurement_plan.parse_result(result_json)
-        if self.result is None:
-            if isinstance(result, dict):
-                selfresult = {}
-                for k, v in result.iteritems():
-                    selfresult[k] = v * n_measurements
-                self.result = selfresult
-            else:
-                self.result = result * n_measurements
-        else:
-            if isinstance(result, dict):
-                selfresult = self.result
-                assert isinstance(selfresult, dict)
-                keys = set(selfresult)
-                keys.update(result)
-                for k in keys:
-                    selfresult[k] = selfresult.get(k, 0.0) + result.get(k, 0.0) * n_measurements
-            else:
-                self.result += result * n_measurements
+        self.result = copy(result)
 
-        self.total_measurements += n_measurements
+        self.has_been_advanced = True
 
     def get_aggregate_result(self):
-        # fixme: cache this until it changes
-        selfresult = self.result
-        total_measurements = self.total_measurements
-
-        if total_measurements == 0:
+        if not self.has_been_advanced:
             # or we could just return None here...
             raise Exception("no measurements have been added.  cannot take aggregate result.")
 
-        if isinstance(selfresult, dict):
-            rv = {}
-            for k, v in selfresult.iteritems():
-                # fixme: we might want to perform some transformation on the
-                # keys, for instance, to turn them into floats instead of
-                # indices for k vectors.  maybe a generic mechanism here?  call
-                # a classmethod that by default just returns the value...
-                #
-                # but then again, we will probably do more on this, such as
-                # error analysis based on the key, so it is probably best just
-                # to keep this elsewhere.
-                rv[k] = v / total_measurements
-            return rv
-        else:
-            return selfresult / total_measurements
+        return copy(self.result)
 
 class MeasurementSet(object):
     """A set of identical, actual measurements taken directly from independent monte carlo runs"""

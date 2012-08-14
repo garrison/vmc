@@ -52,7 +52,7 @@ private:
     boost::shared_ptr<WavefunctionAmplitude> wf; // treat this as copy on write
     bool autoreject_in_progress;
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     bool transition_in_progress;
 #endif
 };

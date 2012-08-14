@@ -13,7 +13,7 @@ void PositionArguments::reset (const std::vector<std::vector<unsigned int> > &r_
 {
     BOOST_ASSERT(r_.size() > 0);
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     // this condition is not strictly necessary, of course, but for now it
     // helps assure we are using things correctly.  feel free to remove later.
     BOOST_ASSERT(r.size() == r_.size());

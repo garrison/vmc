@@ -258,7 +258,7 @@ public:
             old_data_m.resize(mat.rows(), cols.size());
             pending_index_m.resize(0);
             for (unsigned int i = 0; i < cols.size(); ++i) {
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
                 BOOST_ASSERT(cols[i].second < srcmat.cols());
                 BOOST_ASSERT(cols[i].first < mat.cols());
                 for (unsigned int j = 0; j < i; ++j)

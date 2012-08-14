@@ -35,7 +35,7 @@ void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const Wa
     // we're only calling this function from two places in the code where this
     // can be easily verified ...
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
     for (unsigned int i = 0; i < r1.get_N_species(); ++i)
         BOOST_ASSERT(r1.get_N_filled(i) == r2.get_N_filled(i));
@@ -75,7 +75,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
     const PositionArguments &r1 = phialpha1.get_positions();
     const PositionArguments &r2 = phialpha2.get_positions();
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
     for (unsigned int i = 0; i < r1.get_N_species(); ++i)
         BOOST_ASSERT(r1.get_N_filled(i) == r2.get_N_filled(i));
@@ -96,7 +96,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
     const bool particle2_now_in_subsystem = (particle2 && subsystem->position_is_within(r2[*particle2], lattice));
 
     const int delta1 = (particle1_now_in_subsystem ? 1 : 0) + (pairing_index1 >= 0 ? -1 : 0);
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     const int delta2 = (particle2_now_in_subsystem ? 1 : 0) + (pairing_index2 >= 0 ? -1 : 0);
 #endif
 
@@ -334,7 +334,7 @@ void SwappedSystem::reinitialize_phibetas (const WavefunctionAmplitude &phialpha
 
 void SwappedSystem::verify_phibetas (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2) const
 {
-#ifdef BOOST_DISABLE_ASSERTS
+#if defined(BOOST_DISABLE_ASSERTS) || defined(NDEBUG)
     (void) phialpha1;
     (void) phialpha2;
 #else
@@ -396,7 +396,7 @@ void SwappedSystem::swap_positions (PositionArguments &r1, PositionArguments &r2
     BOOST_ASSERT(r1.get_N_species() == copy1_subsystem_indices.size());
     BOOST_ASSERT(r1.get_N_species() == copy2_subsystem_indices.size());
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
     for (unsigned int i = 0; i < r1.get_N_species(); ++i)
         BOOST_ASSERT(r1.get_N_filled(i) == r2.get_N_filled(i));

@@ -28,7 +28,7 @@ void WavefunctionAmplitude::perform_move (const Move &move)
     // amplitude
     perform_move_(move);
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     move_in_progress = true;
 #endif
 }
@@ -46,7 +46,7 @@ void WavefunctionAmplitude::cancel_move (void)
     for (unsigned int i = 0; i < move.size(); ++i)
         r.update_position(move[i].particle, move[i].destination);
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     move_in_progress = false;
 #endif
 }

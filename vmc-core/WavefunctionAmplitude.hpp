@@ -50,7 +50,7 @@ public:
         {
             BOOST_ASSERT(move_in_progress);
             finish_move_();
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
             move_in_progress = false;
 #endif
         }
@@ -154,7 +154,7 @@ protected:
     WavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_)
     : r(r_),
       lattice(lattice_)
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     , move_in_progress(false)
 #endif
         {
@@ -173,7 +173,7 @@ private:
     // for when we need to cancel a move
     Move reverse_move;
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     bool move_in_progress;
 #endif
 };

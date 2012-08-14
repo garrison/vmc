@@ -5,7 +5,7 @@
 StandardWalk::StandardWalk (boost::shared_ptr<WavefunctionAmplitude> &wf_)
     : wf(wf_),
       autoreject_in_progress(false)
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     , transition_in_progress(false)
 #endif
 {
@@ -15,7 +15,7 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (Rand
 {
     BOOST_ASSERT(!transition_in_progress);
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     transition_in_progress = true;
 #endif
 
@@ -50,7 +50,7 @@ void StandardWalk::accept_transition (void)
     BOOST_ASSERT(wf.unique()); // ensure copy-on-write is implemented correctly
     wf->finish_move();
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     transition_in_progress = false;
 #endif
 }
@@ -65,7 +65,7 @@ void StandardWalk::reject_transition (void)
     }
     autoreject_in_progress = false;
 
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     transition_in_progress = false;
 #endif
 }

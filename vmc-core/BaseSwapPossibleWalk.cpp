@@ -17,7 +17,7 @@ BaseSwapPossibleWalk::BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction
       autoreject_in_progress(false),
       transition_in_progress(false)
 {
-#ifndef BOOST_DISABLE_ASSERTS
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     BOOST_ASSERT(&phialpha1->get_lattice() == &phialpha2->get_lattice());
     BOOST_ASSERT(phialpha1->get_positions().get_N_species() == phialpha2->get_positions().get_N_species());
     for (unsigned int i = 0; i < phialpha1->get_positions().get_N_species(); ++i)

@@ -22,7 +22,6 @@ class DBLWavefunction(Wavefunction):
 
     def to_json(self):
         return {
-            'lattice': self.lattice.to_json(),
             'wavefunction': {
                 'type': 'dbl',
                 'orbitals-d1': self.d1.to_json(),

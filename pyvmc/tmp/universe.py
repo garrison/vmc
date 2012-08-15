@@ -26,6 +26,7 @@ def hashable_json(obj):
 
 class TmpMeasurementPlan(object):
     def __init__(self, measurement_plan, parse_result):
+        self.lattice = measurement_plan.walk.wavefunction.lattice
         self.walk = {}
         self.walk["system"] = deepcopy(measurement_plan.walk.wavefunction.to_json())
         self.walk["simulation"] = deepcopy(measurement_plan.walk.to_json())
@@ -79,7 +80,7 @@ class Walk(object):
                 vmc_core_input["simulation"]["measurements"] = [m[0].measurement_plan.measurement
                                                                 for m in self.measurements_in_progress]
                 vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
-                self.sim = HighlevelSimulation(json.dumps(vmc_core_input))
+                self.sim = HighlevelSimulation(json.dumps(vmc_core_input), self.measurements_in_progress[0][0].measurement_plan.lattice)
             self.sim.iterate(self.measurement_steps)
             output_string = self.sim.output()
         except Exception as e:

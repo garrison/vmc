@@ -454,7 +454,7 @@ static Json::Value renyi_sign_walk_measurement_json_repr (const Measurement<Reny
     return complex_to_json_array(rsm->get());
 }
 
-HighlevelSimulation::HighlevelSimulation (const char *json_input_str)
+HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice)
 {
     Json::Value json_input;
     {
@@ -493,33 +493,9 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str)
     // begin setting up the physical system
     const Json::Value &json_system = json_input["system"];
     ensure_object(json_system);
-    const char * const json_system_required[] = { "lattice", "wavefunction", NULL };
+    const char * const json_system_required[] = { "wavefunction", NULL };
     ensure_required(json_system, json_system_required);
     ensure_only(json_system, json_system_required);
-
-    // begin setting up the lattice
-    const Json::Value &json_lattice = json_system["lattice"];
-    ensure_object(json_lattice);
-    const char * const json_lattice_required[] = { "size", NULL };
-    ensure_required(json_lattice, json_lattice_required);
-    ensure_only(json_lattice, json_lattice_required);
-
-    // set up the lattice
-    const Json::Value &json_lattice_size = json_lattice["size"];
-    ensure_array(json_lattice_size);
-    const unsigned int n_dimensions = json_lattice_size.size();
-    if (n_dimensions > MAX_DIMENSION)
-        throw ParseError("lattice given has a number of dimensions that is not supported by this build");
-    for (unsigned int i = 0; i < n_dimensions; ++i) {
-        if (!(json_lattice_size[i].isIntegral() && json_lattice_size[i].asInt() > 0))
-            throw ParseError("lattice dimensions must be positive integers");
-    }
-
-    // finish setting up the lattice
-    lw_vector<int, MAX_DIMENSION> lattice_size_array(n_dimensions);
-    for (unsigned int i = 0; i < n_dimensions; ++i)
-        lattice_size_array[i] = json_lattice_size[i].asInt();
-    const boost::shared_ptr<const Lattice> lattice(new Lattice(lattice_size_array));
 
     // set up the wavefunction
     boost::shared_ptr<WavefunctionAmplitude> wf;

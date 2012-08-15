@@ -12,44 +12,6 @@ from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.utils import product
 from pyvmc.constants import two_pi, sqrt_three_over_two, pi
 
-cdef extern from "<boost/shared_ptr.hpp>" namespace "boost":
-    cdef cppclass shared_ptr[T]:
-        shared_ptr()
-        shared_ptr(T*)
-        void reset()
-        void reset(T*)
-        T& operator*()
-        T* get()
-
-cdef extern from "Lattice.hpp":
-    cdef unsigned int MAX_DIMENSION
-
-    cdef cppclass CppLatticeSite "LatticeSite":
-        CppLatticeSite(unsigned int)
-        CppLatticeSite(CppLatticeSite&)
-
-        int operator[](int)
-        void set_bs_coordinate(int, int)
-        int n_dimensions()
-
-        int basis_index
-
-    cppclass DimensionVector:
-        int operator[](int)
-        void push_back(int)
-
-    cdef cppclass CppLattice "Lattice":
-        CppLattice(DimensionVector, int)
-
-        int total_sites()
-        int n_dimensions()
-        CppLatticeSite site_from_index(unsigned int)
-        unsigned int site_to_index(CppLatticeSite)
-        int site_is_valid(CppLatticeSite)
-
-        DimensionVector dimensions
-        int basis_indices
-
 cdef class LatticeSite(object):
     """represents a site on a lattice
 
@@ -58,8 +20,6 @@ cdef class LatticeSite(object):
 
     remains constant after initialization
     """
-
-    cdef CppLatticeSite *thisptr
 
     def __init__(self, bs, bi=0):
         if self.thisptr is not NULL:
@@ -119,8 +79,6 @@ cdef LatticeSite_from_cpp(CppLatticeSite cpp_lattice_site):
 collections.Hashable.register(LatticeSite)
 
 cdef class Lattice(object):
-    cdef shared_ptr[CppLattice] *sharedptr
-
     def __init__(self, dimensions, basis_indices=1):
         if self.sharedptr is not NULL:
             # __init__() can under some (?) circumstances be called more than

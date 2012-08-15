@@ -1,20 +1,23 @@
+from cython.operator cimport dereference as deref
 from libc.string cimport const_char
 from libcpp.string cimport string
 
+from pyvmc.core.lattice cimport Lattice, CppLattice, shared_ptr
+
 cdef extern from "vmc-core.hpp":
     cdef cppclass CppHighlevelSimulation "HighlevelSimulation":
-        CppHighlevelSimulation(const_char*) except +
+        CppHighlevelSimulation(const_char*, shared_ptr[CppLattice]) except +
         void iterate(int)
         string output()
 
 cdef class HighlevelSimulation(object):
     cdef CppHighlevelSimulation *thisptr
 
-    def __init__(self, input_str):
+    def __init__(self, input_str, Lattice lattice not None):
         cdef unicode input_unicode = unicode(input_str)
         cdef bytes input_bytes = input_unicode.encode('UTF-8')
         cdef char* input_cstr = input_bytes
-        self.thisptr = new CppHighlevelSimulation(input_cstr)
+        self.thisptr = new CppHighlevelSimulation(input_cstr, deref(lattice.sharedptr))
 
     def iterate(self, int sweeps):
         self.thisptr.iterate(sweeps)

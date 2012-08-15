@@ -9,11 +9,12 @@
 
 #include "MetropolisSimulation.hpp"
 #include "Measurement.hpp"
+#include "Lattice.hpp"
 
 class HighlevelSimulation : boost::noncopyable
 {
 public:
-    HighlevelSimulation (const char *json_input_str);
+    HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice);
 
     void iterate (unsigned int sweeps)
         {

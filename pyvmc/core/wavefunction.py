@@ -28,7 +28,6 @@ class FreeFermionWavefunction(Wavefunction):
 
     def to_json(self):
         return {
-            'lattice': self.lattice.to_json(),
             'wavefunction': {
                 'type': 'free-fermion',
                 'orbitals': self.orbitals.to_json(),

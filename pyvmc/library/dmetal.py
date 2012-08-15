@@ -28,7 +28,6 @@ class DMetalWavefunction(Wavefunction):
 
     def to_json(self):
         return {
-            'lattice': self.lattice.to_json(),
             'wavefunction': {
                 'type': 'dmetal',
                 'orbitals-d1': self.d1.to_json(),

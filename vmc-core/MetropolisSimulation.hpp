@@ -126,30 +126,6 @@ public:
             perform_initialization(initialization_sweeps);
         }
 
-    /**
-     * Convenience constructor, if only one measurement is being performed
-     *
-     * The initialization sweeps are performed during object construction.
-     *
-     * @param walk_ walk in its initial state
-     *
-     * @param measurement_ the measurement to perform
-     *
-     * @param initialization_sweeps number of steps to take before beginning to
-     * take measurements
-     *
-     * @param seed random seed
-     */
-    MetropolisSimulation (const Walk_T &walk_, const boost::shared_ptr<Measurement<Walk_T> > &measurement_,
-                          unsigned int initialization_sweeps, RandomNumberGenerator &rng_)
-        : walk(walk_),
-          measurement_not_yet_updated(true),
-          rng(rng_)
-        {
-            measurements.push_back(measurement_);
-            perform_initialization(initialization_sweeps);
-        }
-
     void iterate (unsigned int sweeps)
         {
             for (unsigned int i = 0; i < sweeps; ++i) {

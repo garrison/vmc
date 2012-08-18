@@ -30,6 +30,7 @@ extensions = [
         "DMetalWavefunctionAmplitude.cpp",
         "FreeFermionWavefunctionAmplitude.cpp",
         "Lattice.cpp",
+        "MetropolisSimulation.cpp",
         "Move.cpp",
         "OperatorMeasurement.cpp",
         "ParticleOperator.cpp",

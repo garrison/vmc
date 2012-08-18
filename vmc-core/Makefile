@@ -51,6 +51,7 @@ HEADER_FILES = \
                SwappedSystem.hpp \
                vmc-math-utils.hpp \
                vmc-typedefs.hpp \
+               Walk.hpp \
                WavefunctionAmplitude.hpp
 
 SOURCES = \
@@ -60,6 +61,7 @@ SOURCES = \
           DMetalWavefunctionAmplitude.cpp \
           FreeFermionWavefunctionAmplitude.cpp \
           Lattice.cpp \
+          MetropolisSimulation.cpp \
           Move.cpp \
           OperatorMeasurement.cpp \
           ParticleOperator.cpp \

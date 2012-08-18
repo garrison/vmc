@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "vmc-typedefs.hpp"
+#include "Walk.hpp"
 
 class WavefunctionAmplitude;
 class RandomNumberGenerator;
@@ -13,7 +14,7 @@ class RandomNumberGenerator;
  *
  * (proportional to the modulus squared of the wavefunction)
  */
-class StandardWalk
+class StandardWalk : public Walk
 {
 public:
     /**
@@ -23,6 +24,15 @@ public:
      */
     StandardWalk (boost::shared_ptr<WavefunctionAmplitude> &wf_);
 
+    /**
+     * Returns the current wavefunction
+     */
+    const WavefunctionAmplitude & get_wavefunction (void) const
+        {
+            return *wf;
+        }
+
+private:
     /**
      * Attempt a transition and return its probability ratio
      */
@@ -40,15 +50,6 @@ public:
      */
     void reject_transition (void);
 
-    /**
-     * Returns the current wavefunction
-     */
-    const WavefunctionAmplitude & get_wavefunction (void) const
-        {
-            return *wf;
-        }
-
-private:
     boost::shared_ptr<WavefunctionAmplitude> wf; // treat this as copy on write
     bool autoreject_in_progress;
 

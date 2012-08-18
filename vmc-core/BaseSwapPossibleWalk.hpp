@@ -8,6 +8,7 @@
 #include "Subsystem.hpp"
 #include "SwappedSystem.hpp"
 #include "WavefunctionAmplitude.hpp"
+#include "Walk.hpp"
 
 class RandomNumberGenerator;
 
@@ -20,7 +21,7 @@ class RandomNumberGenerator;
  * @see RenyiSignWalk
  * @see RenyiModPossibleWalk
  */
-class BaseSwapPossibleWalk
+class BaseSwapPossibleWalk : public Walk
 {
 public:
     /**
@@ -30,10 +31,6 @@ public:
      * particles in the subsystem.
      */
     BaseSwapPossibleWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const boost::shared_ptr<WavefunctionAmplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem, bool update_swapped_system_before_accepting_=true);
-
-    probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng);
-    void accept_transition (void);
-    void reject_transition (void);
 
     const WavefunctionAmplitude & get_phialpha1 (void) const
         {
@@ -56,6 +53,10 @@ public:
         }
 
 private:
+    probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng);
+    void accept_transition (void);
+    void reject_transition (void);
+
     virtual probability_t probability_ratio (amplitude_t phialpha1_ratio, amplitude_t phialpha2_ratio, amplitude_t phibeta1_ratio, amplitude_t phibeta2_ratio) const = 0;
 
     static unsigned int count_subsystem_sites (const Subsystem &subsystem, const Lattice &lattice);

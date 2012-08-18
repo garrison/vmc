@@ -1,8 +1,11 @@
 #ifndef _MEASUREMENT_HPP
 #define _MEASUREMENT_HPP
 
+#include <boost/cast.hpp>
 #include <boost/assert.hpp>
 #include <boost/noncopyable.hpp>
+
+#include "Walk.hpp"
 
 class BaseMeasurement : boost::noncopyable
 // common (non-templated) abstract base class
@@ -11,6 +14,14 @@ public:
     virtual ~BaseMeasurement (void)
         {
         }
+
+    virtual void initialize (const Walk &walk) = 0;
+
+    virtual void step_advanced (const Walk &walk) = 0;
+
+    virtual void step_repeated (const Walk &walk) = 0;
+
+    virtual bool is_valid_walk (const Walk &walk) = 0;
 };
 
 template <class Walk_T>
@@ -25,10 +36,10 @@ public:
      * called, either measure() or repeat_measurement() should be called after
      * every step.
      */
-    void initialize (const Walk_T &walk)
+    void initialize (const Walk &walk)
         {
             BOOST_ASSERT(!initialized);
-            initialize_(walk);
+            initialize_(*boost::polymorphic_downcast<const Walk_T *>(&walk));
             initialized = true;
         }
 
@@ -37,7 +48,7 @@ public:
      * time a step is taken that results in an actual move in Monte Carlo
      * space.
      */
-    void step_advanced (const Walk_T &walk)
+    void step_advanced (const Walk &walk)
         {
             first_step_has_been_completed = true;
             m_state_changed_since_last_measurement = true;
@@ -49,10 +60,15 @@ public:
      * time a step is taken in which the current state of the walk is identical
      * to the previous state.
      */
-    void step_repeated (const Walk_T &walk)
+    void step_repeated (const Walk &walk)
         {
             BOOST_ASSERT(first_step_has_been_completed);
             step_completed(walk);
+        }
+
+    bool is_valid_walk (const Walk &walk)
+        {
+            return bool(dynamic_cast<const Walk_T *>(&walk));
         }
 
 protected:
@@ -90,10 +106,11 @@ private:
      * This is called any time a step is made.  An actual measurement will be
      * performed here if one is due.
      */
-    void step_completed (const Walk_T &walk)
+    void step_completed (const Walk &walk_)
         {
             BOOST_ASSERT(initialized);
             BOOST_ASSERT(!measurement_in_progress);
+            const Walk_T &walk = *boost::polymorphic_downcast<const Walk_T *>(&walk_);
             ++m_steps_since_last_measurement;
             if (m_steps_since_last_measurement % m_steps_per_measurement == 0) {
                 measurement_in_progress = true;

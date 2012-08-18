@@ -371,7 +371,7 @@ static Json::Value positions_json_repr (const PositionArguments &r)
     return rv;
 }
 
-static Json::Value monte_carlo_stats_json_repr (const BaseMetropolisSimulation &sim)
+static Json::Value monte_carlo_stats_json_repr (const MetropolisSimulation &sim)
 {
     Json::Value rv(Json::objectValue);
     rv["steps-completed"] = Json::UInt(sim.steps_completed());
@@ -634,16 +634,13 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // set up measurement(s)
         const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
-        std::list<boost::shared_ptr<Measurement<StandardWalk> > > measurements_;
         for (unsigned int i = 0; i < json_measurements.size(); ++i) {
-            boost::shared_ptr<Measurement<StandardWalk> > walk_ptr(parse_standard_walk_measurement_definition(json_measurements[i], *wf, lattice));
-            measurements.push_back(walk_ptr);
-            measurements_.push_back(walk_ptr);
+            measurements.push_back(parse_standard_walk_measurement_definition(json_measurements[i], *wf, lattice));
         }
 
         // set up and perform walk
-        StandardWalk walk(wf);
-        sim.reset(new MetropolisSimulation<StandardWalk>(walk, measurements_, equilibrium_steps, *rng));
+        std::auto_ptr<Walk> walk(new StandardWalk(wf));
+        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, *rng));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-mod/possible") == 0) {
 
@@ -679,16 +676,13 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // set up measurement(s)
         const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
-        std::list<boost::shared_ptr<Measurement<RenyiModPossibleWalk> > > measurements_;
         for (unsigned int i = 0; i < json_measurements.size(); ++i) {
-            boost::shared_ptr<Measurement<RenyiModPossibleWalk> > walk_ptr(parse_renyi_mod_possible_walk_measurement_definition(json_measurements[i]));
-            measurements.push_back(walk_ptr);
-            measurements_.push_back(walk_ptr);
+            measurements.push_back(parse_renyi_mod_possible_walk_measurement_definition(json_measurements[i]));
         }
 
         // set up and perform walk
-        RenyiModPossibleWalk walk(wf, wf2, subsystem);
-        sim.reset(new MetropolisSimulation<RenyiModPossibleWalk>(walk, measurements_, equilibrium_steps, *rng));
+        std::auto_ptr<Walk> walk(new RenyiModPossibleWalk(wf, wf2, subsystem));
+        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, *rng));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-sign") == 0) {
 
@@ -724,16 +718,13 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // set up measurement(s)
         const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
-        std::list<boost::shared_ptr<Measurement<RenyiSignWalk> > > measurements_;
         for (unsigned int i = 0; i < json_measurements.size(); ++i) {
-            boost::shared_ptr<Measurement<RenyiSignWalk> > walk_ptr(parse_renyi_sign_walk_measurement_definition(json_measurements[i]));
-            measurements.push_back(walk_ptr);
-            measurements_.push_back(walk_ptr);
+            measurements.push_back(parse_renyi_sign_walk_measurement_definition(json_measurements[i]));
         }
 
         // set up and perform walk
-        RenyiSignWalk walk(wf, wf2, subsystem);
-        sim.reset(new MetropolisSimulation<RenyiSignWalk>(walk, measurements_, equilibrium_steps, *rng));
+        std::auto_ptr<Walk> walk(new RenyiSignWalk(wf, wf2, subsystem));
+        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, *rng));
 
     } else {
         throw ParseError("invalid walk type");

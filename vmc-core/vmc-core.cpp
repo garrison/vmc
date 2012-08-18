@@ -634,6 +634,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // set up measurement(s)
         const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
+        std::list<boost::shared_ptr<BaseMeasurement> > measurements;
         for (unsigned int i = 0; i < json_measurements.size(); ++i) {
             measurements.push_back(parse_standard_walk_measurement_definition(json_measurements[i], *wf, lattice));
         }
@@ -676,6 +677,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // set up measurement(s)
         const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
+        std::list<boost::shared_ptr<BaseMeasurement> > measurements;
         for (unsigned int i = 0; i < json_measurements.size(); ++i) {
             measurements.push_back(parse_renyi_mod_possible_walk_measurement_definition(json_measurements[i]));
         }
@@ -718,6 +720,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // set up measurement(s)
         const Json::Value &json_measurements = json_simulation["measurements"];
         ensure_array(json_measurements);
+        std::list<boost::shared_ptr<BaseMeasurement> > measurements;
         for (unsigned int i = 0; i < json_measurements.size(); ++i) {
             measurements.push_back(parse_renyi_sign_walk_measurement_definition(json_measurements[i]));
         }
@@ -737,6 +740,7 @@ std::string HighlevelSimulation::output (void) const
 {
     Json::Value json_measurement_output(Json::arrayValue);
     Json::Value json_final_positions_output, json_monte_carlo_stats_output;
+    const std::list<boost::shared_ptr<BaseMeasurement> > &measurements = sim->get_measurements();
     if (walk_type == "standard") {
         const StandardWalk *walk_ptr = static_cast<const StandardWalk *>(sim->get_walk_ptr());
         for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {

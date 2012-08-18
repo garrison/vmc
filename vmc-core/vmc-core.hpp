@@ -25,7 +25,6 @@ public:
 
 private:
     boost::shared_ptr<MetropolisSimulation> sim;
-    std::list<boost::shared_ptr<BaseMeasurement> > measurements;
     std::string walk_type;
 };
 

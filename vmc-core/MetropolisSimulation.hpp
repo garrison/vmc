@@ -104,6 +104,16 @@ public:
             return m_steps_accepted;
         }
 
+    const std::list<boost::shared_ptr<BaseMeasurement> > & get_measurements (void) const
+        {
+            // fixme: in theory, somebody could do something evil and directly
+            // modify the measurements returned here, since they aren't
+            // const-protected.  but, they could also keep references to the
+            // measurements since they were passed in the constructor, so it
+            // makes no difference at the moment.
+            return measurements;
+        }
+
 protected:
     unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
 

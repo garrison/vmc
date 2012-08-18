@@ -39,12 +39,13 @@ public:
      * @param initialization_sweeps number of steps to take before beginning to
      * take measurements
      *
-     * @param seed random seed
+     * @param rng random number generator; since it's an auto_ptr, ownership
+     * will be passed to the new MetropolisSimulation
      *
      * @see Walk
      */
     MetropolisSimulation (std::auto_ptr<Walk> &walk_, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements_,
-                          unsigned int initialization_sweeps, RandomNumberGenerator &rng_);
+                          unsigned int initialization_sweeps, std::auto_ptr<RandomNumberGenerator> &rng_);
 
     /**
      * Perform some number of steps on the system, taking a measurement each
@@ -111,7 +112,7 @@ private:
     std::list<boost::shared_ptr<BaseMeasurement> > measurements;
     bool measurement_not_yet_updated;
 
-    RandomNumberGenerator &rng;
+    std::auto_ptr<RandomNumberGenerator> rng;
 
     bool perform_single_step (void);
 

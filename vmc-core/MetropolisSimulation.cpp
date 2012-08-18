@@ -5,7 +5,7 @@
 #include "MetropolisSimulation.hpp"
 
 MetropolisSimulation::MetropolisSimulation (std::auto_ptr<Walk> &walk_, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements_,
-                                            unsigned int initialization_sweeps, RandomNumberGenerator &rng_)
+                                            unsigned int initialization_sweeps, std::auto_ptr<RandomNumberGenerator> &rng_)
     : m_steps(0),
       m_steps_accepted(0),
       m_steps_fully_rejected(0),
@@ -42,14 +42,14 @@ void MetropolisSimulation::iterate (unsigned int sweeps)
 
 bool MetropolisSimulation::perform_single_step (void)
 {
-    probability_t probability_ratio = walk->compute_probability_ratio_of_random_transition(rng);
+    probability_t probability_ratio = walk->compute_probability_ratio_of_random_transition(*rng);
     ++m_steps;
 #if 1
     if (!(probability_ratio >= 0))
         std::cerr << "invalid probability ratio: " << probability_ratio << std::endl;
 #endif
     if (probability_ratio >= 1
-        || (probability_ratio > 0 && probability_ratio > rng.random_uniform01())) {
+        || (probability_ratio > 0 && probability_ratio > rng->random_uniform01())) {
         // accept transition
 #if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
         std::cerr << "A" << std::endl;

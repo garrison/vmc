@@ -488,7 +488,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         if (!RandomNumberGenerator::name_is_valid(rng_type_name))
             throw ParseError("invalid random number generator type specified");
     }
-    rng.reset(RandomNumberGenerator::create(rng_type_name, seed).release());
+    std::auto_ptr<RandomNumberGenerator> rng(RandomNumberGenerator::create(rng_type_name, seed));
 
     // begin setting up the physical system
     const Json::Value &json_system = json_input["system"];
@@ -640,7 +640,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
 
         // set up and perform walk
         std::auto_ptr<Walk> walk(new StandardWalk(wf));
-        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, *rng));
+        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-mod/possible") == 0) {
 
@@ -682,7 +682,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
 
         // set up and perform walk
         std::auto_ptr<Walk> walk(new RenyiModPossibleWalk(wf, wf2, subsystem));
-        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, *rng));
+        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-sign") == 0) {
 
@@ -724,7 +724,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
 
         // set up and perform walk
         std::auto_ptr<Walk> walk(new RenyiSignWalk(wf, wf2, subsystem));
-        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, *rng));
+        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
 
     } else {
         throw ParseError("invalid walk type");

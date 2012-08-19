@@ -101,6 +101,16 @@ protected:
             return m_steps_since_last_measurement;
         }
 
+    /**
+     * Returns true if the measurement has been initialized with a Walk
+     *
+     * @see initialize()
+     */
+    bool is_initialized (void) const
+        {
+            return initialized;
+        }
+
 private:
     /**
      * This is called any time a step is made.  An actual measurement will be
@@ -161,8 +171,10 @@ private:
     unsigned int m_steps_since_last_measurement;
     bool m_state_changed_since_last_measurement;
 
+    bool initialized;
+
     // these are used only for assertions
-    bool initialized, first_step_has_been_completed, measurement_in_progress;
+    bool first_step_has_been_completed, measurement_in_progress;
 };
 
 #endif

@@ -31,7 +31,7 @@ cdef extern from "Lattice.hpp":
         int n_dimensions()
         CppLatticeSite site_from_index(unsigned int)
         unsigned int site_to_index(CppLatticeSite)
-        int site_is_valid(CppLatticeSite)
+        bint site_is_valid(CppLatticeSite)
 
         DimensionVector dimensions
         int basis_indices

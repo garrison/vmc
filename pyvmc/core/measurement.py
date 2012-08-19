@@ -36,12 +36,6 @@ class StandardWalkPlan(WalkPlan):
     def to_json(self):
         return {"walk-type": "standard"}
 
-class DensityDensityMeasurementPlan(MeasurementPlan):
-    __slots__ = ()
-
-class GreenMeasurementPlan(MeasurementPlan):
-    __slots__ = ()
-
 class SiteHop(Immutable):
     __slots__ = ("source", "destination", "species")
 

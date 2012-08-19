@@ -2,7 +2,8 @@ from cython.operator cimport dereference as deref
 from libc.string cimport const_char
 from libcpp.string cimport string
 
-from pyvmc.core.lattice cimport Lattice, CppLattice, shared_ptr
+from pyvmc.core.lattice cimport Lattice, CppLattice
+from pyvmc.boost.shared_ptr cimport shared_ptr
 
 cdef extern from "vmc-core.hpp":
     cdef cppclass CppHighlevelSimulation "HighlevelSimulation":

@@ -1,11 +1,4 @@
-cdef extern from "<boost/shared_ptr.hpp>" namespace "boost":
-    cdef cppclass shared_ptr[T]:
-        shared_ptr()
-        shared_ptr(T*)
-        void reset()
-        void reset(T*)
-        T& operator*()
-        T* get()
+from pyvmc.boost.shared_ptr cimport shared_ptr
 
 cdef extern from "Lattice.hpp":
     cdef unsigned int MAX_DIMENSION

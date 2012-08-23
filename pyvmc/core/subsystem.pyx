@@ -9,16 +9,23 @@ from pyvmc.utils import product
 from pyvmc.core.lattice import LatticeSite, Lattice
 from pyvmc.utils.immutable import Immutable
 
-class Subsystem(Immutable, collections.Sequence):
+cdef class Subsystem(object):
     """Abstract base class representing a spatial subset of a lattice"""
 
-    __slots__ = ('lattice',)
+    cdef object lattice_
 
-    def init_validate(self, lattice):
+    #__metaclass__ = abc.ABCMeta
+
+    def __init__(self, lattice):
         assert isinstance(lattice, Lattice)
-        return (lattice,)
+        self.lattice_ = lattice
 
-    @abc.abstractmethod
+    property lattice:
+        def __get__(self):
+            return self.lattice_
+
+    # The following line is commented out because it does not work with Cython.
+    #@abc.abstractmethod
     def to_json(self):
         raise NotImplementedError
 
@@ -29,18 +36,27 @@ class Subsystem(Immutable, collections.Sequence):
                 count += 1
         return count
 
-class SimpleSubsystem(Subsystem):
+# NOTE: each subclass of Subsystem should implement all the Hashable and
+# Sequence methods.
+collections.Hashable.register(Subsystem)
+collections.Sequence.register(Subsystem)
+
+cdef class SimpleSubsystem(Subsystem):
     """Subsystem consisting of a hyper-rectangle bordering the origin"""
 
-    __slots__ = ('dimensions', 'lattice')
+    cdef object dimensions_
 
-    def init_validate(self, dimensions, lattice):
-        (lattice,) = super(SimpleSubsystem, self).init_validate(lattice)
+    def __init__(self, dimensions, lattice):
+        super(SimpleSubsystem, self).__init__(lattice)
         assert isinstance(dimensions, collections.Sequence)
         assert all(isinstance(d, numbers.Integral) and d > 0 for d in dimensions)
         if any(d1 > d2 for d1, d2 in zip(dimensions, lattice.dimensions)):
             raise Exception("subsystem cannot be larger than the system")
-        return tuple(dimensions), lattice
+        self.dimensions_ = tuple(dimensions)
+
+    property dimensions:
+        def __get__(self):
+            return self.dimensions_
 
     def __len__(self):
         return product(self.dimensions) * self.lattice.basis_indices
@@ -91,6 +107,29 @@ class SimpleSubsystem(Subsystem):
     def __contains__(self, site):
         return bool(site in self.lattice and
                     all(x < y for x, y in zip(site.bs, self.dimensions)))
+
+    def count(self, site):
+        return 1 if site in self else 0
+
+    def __hash__(self):
+        return hash(self.dimensions) | hash(self.lattice)
+
+    def __richcmp__(self, other, int op):
+        if op == 2:  # ==
+            return (self.__class__ == other.__class__ and
+                    self.dimensions == other.dimensions and
+                    self.lattice == other.lattice)
+        elif op == 3:  # !=
+            return (self.__class__ != other.__class__ or
+                    self.dimensions != other.dimensions or
+                    self.lattice != other.lattice)
+        # we don't implement <, <=, >, >=
+        raise NotImplementedError
+
+    def __repr__(self):
+        return "{}({}, {})".format(self.__class__.__name__,
+                                   repr(self.dimensions),
+                                   repr(self.lattice))
 
     def to_json(self):
         return {

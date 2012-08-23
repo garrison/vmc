@@ -30,7 +30,7 @@ cdef class Subsystem(object):
         raise NotImplementedError
 
     def __len__(self):
-        count = 0
+        cdef int count = 0
         for site in self.lattice:
             if site in self:
                 count += 1

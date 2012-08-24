@@ -21,9 +21,6 @@
  */
 typedef lw_vector<int, MAX_DIMENSION> BravaisSite;
 
-// for Cython
-typedef lw_vector<int, MAX_DIMENSION> DimensionVector;
-
 class Lattice;
 
 /**

@@ -13,9 +13,16 @@ cdef extern from "Lattice.hpp":
 
         int basis_index
 
-    cppclass DimensionVector:
-        int operator[](int)
+    cdef cppclass lw_vector[T]:
+        T& operator[](int)
+        int size()
         void push_back(int)
+
+    ctypedef lw_vector[int] DimensionVector "lw_vector<int, MAX_DIMENSION>"
+    ctypedef DimensionVector const_DimensionVector "const lw_vector<int, MAX_DIMENSION>"
+
+    ctypedef lw_vector[int] UDimensionVector "lw_vector<unsigned int, MAX_DIMENSION>"
+    ctypedef UDimensionVector const_UDimensionVector "const lw_vector<unsigned int, MAX_DIMENSION>"
 
     cdef cppclass CppLattice "Lattice":
         CppLattice(DimensionVector, int)

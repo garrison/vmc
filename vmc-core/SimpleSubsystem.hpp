@@ -21,7 +21,6 @@ public:
 
     bool lattice_makes_sense (const Lattice &lattice) const;
 
-private:
     const lw_vector<unsigned int, MAX_DIMENSION> subsystem_length;
 };
 

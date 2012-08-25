@@ -5,6 +5,8 @@ import abc
 import numbers
 import collections
 
+from cython.operator cimport dereference as deref
+
 from pyvmc.utils import product
 from pyvmc.core.lattice import LatticeSite, Lattice
 from pyvmc.utils.immutable import Immutable
@@ -12,9 +14,13 @@ from pyvmc.utils.immutable import Immutable
 cdef class Subsystem(object):
     """Abstract base class representing a spatial subset of a lattice"""
 
-    cdef object lattice_
-
     #__metaclass__ = abc.ABCMeta
+
+    def __cinit__(self, *args, **kwargs):
+        self.sharedptr = new shared_ptr[CppSubsystem]()
+
+    def __dealloc__(self):
+        del self.sharedptr
 
     def __init__(self, lattice):
         assert isinstance(lattice, Lattice)
@@ -44,19 +50,22 @@ collections.Sequence.register(Subsystem)
 cdef class SimpleSubsystem(Subsystem):
     """Subsystem consisting of a hyper-rectangle bordering the origin"""
 
-    cdef object dimensions_
-
     def __init__(self, dimensions, lattice):
         super(SimpleSubsystem, self).__init__(lattice)
         assert isinstance(dimensions, collections.Sequence)
         assert all(isinstance(d, numbers.Integral) and d > 0 for d in dimensions)
         if any(d1 > d2 for d1, d2 in zip(dimensions, lattice.dimensions)):
             raise Exception("subsystem cannot be larger than the system")
-        self.dimensions_ = tuple(dimensions)
+        cdef UDimensionVector v
+        for i, x in enumerate(dimensions):
+            v.push_back(x)
+        self.sharedptr.reset(new CppSimpleSubsystem(v))
 
     property dimensions:
         def __get__(self):
-            return self.dimensions_
+            cdef const_UDimensionVector *v = &(<CppSimpleSubsystem*>self.sharedptr.get()).subsystem_length
+            cdef int i
+            return tuple([deref(v)[i] for i in xrange(v.size())])
 
     def __len__(self):
         return product(self.dimensions) * self.lattice.basis_indices

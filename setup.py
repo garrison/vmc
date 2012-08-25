@@ -23,7 +23,7 @@ def make_extension(ext_name, ext_extras=(), ext_libraries=()):
 
 extensions = [
     make_extension("pyvmc.core.lattice", ["Lattice.cpp"]),
-    make_extension("pyvmc.core.subsystem"),
+    make_extension("pyvmc.core.subsystem", ["SimpleSubsystem.cpp", "Lattice.cpp"]),
     make_extension("pyvmc.core.measurement"),
     make_extension("pyvmc.library.renyi"),
     make_extension("pyvmc.core.simulation", [

@@ -8,7 +8,7 @@ from pyvmc.boost.shared_ptr cimport shared_ptr
 cdef extern from "vmc-core.hpp":
     cdef cppclass CppHighlevelSimulation "HighlevelSimulation":
         CppHighlevelSimulation(const_char*, shared_ptr[CppLattice]) except +
-        void iterate(int)
+        void iterate(int) nogil
         string output()
 
 cdef class HighlevelSimulation(object):

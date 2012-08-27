@@ -55,7 +55,7 @@ class Walk(object):
             "steps-accepted": self.sim.steps_accepted,
             "steps-fully-rejected": self.sim.steps_fully_rejected,
         })
-        for result_json, (measurement, deferred) in zip(output["measurements"], self.measurements_in_progress):
+        for result_json, (measurement, deferred) in zip(output, self.measurements_in_progress):
             deferred.callback((result_json,))
         del self.measurements_in_progress[:]
         if self.measurements_pending:

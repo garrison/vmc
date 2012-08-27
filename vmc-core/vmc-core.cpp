@@ -39,7 +39,6 @@
 #include "RenyiSignMeasurement.hpp"
 #include "Subsystem.hpp"
 #include "SimpleSubsystem.hpp"
-#include "RunInformation.hpp"
 #include "vmc-core.hpp"
 
 class ParseError : public std::exception
@@ -519,11 +518,7 @@ std::string simulation_output (const MetropolisSimulation *sim)
         BOOST_ASSERT(false);
     }
 
-    Json::Value json_output(Json::objectValue);
-    json_output["measurements"] = json_measurement_output;
-    json_output["run-information"] = RunInformation::json_info();
-
     std::ostringstream oss(std::ostringstream::out);
-    oss << json_output;
+    oss << json_measurement_output;
     return oss.str();
 }

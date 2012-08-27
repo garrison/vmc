@@ -16,7 +16,7 @@ cdef extern from "Lattice.hpp":
     cdef cppclass lw_vector[T]:
         T& operator[](int)
         int size()
-        void push_back(int)
+        void push_back(T&)
 
     ctypedef lw_vector[int] DimensionVector "lw_vector<int, MAX_DIMENSION>"
     ctypedef DimensionVector const_DimensionVector "const lw_vector<int, MAX_DIMENSION>"

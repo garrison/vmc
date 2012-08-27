@@ -55,8 +55,6 @@ class Walk(object):
             "steps-accepted": self.sim.steps_accepted,
             "steps-fully-rejected": self.sim.steps_fully_rejected,
         })
-        self.walk_json["simulation"]["equilibrium-steps"] = 0
-        self.walk_json["simulation"]["initial-positions"] = output["final-positions"]
         for result_json, (measurement, deferred) in zip(output["measurements"], self.measurements_in_progress):
             deferred.callback((result_json,))
         del self.measurements_in_progress[:]
@@ -80,7 +78,6 @@ class Walk(object):
                 # advances, this WILL NOT notice and will continue with the
                 # old measurements.
                 vmc_core_input = copy(self.walk_json)
-                vmc_core_input["simulation"] = copy(vmc_core_input["simulation"])
                 vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
                 self.sim = HighlevelSimulation(json.dumps(vmc_core_input),
                                                self.measurements_in_progress[0][0].measurement_plan.lattice,

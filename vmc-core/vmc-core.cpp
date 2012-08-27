@@ -203,34 +203,6 @@ static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Valu
     }
 }
 
-static void set_wavefunction_positions_from_json (WavefunctionAmplitude &wf, const Json::Value &json_initial_positions)
-{
-    const unsigned int N_sites = wf.get_positions().get_N_sites();
-    const unsigned int N_species = wf.get_positions().get_N_species();
-    ensure_array(json_initial_positions, N_species);
-    std::vector<std::vector<unsigned int> > v;
-    for (unsigned int species = 0; species < N_species; ++species) {
-        const unsigned int N_filled = wf.get_positions().get_N_filled(species);
-        ensure_array(json_initial_positions[species], N_filled);
-        std::set<unsigned int> vs;
-        v.push_back(std::vector<unsigned int>(N_filled));
-        for (unsigned int i = 0; i < N_filled; ++i) {
-            const Json::Value &json_pos = json_initial_positions[species][i];
-            if (!json_pos.isIntegral())
-                throw ParseError("expecting integer");
-            if (!(json_pos.asInt() >= 0 && json_pos.asUInt() < N_sites))
-                throw ParseError("invalid site index");
-            bool inserted = vs.insert(json_pos.asUInt()).second;
-            if (!inserted)
-                throw ParseError("position index specified twice, but double occupancy is not allowed");
-            v[species][i] = json_pos.asUInt();
-        }
-    }
-    wf.reset(PositionArguments(v, N_sites));
-    if (wf.psi() == amplitude_t(0))
-        throw ParseError("given positions have zero amplitude");
-}
-
 static inline double jsoncpp_real_cast (real_t v)
 {
     // it would be really nice if jsoncpp supported "long double" directly...
@@ -443,11 +415,11 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
     ensure_object(json_simulation);
     const char * const json_simulation_required[] = { "walk-type", NULL };
     ensure_required(json_simulation, json_simulation_required);
-#define JSON_SIMULATION_GLOBAL_ALLOWED "walk-type", "initial-positions"
+#define JSON_SIMULATION_GLOBAL_ALLOWED "walk-type"
 
     // if there are no equilibrium steps, make sure initial positions are given
-    if (equilibrium_steps == 0 && !json_simulation.isMember("initial-positions"))
-        throw ParseError("initial positions must be given if there are no equilibrium steps");
+    if (equilibrium_steps == 0)
+        throw ParseError("equilibrium steps must be non-zero, otherwise the results are garbage");
 
     // from here forward, we have special logic per walk type
     ensure_string(json_simulation["walk-type"]);
@@ -461,15 +433,9 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         ensure_only(json_simulation, json_simulation_only);
 
         // set up initial positions of wavefunction
-        if (json_simulation.isMember("initial-positions")) {
-            set_wavefunction_positions_from_json(*wf, json_simulation["initial-positions"]);
-            if (wf->psi() == amplitude_t(0))
-                throw ParseError("wavefunction has zero amplitude at given initial-positions");
-        } else {
-            bool success = search_for_configuration_with_nonzero_amplitude(*wf, *rng);
-            if (!success)
-                throw ParseError("could not find a configuration with nonzero amplitude");
-        }
+        bool success = search_for_configuration_with_nonzero_amplitude(*wf, *rng);
+        if (!success)
+            throw ParseError("could not find a configuration with nonzero amplitude");
 
         // set up and perform walk
         std::auto_ptr<Walk> walk(new StandardWalk(wf));
@@ -489,22 +455,13 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], *lattice));
 
         // set up initial positions of wavefunctions
+        bool success = search_for_configuration_with_nonzero_amplitude(*wf, *rng);
+        if (!success)
+            throw ParseError("could not find a configuration with nonzero amplitude");
+        // We need two copies of the system, each of which has the same number
+        // of particles in the subsystem.  So for now we just initialize both
+        // copies with the same exact positions.
         boost::shared_ptr<WavefunctionAmplitude> wf2(wf->clone());
-        if (json_simulation.isMember("initial-positions")) {
-            ensure_array(json_simulation["initial-positions"], 2);
-            set_wavefunction_positions_from_json(*wf, json_simulation["initial-positions"][0u]);
-            set_wavefunction_positions_from_json(*wf2, json_simulation["initial-positions"][1u]);
-            if (!count_subsystem_particle_counts_for_match(*wf, *wf2, *subsystem))
-                throw ParseError("The initial positions of each copy must have the same numbers/types of particles in the subsystem");
-        } else {
-            bool success = search_for_configuration_with_nonzero_amplitude(*wf, *rng);
-            if (!success)
-                throw ParseError("could not find a configuration with nonzero amplitude");
-            // We need two copies of the system, each of which has the same
-            // number of particles in the subsystem.  So for now we just
-            // initialize both copies with the same exact positions.
-            wf2 = wf;
-        }
 
         // set up and perform walk
         std::auto_ptr<Walk> walk(new RenyiModPossibleWalk(wf, wf2, subsystem));
@@ -524,22 +481,13 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], *lattice));
 
         // set up initial positions of wavefunctions
+        bool success = search_for_configuration_with_nonzero_amplitude(*wf, *rng);
+        if (!success)
+            throw ParseError("could not find a configuration with nonzero amplitude");
+        // We need two copies of the system, each of which has the same number
+        // of particles in the subsystem.  So for now we just initialize both
+        // copies with the same exact positions.
         boost::shared_ptr<WavefunctionAmplitude> wf2(wf->clone());
-        if (json_simulation.isMember("initial-positions")) {
-            ensure_array(json_simulation["initial-positions"], 2);
-            set_wavefunction_positions_from_json(*wf, json_simulation["initial-positions"][0u]);
-            set_wavefunction_positions_from_json(*wf2, json_simulation["initial-positions"][1u]);
-            if (!count_subsystem_particle_counts_for_match(*wf, *wf2, *subsystem))
-                throw ParseError("The initial positions of each copy must have the same numbers/types of particles in the subsystem");
-        } else {
-            bool success = search_for_configuration_with_nonzero_amplitude(*wf, *rng);
-            if (!success)
-                throw ParseError("could not find a configuration with nonzero amplitude");
-            // We need two copies of the system, each of which has the same
-            // number of particles in the subsystem.  So for now we just
-            // initialize both copies with the same exact positions.
-            wf2 = wf;
-        }
 
         // set up and perform walk
         std::auto_ptr<Walk> walk(new RenyiSignWalk(wf, wf2, subsystem));

@@ -277,7 +277,7 @@ static Json::Value renyi_sign_walk_measurement_json_repr (const BaseMeasurement 
     return complex_to_json_array(rsm->get());
 }
 
-HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps)
+MetropolisSimulation * create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps)
 {
     Json::Value json_input;
     {
@@ -495,24 +495,23 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         throw ParseError("invalid walk type");
     }
 
-    sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
-    walk_type = json_walk_type_cstr;
+    return new MetropolisSimulation(walk, measurements, equilibrium_steps, rng);
 }
 
-std::string HighlevelSimulation::output (void) const
+std::string simulation_output (const MetropolisSimulation *sim)
 {
     Json::Value json_measurement_output(Json::arrayValue);
     const std::list<boost::shared_ptr<BaseMeasurement> > &measurements = sim->get_measurements();
-    if (walk_type == "standard") {
+    if (dynamic_cast<const StandardWalk *>(sim->get_walk_ptr())) {
         const StandardWalk *walk_ptr = static_cast<const StandardWalk *>(sim->get_walk_ptr());
         for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(standard_walk_measurement_json_repr(i->get(), walk_ptr->get_wavefunction()));
         }
-    } else if (walk_type == "renyi-mod/possible") {
+    } else if (dynamic_cast<const RenyiModPossibleWalk *>(sim->get_walk_ptr())) {
         for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(renyi_mod_possible_walk_measurement_json_repr(i->get()));
         }
-    } else if (walk_type == "renyi-sign") {
+    } else if (dynamic_cast<const RenyiSignWalk *>(sim->get_walk_ptr())) {
         for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(renyi_sign_walk_measurement_json_repr(i->get()));
         }

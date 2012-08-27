@@ -4,43 +4,14 @@
 #include <string>
 #include <list>
 
-#include <boost/noncopyable.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include "MetropolisSimulation.hpp"
 #include "Measurement.hpp"
 #include "Lattice.hpp"
 
-class HighlevelSimulation : boost::noncopyable
-{
-public:
-    HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps);
+MetropolisSimulation * create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps);
 
-    void iterate (unsigned int sweeps)
-        {
-            sim->iterate(sweeps);
-        }
-
-    std::string output (void) const;
-
-    unsigned int steps_completed (void) const
-        {
-            return sim->steps_completed();
-        }
-
-    unsigned int steps_accepted (void) const
-        {
-            return sim->steps_accepted();
-        }
-
-    unsigned int steps_fully_rejected (void) const
-        {
-            return sim->steps_fully_rejected();
-        }
-
-private:
-    boost::shared_ptr<MetropolisSimulation> sim;
-    std::string walk_type;
-};
+std::string simulation_output (const MetropolisSimulation *sim);
 
 #endif

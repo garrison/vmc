@@ -424,6 +424,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
     // from here forward, we have special logic per walk type
     ensure_string(json_simulation["walk-type"]);
     const char *json_walk_type_cstr = json_simulation["walk-type"].asCString();
+    std::auto_ptr<Walk> walk;
     if (std::strcmp(json_walk_type_cstr, "standard") == 0) {
 
         // STANDARD WALK
@@ -437,9 +438,8 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         if (!success)
             throw ParseError("could not find a configuration with nonzero amplitude");
 
-        // set up and perform walk
-        std::auto_ptr<Walk> walk(new StandardWalk(wf));
-        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
+        // set up walk
+        walk.reset(new StandardWalk(wf));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-mod/possible") == 0) {
 
@@ -463,9 +463,8 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // copies with the same exact positions.
         boost::shared_ptr<WavefunctionAmplitude> wf2(wf->clone());
 
-        // set up and perform walk
-        std::auto_ptr<Walk> walk(new RenyiModPossibleWalk(wf, wf2, subsystem));
-        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
+        // set up walk
+        walk.reset(new RenyiModPossibleWalk(wf, wf2, subsystem));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-sign") == 0) {
 
@@ -489,14 +488,14 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // copies with the same exact positions.
         boost::shared_ptr<WavefunctionAmplitude> wf2(wf->clone());
 
-        // set up and perform walk
-        std::auto_ptr<Walk> walk(new RenyiSignWalk(wf, wf2, subsystem));
-        sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
+        // set up walk
+        walk.reset(new RenyiSignWalk(wf, wf2, subsystem));
 
     } else {
         throw ParseError("invalid walk type");
     }
 
+    sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
     walk_type = json_walk_type_cstr;
 }
 

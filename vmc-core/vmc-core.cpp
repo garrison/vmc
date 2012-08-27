@@ -244,15 +244,6 @@ static Json::Value positions_json_repr (const PositionArguments &r)
     return rv;
 }
 
-static Json::Value monte_carlo_stats_json_repr (const MetropolisSimulation &sim)
-{
-    Json::Value rv(Json::objectValue);
-    rv["steps-completed"] = Json::UInt(sim.steps_completed());
-    rv["steps-accepted"] = Json::UInt(sim.steps_accepted());
-    rv["steps-fully-rejected"] = Json::UInt(sim.steps_fully_rejected());
-    return rv;
-}
-
 static inline double jsoncpp_real_cast (real_t v)
 {
     // it would be really nice if jsoncpp supported "long double" directly...
@@ -586,7 +577,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
 std::string HighlevelSimulation::output (void) const
 {
     Json::Value json_measurement_output(Json::arrayValue);
-    Json::Value json_final_positions_output, json_monte_carlo_stats_output;
+    Json::Value json_final_positions_output;
     const std::list<boost::shared_ptr<BaseMeasurement> > &measurements = sim->get_measurements();
     if (walk_type == "standard") {
         const StandardWalk *walk_ptr = static_cast<const StandardWalk *>(sim->get_walk_ptr());
@@ -613,13 +604,11 @@ std::string HighlevelSimulation::output (void) const
     } else {
         BOOST_ASSERT(false);
     }
-    json_monte_carlo_stats_output = monte_carlo_stats_json_repr(*sim);
 
     Json::Value json_output(Json::objectValue);
     json_output["final-positions"] = json_final_positions_output;
     json_output["measurements"] = json_measurement_output;
     json_output["run-information"] = RunInformation::json_info();
-    json_output["monte-carlo-stats"] = json_monte_carlo_stats_output;
 
     std::ostringstream oss(std::ostringstream::out);
     oss << json_output;

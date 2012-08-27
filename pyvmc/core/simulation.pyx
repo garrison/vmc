@@ -15,6 +15,10 @@ cdef extern from "vmc-core.hpp":
         void iterate(int) nogil
         string output()
 
+        int steps_completed()
+        int steps_accepted()
+        int steps_fully_rejected()
+
 cdef class HighlevelSimulation(object):
     cdef CppHighlevelSimulation *thisptr
 
@@ -52,3 +56,15 @@ cdef class HighlevelSimulation(object):
     def __dealloc__(self):
         if self.thisptr is not NULL:
             del self.thisptr
+
+    property steps_completed:
+        def __get__(self):
+            return self.thisptr.steps_completed()
+
+    property steps_accepted:
+        def __get__(self):
+            return self.thisptr.steps_accepted()
+
+    property steps_fully_rejected:
+        def __get__(self):
+            return self.thisptr.steps_fully_rejected()

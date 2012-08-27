@@ -50,7 +50,11 @@ class Walk(object):
     def _advancement_completed(self, args):
         output, err = args
         output = json.loads(output)
-        logger.info("monte carlo stats: %s", output["monte-carlo-stats"])
+        logger.info("monte carlo stats: %s", {
+            "steps-completed": self.sim.steps_completed,
+            "steps-accepted": self.sim.steps_accepted,
+            "steps-fully-rejected": self.sim.steps_fully_rejected,
+        })
         self.walk_json["simulation"]["equilibrium-steps"] = 0
         self.walk_json["simulation"]["initial-positions"] = output["final-positions"]
         for result_json, (measurement, deferred) in zip(output["measurements"], self.measurements_in_progress):

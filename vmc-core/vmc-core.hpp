@@ -23,6 +23,21 @@ public:
 
     std::string output (void) const;
 
+    unsigned int steps_completed (void) const
+        {
+            return sim->steps_completed();
+        }
+
+    unsigned int steps_accepted (void) const
+        {
+            return sim->steps_accepted();
+        }
+
+    unsigned int steps_fully_rejected (void) const
+        {
+            return sim->steps_fully_rejected();
+        }
+
 private:
     boost::shared_ptr<MetropolisSimulation> sim;
     std::string walk_type;

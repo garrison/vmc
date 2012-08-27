@@ -172,6 +172,7 @@ private:
     virtual bool is_valid_walk_ (const Walk_T &walk)
         {
             // no additional constraints by default
+            (void) walk;
             return true;
         }
 

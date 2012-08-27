@@ -10,18 +10,18 @@ from pyvmc.core.lattice cimport Lattice, CppLattice
 from pyvmc.core.measurement cimport BaseMeasurement, CppBaseMeasurement
 
 cdef extern from "MetropolisSimulation.hpp":
-    cdef cppclass CppHighlevelSimulation "MetropolisSimulation":
+    cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
         void iterate(int) nogil
         int steps_completed()
         int steps_accepted()
         int steps_fully_rejected()
 
 cdef extern from "vmc-core.hpp":
-        CppHighlevelSimulation* create_simulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]], int) except +
-        string simulation_output(CppHighlevelSimulation*)
+        CppMetropolisSimulation* create_simulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]], int) except +
+        string simulation_output(CppMetropolisSimulation*)
 
-cdef class HighlevelSimulation(object):
-    cdef CppHighlevelSimulation *thisptr
+cdef class MetropolisSimulation(object):
+    cdef CppMetropolisSimulation *thisptr
 
     def __init__(self, input_str, Lattice lattice not None, measurements, int equilibrium_steps):
         cdef unicode input_unicode = unicode(input_str)

@@ -12,7 +12,7 @@ from twisted.internet import defer, task, reactor
 ## fixme: or we pass a scheduler in advance()
 #from pyvmc.control.scheduler import default_scheduler
 
-from pyvmc.core.simulation import HighlevelSimulation
+from pyvmc.core.simulation import MetropolisSimulation
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ class Walk(object):
                 # old measurements.
                 vmc_core_input = copy(self.walk_json)
                 vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
-                self.sim = HighlevelSimulation(json.dumps(vmc_core_input),
+                self.sim = MetropolisSimulation(json.dumps(vmc_core_input),
                                                self.measurements_in_progress[0][0].measurement_plan.lattice,
                                                [m[0].measurement_plan.measurement
                                                 for m in self.measurements_in_progress],

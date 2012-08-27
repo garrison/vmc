@@ -231,19 +231,6 @@ static void set_wavefunction_positions_from_json (WavefunctionAmplitude &wf, con
         throw ParseError("given positions have zero amplitude");
 }
 
-static Json::Value positions_json_repr (const PositionArguments &r)
-{
-    Json::Value rv(Json::arrayValue);
-    for (unsigned int species = 0; species < r.get_N_species(); ++species) {
-        Json::Value sv(Json::arrayValue);
-        for (unsigned int i = 0; i < r.get_N_filled(species); ++i) {
-            sv.append(r[Particle(i, species)]);
-        }
-        rv.append(sv);
-    }
-    return rv;
-}
-
 static inline double jsoncpp_real_cast (real_t v)
 {
     // it would be really nice if jsoncpp supported "long double" directly...
@@ -577,36 +564,25 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
 std::string HighlevelSimulation::output (void) const
 {
     Json::Value json_measurement_output(Json::arrayValue);
-    Json::Value json_final_positions_output;
     const std::list<boost::shared_ptr<BaseMeasurement> > &measurements = sim->get_measurements();
     if (walk_type == "standard") {
         const StandardWalk *walk_ptr = static_cast<const StandardWalk *>(sim->get_walk_ptr());
         for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(standard_walk_measurement_json_repr(i->get(), walk_ptr->get_wavefunction()));
         }
-        json_final_positions_output = positions_json_repr(walk_ptr->get_wavefunction().get_positions());
     } else if (walk_type == "renyi-mod/possible") {
-        const RenyiModPossibleWalk *walk_ptr = static_cast<const RenyiModPossibleWalk *>(sim->get_walk_ptr());
         for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(renyi_mod_possible_walk_measurement_json_repr(i->get()));
         }
-        json_final_positions_output = Json::Value(Json::arrayValue);
-        json_final_positions_output.append(positions_json_repr(walk_ptr->get_phialpha1().get_positions()));
-        json_final_positions_output.append(positions_json_repr(walk_ptr->get_phialpha2().get_positions()));
     } else if (walk_type == "renyi-sign") {
-        const RenyiSignWalk *walk_ptr = static_cast<const RenyiSignWalk *>(sim->get_walk_ptr());
         for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
             json_measurement_output.append(renyi_sign_walk_measurement_json_repr(i->get()));
         }
-        json_final_positions_output = Json::Value(Json::arrayValue);
-        json_final_positions_output.append(positions_json_repr(walk_ptr->get_phialpha1().get_positions()));
-        json_final_positions_output.append(positions_json_repr(walk_ptr->get_phialpha2().get_positions()));
     } else {
         BOOST_ASSERT(false);
     }
 
     Json::Value json_output(Json::objectValue);
-    json_output["final-positions"] = json_final_positions_output;
     json_output["measurements"] = json_measurement_output;
     json_output["run-information"] = RunInformation::json_info();
 

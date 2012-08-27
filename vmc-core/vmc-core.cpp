@@ -305,7 +305,7 @@ static Json::Value renyi_sign_walk_measurement_json_repr (const BaseMeasurement 
     return complex_to_json_array(rsm->get());
 }
 
-HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements)
+HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps)
 {
     Json::Value json_input;
     {
@@ -443,16 +443,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
     ensure_object(json_simulation);
     const char * const json_simulation_required[] = { "walk-type", NULL };
     ensure_required(json_simulation, json_simulation_required);
-#define JSON_SIMULATION_GLOBAL_ALLOWED "walk-type", "equilibrium-steps", "initial-positions"
-
-    // determine how many steps to do
-    unsigned int equilibrium_steps = 0;
-    if (json_simulation.isMember("equilibrium-steps")) {
-        const Json::Value &json_equilibrium_steps = json_simulation["equilibrium-steps"];
-        if (!(json_equilibrium_steps.isIntegral() && json_equilibrium_steps.asInt() >= 0))
-            throw ParseError("equilibrium-steps must be a non-negative integer");
-        equilibrium_steps = json_equilibrium_steps.asUInt();
-    }
+#define JSON_SIMULATION_GLOBAL_ALLOWED "walk-type", "initial-positions"
 
     // if there are no equilibrium steps, make sure initial positions are given
     if (equilibrium_steps == 0 && !json_simulation.isMember("initial-positions"))

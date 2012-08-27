@@ -41,7 +41,7 @@ class Walk(object):
 
     def __init__(self, walk_json):
         self.walk_json = deepcopy(walk_json)
-        self.walk_json["simulation"]["equilibrium-steps"] = 500000
+        self.equilibrium_steps = 500000
         self.measurement_steps = 500000
         self.measurements_in_progress = []
         self.measurements_pending = []
@@ -82,7 +82,8 @@ class Walk(object):
                 self.sim = HighlevelSimulation(json.dumps(vmc_core_input),
                                                self.measurements_in_progress[0][0].measurement_plan.lattice,
                                                [m[0].measurement_plan.measurement
-                                                for m in self.measurements_in_progress])
+                                                for m in self.measurements_in_progress],
+                                               self.equilibrium_steps)
             self.sim.iterate(self.measurement_steps)
             output_string = self.sim.output()
         except Exception as e:

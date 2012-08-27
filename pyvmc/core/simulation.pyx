@@ -11,7 +11,7 @@ from pyvmc.core.measurement cimport BaseMeasurement, CppBaseMeasurement
 
 cdef extern from "vmc-core.hpp":
     cdef cppclass CppHighlevelSimulation "HighlevelSimulation":
-        CppHighlevelSimulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]]) except +
+        CppHighlevelSimulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]], int) except +
         void iterate(int) nogil
         string output()
 
@@ -22,7 +22,7 @@ cdef extern from "vmc-core.hpp":
 cdef class HighlevelSimulation(object):
     cdef CppHighlevelSimulation *thisptr
 
-    def __init__(self, input_str, Lattice lattice not None, measurements):
+    def __init__(self, input_str, Lattice lattice not None, measurements, int equilibrium_steps):
         cdef unicode input_unicode = unicode(input_str)
         cdef bytes input_bytes = input_unicode.encode('UTF-8')
         cdef char* input_cstr = input_bytes
@@ -36,7 +36,7 @@ cdef class HighlevelSimulation(object):
             measurement_list.push_back(deref(measurement_.sharedptr))
         if self.thisptr is not NULL:
             del self.thisptr
-        self.thisptr = new CppHighlevelSimulation(input_cstr, deref(lattice.sharedptr), measurement_list)
+        self.thisptr = new CppHighlevelSimulation(input_cstr, deref(lattice.sharedptr), measurement_list, equilibrium_steps)
 
     def __dealloc__(self):
         del self.thisptr

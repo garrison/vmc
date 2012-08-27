@@ -2,8 +2,10 @@ import abc
 import numbers
 import collections
 
+from cython.operator cimport dereference as deref
+
 from pyvmc.core.wavefunction import Wavefunction
-from pyvmc.core.subsystem import Subsystem
+from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.lattice import LatticeSite
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.utils.immutable import Immutable
@@ -29,6 +31,17 @@ class MeasurementPlan(Immutable):
     @abc.abstractmethod
     def to_json(self):
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def to_measurement(self):
+        raise NotImplementedError
+
+cdef class BaseMeasurement(object):
+    def __cinit__(self, *args, **kwargs):
+        self.sharedptr = new shared_ptr[CppBaseMeasurement]()
+
+    def __dealloc__(self):
+        del self.sharedptr
 
 class StandardWalkPlan(WalkPlan):
     __slots__ = ("wavefunction",)
@@ -85,15 +98,22 @@ class OperatorMeasurementPlan(MeasurementPlan):
         }
 
 class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
-    __slots__ = ("walk", "subsystem")
+    __slots__ = ("walk", "subsystem", "steps_per_measurement")
 
     def __init__(self, wavefunction, subsystem):
         walk = StandardWalkPlan(wavefunction)
-        super(SubsystemOccupationProbabilityMeasurementPlan, self).__init__(walk, subsystem)
+        super(SubsystemOccupationProbabilityMeasurementPlan, self).__init__(walk, subsystem, 100)
 
     def to_json(self):
         return {
             "type": "subsystem-occupation-number-probability",
             "subsystem": self.subsystem.to_json(),
-            "steps-per-measurement": 100
+            "steps-per-measurement": self.steps_per_measurement,
         }
+
+    def to_measurement(self):
+        return SubsystemOccupationNumberProbabilityMeasurement(self.steps_per_measurement, self.subsystem)
+
+cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
+    def __init__(self, int steps_per_measurement, Subsystem subsystem not None):
+        self.sharedptr.reset(new CppSubsystemOccupationNumberProbabilityMeasurement(steps_per_measurement, deref(subsystem.sharedptr)))

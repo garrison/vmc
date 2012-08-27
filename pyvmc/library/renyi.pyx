@@ -1,6 +1,6 @@
 from pyvmc.core.measurement import WalkPlan, MeasurementPlan
 from pyvmc.core.wavefunction import Wavefunction
-from pyvmc.core.subsystem import Subsystem
+from pyvmc.core.subsystem cimport Subsystem
 
 class RenyiModPossibleWalkPlan(WalkPlan):
     __slots__ = ("wavefunction", "subsystem")
@@ -27,6 +27,13 @@ class RenyiModPossibleMeasurementPlan(MeasurementPlan):
     def to_json(self):
         return {"type": "renyi-mod/possible"}
 
+    def to_measurement(self):
+        return RenyiModPossibleMeasurement()
+
+cdef class RenyiModPossibleMeasurement(BaseMeasurement):
+    def __init__(self):
+        self.sharedptr.reset(new CppRenyiModPossibleMeasurement())
+
 class RenyiSignWalkPlan(WalkPlan):
     __slots__ = ("wavefunction", "subsystem")
 
@@ -51,3 +58,10 @@ class RenyiSignMeasurementPlan(MeasurementPlan):
 
     def to_json(self):
         return {"type": "renyi-sign"}
+
+    def to_measurement(self):
+        return RenyiSignMeasurement()
+
+cdef class RenyiSignMeasurement(BaseMeasurement):
+    def __init__(self):
+        self.sharedptr.reset(new CppRenyiSignMeasurement())

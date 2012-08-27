@@ -7,6 +7,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "Measurement.hpp"
+#include "BinnedEstimate.hpp"
 #include "StandardWalk.hpp"
 #include "WavefunctionAmplitude.hpp"
 #include "Subsystem.hpp"

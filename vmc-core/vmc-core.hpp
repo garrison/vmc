@@ -14,7 +14,7 @@
 class HighlevelSimulation : boost::noncopyable
 {
 public:
-    HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice);
+    HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements);
 
     void iterate (unsigned int sweeps)
         {

@@ -39,6 +39,7 @@ public:
     void initialize (const Walk &walk)
         {
             BOOST_ASSERT(!initialized);
+            BOOST_ASSERT(this->is_valid_walk(walk));
             initialize_(*boost::polymorphic_downcast<const Walk_T *>(&walk));
             initialized = true;
         }
@@ -68,7 +69,8 @@ public:
 
     bool is_valid_walk (const Walk &walk)
         {
-            return bool(dynamic_cast<const Walk_T *>(&walk));
+            const Walk_T *walkptr = dynamic_cast<const Walk_T *>(&walk);
+            return walkptr && is_valid_walk_(*walkptr);
         }
 
 protected:
@@ -165,6 +167,12 @@ private:
         {
             // by default, simply call measure_()
             measure_(walk);
+        }
+
+    virtual bool is_valid_walk_ (const Walk_T &walk)
+        {
+            // no additional constraints by default
+            return true;
         }
 
     const unsigned int m_steps_per_measurement;

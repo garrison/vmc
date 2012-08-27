@@ -126,22 +126,6 @@ static void ensure_object_with_type_field_as_string (const Json::Value &jsonvalu
     ensure_string(jsonvalue["type"]);
 }
 
-static unsigned int parse_uint (const Json::Value &uint)
-{
-    if (!uint.isIntegral() || uint.asInt() < 0)
-        throw ParseError("unsigned integer expected");
-    return uint.asUInt();
-}
-
-static unsigned int parse_uint (const Json::Value &uint, unsigned int lowest_out_of_range)
-{
-    const unsigned int rv = parse_uint(uint);
-    // fixme: this error message is not very descriptive ...
-    if (rv >= lowest_out_of_range)
-        throw ParseError("expecting an unsigned integer in a certain range");
-    return rv;
-}
-
 static complex_t parse_complex (const Json::Value &complex)
 {
     ensure_array(complex, 2);
@@ -160,24 +144,6 @@ static double json_get_double (const Json::Value &jsonvalue, const char *key, do
     if (!jsondouble.isNumeric())
         throw ParseError("number expected");
     return jsondouble.asDouble();
-}
-
-static unsigned int parse_json_steps_per_measurement (const Json::Value &json_measurement_def)
-{
-    if (json_measurement_def.isMember("steps-per-measurement")) {
-        const Json::Value &spm = json_measurement_def["steps-per-measurement"];
-        if (!(spm.isIntegral() && spm.asInt() > 0))
-            throw ParseError("invalid steps-per-measurement value");
-        return spm.asUInt();
-    } else {
-        return 1;
-    }
-}
-
-static void ensure_single_step_per_measurement (const Json::Value &json_measurement_def)
-{
-    if (parse_json_steps_per_measurement(json_measurement_def) != 1)
-        throw ParseError("given measurement requires a measurement on each step");
 }
 
 static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_definitions (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice> &lattice)
@@ -208,18 +174,6 @@ static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_defi
     return boost::make_shared<OrbitalDefinitions>(orbitals, lattice);
 }
 
-static BoundaryConditions parse_json_boundary_conditions (const Json::Value &json_bcs, unsigned int n_dimensions)
-{
-    ensure_array(json_bcs, n_dimensions);
-    BoundaryConditions boundary_conditions(n_dimensions);
-    for (unsigned int i = 0; i < n_dimensions; ++i) {
-        if (!(json_bcs[i].isIntegral() && json_bcs[i].asInt() > 0))
-            throw ParseError("invalid boundary condition specifier");
-        boundary_conditions[i] = BoundaryCondition(json_bcs[i].asUInt());
-    }
-    return boundary_conditions;
-}
-
 static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice > &lattice)
 {
     return parse_json_orbitals_from_definitions(json_orbitals, lattice);
@@ -246,87 +200,6 @@ static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Valu
         return boost::make_shared<SimpleSubsystem>(lengths);
     } else {
         throw ParseError("invalid subsystem type");
-    }
-}
-
-static boost::shared_ptr<Measurement<StandardWalk> > parse_standard_walk_measurement_definition (const Json::Value &json_measurement_def, const WavefunctionAmplitude &wf, const boost::shared_ptr<const Lattice> &lattice)
-{
-    const unsigned int N_species = wf.get_positions().get_N_species();
-    ensure_object_with_type_field_as_string(json_measurement_def);
-    if (std::strcmp(json_measurement_def["type"].asCString(), "operator") == 0) {
-        const char * const json_operator_required[] = { "type", "hops", NULL };
-        const char * const json_operator_allowed[] = { "type", "hops", "sum", "boundary-conditions", "steps-per-measurement", NULL };
-        ensure_required(json_measurement_def, json_operator_required);
-        ensure_only(json_measurement_def, json_operator_allowed);
-        unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
-        const Json::Value &json_hops = json_measurement_def["hops"];
-        ensure_array(json_hops);
-        std::vector<SiteHop> site_hop_v;
-        for (unsigned int i = 0; i < json_hops.size(); ++i) {
-            const Json::Value &json_current_hop = json_hops[i];
-            ensure_object(json_current_hop);
-            const char * const json_current_hop_required[] = { "source", "destination", "species", NULL };
-            ensure_required(json_current_hop, json_current_hop_required);
-            ensure_only(json_current_hop, json_current_hop_required);
-            const unsigned int N_sites = wf.get_positions().get_N_sites();
-            const unsigned int N_species = wf.get_positions().get_N_species();
-            const LatticeSite source(lattice->site_from_index(parse_uint(json_current_hop["source"], N_sites)));
-            const LatticeSite destination(lattice->site_from_index(parse_uint(json_current_hop["destination"], N_sites)));
-            const unsigned int species = parse_uint(json_current_hop["species"], N_species);
-            site_hop_v.push_back(SiteHop(source, destination, species));
-        }
-        if (!ParticleOperator::is_valid(site_hop_v, *lattice, N_species))
-            throw ParseError("invalid operator provided for operator measurement");
-        bool sum = false;
-        if (json_measurement_def.isMember("sum")) {
-            if (!json_measurement_def["sum"].isBool())
-                throw ParseError("boolean expected");
-            sum = json_measurement_def["sum"].asBool();
-        }
-        boost::shared_ptr<const BoundaryConditions> bcs;
-        if (json_measurement_def.isMember("boundary-conditions") && !json_measurement_def["boundary-conditions"].isNull()) {
-            if (!sum)
-                throw ParseError("if boundary conditions are given for an operator, it must be a sum over sites");
-            bcs.reset(new BoundaryConditions(parse_json_boundary_conditions(json_measurement_def["boundary-conditions"],
-                                                                            lattice->n_dimensions())));
-        }
-        return boost::make_shared<OperatorMeasurement>(steps_per_measurement, ParticleOperator(site_hop_v, lattice), sum, bcs.get());
-    } else if (std::strcmp(json_measurement_def["type"].asCString(), "subsystem-occupation-number-probability") == 0) {
-        const char * const json_subsystem_occupation_required[] = { "type", "subsystem", NULL };
-        const char * const json_subsystem_occupation_allowed[] = { "type", "subsystem", "steps-per-measurement", NULL };
-        ensure_required(json_measurement_def, json_subsystem_occupation_required);
-        ensure_only(json_measurement_def, json_subsystem_occupation_allowed);
-        unsigned int steps_per_measurement = parse_json_steps_per_measurement(json_measurement_def);
-        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_measurement_def["subsystem"], *lattice));
-        return boost::make_shared<SubsystemOccupationNumberProbabilityMeasurement>(steps_per_measurement, subsystem);
-    } else {
-        throw ParseError("invalid standard walk measurement type");
-    }
-}
-
-static boost::shared_ptr<Measurement<RenyiModPossibleWalk> > parse_renyi_mod_possible_walk_measurement_definition (const Json::Value &json_measurement_def)
-{
-    ensure_object_with_type_field_as_string(json_measurement_def);
-    if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-mod/possible") == 0) {
-        const char * const json_renyi_mod_possible_allowed[] = { "type", "steps-per-measurement", NULL };
-        ensure_only(json_measurement_def, json_renyi_mod_possible_allowed);
-        ensure_single_step_per_measurement(json_measurement_def);
-        return boost::make_shared<RenyiModPossibleMeasurement>();
-    } else {
-        throw ParseError("invalid renyi-mod/possible walk measurement type");
-    }
-}
-
-static boost::shared_ptr<Measurement<RenyiSignWalk> > parse_renyi_sign_walk_measurement_definition (const Json::Value &json_measurement_def)
-{
-    ensure_object_with_type_field_as_string(json_measurement_def);
-    if (std::strcmp(json_measurement_def["type"].asCString(), "renyi-sign") == 0) {
-        const char * const json_renyi_sign_allowed[] = { "type", "steps-per-measurement", NULL };
-        ensure_only(json_measurement_def, json_renyi_sign_allowed);
-        ensure_single_step_per_measurement(json_measurement_def);
-        return boost::make_shared<RenyiSignMeasurement>();
-    } else {
-        throw ParseError("invalid renyi-sign walk measurement type");
     }
 }
 
@@ -454,7 +327,7 @@ static Json::Value renyi_sign_walk_measurement_json_repr (const BaseMeasurement 
     return complex_to_json_array(rsm->get());
 }
 
-HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice)
+HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements)
 {
     Json::Value json_input;
     {
@@ -615,9 +488,7 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // STANDARD WALK
 
         // ensure correct json properties are given
-        const char * const json_simulation_additional_required[] = { "measurements", NULL };
-        ensure_required(json_simulation, json_simulation_additional_required);
-        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "measurements", NULL };
+        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, NULL };
         ensure_only(json_simulation, json_simulation_only);
 
         // set up initial positions of wavefunction
@@ -631,14 +502,6 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
                 throw ParseError("could not find a configuration with nonzero amplitude");
         }
 
-        // set up measurement(s)
-        const Json::Value &json_measurements = json_simulation["measurements"];
-        ensure_array(json_measurements);
-        std::list<boost::shared_ptr<BaseMeasurement> > measurements;
-        for (unsigned int i = 0; i < json_measurements.size(); ++i) {
-            measurements.push_back(parse_standard_walk_measurement_definition(json_measurements[i], *wf, lattice));
-        }
-
         // set up and perform walk
         std::auto_ptr<Walk> walk(new StandardWalk(wf));
         sim.reset(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
@@ -648,9 +511,9 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // RENYI MOD/POSSIBLE WALK
 
         // ensure correct json properties are given
-        const char * const json_simulation_additional_required[] = { "subsystem", "measurements", NULL };
+        const char * const json_simulation_additional_required[] = { "subsystem", NULL };
         ensure_required(json_simulation, json_simulation_additional_required);
-        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "subsystem", "measurements", NULL };
+        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "subsystem", NULL };
         ensure_only(json_simulation, json_simulation_only);
 
         // set up subsystem
@@ -672,14 +535,6 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
             // number of particles in the subsystem.  So for now we just
             // initialize both copies with the same exact positions.
             wf2 = wf;
-        }
-
-        // set up measurement(s)
-        const Json::Value &json_measurements = json_simulation["measurements"];
-        ensure_array(json_measurements);
-        std::list<boost::shared_ptr<BaseMeasurement> > measurements;
-        for (unsigned int i = 0; i < json_measurements.size(); ++i) {
-            measurements.push_back(parse_renyi_mod_possible_walk_measurement_definition(json_measurements[i]));
         }
 
         // set up and perform walk
@@ -691,9 +546,9 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
         // RENYI SIGN WALK
 
         // ensure correct json properties are given
-        const char * const json_simulation_additional_required[] = { "subsystem", "measurements", NULL };
+        const char * const json_simulation_additional_required[] = { "subsystem", NULL };
         ensure_required(json_simulation, json_simulation_additional_required);
-        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "subsystem", "measurements", NULL };
+        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "subsystem", NULL };
         ensure_only(json_simulation, json_simulation_only);
 
         // set up subsystem
@@ -715,14 +570,6 @@ HighlevelSimulation::HighlevelSimulation (const char *json_input_str, const boos
             // number of particles in the subsystem.  So for now we just
             // initialize both copies with the same exact positions.
             wf2 = wf;
-        }
-
-        // set up measurement(s)
-        const Json::Value &json_measurements = json_simulation["measurements"];
-        ensure_array(json_measurements);
-        std::list<boost::shared_ptr<BaseMeasurement> > measurements;
-        for (unsigned int i = 0; i < json_measurements.size(); ++i) {
-            measurements.push_back(parse_renyi_sign_walk_measurement_definition(json_measurements[i]));
         }
 
         // set up and perform walk

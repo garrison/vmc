@@ -71,6 +71,13 @@ private:
      */
     void repeat_measurement_ (const StandardWalk &walk);
 
+    bool is_valid_walk_ (const StandardWalk &walk)
+        {
+            return ParticleOperator::is_valid(m_operator.hopv,
+                                              walk.get_wavefunction().get_lattice(),
+                                              walk.get_wavefunction().get_positions().get_N_species());
+        }
+
     const ParticleOperator m_operator;
     bool sum;
     const std::auto_ptr<const BoundaryConditions> bcs;

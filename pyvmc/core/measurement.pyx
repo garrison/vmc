@@ -6,7 +6,7 @@ from cython.operator cimport dereference as deref
 
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.subsystem cimport Subsystem
-from pyvmc.core.lattice import LatticeSite
+from pyvmc.core.lattice cimport Lattice, LatticeSite
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.utils.immutable import Immutable
 
@@ -96,6 +96,33 @@ class OperatorMeasurementPlan(MeasurementPlan):
             "boundary-conditions": self.boundary_conditions,
             "steps-per-measurement": 1,
         }
+
+    def to_measurement(self):
+        return OperatorMeasurement(1, self.hops, self.sum, self.boundary_conditions, self.walk.wavefunction.lattice)
+
+cdef class OperatorMeasurement(BaseMeasurement):
+    def __init__(self, int steps_per_measurement, hops, sum, bcs, Lattice lattice not None):
+        cdef CppBoundaryConditions *cppbcs = NULL
+        cdef CppBoundaryConditions cppbcs_
+
+        cdef vector[CppSiteHop] hopv
+        cdef LatticeSite src, dest
+        for hop in hops:
+            assert isinstance(hop, SiteHop)
+            src = hop.source
+            dest = hop.destination
+            hopv.push_back(CppSiteHop(deref(src.thisptr), deref(dest.thisptr), hop.species))
+        cdef CppParticleOperator *operator
+        operator = new CppParticleOperator(hopv, deref(lattice.sharedptr))
+        try:
+            if bcs:
+                for bc in bcs:
+                    # NOTE: we store the fraction's inverse in python vs c++ code
+                    cppbcs_.push_back(CppBoundaryCondition(boost_rational[int](bc.denominator, bc.numerator)))
+                cppbcs = &cppbcs_
+            self.sharedptr.reset(new CppOperatorMeasurement(steps_per_measurement, deref(operator), sum, cppbcs))
+        finally:
+            del operator
 
 class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
     __slots__ = ("walk", "subsystem", "steps_per_measurement")

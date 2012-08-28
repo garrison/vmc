@@ -38,11 +38,11 @@ class TmpMeasurementPlan(object):
 class Walk(object):
     equilibrium = False
     sim = None
+    measurement_steps_completed = 0
 
     def __init__(self, walk_json):
         self.walk_json = deepcopy(walk_json)
         self.equilibrium_steps = 500000
-        self.measurement_steps = 500000
         self.measurements_in_progress = []
         self.measurements_pending = []
         self.waiting_on_walk = False
@@ -84,7 +84,11 @@ class Walk(object):
                                                [m[0].measurement_plan.measurement_plan.to_measurement()
                                                 for m in self.measurements_in_progress],
                                                self.equilibrium_steps)
-            self.sim.iterate(self.measurement_steps)
+            # the following will always result in the number of steps completed
+            # being a power of two
+            steps = self.measurement_steps_completed or 512
+            self.sim.iterate(steps)
+            self.measurement_steps_completed += steps
             output_string = self.sim.output()
         except Exception as e:
             self._advancement_failed(None)

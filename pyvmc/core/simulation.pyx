@@ -1,6 +1,5 @@
 from cython.operator cimport dereference as deref
 from libc.string cimport const_char
-from libcpp.string cimport string
 from libcpp.list cimport list as stdlist
 
 import collections
@@ -18,7 +17,6 @@ cdef extern from "MetropolisSimulation.hpp":
 
 cdef extern from "vmc-core.hpp":
         CppMetropolisSimulation* create_simulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]], int) except +
-        string simulation_output(CppMetropolisSimulation*)
 
 cdef class MetropolisSimulation(object):
     cdef CppMetropolisSimulation *thisptr
@@ -44,15 +42,6 @@ cdef class MetropolisSimulation(object):
 
     def iterate(self, int sweeps):
         self.thisptr.iterate(sweeps)
-
-    def output(self):
-        cdef string std_string = simulation_output(self.thisptr)
-        # CYTHON-LIMITATION: fixme: casting away constness on the next line
-        # seems to be the only way to get it to work, as const_char* doesn't
-        # have a "decode" method or subscript operator, which we use on the
-        # following line.
-        cdef char* c_string = <char*>std_string.c_str()
-        return c_string[:std_string.size()].decode('UTF-8', 'strict')
 
     def __dealloc__(self):
         if self.thisptr is not NULL:

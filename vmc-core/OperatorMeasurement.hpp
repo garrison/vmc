@@ -48,11 +48,11 @@ public:
         }
 
     /**
-     * Returns the operator measurement so far for a given vector
+     * Returns the operator measurement estimate for a given vector
      */
-    amplitude_t get (void) const
+    const BinnedEstimate<amplitude_t> & get_estimate (void) const
         {
-            return estimate.get_result();
+            return estimate;
         }
 
 private:

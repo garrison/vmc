@@ -202,80 +202,6 @@ static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Valu
     }
 }
 
-static inline double jsoncpp_real_cast (real_t v)
-{
-    // it would be really nice if jsoncpp supported "long double" directly...
-    // (we use this cast explicitly so that if we ever have real support for
-    // long double, we can add it by grepping for calls of this function)
-    return v;
-}
-
-static Json::Value complex_to_json_array (const complex_t &v)
-{
-    Json::Value rv(Json::arrayValue);
-    rv.append(Json::Value(jsoncpp_real_cast(std::real(v))));
-    rv.append(Json::Value(jsoncpp_real_cast(std::imag(v))));
-    return rv;
-}
-
-static Json::Value standard_walk_measurement_json_repr (const BaseMeasurement *measurement_ptr, const WavefunctionAmplitude &wf)
-{
-    const OperatorMeasurement *om = dynamic_cast<const OperatorMeasurement *>(measurement_ptr);
-    const SubsystemOccupationNumberProbabilityMeasurement *sonpm = dynamic_cast<const SubsystemOccupationNumberProbabilityMeasurement *>(measurement_ptr);
-    if (om) {
-        // operator measurement
-        return Json::Value(complex_to_json_array(om->get()));
-    } else if (sonpm) {
-        // subsystem occupation number probability measurement
-        const PositionArguments &r = wf.get_positions();
-        Json::Value rv(Json::arrayValue);
-        std::vector<unsigned int> occupation(r.get_N_species());
-        Json::Value current_pair(Json::arrayValue);
-        current_pair.resize(2);
-        current_pair[0].resize(occupation.size());
-        bool done = false;
-        while (!done) {
-            // append to json the current occupation probability (if nonzero)
-            real_t val = sonpm->get(occupation);
-            if (val != real_t(0)) {
-                for (unsigned int i = 0; i < occupation.size(); ++i)
-                    current_pair[0][i] = occupation[i];
-                current_pair[1] = jsoncpp_real_cast(val);
-                rv.append(current_pair);
-            }
-
-            // advance to the next occupation we should consider
-            for (unsigned int j = 0; j < occupation.size(); ++j) {
-                ++occupation[j];
-                if (occupation[j] == r.get_N_filled(j)) {
-                    occupation[j] = 0;
-                    if (j == occupation.size() - 1)
-                        done = true;
-                } else {
-                    break;
-                }
-            }
-        }
-        return rv;
-    } else {
-        // should not be reached
-        BOOST_ASSERT(false);
-        return Json::Value();
-    }
-}
-
-static Json::Value renyi_mod_possible_walk_measurement_json_repr (const BaseMeasurement *measurement_ptr)
-{
-    const RenyiModPossibleMeasurement *rmpm = boost::polymorphic_downcast<const RenyiModPossibleMeasurement*>(measurement_ptr);
-    return Json::Value(jsoncpp_real_cast(rmpm->get()));
-}
-
-static Json::Value renyi_sign_walk_measurement_json_repr (const BaseMeasurement *measurement_ptr)
-{
-    const RenyiSignMeasurement *rsm = boost::polymorphic_downcast<const RenyiSignMeasurement*>(measurement_ptr);
-    return complex_to_json_array(rsm->get());
-}
-
 MetropolisSimulation * create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps)
 {
     Json::Value json_input;
@@ -495,30 +421,4 @@ MetropolisSimulation * create_simulation (const char *json_input_str, const boos
     }
 
     return new MetropolisSimulation(walk, measurements, equilibrium_steps, rng);
-}
-
-std::string simulation_output (const MetropolisSimulation *sim)
-{
-    Json::Value json_measurement_output(Json::arrayValue);
-    const std::list<boost::shared_ptr<BaseMeasurement> > &measurements = sim->get_measurements();
-    if (dynamic_cast<const StandardWalk *>(sim->get_walk_ptr())) {
-        const StandardWalk *walk_ptr = static_cast<const StandardWalk *>(sim->get_walk_ptr());
-        for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
-            json_measurement_output.append(standard_walk_measurement_json_repr(i->get(), walk_ptr->get_wavefunction()));
-        }
-    } else if (dynamic_cast<const RenyiModPossibleWalk *>(sim->get_walk_ptr())) {
-        for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
-            json_measurement_output.append(renyi_mod_possible_walk_measurement_json_repr(i->get()));
-        }
-    } else if (dynamic_cast<const RenyiSignWalk *>(sim->get_walk_ptr())) {
-        for (std::list<boost::shared_ptr<BaseMeasurement> >::const_iterator i = measurements.begin(); i != measurements.end(); ++i) {
-            json_measurement_output.append(renyi_sign_walk_measurement_json_repr(i->get()));
-        }
-    } else {
-        BOOST_ASSERT(false);
-    }
-
-    std::ostringstream oss(std::ostringstream::out);
-    oss << json_measurement_output;
-    return oss.str();
 }

@@ -29,7 +29,7 @@ public:
         }
 
     /**
-     * Get the probability so far for a given occupation
+     * Get the probability estimate so far for a given occupation
      *
      * @param occupation a vector, each item of which represents a subsystem
      * occupation count for the corresponding species
@@ -40,7 +40,7 @@ public:
      * it's best to iterate through the first item of the vector, then the
      * second, etc.
      */
-    real_t get (const std::vector<unsigned int> &occupation) const
+    const BinnedEstimate<unsigned int> & get_estimate (const std::vector<unsigned int> &occupation) const
         {
             BOOST_ASSERT(occupation.size() == offsets.size());
 
@@ -56,7 +56,12 @@ public:
             // r.get_N_filled(species)
             BOOST_ASSERT(offset < estimate.size());
 
-            return estimate[offset].get_result();
+            return estimate[offset];
+        }
+
+    const std::vector<unsigned int> & get_bounds (void) const
+        {
+            return bounds;
         }
 
 private:
@@ -66,14 +71,16 @@ private:
 
             const PositionArguments &r = walk.get_wavefunction().get_positions();
 
-            // set up the `offsets` and `estimate` vectors
+            // set up the `offsets`, `bounds`, and `estimate` vectors
             offsets.resize(r.get_N_species());
+            bounds.resize(r.get_N_species());
             unsigned int n = 1;
             for (unsigned int i = 0; i < r.get_N_species(); ++i) {
                 offsets[i] = n;
                 // we need (N_filled + 1) slots since the number in the
                 // subsystem will be in the range 0 .. N_filled
                 n *= r.get_N_filled(i) + 1;
+                bounds[i] = r.get_N_filled(i);
             }
             estimate.resize(n);
         }
@@ -118,7 +125,7 @@ private:
 
     const boost::shared_ptr<const Subsystem> subsystem;
     std::vector<BinnedEstimate<unsigned int> > estimate;
-    std::vector<unsigned int> offsets;
+    std::vector<unsigned int> offsets, bounds;
     unsigned int last_offset; // saves us from recalculating the offset on repeat measurements
 };
 

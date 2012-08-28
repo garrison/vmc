@@ -1,6 +1,8 @@
 from pyvmc.core.measurement import WalkPlan, MeasurementPlan
+from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.subsystem cimport Subsystem
+from pyvmc.core cimport complex_t
 
 class RenyiModPossibleWalkPlan(WalkPlan):
     __slots__ = ("wavefunction", "subsystem")
@@ -34,6 +36,9 @@ cdef class RenyiModPossibleMeasurement(BaseMeasurement):
     def __init__(self):
         self.sharedptr.reset(new CppRenyiModPossibleMeasurement())
 
+    def get_result(self):
+        return (<CppRenyiModPossibleMeasurement*>self.sharedptr.get()).get_estimate().get_result()
+
 class RenyiSignWalkPlan(WalkPlan):
     __slots__ = ("wavefunction", "subsystem")
 
@@ -65,3 +70,7 @@ class RenyiSignMeasurementPlan(MeasurementPlan):
 cdef class RenyiSignMeasurement(BaseMeasurement):
     def __init__(self):
         self.sharedptr.reset(new CppRenyiSignMeasurement())
+
+    def get_result(self):
+        cdef complex_t c = (<CppRenyiSignMeasurement*>self.sharedptr.get()).get_estimate().get_result()
+        return complex(c.real(), c.imag())

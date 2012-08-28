@@ -8,11 +8,6 @@ from pyvmc.tmp.universe import TmpMeasurementPlan, get_default_universe
 # there are two types of goals: ones which are measured directly in the VMC,
 # and ones which depend on other goals
 
-#fixme
-def json_to_complex(value):
-    assert len(value) == 2
-    return value[0] + 1j * value[1]
-
 class Goal(object):
     def __init__(self, independent, universe):
         self.n_independent = independent
@@ -82,7 +77,8 @@ class RenyiSign(Goal):
 
     @staticmethod
     def parse_result(result_json):
-        return json_to_complex(result_json)
+        assert isinstance(result_json, complex)
+        return result_json
 
     def get_renyi_sign(self, index):
         from math import log
@@ -203,7 +199,7 @@ class Green(Goal):
         for basis_index, bi_result in enumerate(result_json):
             assert isinstance(bi_result, list)
             for position_index, value in enumerate(bi_result):
-                rv[Point(basis_index, position_index)] = json_to_complex(value)
+                rv[Point(basis_index, position_index)] = value
         return rv
 
 class Operator(Goal):
@@ -220,7 +216,8 @@ class Operator(Goal):
 
     @staticmethod
     def parse_result(result_json):
-        return json_to_complex(result_json)
+        assert isinstance(result_json, complex)
+        return result_json
 
     def get_expectation_value(self, index):
         return self.measurement_set[index].get_aggregate_result()

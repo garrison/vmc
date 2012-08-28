@@ -48,15 +48,13 @@ class Walk(object):
         self.waiting_on_walk = False
 
     def _advancement_completed(self, args):
-        output, err = args
-        output = json.loads(output)
         logger.info("monte carlo stats: %s", {
             "steps-completed": self.sim.steps_completed,
             "steps-accepted": self.sim.steps_accepted,
             "steps-fully-rejected": self.sim.steps_fully_rejected,
         })
-        for result_json, (measurement, deferred) in zip(output, self.measurements_in_progress):
-            deferred.callback((result_json,))
+        for measurement, deferred in self.measurements_in_progress:
+            deferred.callback((measurement.measurement.get_result(),))
         del self.measurements_in_progress[:]
         if self.measurements_pending:
             reactor.callLater(0, self._advance_pending_measurements)
@@ -81,19 +79,17 @@ class Walk(object):
                 vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
                 self.sim = MetropolisSimulation(json.dumps(vmc_core_input),
                                                self.measurements_in_progress[0][0].measurement_plan.lattice,
-                                               [m[0].measurement_plan.measurement_plan.to_measurement()
-                                                for m in self.measurements_in_progress],
+                                               [m[0].measurement for m in self.measurements_in_progress],
                                                self.equilibrium_steps)
             # the following will always result in the number of steps completed
             # being a power of two
             steps = self.measurement_steps_completed or 512
             self.sim.iterate(steps)
             self.measurement_steps_completed += steps
-            output_string = self.sim.output()
         except Exception as e:
             self._advancement_failed(None)
         else:
-            self._advancement_completed((output_string, None))
+            self._advancement_completed(None)
 
     def advance_measurement(self, measurement):
         assert (measurement not in self.measurements_pending)
@@ -130,6 +126,7 @@ class WalkSet(object):
 class Measurement(object):
     def __init__(self, measurement_plan):
         self.measurement_plan = measurement_plan
+        self.measurement = measurement_plan.measurement_plan.to_measurement()
         self.result = None
         self.has_been_advanced = False
 

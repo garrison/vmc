@@ -28,11 +28,11 @@ public:
         }
 
     /**
-     * Returns the current value of the measurement
+     * Returns the current estimate of the measurement
      */
-    amplitude_t get (void) const
+    const BinnedEstimate<amplitude_t> & get_estimate (void) const
         {
-            return estimate.get_result();
+            return estimate;
         }
 
 private:

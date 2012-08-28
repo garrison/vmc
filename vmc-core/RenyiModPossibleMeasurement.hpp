@@ -23,11 +23,11 @@ public:
         }
 
     /**
-     * Returns the current value of the measurement
+     * Returns the current estimate of the measurement
      */
-    real_t get (void) const
+    const BinnedEstimate<real_t> & get_estimate (void) const
         {
-            return estimate.get_result();
+            return estimate;
         }
 
 private:

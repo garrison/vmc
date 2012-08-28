@@ -4,6 +4,8 @@ import collections
 
 from cython.operator cimport dereference as deref
 
+import numpy
+
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.lattice cimport Lattice, LatticeSite
@@ -124,6 +126,10 @@ cdef class OperatorMeasurement(BaseMeasurement):
         finally:
             del operator
 
+    def get_result(self):
+        cdef complex_t c = (<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate().get_result()
+        return complex(c.real(), c.imag())
+
 class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
     __slots__ = ("walk", "subsystem", "steps_per_measurement")
 
@@ -144,3 +150,20 @@ class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
 cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
     def __init__(self, int steps_per_measurement, Subsystem subsystem not None):
         self.sharedptr.reset(new CppSubsystemOccupationNumberProbabilityMeasurement(steps_per_measurement, deref(subsystem.sharedptr)))
+
+    def get_result(self):
+        cdef int i
+        # fixme: in cython 0.17 we will be able to do this iteration directly
+        bounds = []
+        cdef CppOccupationBounds *cppbounds = &(<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_bounds()
+        for i in xrange(cppbounds.size()):
+            # the +1 is because we want to range from 0 to N inclusive
+            bounds.append(deref(cppbounds)[i] + 1)
+        cdef vector[unsigned int] occ
+        occ.resize(len(bounds))
+        rv = []
+        for occupation in numpy.ndindex(*bounds):
+            for i in xrange(len(bounds)):
+                occ[i] = occupation[i]
+            rv.append((tuple(occupation), (<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ).get_result()))
+        return rv

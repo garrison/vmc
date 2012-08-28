@@ -30,7 +30,7 @@ class TmpMeasurementPlan(object):
         self.walk = {}
         self.walk["system"] = deepcopy(measurement_plan.walk.wavefunction.to_json())
         self.walk["simulation"] = deepcopy(measurement_plan.walk.to_json())
-        self.measurement = measurement_plan.to_measurement()
+        self.measurement_plan = measurement_plan
         self.hashable = hashable_json([self.walk, measurement_plan])
         self.hashable_walk = hashable_json(self.walk)
         self.parse_result = parse_result  # fixme (?)
@@ -81,7 +81,7 @@ class Walk(object):
                 vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
                 self.sim = MetropolisSimulation(json.dumps(vmc_core_input),
                                                self.measurements_in_progress[0][0].measurement_plan.lattice,
-                                               [m[0].measurement_plan.measurement
+                                               [m[0].measurement_plan.measurement_plan.to_measurement()
                                                 for m in self.measurements_in_progress],
                                                self.equilibrium_steps)
             self.sim.iterate(self.measurement_steps)

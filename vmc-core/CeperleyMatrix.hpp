@@ -399,21 +399,25 @@ public:
         {
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
-            // XXX: for now this method only supports single-particle updates
-            BOOST_ASSERT(pending_index_m.size() == 1);
+            // XXX: for now this method does a full inverse calculation unless
+            // it is a single particle update
+            if (pending_index_m.size() == 1) {
+                if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
+                    // same as above in finish_row_update(): update the inverse
+                    // matrix
+                    Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index_m[0]));
+                    invmat -= ((invmat * mat.col(pending_index_m[0])) * (invmat.row(pending_index_m[0]) / detrat)).eval();
+                    invmat.row(pending_index_m[0]) = oldrow / detrat;
+                }
 
-            if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                // same as above in finish_row_update(): update the inverse
-                // matrix
-                Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index_m[0]));
-                invmat -= ((invmat * mat.col(pending_index_m[0])) * (invmat.row(pending_index_m[0]) / detrat)).eval();
-                invmat.row(pending_index_m[0]) = oldrow / detrat;
+                nullity_lower_bound = new_nullity_lower_bound;
+                if (inverse_recalculated_for_current_update)
+                    invmat = new_invmat;
+                inverse_recalculated_for_current_update = false;
+            } else {
+                calculate_inverse(false);
             }
 
-            nullity_lower_bound = new_nullity_lower_bound;
-            if (inverse_recalculated_for_current_update)
-                invmat = new_invmat;
-            inverse_recalculated_for_current_update = false;
             current_state = READY_FOR_UPDATE;
 
 #ifdef VMC_CAREFUL
@@ -516,7 +520,6 @@ public:
      */
     double compute_inverse_matrix_error (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &target_invmat) const
         {
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             return (mat * target_invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(mat.rows(), mat.cols())).array().abs().sum();
         }
 

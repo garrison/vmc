@@ -121,7 +121,8 @@ We are currently generalizing things so that multi-particle moves can
 be made.  Instead of doing this all at once, we are making progress in
 phases.  At the moment the following things are broken:
 
-* finish_update() can only be called with a single particle move
+* If finish_update() is called on a multi-particle move, the inverse
+  matrix will be recalculated from scratch
 
 * Renyi stuff assumes only single particle moves
 

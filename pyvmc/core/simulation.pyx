@@ -38,14 +38,11 @@ cdef class MetropolisSimulation(object):
         self.thisptr = create_simulation(input_cstr, deref(lattice.sharedptr), measurement_list, equilibrium_steps)
 
     def __dealloc__(self):
-        del self.thisptr
+        if self.thisptr is not NULL:
+            del self.thisptr
 
     def iterate(self, int sweeps):
         self.thisptr.iterate(sweeps)
-
-    def __dealloc__(self):
-        if self.thisptr is not NULL:
-            del self.thisptr
 
     property steps_completed:
         def __get__(self):

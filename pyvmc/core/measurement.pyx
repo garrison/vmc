@@ -39,11 +39,7 @@ class MeasurementPlan(Immutable):
         raise NotImplementedError
 
 cdef class BaseMeasurement(object):
-    def __cinit__(self, *args, **kwargs):
-        self.sharedptr = new shared_ptr[CppBaseMeasurement]()
-
-    def __dealloc__(self):
-        del self.sharedptr
+    pass
 
 class StandardWalkPlan(WalkPlan):
     __slots__ = ("wavefunction",)
@@ -115,7 +111,7 @@ cdef class OperatorMeasurement(BaseMeasurement):
             dest = hop.destination
             hopv.push_back(CppSiteHop(deref(src.thisptr), deref(dest.thisptr), hop.species))
         cdef CppParticleOperator *operator
-        operator = new CppParticleOperator(hopv, deref(lattice.sharedptr))
+        operator = new CppParticleOperator(hopv, lattice.sharedptr)
         try:
             if bcs:
                 for bc in bcs:
@@ -149,7 +145,7 @@ class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
 
 cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
     def __init__(self, int steps_per_measurement, Subsystem subsystem not None):
-        self.sharedptr.reset(new CppSubsystemOccupationNumberProbabilityMeasurement(steps_per_measurement, deref(subsystem.sharedptr)))
+        self.sharedptr.reset(new CppSubsystemOccupationNumberProbabilityMeasurement(steps_per_measurement, subsystem.sharedptr))
 
     def get_result(self):
         cdef int i

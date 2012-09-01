@@ -16,12 +16,6 @@ cdef class Subsystem(object):
 
     #__metaclass__ = abc.ABCMeta
 
-    def __cinit__(self, *args, **kwargs):
-        self.sharedptr = new shared_ptr[CppSubsystem]()
-
-    def __dealloc__(self):
-        del self.sharedptr
-
     def __init__(self, lattice):
         assert isinstance(lattice, Lattice)
         self.lattice_ = lattice

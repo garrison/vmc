@@ -40,4 +40,4 @@ cdef class LatticeSite(object):
     cdef CppLatticeSite *thisptr
 
 cdef class Lattice(object):
-    cdef shared_ptr[CppLattice] *sharedptr
+    cdef shared_ptr[CppLattice] sharedptr

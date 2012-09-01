@@ -17,4 +17,4 @@ cdef extern from "SimpleSubsystem.hpp":
 
 cdef class Subsystem(object):
     cdef object lattice_
-    cdef shared_ptr[CppSubsystem] *sharedptr
+    cdef shared_ptr[CppSubsystem] sharedptr

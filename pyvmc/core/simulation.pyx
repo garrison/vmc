@@ -32,10 +32,10 @@ cdef class MetropolisSimulation(object):
             measurement_ = measurement
             #if not measurement_.is_valid_walk(xxx):
             #    raise ValueError("invalid walk/measurement combination")
-            measurement_list.push_back(deref(measurement_.sharedptr))
+            measurement_list.push_back(measurement_.sharedptr)
         if self.thisptr is not NULL:
             del self.thisptr
-        self.thisptr = create_simulation(input_cstr, deref(lattice.sharedptr), measurement_list, equilibrium_steps)
+        self.thisptr = create_simulation(input_cstr, lattice.sharedptr, measurement_list, equilibrium_steps)
 
     def __dealloc__(self):
         if self.thisptr is not NULL:

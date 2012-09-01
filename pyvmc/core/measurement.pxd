@@ -34,7 +34,7 @@ cdef extern from "Measurement.hpp":
         pass
 
 cdef class BaseMeasurement(object):
-    cdef shared_ptr[CppBaseMeasurement] *sharedptr
+    cdef shared_ptr[CppBaseMeasurement] sharedptr
 
 cdef extern from "SubsystemOccupationNumberProbabilityMeasurement.hpp":
     ctypedef vector[unsigned int] CppOccupationBounds "const std::vector<unsigned int>"

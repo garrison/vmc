@@ -80,11 +80,6 @@ collections.Hashable.register(LatticeSite)
 
 cdef class Lattice(object):
     def __init__(self, dimensions, basis_indices=1):
-        if self.sharedptr is not NULL:
-            # __init__() can under some (?) circumstances be called more than
-            # once, according to
-            # http://docs.cython.org/src/userguide/special_methods.html#initialisation-methods-cinit-and-init
-            return
         assert isinstance(dimensions, collections.Sequence)
         assert len(dimensions) != 0
         assert all(isinstance(x, numbers.Integral) and x > 0 for x in dimensions)
@@ -92,10 +87,7 @@ cdef class Lattice(object):
         cdef DimensionVector v
         for i, x in enumerate(dimensions):
             v.push_back(x)
-        self.sharedptr = new shared_ptr[CppLattice](new CppLattice(v, basis_indices))
-
-    def __dealloc__(self):
-        del self.sharedptr
+        self.sharedptr.reset(new CppLattice(v, basis_indices))
 
     property dimensions:
         def __get__(self):

@@ -202,7 +202,7 @@ static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Valu
     }
 }
 
-MetropolisSimulation * create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps)
+std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps)
 {
     Json::Value json_input;
     {
@@ -420,5 +420,5 @@ MetropolisSimulation * create_simulation (const char *json_input_str, const boos
         throw ParseError("invalid walk type");
     }
 
-    return new MetropolisSimulation(walk, measurements, equilibrium_steps, rng);
+    return std::auto_ptr<MetropolisSimulation>(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
 }

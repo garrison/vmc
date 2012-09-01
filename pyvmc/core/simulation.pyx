@@ -17,7 +17,7 @@ cdef extern from "MetropolisSimulation.hpp":
         int steps_fully_rejected()
 
 cdef extern from "vmc-core.hpp":
-        CppMetropolisSimulation* create_simulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]], int) except +
+        auto_ptr[CppMetropolisSimulation] create_simulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]], int) except +
 
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
@@ -34,7 +34,7 @@ cdef class MetropolisSimulation(object):
             #if not measurement_.is_valid_walk(xxx):
             #    raise ValueError("invalid walk/measurement combination")
             measurement_list.push_back(measurement_.sharedptr)
-        self.autoptr.reset(create_simulation(input_cstr, lattice.sharedptr, measurement_list, equilibrium_steps))
+        self.autoptr = create_simulation(input_cstr, lattice.sharedptr, measurement_list, equilibrium_steps)
 
     def iterate(self, int sweeps):
         self.autoptr.get().iterate(sweeps)

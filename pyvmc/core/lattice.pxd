@@ -1,3 +1,4 @@
+from pyvmc.libcpp.memory cimport auto_ptr
 from pyvmc.boost.shared_ptr cimport shared_ptr
 
 cdef extern from "Lattice.hpp":
@@ -37,7 +38,7 @@ cdef extern from "Lattice.hpp":
         int basis_indices
 
 cdef class LatticeSite(object):
-    cdef CppLatticeSite *thisptr
+    cdef auto_ptr[CppLatticeSite] thisptr
 
 cdef class Lattice(object):
     cdef shared_ptr[CppLattice] sharedptr

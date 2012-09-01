@@ -22,34 +22,26 @@ cdef class LatticeSite(object):
     """
 
     def __init__(self, bs, bi=0):
-        if self.thisptr is not NULL:
-            # __init__() can under some (?) circumstances be called more than
-            # once, according to
-            # http://docs.cython.org/src/userguide/special_methods.html#initialisation-methods-cinit-and-init
-            return
         assert isinstance(bs, collections.Sequence)
         assert len(bs) > 0
         assert all(isinstance(x, numbers.Integral) for x in bs)
         assert isinstance(bi, numbers.Integral) and bi >= 0
         if len(bs) > MAX_DIMENSION:
             raise ValueError("provided site has greater than {} dimensions".format(MAX_DIMENSION))
-        self.thisptr = new CppLatticeSite(len(bs))
+        self.thisptr.reset(new CppLatticeSite(len(bs)))
         cdef int i, x
         for i, x in enumerate(bs):
-            self.thisptr.set_bs_coordinate(i, x)
-        self.thisptr.basis_index = bi
-
-    def __dealloc__(self):
-        del self.thisptr
+            self.thisptr.get().set_bs_coordinate(i, x)
+        self.thisptr.get().basis_index = bi
 
     property bs:
         def __get__(self):
             cdef int i
-            return tuple([deref(self.thisptr)[i] for i in range(self.thisptr.n_dimensions())])
+            return tuple([deref(self.thisptr)[i] for i in range(self.thisptr.get().n_dimensions())])
 
     property bi:
         def __get__(self):
-            return self.thisptr.basis_index
+            return self.thisptr.get().basis_index
 
     def __hash__(self):
         return hash(self.bs) | hash(self.bi)
@@ -73,7 +65,7 @@ cdef class LatticeSite(object):
 
 cdef LatticeSite_from_cpp(CppLatticeSite cpp_lattice_site):
     cdef LatticeSite lattice_site = LatticeSite.__new__(LatticeSite)
-    lattice_site.thisptr = new CppLatticeSite(cpp_lattice_site)
+    lattice_site.thisptr.reset(new CppLatticeSite(cpp_lattice_site))
     return lattice_site
 
 collections.Hashable.register(LatticeSite)
@@ -161,7 +153,7 @@ cdef class Lattice(object):
         return <int>self.sharedptr.get().site_to_index(deref(site.thisptr))
 
     def __contains__(self, LatticeSite site not None):
-        return bool(site.thisptr.n_dimensions() == self.sharedptr.get().n_dimensions() and
+        return bool(site.thisptr.get().n_dimensions() == self.sharedptr.get().n_dimensions() and
                     self.sharedptr.get().site_is_valid(deref(site.thisptr)))
 
     def count(self, x):

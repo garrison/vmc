@@ -8,6 +8,6 @@
 # http://pypi.python.org/pypi/virtualenv for details.
 
 numpy
-Cython
+Cython>=0.17
 Twisted
 pytest

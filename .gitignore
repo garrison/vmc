@@ -1,7 +1,17 @@
-Makefile-vmc.local
 *.[oa]
 *.so
 *.pyc
 __pycache__
-vmc-core/vmc-core
+
 docs/generated/
+
+vmc-core/obj/
+vmc-core/Makefile
+vmc-core/vmc-core.make
+
+# Cython intermediate files
+pyvmc/core/lattice.cpp
+pyvmc/core/measurement.cpp
+pyvmc/core/simulation.cpp
+pyvmc/core/subsystem.cpp
+pyvmc/library/renyi.cpp

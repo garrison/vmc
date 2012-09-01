@@ -109,7 +109,7 @@ cdef class OperatorMeasurement(BaseMeasurement):
             assert isinstance(hop, SiteHop)
             src = hop.source
             dest = hop.destination
-            hopv.push_back(CppSiteHop(deref(src.thisptr), deref(dest.thisptr), hop.species))
+            hopv.push_back(CppSiteHop(deref(src.autoptr), deref(dest.autoptr), hop.species))
         cdef CppParticleOperator *operator
         operator = new CppParticleOperator(hopv, lattice.sharedptr)
         try:

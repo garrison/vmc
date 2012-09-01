@@ -1,5 +1,5 @@
-from pyvmc.libcpp.memory cimport auto_ptr
-from pyvmc.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport auto_ptr
+from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
 cdef extern from "Lattice.hpp":
     cdef unsigned int MAX_DIMENSION

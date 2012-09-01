@@ -1,4 +1,4 @@
-from pyvmc.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
 from pyvmc.core.lattice cimport CppLattice, UDimensionVector, const_UDimensionVector
 

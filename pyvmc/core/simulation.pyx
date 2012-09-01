@@ -1,8 +1,8 @@
 from cython.operator cimport dereference as deref
 from libc.string cimport const_char
 from libcpp.list cimport list as stdlist
-from pyvmc.libcpp.memory cimport auto_ptr
-from pyvmc.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport auto_ptr
+from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
 import collections
 

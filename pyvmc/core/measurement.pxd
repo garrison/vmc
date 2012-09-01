@@ -1,7 +1,7 @@
 from libcpp.vector cimport vector
+from pyvmc.includes.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.boost.rational cimport rational as boost_rational
 
-from pyvmc.boost.shared_ptr cimport shared_ptr
-from pyvmc.boost.rational cimport rational as boost_rational
 from pyvmc.core.lattice cimport CppLattice, CppLatticeSite, lw_vector
 from pyvmc.core.subsystem cimport CppSubsystem
 from pyvmc.core cimport complex_t

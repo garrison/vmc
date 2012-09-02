@@ -5,10 +5,12 @@ cdef extern from "Lattice.hpp":
     cdef unsigned int MAX_DIMENSION
 
     cdef cppclass CppLatticeSite "LatticeSite":
+        CppLatticeSite()
         CppLatticeSite(unsigned int)
         CppLatticeSite(CppLatticeSite&)
 
         int operator[](int)
+        void set_n_dimensions(unsigned int)
         void set_bs_coordinate(int, int)
         int n_dimensions()
 
@@ -38,7 +40,7 @@ cdef extern from "Lattice.hpp":
         int basis_indices
 
 cdef class LatticeSite(object):
-    cdef auto_ptr[CppLatticeSite] autoptr
+    cdef CppLatticeSite cpp
 
 cdef class Lattice(object):
     cdef shared_ptr[CppLattice] sharedptr

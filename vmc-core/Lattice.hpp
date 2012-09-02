@@ -35,7 +35,7 @@ struct LatticeSite
 private:
     BravaisSite bs;
 public:
-    explicit LatticeSite (unsigned int n_dimensions)
+    explicit LatticeSite (unsigned int n_dimensions=0)
         : bs(n_dimensions)
         {
         }
@@ -48,6 +48,11 @@ public:
     const BravaisSite & bravais_site (void) const
         {
             return bs;
+        }
+
+    void set_n_dimensions (unsigned int n_dimensions)
+        {
+            bs.resize(n_dimensions);
         }
 
     unsigned int n_dimensions (void) const

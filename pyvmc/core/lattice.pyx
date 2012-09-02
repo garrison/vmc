@@ -28,20 +28,20 @@ cdef class LatticeSite(object):
         assert isinstance(bi, numbers.Integral) and bi >= 0
         if len(bs) > MAX_DIMENSION:
             raise ValueError("provided site has greater than {} dimensions".format(MAX_DIMENSION))
-        self.autoptr.reset(new CppLatticeSite(len(bs)))
+        self.cpp.set_n_dimensions(len(bs))
         cdef int i, x
         for i, x in enumerate(bs):
-            self.autoptr.get().set_bs_coordinate(i, x)
-        self.autoptr.get().basis_index = bi
+            self.cpp.set_bs_coordinate(i, x)
+        self.cpp.basis_index = bi
 
     property bs:
         def __get__(self):
             cdef int i
-            return tuple([deref(self.autoptr)[i] for i in range(self.autoptr.get().n_dimensions())])
+            return tuple([self.cpp[i] for i in range(self.cpp.n_dimensions())])
 
     property bi:
         def __get__(self):
-            return self.autoptr.get().basis_index
+            return self.cpp.basis_index
 
     def __hash__(self):
         return hash(self.bs) | hash(self.bi)
@@ -65,7 +65,7 @@ cdef class LatticeSite(object):
 
 cdef LatticeSite_from_cpp(CppLatticeSite cpp_lattice_site):
     cdef LatticeSite lattice_site = LatticeSite.__new__(LatticeSite)
-    lattice_site.autoptr.reset(new CppLatticeSite(cpp_lattice_site))
+    lattice_site.cpp = cpp_lattice_site
     return lattice_site
 
 collections.Hashable.register(LatticeSite)
@@ -150,11 +150,11 @@ cdef class Lattice(object):
     def index(self, LatticeSite site not None):
         if site not in self:
             raise ValueError
-        return <int>self.sharedptr.get().site_to_index(deref(site.autoptr))
+        return <int>self.sharedptr.get().site_to_index(site.cpp)
 
     def __contains__(self, LatticeSite site not None):
-        return bool(site.autoptr.get().n_dimensions() == self.sharedptr.get().n_dimensions() and
-                    self.sharedptr.get().site_is_valid(deref(site.autoptr)))
+        return bool(site.cpp.n_dimensions() == self.sharedptr.get().n_dimensions() and
+                    self.sharedptr.get().site_is_valid(site.cpp))
 
     def count(self, x):
         return 1 if x in self else 0

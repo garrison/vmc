@@ -148,7 +148,7 @@ cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
         self.sharedptr.reset(new CppSubsystemOccupationNumberProbabilityMeasurement(steps_per_measurement, subsystem.sharedptr))
 
     def get_result(self):
-        cdef int i
+        cdef unsigned int i
         # fixme: in cython 0.17 we will be able to do this iteration directly
         bounds = []
         cdef CppOccupationBounds *cppbounds = &(<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_bounds()

@@ -47,7 +47,7 @@ public:
             v[n - 1] = value;
         }
 
-    void resize(unsigned int new_size, const T &value=T())
+    void resize (unsigned int new_size, const T &value=T())
         {
             BOOST_ASSERT(new_size <= MAX_SIZE);
             while (new_size > n) {

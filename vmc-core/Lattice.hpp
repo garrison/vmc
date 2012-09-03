@@ -35,6 +35,8 @@ struct LatticeSite
 private:
     BravaisSite bs;
 public:
+    // CYTHON-LIMITATION: must have a default constructor, hence default
+    // n_dimensions=0 and set_n_dimensions() below
     explicit LatticeSite (unsigned int n_dimensions=0)
         : bs(n_dimensions)
         {

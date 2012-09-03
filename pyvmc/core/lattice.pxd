@@ -11,14 +11,14 @@ cdef extern from "Lattice.hpp":
 
         int operator[](int)
         void set_n_dimensions(unsigned int)
-        void set_bs_coordinate(int, int)
-        int n_dimensions()
+        void set_bs_coordinate(size_t, int)
+        unsigned int n_dimensions()
 
         int basis_index
 
     cdef cppclass lw_vector[T]:
-        T& operator[](int)
-        int size()
+        T& operator[](size_t)
+        size_t size()
         void push_back(T&)
 
     ctypedef lw_vector[int] DimensionVector "lw_vector<int, MAX_DIMENSION>"
@@ -30,8 +30,8 @@ cdef extern from "Lattice.hpp":
     cdef cppclass CppLattice "Lattice":
         CppLattice(DimensionVector, int)
 
-        int total_sites()
-        int n_dimensions()
+        unsigned int total_sites()
+        unsigned int n_dimensions()
         CppLatticeSite site_from_index(unsigned int)
         unsigned int site_to_index(CppLatticeSite)
         bint site_is_valid(CppLatticeSite)

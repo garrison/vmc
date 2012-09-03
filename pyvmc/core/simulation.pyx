@@ -11,13 +11,13 @@ from pyvmc.core.measurement cimport BaseMeasurement, CppBaseMeasurement
 
 cdef extern from "MetropolisSimulation.hpp":
     cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
-        void iterate(int) nogil
-        int steps_completed()
-        int steps_accepted()
-        int steps_fully_rejected()
+        void iterate(unsigned int) nogil
+        unsigned int steps_completed()
+        unsigned int steps_accepted()
+        unsigned int steps_fully_rejected()
 
 cdef extern from "vmc-core.hpp":
-        auto_ptr[CppMetropolisSimulation] create_simulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]], int) except +
+        auto_ptr[CppMetropolisSimulation] create_simulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int) except +
 
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr

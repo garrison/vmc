@@ -9,15 +9,15 @@ from pyvmc.core cimport complex_t
 cdef extern from "RunningEstimate.hpp":
     cdef cppclass CppIntegerRunningEstimate "RunningEstimate<unsigned int>":
         float get_result()
-        int get_num_values()
+        unsigned int get_num_values()
 
     cdef cppclass CppRealRunningEstimate "RunningEstimate<real_t>":
         float get_result()
-        int get_num_values()
+        unsigned int get_num_values()
 
     cdef cppclass CppComplexRunningEstimate "RunningEstimate<amplitude_t>":
         complex_t get_result()
-        int get_num_values()
+        unsigned int get_num_values()
 
 cdef extern from "BinnedEstimate.hpp":
     cdef cppclass CppIntegerBinnedEstimate "BinnedEstimate<unsigned int>" (CppIntegerRunningEstimate):
@@ -40,7 +40,7 @@ cdef extern from "SubsystemOccupationNumberProbabilityMeasurement.hpp":
     ctypedef vector[unsigned int] CppOccupationBounds "const std::vector<unsigned int>"
 
     cdef cppclass CppSubsystemOccupationNumberProbabilityMeasurement "SubsystemOccupationNumberProbabilityMeasurement" (CppBaseMeasurement):
-        CppSubsystemOccupationNumberProbabilityMeasurement(int, shared_ptr[CppSubsystem])
+        CppSubsystemOccupationNumberProbabilityMeasurement(unsigned int, shared_ptr[CppSubsystem]&)
         CppIntegerBinnedEstimate& get_estimate(CppOccupationBounds&)
         CppOccupationBounds& get_bounds()
 
@@ -55,14 +55,14 @@ cdef extern from "BoundaryCondition.hpp":
 
 cdef extern from "ParticleOperator.hpp":
     cdef cppclass CppSiteHop "SiteHop":
-        CppSiteHop(CppLatticeSite& source, CppLatticeSite& destination, int species)
+        CppSiteHop(CppLatticeSite& source, CppLatticeSite& destination, unsigned int species)
 
-    bint is_valid_ParticleOperator "ParticleOperator::is_valid" (vector[CppSiteHop]&, CppLattice&, int N_species)
+    bint is_valid_ParticleOperator "ParticleOperator::is_valid" (vector[CppSiteHop]&, CppLattice&, unsigned int N_species)
 
     cdef cppclass CppParticleOperator "ParticleOperator":
         CppParticleOperator(vector[CppSiteHop]&, shared_ptr[CppLattice]&)
 
 cdef extern from "OperatorMeasurement.hpp":
     cdef cppclass CppOperatorMeasurement "OperatorMeasurement" (CppBaseMeasurement):
-        CppOperatorMeasurement(int, CppParticleOperator&, bint, CppBoundaryConditions*)
+        CppOperatorMeasurement(unsigned int, CppParticleOperator&, bint, CppBoundaryConditions*)
         CppComplexBinnedEstimate& get_estimate()

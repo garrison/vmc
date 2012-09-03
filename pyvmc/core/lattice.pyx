@@ -29,14 +29,15 @@ cdef class LatticeSite(object):
         if len(bs) > MAX_DIMENSION:
             raise ValueError("provided site has greater than {} dimensions".format(MAX_DIMENSION))
         self.cpp.set_n_dimensions(len(bs))
-        cdef int i, x
+        cdef unsigned int i
+        cdef int x
         for i, x in enumerate(bs):
             self.cpp.set_bs_coordinate(i, x)
         self.cpp.basis_index = bi
 
     property bs:
         def __get__(self):
-            cdef int i
+            cdef unsigned int i
             return tuple([self.cpp[i] for i in range(self.cpp.n_dimensions())])
 
     property bi:
@@ -83,7 +84,7 @@ cdef class Lattice(object):
 
     property dimensions:
         def __get__(self):
-            cdef int i
+            cdef unsigned int i
             return tuple([self.sharedptr.get().dimensions[i] for i in range(self.sharedptr.get().n_dimensions())])
 
     property basis_indices:

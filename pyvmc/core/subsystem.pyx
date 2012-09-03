@@ -58,7 +58,7 @@ cdef class SimpleSubsystem(Subsystem):
     property dimensions:
         def __get__(self):
             cdef const_UDimensionVector *v = &(<CppSimpleSubsystem*>self.sharedptr.get()).subsystem_length
-            cdef int i
+            cdef unsigned int i
             return tuple([deref(v)[i] for i in xrange(v.size())])
 
     def __len__(self):

@@ -6,7 +6,7 @@ cdef extern from "Subsystem.hpp":
     cdef unsigned int MAX_DIMENSION
 
     cdef cppclass CppSubsystem "Subsystem":
-        bint position_is_within(int site_index, CppLattice &lattice)
+        bint position_is_within(unsigned int site_index, CppLattice &lattice)
         bint lattice_makes_sense(CppLattice &lattice)
 
 cdef extern from "SimpleSubsystem.hpp":

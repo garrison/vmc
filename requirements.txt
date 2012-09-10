@@ -8,6 +8,9 @@
 # http://pypi.python.org/pypi/virtualenv for details.
 
 numpy
+h5py
+blist
 Cython>=0.17
 Twisted
+matplotlib
 pytest

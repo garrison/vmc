@@ -14,18 +14,18 @@
 class TemporaryMove : boost::noncopyable
 {
 public:
-    TemporaryMove (const WavefunctionAmplitude &wf_, const Move &move)
+    TemporaryMove (const Wavefunction::Amplitude &wf_, const Move &move)
         : wf(wf_)
         {
-            const_cast<WavefunctionAmplitude &>(wf).perform_move(move);
+            const_cast<Wavefunction::Amplitude &>(wf).perform_move(move);
         }
 
     ~TemporaryMove (void)
         {
-            const_cast<WavefunctionAmplitude &>(wf).cancel_move();
+            const_cast<Wavefunction::Amplitude &>(wf).cancel_move();
         }
 
-    const WavefunctionAmplitude &wf;
+    const Wavefunction::Amplitude &wf;
 };
 
 void OperatorMeasurement::initialize_ (const StandardWalk &walk)
@@ -36,7 +36,7 @@ void OperatorMeasurement::initialize_ (const StandardWalk &walk)
 
 void OperatorMeasurement::measure_ (const StandardWalk &walk)
 {
-    const WavefunctionAmplitude &wf = walk.get_wavefunction();
+    const Wavefunction::Amplitude &wf = walk.get_wavefunction();
     const PositionArguments &r = wf.get_positions();
     const Lattice &lattice = wf.get_lattice();
 

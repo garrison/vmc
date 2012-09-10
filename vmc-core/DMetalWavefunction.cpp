@@ -4,19 +4,19 @@
 #include <boost/make_shared.hpp>
 
 #include "vmc-math-utils.hpp"
-#include "DMetalWavefunctionAmplitude.hpp"
+#include "DMetalWavefunction.hpp"
 #include "random-configuration.hpp"
 
-DMetalWavefunctionAmplitude::DMetalWavefunctionAmplitude (const PositionArguments &r_,
-                                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1,
-                                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2,
-                                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up,
-                                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down,
-                                                          real_t d1_exponent,
-                                                          real_t d2_exponent,
-                                                          real_t f_up_exponent,
-                                                          real_t f_down_exponent)
-    : WavefunctionAmplitude(r_, orbital_d1->get_lattice_ptr()),
+DMetalWavefunction::Amplitude::Amplitude (const PositionArguments &r_,
+                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1,
+                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2,
+                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up,
+                                          const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down,
+                                          real_t d1_exponent,
+                                          real_t d2_exponent,
+                                          real_t f_up_exponent,
+                                          real_t f_down_exponent)
+    : Wavefunction::Amplitude(r_, orbital_d1->get_lattice_ptr()),
       m_orbital_d1(orbital_d1),
       m_orbital_d2(orbital_d2),
       m_orbital_f_up(orbital_f_up),
@@ -30,7 +30,7 @@ DMetalWavefunctionAmplitude::DMetalWavefunctionAmplitude (const PositionArgument
     reinitialize();
 }
 
-void DMetalWavefunctionAmplitude::perform_move_ (const Move &move)
+void DMetalWavefunction::Amplitude::perform_move_ (const Move &move)
 {
     // we require that m_partial_update_step == 0 between moves; otherwise, psi_() will
     // return zero when it shouldn't.
@@ -54,7 +54,7 @@ void DMetalWavefunctionAmplitude::perform_move_ (const Move &move)
 // determinant updates if finish_update() is called.  This templated function
 // allows us to use the same code in both passes, with only minor differences.
 template <bool first_pass>
-void DMetalWavefunctionAmplitude::do_perform_move (const Move &move)
+void DMetalWavefunction::Amplitude::do_perform_move (const Move &move)
 {
     const unsigned int M = m_orbital_f_up->get_N_filled();
 
@@ -132,7 +132,7 @@ void DMetalWavefunctionAmplitude::do_perform_move (const Move &move)
     }
 }
 
-amplitude_t DMetalWavefunctionAmplitude::psi_ (void) const
+amplitude_t DMetalWavefunction::Amplitude::psi_ (void) const
 {
     if (m_partial_update_step != 0)
         return amplitude_t(0);
@@ -143,7 +143,7 @@ amplitude_t DMetalWavefunctionAmplitude::psi_ (void) const
             * complex_pow(m_cmat_f_down.get_determinant(), m_f_down_exponent));
 }
 
-void DMetalWavefunctionAmplitude::finish_move_ (void)
+void DMetalWavefunction::Amplitude::finish_move_ (void)
 {
     do_perform_move<false>(m_current_move);
 
@@ -155,7 +155,7 @@ void DMetalWavefunctionAmplitude::finish_move_ (void)
         m_cmat_f_down.finish_columns_update();
 }
 
-void DMetalWavefunctionAmplitude::cancel_move_ (void)
+void DMetalWavefunction::Amplitude::cancel_move_ (void)
 {
     switch (m_partial_update_step) {
     case 0:
@@ -175,7 +175,7 @@ void DMetalWavefunctionAmplitude::cancel_move_ (void)
     m_partial_update_step = 0;
 }
 
-void DMetalWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+void DMetalWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     const unsigned int M = m_orbital_f_up->get_N_filled();
     const unsigned int particle1_column_index = (species == 0) ? particle1_index : particle1_index + M;
@@ -185,13 +185,13 @@ void DMetalWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index,
     (species == 0 ? m_cmat_f_up : m_cmat_f_down).swap_columns(particle1_index, particle2_index);
 }
 
-void DMetalWavefunctionAmplitude::reset_ (const PositionArguments &r_)
+void DMetalWavefunction::Amplitude::reset_ (const PositionArguments &r_)
 {
     r = r_;
     reinitialize();
 }
 
-void DMetalWavefunctionAmplitude::reinitialize (void)
+void DMetalWavefunction::Amplitude::reinitialize (void)
 {
     BOOST_ASSERT(r.get_N_species() == 2);
 
@@ -233,12 +233,12 @@ void DMetalWavefunctionAmplitude::reinitialize (void)
     m_cmat_f_down = mat_f_down;
 }
 
-boost::shared_ptr<WavefunctionAmplitude> DMetalWavefunctionAmplitude::clone_ (void) const
+boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<DMetalWavefunctionAmplitude>(*this);
+    return boost::make_shared<DMetalWavefunction::Amplitude>(*this);
 }
 
-void DMetalWavefunctionAmplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
+void DMetalWavefunction::Amplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
 {
     const unsigned int N = m_orbital_d1->get_N_filled();
     const unsigned int M = m_orbital_f_up->get_N_filled();

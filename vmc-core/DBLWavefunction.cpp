@@ -2,10 +2,10 @@
 #include <boost/make_shared.hpp>
 
 #include "vmc-math-utils.hpp"
-#include "DBLWavefunctionAmplitude.hpp"
+#include "DBLWavefunction.hpp"
 
-DBLWavefunctionAmplitude::DBLWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_)
-    : WavefunctionAmplitude(r_, orbital_def_1->get_lattice_ptr()),
+DBLWavefunction::Amplitude::Amplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_)
+    : Wavefunction::Amplitude(r_, orbital_def_1->get_lattice_ptr()),
       orbital_def1(orbital_def_1),
       orbital_def2(orbital_def_2),
       d1_exponent(d1_exponent_),
@@ -22,7 +22,7 @@ DBLWavefunctionAmplitude::DBLWavefunctionAmplitude (const PositionArguments &r_,
     reinitialize();
 }
 
-void DBLWavefunctionAmplitude::perform_move_ (const Move &move)
+void DBLWavefunction::Amplitude::perform_move_ (const Move &move)
 {
     // we require that m_partial_update_step == 0 between moves; otherwise, psi_() will
     // return zero when it shouldn't.
@@ -40,7 +40,7 @@ void DBLWavefunctionAmplitude::perform_move_ (const Move &move)
 // function allows us to use the same code in both passes, with only minor
 // differences.
 template <bool first_pass>
-void DBLWavefunctionAmplitude::do_perform_move (const Move &move)
+void DBLWavefunction::Amplitude::do_perform_move (const Move &move)
 {
     if (!first_pass && m_partial_update_step == 0)
         return;
@@ -72,7 +72,7 @@ void DBLWavefunctionAmplitude::do_perform_move (const Move &move)
         m_partial_update_step = 0;
 }
 
-amplitude_t DBLWavefunctionAmplitude::psi_ (void) const
+amplitude_t DBLWavefunction::Amplitude::psi_ (void) const
 {
     if (m_partial_update_step != 0)
         return amplitude_t(0);
@@ -83,7 +83,7 @@ amplitude_t DBLWavefunctionAmplitude::psi_ (void) const
             * complex_pow(cmat2.get_determinant(), d2_exponent));
 }
 
-void DBLWavefunctionAmplitude::finish_move_ (void)
+void DBLWavefunction::Amplitude::finish_move_ (void)
 {
     do_perform_move<false>(m_current_move);
 
@@ -91,7 +91,7 @@ void DBLWavefunctionAmplitude::finish_move_ (void)
     cmat2.finish_columns_update();
 }
 
-void DBLWavefunctionAmplitude::cancel_move_ (void)
+void DBLWavefunction::Amplitude::cancel_move_ (void)
 {
     switch (m_partial_update_step) {
     case 0:
@@ -103,14 +103,14 @@ void DBLWavefunctionAmplitude::cancel_move_ (void)
     m_partial_update_step = 0;
 }
 
-void DBLWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+void DBLWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     (void) species; // will always be 0
     cmat1.swap_columns(particle1_index, particle2_index);
     cmat2.swap_columns(particle1_index, particle2_index);
 }
 
-void DBLWavefunctionAmplitude::reset_ (const PositionArguments &r_)
+void DBLWavefunction::Amplitude::reset_ (const PositionArguments &r_)
 {
     BOOST_ASSERT(r_.get_N_species() == 1);
     BOOST_ASSERT(r_.get_N_sites() == orbital_def1->get_N_sites());
@@ -120,7 +120,7 @@ void DBLWavefunctionAmplitude::reset_ (const PositionArguments &r_)
     reinitialize();
 }
 
-void DBLWavefunctionAmplitude::reinitialize (void)
+void DBLWavefunction::Amplitude::reinitialize (void)
 {
     const unsigned int N = r.get_N_filled(0);
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
@@ -133,7 +133,7 @@ void DBLWavefunctionAmplitude::reinitialize (void)
     cmat2 = mat2;
 }
 
-boost::shared_ptr<WavefunctionAmplitude> DBLWavefunctionAmplitude::clone_ (void) const
+boost::shared_ptr<Wavefunction::Amplitude> DBLWavefunction::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<DBLWavefunctionAmplitude>(*this);
+    return boost::make_shared<DBLWavefunction::Amplitude>(*this);
 }

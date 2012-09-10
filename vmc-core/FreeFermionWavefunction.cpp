@@ -1,10 +1,10 @@
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
 
-#include "FreeFermionWavefunctionAmplitude.hpp"
+#include "FreeFermionWavefunction.hpp"
 
-FreeFermionWavefunctionAmplitude::FreeFermionWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_)
-    : WavefunctionAmplitude(r_, orbital_def_->get_lattice_ptr()),
+FreeFermionWavefunction::Amplitude::Amplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_)
+    : Wavefunction::Amplitude(r_, orbital_def_->get_lattice_ptr()),
       orbital_def(orbital_def_)
 {
     BOOST_ASSERT(r.get_N_species() == 1);
@@ -14,7 +14,7 @@ FreeFermionWavefunctionAmplitude::FreeFermionWavefunctionAmplitude (const Positi
     reinitialize();
 }
 
-void FreeFermionWavefunctionAmplitude::perform_move_ (const Move &move)
+void FreeFermionWavefunction::Amplitude::perform_move_ (const Move &move)
 {
     lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> cols;
     for (unsigned int i = 0; i < move.size(); ++i)
@@ -22,28 +22,28 @@ void FreeFermionWavefunctionAmplitude::perform_move_ (const Move &move)
     cmat.update_columns(cols, orbital_def->get_orbitals());
 }
 
-amplitude_t FreeFermionWavefunctionAmplitude::psi_ (void) const
+amplitude_t FreeFermionWavefunction::Amplitude::psi_ (void) const
 {
     return cmat.get_determinant();
 }
 
-void FreeFermionWavefunctionAmplitude::finish_move_ (void)
+void FreeFermionWavefunction::Amplitude::finish_move_ (void)
 {
     cmat.finish_columns_update();
 }
 
-void FreeFermionWavefunctionAmplitude::cancel_move_ (void)
+void FreeFermionWavefunction::Amplitude::cancel_move_ (void)
 {
     cmat.cancel_columns_update();
 }
 
-void FreeFermionWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+void FreeFermionWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     (void) species; // will always be zero
     cmat.swap_columns(particle1_index, particle2_index);
 }
 
-void FreeFermionWavefunctionAmplitude::reset_ (const PositionArguments &r_)
+void FreeFermionWavefunction::Amplitude::reset_ (const PositionArguments &r_)
 {
     BOOST_ASSERT(r_.get_N_species() == 1);
     BOOST_ASSERT(r_.get_N_sites() == orbital_def->get_N_sites());
@@ -53,7 +53,7 @@ void FreeFermionWavefunctionAmplitude::reset_ (const PositionArguments &r_)
     reinitialize();
 }
 
-void FreeFermionWavefunctionAmplitude::reinitialize (void)
+void FreeFermionWavefunction::Amplitude::reinitialize (void)
 {
     const unsigned int N = r.get_N_filled(0);
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
@@ -62,7 +62,7 @@ void FreeFermionWavefunctionAmplitude::reinitialize (void)
     cmat = mat;
 }
 
-boost::shared_ptr<WavefunctionAmplitude> FreeFermionWavefunctionAmplitude::clone_ (void) const
+boost::shared_ptr<Wavefunction::Amplitude> FreeFermionWavefunction::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<FreeFermionWavefunctionAmplitude>(*this);
+    return boost::make_shared<FreeFermionWavefunction::Amplitude>(*this);
 }

@@ -23,7 +23,7 @@ SwappedSystem::SwappedSystem (const boost::shared_ptr<const Subsystem> &subsyste
 {
 }
 
-void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
+void SwappedSystem::initialize (const Wavefunction::Amplitude &phialpha1, const Wavefunction::Amplitude &phialpha2)
 {
     BOOST_ASSERT(current_state == UNINITIALIZED);
 
@@ -65,7 +65,7 @@ void SwappedSystem::initialize (const WavefunctionAmplitude &phialpha1, const Wa
     current_state = READY;
 }
 
-void SwappedSystem::update (const Particle *particle1, const Particle *particle2, const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
+void SwappedSystem::update (const Particle *particle1, const Particle *particle2, const Wavefunction::Amplitude &phialpha1, const Wavefunction::Amplitude &phialpha2)
 {
     // this function should be called *after* the phialpha's have been updated
 
@@ -198,7 +198,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 
         // update the phibeta's, performing copy-on-write
         if (particle1) {
-            boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
+            boost::shared_ptr<Wavefunction::Amplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
             bool &phibeta_dirty = particle1_now_in_subsystem ? phibeta2_dirty : phibeta1_dirty;
             const Particle phibeta_particle = particle1_now_in_subsystem ? Particle(copy2_subsystem_indices[particle1->species][pairing_index1], particle1->species) : *particle1;
             if (!phibeta.unique())
@@ -211,7 +211,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         }
 
         if (particle2) {
-            boost::shared_ptr<WavefunctionAmplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
+            boost::shared_ptr<Wavefunction::Amplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
             bool &phibeta_dirty = particle2_now_in_subsystem ? phibeta1_dirty : phibeta2_dirty;
             const Particle phibeta_particle = particle2_now_in_subsystem ? Particle(copy1_subsystem_indices[particle2->species][pairing_index2], particle2->species) : *particle2;
             if (!phibeta.unique())
@@ -229,7 +229,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
     }
 }
 
-void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
+void SwappedSystem::finish_update (const Wavefunction::Amplitude &phialpha1, const Wavefunction::Amplitude &phialpha2)
 {
     BOOST_ASSERT(current_state == UPDATE_IN_PROGRESS);
     current_state = READY;
@@ -254,7 +254,7 @@ void SwappedSystem::finish_update (const WavefunctionAmplitude &phialpha1, const
 #endif
 }
 
-void SwappedSystem::cancel_update (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
+void SwappedSystem::cancel_update (const Wavefunction::Amplitude &phialpha1, const Wavefunction::Amplitude &phialpha2)
 {
     BOOST_ASSERT(current_state == UPDATE_IN_PROGRESS);
     current_state = READY;
@@ -306,7 +306,7 @@ bool SwappedSystem::subsystem_particle_counts_match (void) const
     return true;
 }
 
-void SwappedSystem::reinitialize_phibetas (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2)
+void SwappedSystem::reinitialize_phibetas (const Wavefunction::Amplitude &phialpha1, const Wavefunction::Amplitude &phialpha2)
 {
     BOOST_ASSERT(subsystem_particle_counts_match());
 
@@ -332,7 +332,7 @@ void SwappedSystem::reinitialize_phibetas (const WavefunctionAmplitude &phialpha
 #endif
 }
 
-void SwappedSystem::verify_phibetas (const WavefunctionAmplitude &phialpha1, const WavefunctionAmplitude &phialpha2) const
+void SwappedSystem::verify_phibetas (const Wavefunction::Amplitude &phialpha1, const Wavefunction::Amplitude &phialpha2) const
 {
 #if defined(BOOST_DISABLE_ASSERTS) || defined(NDEBUG)
     (void) phialpha1;
@@ -435,7 +435,7 @@ void SwappedSystem::swap_positions (PositionArguments &r1, PositionArguments &r2
     }
 }
 
-bool count_subsystem_particle_counts_for_match (const WavefunctionAmplitude &wf1, const WavefunctionAmplitude &wf2,
+bool count_subsystem_particle_counts_for_match (const Wavefunction::Amplitude &wf1, const Wavefunction::Amplitude &wf2,
                                                 const Subsystem &subsystem)
 {
     BOOST_ASSERT(subsystem.lattice_makes_sense(wf1.get_lattice()));

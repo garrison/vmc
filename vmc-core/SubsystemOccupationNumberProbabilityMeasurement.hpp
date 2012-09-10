@@ -9,7 +9,7 @@
 #include "Measurement.hpp"
 #include "BinnedEstimate.hpp"
 #include "StandardWalk.hpp"
-#include "WavefunctionAmplitude.hpp"
+#include "Wavefunction.hpp"
 #include "Subsystem.hpp"
 
 /**
@@ -87,7 +87,7 @@ private:
 
     void measure_ (const StandardWalk &walk)
         {
-            const WavefunctionAmplitude &wf = walk.get_wavefunction();
+            const Wavefunction::Amplitude &wf = walk.get_wavefunction();
 
             // calculate the "offset" (see above)
             unsigned int offset = 0;
@@ -111,7 +111,7 @@ private:
             }
         }
 
-    unsigned int do_subsystem_particle_count (const WavefunctionAmplitude &wf, unsigned int species) const
+    unsigned int do_subsystem_particle_count (const Wavefunction::Amplitude &wf, unsigned int species) const
         {
             const PositionArguments &r = wf.get_positions();
             unsigned int rv = 0;

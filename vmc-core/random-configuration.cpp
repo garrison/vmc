@@ -55,7 +55,7 @@ std::vector<unsigned int> some_random_configuration (unsigned int N_filled, cons
     return v;
 }
 
-bool search_for_configuration_with_nonzero_amplitude (WavefunctionAmplitude &wf, RandomNumberGenerator &rng)
+bool search_for_configuration_with_nonzero_amplitude (Wavefunction::Amplitude &wf, RandomNumberGenerator &rng)
 {
     unsigned int attempts = 1; // assume that one attempt has already been completed
     while (wf.psi() == amplitude_t(0)) {

@@ -7,7 +7,7 @@
 
 #include "Measurement.hpp"
 #include "StandardWalk.hpp"
-#include "WavefunctionAmplitude.hpp"
+#include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
 #include "ParticleOperator.hpp"
 #include "BinnedEstimate.hpp"

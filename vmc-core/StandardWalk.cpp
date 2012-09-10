@@ -1,8 +1,8 @@
 #include "StandardWalk.hpp"
-#include "WavefunctionAmplitude.hpp"
+#include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
 
-StandardWalk::StandardWalk (boost::shared_ptr<WavefunctionAmplitude> &wf_)
+StandardWalk::StandardWalk (boost::shared_ptr<Wavefunction::Amplitude> &wf_)
     : wf(wf_),
       autoreject_in_progress(false)
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)

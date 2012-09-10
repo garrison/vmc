@@ -1,10 +1,10 @@
 #include <vector>
 
-#include "WavefunctionAmplitude.hpp"
+#include "Wavefunction.hpp"
 #include "random-configuration.hpp"
 #include "random-move.hpp"
 
-void WavefunctionAmplitude::perform_move (const Move &move)
+void Wavefunction::Amplitude::perform_move (const Move &move)
 {
     BOOST_ASSERT(!move_in_progress);
 
@@ -33,7 +33,7 @@ void WavefunctionAmplitude::perform_move (const Move &move)
 #endif
 }
 
-void WavefunctionAmplitude::cancel_move (void)
+void Wavefunction::Amplitude::cancel_move (void)
 {
     BOOST_ASSERT(move_in_progress);
 
@@ -51,7 +51,7 @@ void WavefunctionAmplitude::cancel_move (void)
 #endif
 }
 
-void WavefunctionAmplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
+void Wavefunction::Amplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
 {
     std::vector<std::vector<unsigned int> > vv;
     for (unsigned int i = 0; i < r.get_N_species(); ++i)
@@ -59,7 +59,7 @@ void WavefunctionAmplitude::reset_with_random_configuration (RandomNumberGenerat
     reset(PositionArguments(vv, lattice->total_sites()));
 }
 
-Move WavefunctionAmplitude::propose_move (RandomNumberGenerator &rng) const
+Move Wavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
 {
     // by default we attempt to move a random particle to an empty
     // site. subclasses can feel free to override this behavior, but balance

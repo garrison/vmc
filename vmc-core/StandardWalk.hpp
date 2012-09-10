@@ -4,10 +4,8 @@
 #include <boost/shared_ptr.hpp>
 
 #include "vmc-typedefs.hpp"
+#include "Wavefunction.hpp"
 #include "Walk.hpp"
-
-class WavefunctionAmplitude;
-class RandomNumberGenerator;
 
 /**
  * The standard walk used in VMC calculations
@@ -22,12 +20,12 @@ public:
      *
      * @param wf_ initial wavefunction
      */
-    StandardWalk (boost::shared_ptr<WavefunctionAmplitude> &wf_);
+    StandardWalk (boost::shared_ptr<Wavefunction::Amplitude> &wf_);
 
     /**
      * Returns the current wavefunction
      */
-    const WavefunctionAmplitude & get_wavefunction (void) const
+    const Wavefunction::Amplitude & get_wavefunction (void) const
         {
             return *wf;
         }
@@ -50,7 +48,7 @@ private:
      */
     void reject_transition (void);
 
-    boost::shared_ptr<WavefunctionAmplitude> wf; // treat this as copy on write
+    boost::shared_ptr<Wavefunction::Amplitude> wf; // treat this as copy on write
     bool autoreject_in_progress;
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)

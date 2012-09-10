@@ -25,10 +25,10 @@
 #include "random-configuration.hpp"
 #include "PositionArguments.hpp"
 #include "OrbitalDefinitions.hpp"
-#include "FreeFermionWavefunctionAmplitude.hpp"
-#include "DBLWavefunctionAmplitude.hpp"
-#include "DMetalWavefunctionAmplitude.hpp"
-#include "RVBWavefunctionAmplitude.hpp"
+#include "FreeFermionWavefunction.hpp"
+#include "DBLWavefunction.hpp"
+#include "DMetalWavefunction.hpp"
+#include "RVBWavefunction.hpp"
 #include "MetropolisSimulation.hpp"
 #include "StandardWalk.hpp"
 #include "OperatorMeasurement.hpp"
@@ -246,7 +246,7 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
     ensure_only(json_system, json_system_required);
 
     // set up the wavefunction
-    boost::shared_ptr<WavefunctionAmplitude> wf;
+    boost::shared_ptr<Wavefunction::Amplitude> wf;
     const Json::Value &json_wavefunction = json_input["system"]["wavefunction"];
     ensure_object(json_wavefunction);
     const char * const json_wavefunction_required[] = { "type", NULL };
@@ -261,7 +261,7 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         boost::shared_ptr<const OrbitalDefinitions> orbitals = parse_json_orbitals(json_wavefunction["orbitals"], lattice);
         std::vector<std::vector<unsigned int> > configuration;
         configuration.push_back(some_random_configuration(orbitals->get_N_filled(), *lattice, *rng));
-        wf.reset(new FreeFermionWavefunctionAmplitude(PositionArguments(configuration, lattice->total_sites()), orbitals));
+        wf.reset(new FreeFermionWavefunction::Amplitude(PositionArguments(configuration, lattice->total_sites()), orbitals));
     } else if (std::strcmp(json_wavefunction_type_cstr, "dbl") == 0) {
         // dbl wavefunction
         const char * const json_dbl_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", NULL };
@@ -274,7 +274,7 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
             throw ParseError("d1 and d2 have different number of orbitals");
         std::vector<std::vector<unsigned int> > configuration;
         configuration.push_back(some_random_configuration(orbitals_d1->get_N_filled(), *lattice, *rng));
-        wf.reset(new DBLWavefunctionAmplitude(PositionArguments(configuration, lattice->total_sites()),
+        wf.reset(new DBLWavefunction::Amplitude(PositionArguments(configuration, lattice->total_sites()),
                                               orbitals_d1, orbitals_d2,
                                               json_get_double(json_wavefunction, "exponent-d1", 1.0),
                                               json_get_double(json_wavefunction, "exponent-d2", 1.0)));
@@ -295,7 +295,7 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         std::vector<std::vector<unsigned int> > configuration;
         configuration.push_back(some_random_configuration(orbitals_f_up->get_N_filled(), *lattice, *rng));
         configuration.push_back(some_random_configuration(orbitals_f_down->get_N_filled(), *lattice, *rng));
-        wf.reset(new DMetalWavefunctionAmplitude(PositionArguments(configuration, lattice->total_sites()),
+        wf.reset(new DMetalWavefunction::Amplitude(PositionArguments(configuration, lattice->total_sites()),
                                                  orbitals_d1, orbitals_d2, orbitals_f_up, orbitals_f_down,
                                                  json_get_double(json_wavefunction, "exponent-d1", 1.0),
                                                  json_get_double(json_wavefunction, "exponent-d2", 1.0),
@@ -330,7 +330,7 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
                 configuration[1].push_back(i);
         }
         BOOST_ASSERT(configuration[0].size() == configuration[1].size());
-        wf.reset(new RVBWavefunctionAmplitude(PositionArguments(configuration, lattice->total_sites()), lattice, phi));
+        wf.reset(new RVBWavefunction::Amplitude(PositionArguments(configuration, lattice->total_sites()), lattice, phi));
     } else {
         throw ParseError("invalid wavefunction type");
     }
@@ -386,7 +386,7 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         // We need two copies of the system, each of which has the same number
         // of particles in the subsystem.  So for now we just initialize both
         // copies with the same exact positions.
-        boost::shared_ptr<WavefunctionAmplitude> wf2(wf->clone());
+        boost::shared_ptr<Wavefunction::Amplitude> wf2(wf->clone());
 
         // set up walk
         walk.reset(new RenyiModPossibleWalk(wf, wf2, subsystem));
@@ -411,7 +411,7 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         // We need two copies of the system, each of which has the same number
         // of particles in the subsystem.  So for now we just initialize both
         // copies with the same exact positions.
-        boost::shared_ptr<WavefunctionAmplitude> wf2(wf->clone());
+        boost::shared_ptr<Wavefunction::Amplitude> wf2(wf->clone());
 
         // set up walk
         walk.reset(new RenyiSignWalk(wf, wf2, subsystem));

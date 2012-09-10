@@ -4,19 +4,19 @@
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
 
-#include "RVBWavefunctionAmplitude.hpp"
+#include "RVBWavefunction.hpp"
 #include "random-configuration.hpp"
 #include "random-move.hpp"
 
-RVBWavefunctionAmplitude::RVBWavefunctionAmplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi)
-    : WavefunctionAmplitude(r_, lattice_),
+RVBWavefunction::Amplitude::Amplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi)
+    : Wavefunction::Amplitude(r_, lattice_),
       m_update_in_progress(false),
       m_phi(phi)
 {    
     reinitialize();
 }
 
-void RVBWavefunctionAmplitude::perform_move_ (const Move &move)
+void RVBWavefunction::Amplitude::perform_move_ (const Move &move)
 {
     // first assert that it's a swap
     BOOST_ASSERT(move.size() == 2);
@@ -60,24 +60,24 @@ void RVBWavefunctionAmplitude::perform_move_ (const Move &move)
     m_new_cmat.update_column(moved_down_particle_index, new_col);
 }
 
-amplitude_t RVBWavefunctionAmplitude::psi_ (void) const
+amplitude_t RVBWavefunction::Amplitude::psi_ (void) const
 {
     return (m_update_in_progress ? m_new_cmat : m_cmat).get_determinant();
 }
 
-void RVBWavefunctionAmplitude::finish_move_ (void)
+void RVBWavefunction::Amplitude::finish_move_ (void)
 {
     m_new_cmat.finish_column_update();
     m_cmat = m_new_cmat;
     m_update_in_progress = false;
 }
 
-void RVBWavefunctionAmplitude::cancel_move_ (void)
+void RVBWavefunction::Amplitude::cancel_move_ (void)
 {
     m_update_in_progress = false;
 }
 
-void RVBWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+void RVBWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     if (species == 0) {
         m_cmat.swap_rows(particle1_index, particle2_index);
@@ -87,13 +87,13 @@ void RVBWavefunctionAmplitude::swap_particles_ (unsigned int particle1_index, un
     }
 }
 
-void RVBWavefunctionAmplitude::reset_ (const PositionArguments &r_)
+void RVBWavefunction::Amplitude::reset_ (const PositionArguments &r_)
 {
     r = r_;
     reinitialize();
 }
 
-void RVBWavefunctionAmplitude::reinitialize (void)
+void RVBWavefunction::Amplitude::reinitialize (void)
 {
     BOOST_ASSERT(r.get_N_species() == 2);
 
@@ -123,12 +123,12 @@ void RVBWavefunctionAmplitude::reinitialize (void)
     m_cmat = mat_phi;
 }
 
-boost::shared_ptr<WavefunctionAmplitude> RVBWavefunctionAmplitude::clone_ (void) const
+boost::shared_ptr<Wavefunction::Amplitude> RVBWavefunction::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<RVBWavefunctionAmplitude>(*this);
+    return boost::make_shared<RVBWavefunction::Amplitude>(*this);
 }
 
-void RVBWavefunctionAmplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
+void RVBWavefunction::Amplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
 {
     BOOST_ASSERT(r.get_N_species() == 2);
 
@@ -155,7 +155,7 @@ void RVBWavefunctionAmplitude::reset_with_random_configuration (RandomNumberGene
     reset(PositionArguments(vv, N_sites));
 }
 
-Move RVBWavefunctionAmplitude::propose_move (RandomNumberGenerator &rng) const
+Move RVBWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
 {
     // choose a particle of each species and swap their positions
     Move move;

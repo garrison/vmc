@@ -7,7 +7,7 @@
 #include "vmc-typedefs.hpp"
 #include "Subsystem.hpp"
 #include "SwappedSystem.hpp"
-#include "WavefunctionAmplitude.hpp"
+#include "Wavefunction.hpp"
 #include "Walk.hpp"
 
 class RandomNumberGenerator;
@@ -30,24 +30,24 @@ public:
      * It is essential that both wf and wf_copy have the same number of
      * particles in the subsystem.
      */
-    BaseSwapPossibleWalk (const boost::shared_ptr<WavefunctionAmplitude> &wf, const boost::shared_ptr<WavefunctionAmplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem, bool update_swapped_system_before_accepting_=true);
+    BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction::Amplitude> &wf, const boost::shared_ptr<Wavefunction::Amplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem, bool update_swapped_system_before_accepting_=true);
 
-    const WavefunctionAmplitude & get_phialpha1 (void) const
+    const Wavefunction::Amplitude & get_phialpha1 (void) const
         {
             return *phialpha1;
         }
 
-    const WavefunctionAmplitude & get_phialpha2 (void) const
+    const Wavefunction::Amplitude & get_phialpha2 (void) const
         {
             return *phialpha2;
         }
 
-    const WavefunctionAmplitude & get_phibeta1 (void) const
+    const Wavefunction::Amplitude & get_phibeta1 (void) const
         {
             return swapped_system->get_phibeta1();
         }
 
-    const WavefunctionAmplitude & get_phibeta2 (void) const
+    const Wavefunction::Amplitude & get_phibeta2 (void) const
         {
             return swapped_system->get_phibeta2();
         }
@@ -61,7 +61,7 @@ private:
 
     static unsigned int count_subsystem_sites (const Subsystem &subsystem, const Lattice &lattice);
 
-    boost::shared_ptr<WavefunctionAmplitude> phialpha1, phialpha2;
+    boost::shared_ptr<Wavefunction::Amplitude> phialpha1, phialpha2;
     boost::shared_ptr<SwappedSystem> swapped_system;
     Particle chosen_particle_A, chosen_particle_B;
     const Particle *chosen_particle1, *chosen_particle2;

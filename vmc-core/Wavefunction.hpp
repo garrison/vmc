@@ -120,15 +120,6 @@ public:
             }
 
         /**
-         * Reset the wavefunction's positions randomly.
-         *
-         * Subclasses may wish to override this method if they have special
-         * projection properties, e.g., no spin-up and spin-down particle
-         * allowed on the same site.
-         */
-        virtual void reset_with_random_configuration (RandomNumberGenerator &rng);
-
-        /**
          * Propose a move.
          *
          * This does not actually perform the move.  Just proposes a sensible
@@ -194,6 +185,22 @@ public:
         bool move_in_progress;
 #endif
     };
+
+    /**
+     * Create a corresponding Wavefunction::Amplitude object with nonzero
+     * amplitude
+     *
+     * Subclasses may wish to override this method if they have special
+     * projection properties, e.g., no spin-up and spin-down particle allowed
+     * on the same site.
+     */
+    virtual boost::shared_ptr<Wavefunction::Amplitude> create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts=1000000) const;
+
+    virtual boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const = 0;
+
+    virtual unsigned int get_N_species (void) const = 0;
+
+    virtual unsigned int get_N_filled (unsigned int species) const = 0;
 };
 
 #endif

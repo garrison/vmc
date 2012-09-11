@@ -2,6 +2,7 @@
 #define _FREE_FERMION_WAVEFUNCTION_HPP
 
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 #include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
@@ -49,6 +50,22 @@ public:
 
         void reinitialize (void);
     };
+
+    boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const
+        {
+            BOOST_ASSERT(this == this_ptr.get());
+            return boost::make_shared<Amplitude>(boost::shared_polymorphic_downcast<const FreeFermionWavefunction>(this_ptr), r);
+        }
+
+    unsigned int get_N_species (void) const
+        {
+            return 1;
+        }
+
+    unsigned int get_N_filled (unsigned int species) const
+        {
+            return orbital_def->get_N_filled();
+        }
 };
 
 #endif

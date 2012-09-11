@@ -230,19 +230,21 @@ boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction::Amplitude::clone_
     return boost::make_shared<DMetalWavefunction::Amplitude>(*this);
 }
 
-void DMetalWavefunction::Amplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
+boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
-    const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(wf.get());
-
-    const unsigned int N = wf_->orbital_d1->get_N_filled();
-    const unsigned int M = wf_->orbital_f_up->get_N_filled();
+    const unsigned int N = orbital_d1->get_N_filled();
+    const unsigned int M = orbital_f_up->get_N_filled();
 
     // take into account the Gutzwiller projection
-    std::vector<std::vector<unsigned int> > vv(2);
-    vv[0] = some_random_configuration(N, *wf->lattice, rng);
-    for (unsigned int i = M; i < N; ++i)
-        vv[1].push_back(vv[0][i]);
-    vv[0].resize(M);
-
-    reset(PositionArguments(vv, wf->lattice->total_sites()));
+    while (n_attempts--) {
+        std::vector<std::vector<unsigned int> > vv(2);
+        vv[0] = some_random_configuration(N, *lattice, rng);
+        for (unsigned int i = M; i < N; ++i)
+            vv[1].push_back(vv[0][i]);
+        vv[0].resize(M);
+        boost::shared_ptr<Wavefunction::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
+        if (wfa->psi() != amplitude_t(0))
+            return wfa;
+    }
+    return boost::shared_ptr<Wavefunction::Amplitude>();
 }

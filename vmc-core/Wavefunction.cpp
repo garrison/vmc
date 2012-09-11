@@ -51,12 +51,17 @@ void Wavefunction::Amplitude::cancel_move (void)
 #endif
 }
 
-void Wavefunction::Amplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
+boost::shared_ptr<Wavefunction::Amplitude> Wavefunction::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
-    std::vector<std::vector<unsigned int> > vv;
-    for (unsigned int i = 0; i < r.get_N_species(); ++i)
-        vv.push_back(some_random_configuration(r.get_N_filled(i), *wf->lattice, rng));
-    reset(PositionArguments(vv, wf->lattice->total_sites()));
+    while (n_attempts--) {
+        std::vector<std::vector<unsigned int> > vv;
+        for (unsigned int i = 0; i < get_N_species(); ++i)
+            vv.push_back(some_random_configuration(get_N_filled(i), *lattice, rng));
+        boost::shared_ptr<Wavefunction::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
+        if (wfa->psi() != amplitude_t(0))
+            return wfa;
+    }
+    return boost::shared_ptr<Wavefunction::Amplitude>();
 }
 
 Move Wavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const

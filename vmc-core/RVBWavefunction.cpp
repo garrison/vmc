@@ -134,31 +134,33 @@ boost::shared_ptr<Wavefunction::Amplitude> RVBWavefunction::Amplitude::clone_ (v
     return boost::make_shared<RVBWavefunction::Amplitude>(*this);
 }
 
-void RVBWavefunction::Amplitude::reset_with_random_configuration (RandomNumberGenerator &rng)
+boost::shared_ptr<Wavefunction::Amplitude> RVBWavefunction::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
-    BOOST_ASSERT(r.get_N_species() == 2);
+    const unsigned int M = get_N_filled(0);
+    const unsigned int N = lattice->total_sites();
+    BOOST_ASSERT(2 * M == N);  // Assert a spin wave function!
 
-    const unsigned int M = r.get_N_filled(0);
-    BOOST_ASSERT(M == r.get_N_filled(1));
+    while (n_attempts--) {
+        // Take into account Gutzwiller projection [exactly one spinon ("particle") per site]
+        std::vector<std::vector<unsigned int> > vv(2);
+        vv[0] = some_random_configuration(M, *lattice, rng);
+        std::vector<unsigned int> occupied_sites(N);
+        for (unsigned int i = 0; i < vv[0].size(); ++i) {
+            BOOST_ASSERT(vv[0][i] < N);
+            BOOST_ASSERT(occupied_sites[vv[0][i]] == 0);
+            ++occupied_sites[vv[0][i]];
+        }
+        for (unsigned int i = 0; i < N; ++i) {
+            if (occupied_sites[i] == 0)
+                vv[1].push_back(i);
+        }
+        BOOST_ASSERT(vv[0].size() == vv[1].size());
 
-    const unsigned int N_sites = wf->lattice->total_sites();
-    BOOST_ASSERT(N_sites == r.get_N_sites());
-
-    BOOST_ASSERT(r.get_N_filled_total() == N_sites);  // Assert a spin wave function!
-
-    // Take into account Gutzwiller projection [exactly one spinon ("particle") per site]
-    std::vector<std::vector<unsigned int> > vv(2);
-    vv[0] = some_random_configuration(M, *wf->lattice, rng);
-    // NOTE: this method requires O(N ^ 2) time, but this could technically be
-    // done in O(N) time.  Not a big deal here.
-    for (unsigned int i = 0; i < N_sites; ++i) {
-        std::vector<unsigned int>::iterator it = std::find(vv[0].begin(), vv[0].end(), i);
-        if (it == vv[0].end())
-            vv[1].push_back(i);
+        boost::shared_ptr<Wavefunction::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
+        if (wfa->psi() != amplitude_t(0))
+            return wfa;
     }
-
-    BOOST_ASSERT(vv[0].size() == vv[1].size());
-    reset(PositionArguments(vv, N_sites));
+    return boost::shared_ptr<Wavefunction::Amplitude>();
 }
 
 Move RVBWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const

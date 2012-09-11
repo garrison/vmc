@@ -54,14 +54,3 @@ std::vector<unsigned int> some_random_configuration (unsigned int N_filled, cons
     random_combination(v, N_filled, lattice.total_sites(), rng);
     return v;
 }
-
-bool search_for_configuration_with_nonzero_amplitude (Wavefunction::Amplitude &wf, RandomNumberGenerator &rng)
-{
-    unsigned int attempts = 1; // assume that one attempt has already been completed
-    while (wf.psi() == amplitude_t(0)) {
-        if (attempts++ == 1000000)
-            return false;
-        wf.reset_with_random_configuration(rng);
-    }
-    return true;
-}

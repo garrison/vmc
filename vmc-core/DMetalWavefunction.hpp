@@ -2,6 +2,7 @@
 #define _D_METAL_WAVEFUNCTION_HPP
 
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 #include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
@@ -72,10 +73,27 @@ public:
 
         boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const;
 
-        void reset_with_random_configuration (RandomNumberGenerator &rng);
-
         void reinitialize (void);
     };
+
+    boost::shared_ptr<Wavefunction::Amplitude> create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const;
+
+    boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const
+        {
+            BOOST_ASSERT(this == this_ptr.get());
+            return boost::make_shared<Amplitude>(boost::shared_polymorphic_downcast<const DMetalWavefunction>(this_ptr), r);
+        }
+
+    unsigned int get_N_species (void) const
+        {
+            return 2;
+        }
+
+    unsigned int get_N_filled (unsigned int species) const
+        {
+            BOOST_ASSERT(species < 2);
+            return (species == 0 ? orbital_d1 : orbital_d2)->get_N_filled();
+        }
 };
 
 #endif

@@ -5,7 +5,7 @@
 #include "vmc-math-utils.hpp"
 #include "DBLWavefunction.hpp"
 
-DBLWavefunction::Amplitude::Amplitude (const boost::shared_ptr<DBLWavefunction> &wf_, const PositionArguments &r_)
+DBLWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const DBLWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction::Amplitude(wf_, r_),
       m_partial_update_step(0)
 {

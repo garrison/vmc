@@ -3,21 +3,24 @@
 
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/cast.hpp>
 
 #include "RVBWavefunction.hpp"
 #include "random-configuration.hpp"
 #include "random-move.hpp"
 
-RVBWavefunction::Amplitude::Amplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi)
-    : Wavefunction::Amplitude(r_, lattice_),
-      m_update_in_progress(false),
-      m_phi(phi)
+RVBWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const RVBWavefunction> &wf_, const PositionArguments &r_)
+    : Wavefunction::Amplitude(wf_, r_),
+      m_update_in_progress(false)
 {    
     reinitialize();
 }
 
 void RVBWavefunction::Amplitude::perform_move_ (const Move &move)
 {
+    const RVBWavefunction *wf_ = boost::polymorphic_downcast<const RVBWavefunction *>(wf.get());
+    const boost::shared_ptr<const Lattice> &lattice = wf->lattice;
+
     // first assert that it's a swap
     BOOST_ASSERT(move.size() == 2);
     BOOST_ASSERT(move[0].particle.species != move[1].particle.species);
@@ -39,7 +42,7 @@ void RVBWavefunction::Amplitude::perform_move_ (const Move &move)
         LatticeSite rup_minus_rdown(new_site_for_up);
         lattice->asm_subtract_site_vector(rup_minus_rdown, lattice->site_from_index(down_pos[i]).bravais_site());
         lattice->enforce_boundary(rup_minus_rdown);
-        new_row[i] = m_phi[lattice->site_to_index(rup_minus_rdown)];
+        new_row[i] = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
     }
 
     m_update_in_progress = true;
@@ -54,7 +57,7 @@ void RVBWavefunction::Amplitude::perform_move_ (const Move &move)
         LatticeSite rup_minus_rdown(lattice->site_from_index(up_pos[i]));
         lattice->asm_subtract_site_vector(rup_minus_rdown, new_site_for_down.bravais_site());
         lattice->enforce_boundary(rup_minus_rdown);
-        new_col[i] = m_phi[lattice->site_to_index(rup_minus_rdown)];
+        new_col[i] = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
     }
 
     m_new_cmat.update_column(moved_down_particle_index, new_col);
@@ -95,6 +98,9 @@ void RVBWavefunction::Amplitude::reset_ (const PositionArguments &r_)
 
 void RVBWavefunction::Amplitude::reinitialize (void)
 {
+    const RVBWavefunction *wf_ = boost::polymorphic_downcast<const RVBWavefunction *>(wf.get());
+    const boost::shared_ptr<const Lattice> &lattice = wf->lattice;
+
     BOOST_ASSERT(r.get_N_species() == 2);
 
     BOOST_ASSERT(r.get_N_sites() == lattice->total_sites());
@@ -103,7 +109,7 @@ void RVBWavefunction::Amplitude::reinitialize (void)
     BOOST_ASSERT(2 * r.get_N_filled(0) == lattice->total_sites());
     BOOST_ASSERT(2 * r.get_N_filled(1) == lattice->total_sites());
 
-    BOOST_ASSERT(r.get_N_sites() == m_phi.size());
+    BOOST_ASSERT(r.get_N_sites() == wf_->phi.size());
 
     const unsigned int M = r.get_N_filled(0);
 
@@ -116,7 +122,7 @@ void RVBWavefunction::Amplitude::reinitialize (void)
             LatticeSite rup_minus_rdown(rup);
             lattice->asm_subtract_site_vector(rup_minus_rdown, lattice->site_from_index(down_pos[j]).bravais_site());
             lattice->enforce_boundary(rup_minus_rdown);
-            mat_phi(i, j) = m_phi[lattice->site_to_index(rup_minus_rdown)];
+            mat_phi(i, j) = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
         }
     }
 
@@ -135,14 +141,14 @@ void RVBWavefunction::Amplitude::reset_with_random_configuration (RandomNumberGe
     const unsigned int M = r.get_N_filled(0);
     BOOST_ASSERT(M == r.get_N_filled(1));
 
-    const unsigned int N_sites = lattice->total_sites();
+    const unsigned int N_sites = wf->lattice->total_sites();
     BOOST_ASSERT(N_sites == r.get_N_sites());
 
     BOOST_ASSERT(r.get_N_filled_total() == N_sites);  // Assert a spin wave function!
 
     // Take into account Gutzwiller projection [exactly one spinon ("particle") per site]
     std::vector<std::vector<unsigned int> > vv(2);
-    vv[0] = some_random_configuration(M, *lattice, rng);
+    vv[0] = some_random_configuration(M, *wf->lattice, rng);
     // NOTE: this method requires O(N ^ 2) time, but this could technically be
     // done in O(N) time.  Not a big deal here.
     for (unsigned int i = 0; i < N_sites; ++i) {
@@ -160,7 +166,7 @@ Move RVBWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
     // choose a particle of each species and swap their positions
     Move move;
     const Particle particle(choose_random_particle(r, rng));
-    const unsigned int proposed_site_index = plan_particle_move_to_nearby_empty_site(particle, r, *lattice, rng);
+    const unsigned int proposed_site_index = plan_particle_move_to_nearby_empty_site(particle, r, *wf->lattice, rng);
     if (proposed_site_index != r[particle]) {
         const unsigned int other_species = particle.species ^ 1;
         const int other_particle_index = r.particle_index_at_pos(proposed_site_index, other_species);

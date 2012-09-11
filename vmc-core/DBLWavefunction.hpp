@@ -16,12 +16,22 @@
 class DBLWavefunction : public Wavefunction
 {
 public:
+    const boost::shared_ptr<const OrbitalDefinitions> orbital_def1, orbital_def2;
+    const real_t d1_exponent, d2_exponent;
+
+    DBLWavefunction (const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_)
+        : Wavefunction(orbital_def_1->get_lattice_ptr()),
+          orbital_def1(orbital_def_1),
+          orbital_def2(orbital_def_2),
+          d1_exponent(d1_exponent_),
+          d2_exponent(d2_exponent_)
+        {
+        }
+
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
         CeperleyMatrix<amplitude_t> cmat1, cmat2;
-        const boost::shared_ptr<const OrbitalDefinitions> orbital_def1, orbital_def2;
-        const real_t d1_exponent, d2_exponent;
 
         int m_partial_update_step;
 
@@ -29,7 +39,7 @@ public:
         Move m_current_move;
 
     public:
-        Amplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_);
+        Amplitude (const boost::shared_ptr<DBLWavefunction> &wf_, const PositionArguments &r_);
 
     private:
         void perform_move_ (const Move &move);

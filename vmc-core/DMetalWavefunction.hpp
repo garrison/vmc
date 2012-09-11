@@ -18,12 +18,33 @@
 class DMetalWavefunction : public Wavefunction
 {
 public:
+    const boost::shared_ptr<const OrbitalDefinitions> orbital_d1, orbital_d2, orbital_f_up, orbital_f_down;
+    const real_t d1_exponent, d2_exponent, f_up_exponent, f_down_exponent;
+
+    DMetalWavefunction (const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1_,
+                        const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2_,
+                        const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up_,
+                        const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down_,
+                        real_t d1_exponent_,
+                        real_t d2_exponent_,
+                        real_t f_up_exponent_,
+                        real_t f_down_exponent_)
+        : Wavefunction(orbital_d1_->get_lattice_ptr()),
+          orbital_d1(orbital_d1_),
+          orbital_d2(orbital_d2_),
+          orbital_f_up(orbital_f_up_),
+          orbital_f_down(orbital_f_down_),
+          d1_exponent(d1_exponent_),
+          d2_exponent(d2_exponent_),
+          f_up_exponent(f_up_exponent_),
+          f_down_exponent(f_down_exponent_)
+        {
+        }
+
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
         CeperleyMatrix<amplitude_t> m_cmat_d1, m_cmat_d2, m_cmat_f_up, m_cmat_f_down;
-        const boost::shared_ptr<const OrbitalDefinitions> m_orbital_d1, m_orbital_d2, m_orbital_f_up, m_orbital_f_down;
-        const real_t m_d1_exponent, m_d2_exponent, m_f_up_exponent, m_f_down_exponent;
         int m_partial_update_step;
 
         // the following variables only need be set when a move is in progress
@@ -31,15 +52,7 @@ public:
         Move m_current_move;
 
     public:
-        Amplitude (const PositionArguments &r_,
-                   const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1,
-                   const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2,
-                   const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up,
-                   const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down,
-                   real_t d1_exponent,
-                   real_t d2_exponent,
-                   real_t f_up_exponent,
-                   real_t f_down_exponent);
+        Amplitude (const boost::shared_ptr<const DMetalWavefunction> &wf, const PositionArguments &r_);
 
     private:
         void perform_move_ (const Move &move);

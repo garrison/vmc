@@ -55,8 +55,8 @@ void Wavefunction::Amplitude::reset_with_random_configuration (RandomNumberGener
 {
     std::vector<std::vector<unsigned int> > vv;
     for (unsigned int i = 0; i < r.get_N_species(); ++i)
-        vv.push_back(some_random_configuration(r.get_N_filled(i), *lattice, rng));
-    reset(PositionArguments(vv, lattice->total_sites()));
+        vv.push_back(some_random_configuration(r.get_N_filled(i), *wf->lattice, rng));
+    reset(PositionArguments(vv, wf->lattice->total_sites()));
 }
 
 Move Wavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
@@ -66,7 +66,7 @@ Move Wavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
     // must be maintained!
     Move move;
     const Particle particle(choose_random_particle(r, rng));
-    const unsigned int proposed_site_index = plan_particle_move_to_nearby_empty_site(particle, r, *lattice, rng);
+    const unsigned int proposed_site_index = plan_particle_move_to_nearby_empty_site(particle, r, *wf->lattice, rng);
     if (proposed_site_index != r[particle])
         move.push_back(SingleParticleMove(particle, proposed_site_index));
     return move;

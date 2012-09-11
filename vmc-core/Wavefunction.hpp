@@ -11,15 +11,30 @@
 
 class RandomNumberGenerator;
 
+/**
+ * Abstract base class representing a wavefunction
+ *
+ * Each Wavefunction object should be invariant after instantiation.
+ */
 class Wavefunction
 {
 public:
+    const boost::shared_ptr<const Lattice> lattice;
+
+protected:
+    Wavefunction (const boost::shared_ptr<const Lattice> &lattice_)
+        : lattice(lattice_)
+        {
+        }
+
+public:
+    virtual ~Wavefunction (void)
+        {
+        }
+
     /**
-     * Abstract base class representing a wavefunction amplitude
-     *
-     * Specifically, a Wavefunction::Amplitude keeps track of both the
-     * wavefunction itself (which is invariant after instantiation) and its
-     * amplitude, which varies as the particles are moved around.
+     * Abstract base class representing a wavefunction amplitude, which varies
+     * as the particles are moved around.
      */
     class Amplitude
     {
@@ -93,7 +108,7 @@ public:
 
         const Lattice & get_lattice (void) const
             {
-                return *lattice;
+                return *wf->lattice;
             }
 
         /**
@@ -154,9 +169,9 @@ public:
         virtual boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const = 0;
 
     protected:
-        Amplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_)
-        : r(r_),
-          lattice(lattice_)
+        Amplitude (const boost::shared_ptr<const Wavefunction> &wf_, const PositionArguments &r_)
+            : wf(wf_),
+              r(r_)
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
         , move_in_progress(false)
 #endif
@@ -169,8 +184,7 @@ public:
             }
 
         PositionArguments r;
-
-        const boost::shared_ptr<const Lattice> lattice;
+        const boost::shared_ptr<const Wavefunction> wf;
 
     private:
         // for when we need to cancel a move

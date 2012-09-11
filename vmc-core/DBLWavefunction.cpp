@@ -1,23 +1,20 @@
 #include <boost/assert.hpp>
 #include <boost/make_shared.hpp>
+#include <boost/cast.hpp>
 
 #include "vmc-math-utils.hpp"
 #include "DBLWavefunction.hpp"
 
-DBLWavefunction::Amplitude::Amplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_)
-    : Wavefunction::Amplitude(r_, orbital_def_1->get_lattice_ptr()),
-      orbital_def1(orbital_def_1),
-      orbital_def2(orbital_def_2),
-      d1_exponent(d1_exponent_),
-      d2_exponent(d2_exponent_),
+DBLWavefunction::Amplitude::Amplitude (const boost::shared_ptr<DBLWavefunction> &wf_, const PositionArguments &r_)
+    : Wavefunction::Amplitude(wf_, r_),
       m_partial_update_step(0)
 {
     BOOST_ASSERT(r.get_N_species() == 1);
-    BOOST_ASSERT(r.get_N_sites() == orbital_def1->get_N_sites());
-    BOOST_ASSERT(r.get_N_sites() == orbital_def2->get_N_sites());
-    BOOST_ASSERT(r.get_N_filled(0) == orbital_def1->get_N_filled());
-    BOOST_ASSERT(r.get_N_filled(0) == orbital_def2->get_N_filled());
-    BOOST_ASSERT(orbital_def1->get_lattice_ptr() == orbital_def2->get_lattice_ptr());
+    BOOST_ASSERT(r.get_N_sites() == wf_->orbital_def1->get_N_sites());
+    BOOST_ASSERT(r.get_N_sites() == wf_->orbital_def2->get_N_sites());
+    BOOST_ASSERT(r.get_N_filled(0) == wf_->orbital_def1->get_N_filled());
+    BOOST_ASSERT(r.get_N_filled(0) == wf_->orbital_def2->get_N_filled());
+    BOOST_ASSERT(wf_->orbital_def1->get_lattice_ptr() == wf_->orbital_def2->get_lattice_ptr());
 
     reinitialize();
 }
@@ -45,6 +42,8 @@ void DBLWavefunction::Amplitude::do_perform_move (const Move &move)
     if (!first_pass && m_partial_update_step == 0)
         return;
 
+    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
+
     switch (first_pass ? 2 : m_partial_update_step)
     {
     case 2:
@@ -52,7 +51,7 @@ void DBLWavefunction::Amplitude::do_perform_move (const Move &move)
             lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> d2_cols;
             for (unsigned int i = 0; i < move.size(); ++i)
                 d2_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
-            cmat2.update_columns(d2_cols, orbital_def2->get_orbitals());
+            cmat2.update_columns(d2_cols, wf_->orbital_def2->get_orbitals());
         }
         if (first_pass && cmat2.get_determinant() == amplitude_t(0)) {
             m_partial_update_step = 1;
@@ -64,7 +63,7 @@ void DBLWavefunction::Amplitude::do_perform_move (const Move &move)
             lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> d1_cols;
             for (unsigned int i = 0; i < move.size(); ++i)
                 d1_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
-            cmat1.update_columns(d1_cols, orbital_def1->get_orbitals());
+            cmat1.update_columns(d1_cols, wf_->orbital_def1->get_orbitals());
         }
     }
 
@@ -79,8 +78,9 @@ amplitude_t DBLWavefunction::Amplitude::psi_ (void) const
 
     // fixme: we could cache or precalculate this ... but i doubt it would make
     // much difference really
-    return (complex_pow(cmat1.get_determinant(), d1_exponent)
-            * complex_pow(cmat2.get_determinant(), d2_exponent));
+    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
+    return (complex_pow(cmat1.get_determinant(), wf_->d1_exponent)
+            * complex_pow(cmat2.get_determinant(), wf_->d2_exponent));
 }
 
 void DBLWavefunction::Amplitude::finish_move_ (void)
@@ -112,9 +112,11 @@ void DBLWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, 
 
 void DBLWavefunction::Amplitude::reset_ (const PositionArguments &r_)
 {
+    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
+
     BOOST_ASSERT(r_.get_N_species() == 1);
-    BOOST_ASSERT(r_.get_N_sites() == orbital_def1->get_N_sites());
-    BOOST_ASSERT(r_.get_N_filled(0) == orbital_def1->get_N_filled());
+    BOOST_ASSERT(r_.get_N_sites() == wf_->orbital_def1->get_N_sites());
+    BOOST_ASSERT(r_.get_N_filled(0) == wf_->orbital_def1->get_N_filled());
 
     r = r_;
     reinitialize();
@@ -122,12 +124,14 @@ void DBLWavefunction::Amplitude::reset_ (const PositionArguments &r_)
 
 void DBLWavefunction::Amplitude::reinitialize (void)
 {
+    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
+
     const unsigned int N = r.get_N_filled(0);
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
     for (unsigned int i = 0; i < N; ++i) {
         const Particle particle(i, 0);
-        mat1.col(i) = orbital_def1->at_position(r[particle]);
-        mat2.col(i) = orbital_def2->at_position(r[particle]);
+        mat1.col(i) = wf_->orbital_def1->at_position(r[particle]);
+        mat2.col(i) = wf_->orbital_def2->at_position(r[particle]);
     }
     cmat1 = mat1;
     cmat2 = mat2;

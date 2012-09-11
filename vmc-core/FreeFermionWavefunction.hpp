@@ -16,14 +16,21 @@
 class FreeFermionWavefunction : public Wavefunction
 {
 public:
+    const boost::shared_ptr<const OrbitalDefinitions> orbital_def;
+
+    FreeFermionWavefunction (const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_)
+        : Wavefunction(orbital_def_->get_lattice_ptr()),
+          orbital_def(orbital_def_)
+        {
+        }
+
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
         CeperleyMatrix<amplitude_t> cmat;
-        const boost::shared_ptr<const OrbitalDefinitions> orbital_def;
 
     public:
-        Amplitude (const PositionArguments &r_, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_);
+        Amplitude (const boost::shared_ptr<const FreeFermionWavefunction> &wf_, const PositionArguments &r_);
 
     private:
         void perform_move_ (const Move &move);

@@ -12,6 +12,14 @@
 class RVBWavefunction : public Wavefunction
 {
 public:
+    const std::vector<complex_t> phi;
+
+    RVBWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi_)
+        : Wavefunction(lattice_),
+          phi(phi_)
+        {
+        }
+
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
@@ -20,10 +28,9 @@ public:
         // twice, and copy it back if we choose to accept the move.
         bool m_update_in_progress;
         CeperleyMatrix<amplitude_t> m_cmat, m_new_cmat;
-        const std::vector<complex_t> m_phi;
 
     public:
-        Amplitude (const PositionArguments &r_, const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi);
+        Amplitude (const boost::shared_ptr<const RVBWavefunction> &wf_, const PositionArguments &r_);
 
         virtual Move propose_move (RandomNumberGenerator &rng) const;
 

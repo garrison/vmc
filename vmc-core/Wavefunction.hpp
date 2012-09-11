@@ -174,8 +174,8 @@ public:
                 return reverse_move;
             }
 
-        PositionArguments r;
         const boost::shared_ptr<const Wavefunction> wf;
+        PositionArguments r;
 
     private:
         // for when we need to cancel a move

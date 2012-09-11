@@ -201,22 +201,9 @@ static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Valu
     }
 }
 
-std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps)
+static std::auto_ptr<RandomNumberGenerator> create_rng (const Json::Value &json_rng)
 {
-    Json::Value json_input;
-    {
-        std::istringstream iss(json_input_str, std::istringstream::in);
-        iss >> json_input;
-    }
-
-    ensure_object(json_input);
-    const char * const json_input_required[] = { "rng", "system", "simulation", NULL };
-    ensure_required(json_input, json_input_required);
-    ensure_only(json_input, json_input_required);
-
-    // initialize random number generator
     unsigned long seed;
-    const Json::Value &json_rng = json_input["rng"];
     ensure_object(json_rng);
     const char * const json_rng_allowed[] = { "seed", "type", NULL };
     ensure_only(json_rng, json_rng_allowed);
@@ -235,18 +222,11 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         if (!RandomNumberGenerator::name_is_valid(rng_type_name))
             throw ParseError("invalid random number generator type specified");
     }
-    std::auto_ptr<RandomNumberGenerator> rng(RandomNumberGenerator::create(rng_type_name, seed));
+    return RandomNumberGenerator::create(rng_type_name, seed);
+}
 
-    // begin setting up the physical system
-    const Json::Value &json_system = json_input["system"];
-    ensure_object(json_system);
-    const char * const json_system_required[] = { "wavefunction", NULL };
-    ensure_required(json_system, json_system_required);
-    ensure_only(json_system, json_system_required);
-
-    // set up the wavefunction
-    boost::shared_ptr<Wavefunction> wf;
-    const Json::Value &json_wavefunction = json_input["system"]["wavefunction"];
+static boost::shared_ptr<Wavefunction> create_wavefunction (const Json::Value &json_wavefunction, const boost::shared_ptr<const Lattice> &lattice)
+{
     ensure_object(json_wavefunction);
     const char * const json_wavefunction_required[] = { "type", NULL };
     ensure_required(json_wavefunction, json_wavefunction_required);
@@ -258,7 +238,7 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         ensure_required(json_wavefunction, json_free_fermion_wavefunction_required);
         ensure_only(json_wavefunction, json_free_fermion_wavefunction_required);
         boost::shared_ptr<const OrbitalDefinitions> orbitals = parse_json_orbitals(json_wavefunction["orbitals"], lattice);
-        wf.reset(new FreeFermionWavefunction(orbitals));
+        return boost::make_shared<FreeFermionWavefunction>(orbitals);
     } else if (std::strcmp(json_wavefunction_type_cstr, "dbl") == 0) {
         // dbl wavefunction
         const char * const json_dbl_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", NULL };
@@ -269,9 +249,9 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         boost::shared_ptr<const OrbitalDefinitions> orbitals_d2 = parse_json_orbitals(json_wavefunction["orbitals-d2"], lattice);
         if (orbitals_d1->get_N_filled() != orbitals_d2->get_N_filled())
             throw ParseError("d1 and d2 have different number of orbitals");
-        wf.reset(new DBLWavefunction(orbitals_d1, orbitals_d2,
-                                     json_get_double(json_wavefunction, "exponent-d1", 1.0),
-                                     json_get_double(json_wavefunction, "exponent-d2", 1.0)));
+        return boost::make_shared<DBLWavefunction>(orbitals_d1, orbitals_d2,
+                                                   json_get_double(json_wavefunction, "exponent-d1", 1.0),
+                                                   json_get_double(json_wavefunction, "exponent-d2", 1.0));
     } else if (std::strcmp(json_wavefunction_type_cstr, "dmetal") == 0) {
         // dmetal wavefunction
         const char * const json_dmetal_wavefunction_required[] = { "type", "orbitals-d1", "orbitals-d2", "orbitals-f_up", "orbitals-f_down", NULL };
@@ -286,11 +266,11 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
             throw ParseError("d1 and d2 have different number of orbitals");
         if (orbitals_f_up->get_N_filled() + orbitals_f_down->get_N_filled() != orbitals_d1->get_N_filled())
             throw ParseError("number of orbitals in f_up and f_down must sum to number of orbitals in d1");
-        wf.reset(new DMetalWavefunction(orbitals_d1, orbitals_d2, orbitals_f_up, orbitals_f_down,
-                                        json_get_double(json_wavefunction, "exponent-d1", 1.0),
-                                        json_get_double(json_wavefunction, "exponent-d2", 1.0),
-                                        json_get_double(json_wavefunction, "exponent-f_up", 1.0),
-                                        json_get_double(json_wavefunction, "exponent-f_down", 1.0)));
+        return boost::make_shared<DMetalWavefunction>(orbitals_d1, orbitals_d2, orbitals_f_up, orbitals_f_down,
+                                                      json_get_double(json_wavefunction, "exponent-d1", 1.0),
+                                                      json_get_double(json_wavefunction, "exponent-d2", 1.0),
+                                                      json_get_double(json_wavefunction, "exponent-f_up", 1.0),
+                                                      json_get_double(json_wavefunction, "exponent-f_down", 1.0));
     } else if (std::strcmp(json_wavefunction_type_cstr, "rvb") == 0) {
         // rvb wavefunction
         const char * const json_rvb_wavefunction_required[] = { "type", "phi", NULL };
@@ -304,41 +284,32 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         std::vector<complex_t> phi(N_sites);
         for (unsigned int i = 0; i < N_sites; ++i)
             phi[i] = parse_complex(json_phi[i]);
-        wf.reset(new RVBWavefunction(lattice, phi));
+        return boost::make_shared<RVBWavefunction>(lattice, phi);
     } else {
         throw ParseError("invalid wavefunction type");
     }
+}
 
-    // set up the Wavefunction::Amplitude
-    boost::shared_ptr<Wavefunction::Amplitude> wfa(wf->create_nonzero_wavefunctionamplitude(wf, *rng));
-    if (!wfa)
-        throw ParseError("could not find a nonzero wavefunction amplitude");
-
+static std::auto_ptr<Walk> create_walk (const Json::Value &json_simulation, boost::shared_ptr<Wavefunction::Amplitude> &wfa)
+{
     // begin setting up the simulation
-    const Json::Value &json_simulation = json_input["simulation"];
     ensure_object(json_simulation);
     const char * const json_simulation_required[] = { "walk-type", NULL };
     ensure_required(json_simulation, json_simulation_required);
-#define JSON_SIMULATION_GLOBAL_ALLOWED "walk-type"
-
-    // if there are no equilibrium steps, make sure initial positions are given
-    if (equilibrium_steps == 0)
-        throw ParseError("equilibrium steps must be non-zero, otherwise the results are garbage");
 
     // from here forward, we have special logic per walk type
     ensure_string(json_simulation["walk-type"]);
     const char *json_walk_type_cstr = json_simulation["walk-type"].asCString();
-    std::auto_ptr<Walk> walk;
     if (std::strcmp(json_walk_type_cstr, "standard") == 0) {
 
         // STANDARD WALK
 
         // ensure correct json properties are given
-        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, NULL };
+        const char * const json_simulation_only[] = { "walk-type", NULL };
         ensure_only(json_simulation, json_simulation_only);
 
         // set up walk
-        walk.reset(new StandardWalk(wfa));
+        return std::auto_ptr<Walk>(new StandardWalk(wfa));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-mod/possible") == 0) {
 
@@ -347,11 +318,11 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         // ensure correct json properties are given
         const char * const json_simulation_additional_required[] = { "subsystem", NULL };
         ensure_required(json_simulation, json_simulation_additional_required);
-        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "subsystem", NULL };
+        const char * const json_simulation_only[] = { "walk-type", "subsystem", NULL };
         ensure_only(json_simulation, json_simulation_only);
 
         // set up subsystem
-        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], *lattice));
+        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], wfa->get_lattice()));
 
         // We need two copies of the system, each of which has the same number
         // of particles in the subsystem.  So for now we just initialize both
@@ -359,7 +330,7 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         boost::shared_ptr<Wavefunction::Amplitude> wfa2(wfa->clone());
 
         // set up walk
-        walk.reset(new RenyiModPossibleWalk(wfa, wfa2, subsystem));
+        return std::auto_ptr<Walk>(new RenyiModPossibleWalk(wfa, wfa2, subsystem));
 
     } else if (std::strcmp(json_walk_type_cstr, "renyi-sign") == 0) {
 
@@ -368,11 +339,11 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         // ensure correct json properties are given
         const char * const json_simulation_additional_required[] = { "subsystem", NULL };
         ensure_required(json_simulation, json_simulation_additional_required);
-        const char * const json_simulation_only[] = { JSON_SIMULATION_GLOBAL_ALLOWED, "subsystem", NULL };
+        const char * const json_simulation_only[] = { "walk-type", "subsystem", NULL };
         ensure_only(json_simulation, json_simulation_only);
 
         // set up subsystem
-        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], *lattice));
+        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], wfa->get_lattice()));
 
         // We need two copies of the system, each of which has the same number
         // of particles in the subsystem.  So for now we just initialize both
@@ -380,11 +351,45 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
         boost::shared_ptr<Wavefunction::Amplitude> wfa2(wfa->clone());
 
         // set up walk
-        walk.reset(new RenyiSignWalk(wfa, wfa2, subsystem));
+        return std::auto_ptr<Walk>(new RenyiSignWalk(wfa, wfa2, subsystem));
 
     } else {
         throw ParseError("invalid walk type");
     }
+}
 
+std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps)
+{
+    Json::Value json_input;
+    {
+        std::istringstream iss(json_input_str, std::istringstream::in);
+        iss >> json_input;
+    }
+
+    ensure_object(json_input);
+    const char * const json_input_required[] = { "rng", "system", "simulation", NULL };
+    ensure_required(json_input, json_input_required);
+    ensure_only(json_input, json_input_required);
+
+    // initialize random number generator
+    std::auto_ptr<RandomNumberGenerator> rng(create_rng(json_input["rng"]));
+
+    // set up the wavefunction
+    const Json::Value &json_system = json_input["system"];
+    ensure_object(json_system);
+    const char * const json_system_required[] = { "wavefunction", NULL };
+    ensure_required(json_system, json_system_required);
+    ensure_only(json_system, json_system_required);
+    boost::shared_ptr<Wavefunction> wf(create_wavefunction(json_system["wavefunction"], lattice));
+
+    // set up the Wavefunction::Amplitude
+    boost::shared_ptr<Wavefunction::Amplitude> wfa(wf->create_nonzero_wavefunctionamplitude(wf, *rng));
+    if (!wfa)
+        throw ParseError("could not find a nonzero wavefunction amplitude");
+
+    // set up the walk
+    std::auto_ptr<Walk> walk(create_walk(json_input["simulation"], wfa));
+
+    // return the simulation
     return std::auto_ptr<MetropolisSimulation>(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
 }

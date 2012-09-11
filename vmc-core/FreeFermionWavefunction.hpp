@@ -64,6 +64,7 @@ public:
 
     unsigned int get_N_filled (unsigned int species) const
         {
+            BOOST_ASSERT(species == 0);
             return orbital_def->get_N_filled();
         }
 };

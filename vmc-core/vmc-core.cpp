@@ -201,30 +201,6 @@ static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Valu
     }
 }
 
-static std::auto_ptr<RandomNumberGenerator> create_rng (const Json::Value &json_rng)
-{
-    unsigned long seed;
-    ensure_object(json_rng);
-    const char * const json_rng_allowed[] = { "seed", "type", NULL };
-    ensure_only(json_rng, json_rng_allowed);
-    if (json_rng.isMember("seed")) {
-        if (!json_rng["seed"].isIntegral())
-            throw ParseError("seed must be correct data type");
-        seed = json_rng["seed"].asUInt();
-    } else {
-        throw ParseError("seed must be given");
-    }
-    const char *rng_type_name = "boost::mt19937"; // by default
-    if (json_rng.isMember("type")) {
-        const Json::Value &json_rng_type_name = json_rng["type"];
-        ensure_string(json_rng_type_name);
-        rng_type_name = json_rng_type_name.asCString();
-        if (!RandomNumberGenerator::name_is_valid(rng_type_name))
-            throw ParseError("invalid random number generator type specified");
-    }
-    return RandomNumberGenerator::create(rng_type_name, seed);
-}
-
 static boost::shared_ptr<Wavefunction> create_wavefunction (const Json::Value &json_wavefunction, const boost::shared_ptr<const Lattice> &lattice)
 {
     ensure_object(json_wavefunction);
@@ -358,7 +334,7 @@ static std::auto_ptr<Walk> create_walk (const Json::Value &json_simulation, boos
     }
 }
 
-std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps)
+std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps, std::auto_ptr<RandomNumberGenerator> &rng)
 {
     Json::Value json_input;
     {
@@ -367,12 +343,9 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
     }
 
     ensure_object(json_input);
-    const char * const json_input_required[] = { "rng", "system", "simulation", NULL };
+    const char * const json_input_required[] = { "system", "simulation", NULL };
     ensure_required(json_input, json_input_required);
     ensure_only(json_input, json_input_required);
-
-    // initialize random number generator
-    std::auto_ptr<RandomNumberGenerator> rng(create_rng(json_input["rng"]));
 
     // set up the wavefunction
     const Json::Value &json_system = json_input["system"];

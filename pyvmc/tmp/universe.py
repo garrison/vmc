@@ -76,7 +76,6 @@ class Walk(object):
                 # advances, this WILL NOT notice and will continue with the
                 # old measurements.
                 vmc_core_input = copy(self.walk_json)
-                vmc_core_input["rng"] = { "seed": random.randint(0, 2 ** 32 - 1) }
                 self.sim = MetropolisSimulation(json.dumps(vmc_core_input),
                                                self.measurements_in_progress[0][0].measurement_plan.lattice,
                                                [m[0].measurement for m in self.measurements_in_progress],

@@ -14,6 +14,7 @@ MetropolisSimulation::MetropolisSimulation (std::auto_ptr<Walk> &walk_, const st
       measurement_not_yet_updated(true),
       rng(rng_)
 {
+    BOOST_ASSERT(rng.get() != 0);
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     for (std::list<boost::shared_ptr<BaseMeasurement> >::iterator m = measurements.begin(); m != measurements.end(); ++m)
         BOOST_ASSERT((*m)->is_valid_walk(*walk));

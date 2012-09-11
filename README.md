@@ -144,6 +144,6 @@ phases.  At the moment the following things are broken:
 * If finish_update() is called on a multi-particle move, the inverse
   matrix will be recalculated from scratch
 
-* Renyi stuff assumes only single particle moves
+* Renyi stuff uses only single particle moves
 
-* RVB wave function has not yet been updated
+* RVB wave function has not yet been tested

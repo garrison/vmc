@@ -14,35 +14,35 @@
 class TemporaryMove : boost::noncopyable
 {
 public:
-    TemporaryMove (const Wavefunction::Amplitude &wf_, const Move &move)
-        : wf(wf_)
+    TemporaryMove (const Wavefunction::Amplitude &wfa_, const Move &move)
+        : wfa(wfa_)
         {
-            const_cast<Wavefunction::Amplitude &>(wf).perform_move(move);
+            const_cast<Wavefunction::Amplitude &>(wfa).perform_move(move);
         }
 
     ~TemporaryMove (void)
         {
-            const_cast<Wavefunction::Amplitude &>(wf).cancel_move();
+            const_cast<Wavefunction::Amplitude &>(wfa).cancel_move();
         }
 
-    const Wavefunction::Amplitude &wf;
+    const Wavefunction::Amplitude &wfa;
 };
 
 void OperatorMeasurement::initialize_ (const StandardWalk &walk)
 {
     (void) walk;
-    BOOST_ASSERT(&walk.get_wavefunction().get_lattice() == m_operator.lattice.get());
+    BOOST_ASSERT(&walk.get_wavefunctionamplitude().get_lattice() == m_operator.lattice.get());
 }
 
 void OperatorMeasurement::measure_ (const StandardWalk &walk)
 {
-    const Wavefunction::Amplitude &wf = walk.get_wavefunction();
-    const PositionArguments &r = wf.get_positions();
-    const Lattice &lattice = wf.get_lattice();
+    const Wavefunction::Amplitude &wfa = walk.get_wavefunctionamplitude();
+    const PositionArguments &r = wfa.get_positions();
+    const Lattice &lattice = wfa.get_lattice();
 
     amplitude_t meas = 0;
 
-    const amplitude_t old_psi = wf.psi();
+    const amplitude_t old_psi = wfa.psi();
 
     // we only iterate if doing a sum, and even then we only want to iterate
     // over BraivaisSite's
@@ -84,10 +84,10 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
 
         // now perform the move (if necessary)
         if (move.size() != 0) {
-            TemporaryMove temp_move(wf, move);
+            TemporaryMove temp_move(wfa, move);
             // fixme: check logic of multiplying by phase (c.f. above), as
             // well as logic of source and destination
-            meas += std::conj(wf.psi() * phase / old_psi);
+            meas += std::conj(wfa.psi() * phase / old_psi);
         } else {
             meas += 1;
         }

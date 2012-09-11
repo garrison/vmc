@@ -69,7 +69,7 @@ private:
         {
             BOOST_ASSERT(estimate.size() == 0);
 
-            const PositionArguments &r = walk.get_wavefunction().get_positions();
+            const PositionArguments &r = walk.get_wavefunctionamplitude().get_positions();
 
             // set up the `offsets`, `bounds`, and `estimate` vectors
             offsets.resize(r.get_N_species());
@@ -87,12 +87,12 @@ private:
 
     void measure_ (const StandardWalk &walk)
         {
-            const Wavefunction::Amplitude &wf = walk.get_wavefunction();
+            const Wavefunction::Amplitude &wfa = walk.get_wavefunctionamplitude();
 
             // calculate the "offset" (see above)
             unsigned int offset = 0;
             for (unsigned int i = 0; i < offsets.size(); ++i)
-                offset += do_subsystem_particle_count(wf, i) * offsets[i];
+                offset += do_subsystem_particle_count(wfa, i) * offsets[i];
             BOOST_ASSERT(offset < estimate.size());
 
             last_offset = offset;
@@ -111,13 +111,13 @@ private:
             }
         }
 
-    unsigned int do_subsystem_particle_count (const Wavefunction::Amplitude &wf, unsigned int species) const
+    unsigned int do_subsystem_particle_count (const Wavefunction::Amplitude &wfa, unsigned int species) const
         {
-            const PositionArguments &r = wf.get_positions();
+            const PositionArguments &r = wfa.get_positions();
             unsigned int rv = 0;
             for (unsigned int i = 0; i < r.get_N_filled(species); ++i) {
                 const Particle particle(i, species);
-                if (subsystem->position_is_within(r[particle], wf.get_lattice()))
+                if (subsystem->position_is_within(r[particle], wfa.get_lattice()))
                     ++rv;
             }
             return rv;

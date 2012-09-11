@@ -18,16 +18,16 @@ public:
     /**
      * Constructor
      *
-     * @param wf_ initial wavefunction
+     * @param wfa_ initial wavefunction
      */
-    StandardWalk (boost::shared_ptr<Wavefunction::Amplitude> &wf_);
+    StandardWalk (boost::shared_ptr<Wavefunction::Amplitude> &wfa_);
 
     /**
      * Returns the current wavefunction
      */
-    const Wavefunction::Amplitude & get_wavefunction (void) const
+    const Wavefunction::Amplitude & get_wavefunctionamplitude (void) const
         {
-            return *wf;
+            return *wfa;
         }
 
 private:
@@ -48,7 +48,7 @@ private:
      */
     void reject_transition (void);
 
-    boost::shared_ptr<Wavefunction::Amplitude> wf; // treat this as copy on write
+    boost::shared_ptr<Wavefunction::Amplitude> wfa; // treat this as copy on write
     bool autoreject_in_progress;
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)

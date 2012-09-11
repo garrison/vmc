@@ -74,8 +74,8 @@ private:
     bool is_valid_walk_ (const StandardWalk &walk)
         {
             return ParticleOperator::is_valid(m_operator.hopv,
-                                              walk.get_wavefunction().get_lattice(),
-                                              walk.get_wavefunction().get_positions().get_N_species());
+                                              walk.get_wavefunctionamplitude().get_lattice(),
+                                              walk.get_wavefunctionamplitude().get_positions().get_N_species());
         }
 
     const ParticleOperator m_operator;

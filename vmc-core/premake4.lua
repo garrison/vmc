@@ -14,6 +14,8 @@ solution "vmc-core"
     -- see http://shorestreet.com/why-your-dso-is-slow
     linkoptions { "-Wl,-Bsymbolic-functions" }
 
+    buildoptions { "-Wall" }
+
     configuration "Local"
       flags { "OptimizeSpeed" }
 

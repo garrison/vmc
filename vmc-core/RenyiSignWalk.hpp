@@ -13,7 +13,7 @@
 class RenyiSignWalk : public BaseSwapPossibleWalk
 {
 public:
-    RenyiSignWalk (const boost::shared_ptr<Wavefunction::Amplitude> &wf, const boost::shared_ptr<Wavefunction::Amplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem)
+    RenyiSignWalk (const boost::shared_ptr<Wavefunction::Amplitude> &wf, const boost::shared_ptr<Wavefunction::Amplitude> &wf_copy, const boost::shared_ptr<const Subsystem> &subsystem)
         : BaseSwapPossibleWalk(wf, wf_copy, subsystem)
         {
         }

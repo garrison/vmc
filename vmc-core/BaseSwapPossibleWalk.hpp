@@ -30,7 +30,7 @@ public:
      * It is essential that both wf and wf_copy have the same number of
      * particles in the subsystem.
      */
-    BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction::Amplitude> &wf, const boost::shared_ptr<Wavefunction::Amplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem, bool update_swapped_system_before_accepting_=true);
+    BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction::Amplitude> &wf, const boost::shared_ptr<Wavefunction::Amplitude> &wf_copy, const boost::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_=true);
 
     const Wavefunction::Amplitude & get_phialpha1 (void) const
         {

@@ -8,7 +8,7 @@
 #include "BaseSwapPossibleWalk.hpp"
 #include "random-move.hpp"
 
-BaseSwapPossibleWalk::BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction::Amplitude> &wf, const boost::shared_ptr<Wavefunction::Amplitude> &wf_copy, boost::shared_ptr<const Subsystem> subsystem, bool update_swapped_system_before_accepting_)
+BaseSwapPossibleWalk::BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction::Amplitude> &wf, const boost::shared_ptr<Wavefunction::Amplitude> &wf_copy, const boost::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_)
     : phialpha1(wf),
       phialpha2(wf_copy),
       swapped_system(new SwappedSystem(subsystem)),

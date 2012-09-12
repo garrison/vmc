@@ -10,6 +10,6 @@
 #include "Measurement.hpp"
 #include "Lattice.hpp"
 
-std::auto_ptr<Walk> create_walk_from_json (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, std::auto_ptr<RandomNumberGenerator> &rng);
+boost::shared_ptr<Wavefunction::Amplitude> create_wfa_from_json (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, std::auto_ptr<RandomNumberGenerator> &rng);
 
 #endif

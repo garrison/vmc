@@ -116,14 +116,6 @@ static void ensure_only (const Json::Value &jsonvalue, const char * const keys[]
     }
 }
 
-static void ensure_object_with_type_field_as_string (const Json::Value &jsonvalue)
-{
-    ensure_object(jsonvalue);
-    const char * const json_type_required[] = { "type", NULL };
-    ensure_required(jsonvalue, json_type_required);
-    ensure_string(jsonvalue["type"]);
-}
-
 static complex_t parse_complex (const Json::Value &complex)
 {
     ensure_array(complex, 2);
@@ -175,30 +167,6 @@ static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals_from_defi
 static boost::shared_ptr<const OrbitalDefinitions> parse_json_orbitals (const Json::Value &json_orbitals, const boost::shared_ptr<const Lattice > &lattice)
 {
     return parse_json_orbitals_from_definitions(json_orbitals, lattice);
-}
-
-static boost::shared_ptr<const Subsystem> parse_json_subsystem (const Json::Value &json_subsystem, const Lattice &lattice)
-{
-    ensure_object_with_type_field_as_string(json_subsystem);
-    if (std::strcmp(json_subsystem["type"].asCString(), "simple") == 0) {
-        const char * const json_subsystem_required[] = { "type", "dimensions", NULL };
-        ensure_required(json_subsystem, json_subsystem_required);
-        ensure_only(json_subsystem, json_subsystem_required);
-        const Json::Value &json_lengths = json_subsystem["dimensions"];
-        const unsigned int n_dimensions = lattice.n_dimensions();
-        ensure_array(json_lengths, n_dimensions);
-        lw_vector<unsigned int, MAX_DIMENSION> lengths(n_dimensions);
-        for (unsigned int i = 0; i < n_dimensions; ++i) {
-            if (!(json_lengths[i].isIntegral() && json_lengths[i].asInt() >= 0))
-                throw ParseError("subsystem length must be a non-negative integer");
-            if (json_lengths[i].asInt() > lattice.dimensions[i])
-                throw ParseError("subsystem length must fit within the lattice");
-            lengths[i] = json_lengths[i].asUInt();
-        }
-        return boost::make_shared<SimpleSubsystem>(lengths);
-    } else {
-        throw ParseError("invalid subsystem type");
-    }
 }
 
 static boost::shared_ptr<Wavefunction> create_wavefunction (const Json::Value &json_wavefunction, const boost::shared_ptr<const Lattice> &lattice)
@@ -266,89 +234,15 @@ static boost::shared_ptr<Wavefunction> create_wavefunction (const Json::Value &j
     }
 }
 
-static std::auto_ptr<Walk> create_walk (const Json::Value &json_simulation, boost::shared_ptr<Wavefunction::Amplitude> &wfa)
+boost::shared_ptr<Wavefunction::Amplitude> create_wfa_from_json (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, std::auto_ptr<RandomNumberGenerator> &rng)
 {
-    // begin setting up the simulation
-    ensure_object(json_simulation);
-    const char * const json_simulation_required[] = { "walk-type", NULL };
-    ensure_required(json_simulation, json_simulation_required);
-
-    // from here forward, we have special logic per walk type
-    ensure_string(json_simulation["walk-type"]);
-    const char *json_walk_type_cstr = json_simulation["walk-type"].asCString();
-    if (std::strcmp(json_walk_type_cstr, "standard") == 0) {
-
-        // STANDARD WALK
-
-        // ensure correct json properties are given
-        const char * const json_simulation_only[] = { "walk-type", NULL };
-        ensure_only(json_simulation, json_simulation_only);
-
-        // set up walk
-        return std::auto_ptr<Walk>(new StandardWalk(wfa));
-
-    } else if (std::strcmp(json_walk_type_cstr, "renyi-mod/possible") == 0) {
-
-        // RENYI MOD/POSSIBLE WALK
-
-        // ensure correct json properties are given
-        const char * const json_simulation_additional_required[] = { "subsystem", NULL };
-        ensure_required(json_simulation, json_simulation_additional_required);
-        const char * const json_simulation_only[] = { "walk-type", "subsystem", NULL };
-        ensure_only(json_simulation, json_simulation_only);
-
-        // set up subsystem
-        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], wfa->get_lattice()));
-
-        // We need two copies of the system, each of which has the same number
-        // of particles in the subsystem.  So for now we just initialize both
-        // copies with the same exact positions.
-        boost::shared_ptr<Wavefunction::Amplitude> wfa2(wfa->clone());
-
-        // set up walk
-        return std::auto_ptr<Walk>(new RenyiModPossibleWalk(wfa, wfa2, subsystem));
-
-    } else if (std::strcmp(json_walk_type_cstr, "renyi-sign") == 0) {
-
-        // RENYI SIGN WALK
-
-        // ensure correct json properties are given
-        const char * const json_simulation_additional_required[] = { "subsystem", NULL };
-        ensure_required(json_simulation, json_simulation_additional_required);
-        const char * const json_simulation_only[] = { "walk-type", "subsystem", NULL };
-        ensure_only(json_simulation, json_simulation_only);
-
-        // set up subsystem
-        boost::shared_ptr<const Subsystem> subsystem(parse_json_subsystem(json_simulation["subsystem"], wfa->get_lattice()));
-
-        // We need two copies of the system, each of which has the same number
-        // of particles in the subsystem.  So for now we just initialize both
-        // copies with the same exact positions.
-        boost::shared_ptr<Wavefunction::Amplitude> wfa2(wfa->clone());
-
-        // set up walk
-        return std::auto_ptr<Walk>(new RenyiSignWalk(wfa, wfa2, subsystem));
-
-    } else {
-        throw ParseError("invalid walk type");
-    }
-}
-
-std::auto_ptr<Walk> create_walk_from_json (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, std::auto_ptr<RandomNumberGenerator> &rng)
-{
-    Json::Value json_input;
+    Json::Value json_system;
     {
         std::istringstream iss(json_input_str, std::istringstream::in);
-        iss >> json_input;
+        iss >> json_system;
     }
 
-    ensure_object(json_input);
-    const char * const json_input_required[] = { "system", "simulation", NULL };
-    ensure_required(json_input, json_input_required);
-    ensure_only(json_input, json_input_required);
-
     // set up the wavefunction
-    const Json::Value &json_system = json_input["system"];
     ensure_object(json_system);
     const char * const json_system_required[] = { "wavefunction", NULL };
     ensure_required(json_system, json_system_required);
@@ -360,6 +254,5 @@ std::auto_ptr<Walk> create_walk_from_json (const char *json_input_str, const boo
     if (!wfa)
         throw ParseError("could not find a nonzero wavefunction amplitude");
 
-    // return the walk
-    return create_walk(json_input["simulation"], wfa);
+    return wfa;
 }

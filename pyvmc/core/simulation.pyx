@@ -1,5 +1,4 @@
 from cython.operator cimport dereference as deref
-from libc.string cimport const_char
 from libcpp.list cimport list as stdlist
 from pyvmc.includes.libcpp.memory cimport auto_ptr
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
@@ -8,11 +7,8 @@ import collections
 
 from pyvmc.core.rng cimport RandomNumberGenerator, CppRandomNumberGenerator
 from pyvmc.core.lattice cimport Lattice, CppLattice
+from pyvmc.core.walk cimport Walk, CppWalk
 from pyvmc.core.measurement cimport BaseMeasurement, CppBaseMeasurement
-
-cdef extern from "Walk.hpp":
-    cdef cppclass CppWalk "Walk":
-        pass
 
 cdef extern from "MetropolisSimulation.hpp":
     cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
@@ -22,27 +18,22 @@ cdef extern from "MetropolisSimulation.hpp":
         unsigned int steps_accepted()
         unsigned int steps_fully_rejected()
 
-cdef extern from "vmc-core.hpp":
-    auto_ptr[CppWalk] create_walk_from_json(const_char*, shared_ptr[CppLattice], auto_ptr[CppRandomNumberGenerator]&) except +
-
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
 
-    def __init__(self, input_str, Lattice lattice not None, measurements, int equilibrium_steps):
-        cdef unicode input_unicode = unicode(input_str)
-        cdef bytes input_bytes = input_unicode.encode('UTF-8')
-        cdef char* input_cstr = input_bytes
+    def __init__(self, Walk walk not None, Lattice lattice not None, measurements, int equilibrium_steps):
         cdef stdlist[shared_ptr[CppBaseMeasurement]] measurement_list
         cdef BaseMeasurement measurement_
         assert isinstance(measurements, collections.Sequence)
+        if walk.autoptr.get() is NULL:
+            raise RuntimeError("Walk's auto_ptr is null.  It cannot be recycled.")
         for measurement in measurements:
             measurement_ = measurement
-            #if not measurement_.is_valid_walk(xxx):
-            #    raise ValueError("invalid walk/measurement combination")
+            if not measurement_.sharedptr.get().is_valid_walk(deref(walk.autoptr)):
+                raise ValueError("invalid walk/measurement combination")
             measurement_list.push_back(measurement_.sharedptr)
         rng = RandomNumberGenerator()
-        cdef auto_ptr[CppWalk] walk = create_walk_from_json(input_cstr, lattice.sharedptr, rng.autoptr)
-        self.autoptr.reset(new CppMetropolisSimulation(walk, measurement_list, equilibrium_steps, rng.autoptr))
+        self.autoptr.reset(new CppMetropolisSimulation(walk.autoptr, measurement_list, equilibrium_steps, rng.autoptr))
 
     def iterate(self, int sweeps):
         self.autoptr.get().iterate(sweeps)

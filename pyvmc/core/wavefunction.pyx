@@ -17,6 +17,15 @@ class Wavefunction(Immutable):
     def to_json(self):
         return None
 
+cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf):
+    from pyvmc.utils import complex_json as json
+    cdef unicode input_unicode = unicode(json.dumps(wf.to_json()))
+    cdef bytes input_bytes = input_unicode.encode('UTF-8')
+    cdef char* input_cstr = input_bytes
+    cdef Lattice lattice = wf.lattice
+    rng = RandomNumberGenerator()
+    return create_wfa_from_json(input_cstr, lattice.sharedptr, rng.autoptr)
+
 class FreeFermionWavefunction(Wavefunction):
     """Free fermion wavefunction, consists of a single determinant"""
 

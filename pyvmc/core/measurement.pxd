@@ -4,6 +4,7 @@ from pyvmc.includes.boost.rational cimport rational as boost_rational
 
 from pyvmc.core.lattice cimport CppLattice, CppLatticeSite, lw_vector
 from pyvmc.core.subsystem cimport CppSubsystem
+from pyvmc.core.walk cimport CppWalk
 from pyvmc.core cimport complex_t
 
 cdef extern from "RunningEstimate.hpp":
@@ -31,7 +32,7 @@ cdef extern from "BinnedEstimate.hpp":
 
 cdef extern from "Measurement.hpp":
     cdef cppclass CppBaseMeasurement "BaseMeasurement":
-        pass
+        bint is_valid_walk(CppWalk&)
 
 cdef class BaseMeasurement(object):
     cdef shared_ptr[CppBaseMeasurement] sharedptr

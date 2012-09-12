@@ -1,8 +1,11 @@
 from pyvmc.core.walk import WalkPlan
+from pyvmc.core.walk cimport Walk
 from pyvmc.core.measurement import MeasurementPlan
 from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.wavefunction import Wavefunction
+from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_wfa
 from pyvmc.core.subsystem cimport Subsystem
+from pyvmc.core.rng cimport RandomNumberGenerator
 from pyvmc.core cimport complex_t
 
 class RenyiModPossibleWalkPlan(WalkPlan):
@@ -19,6 +22,16 @@ class RenyiModPossibleWalkPlan(WalkPlan):
             "walk-type": "renyi-mod/possible",
             "subsystem": self.subsystem.to_json(),
         }
+
+    def create_walk(self, RandomNumberGenerator rng not None):
+        cdef Subsystem subsystem = self.subsystem
+        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction)
+        cdef Walk walk = Walk()
+        # We need two copies of the system, each of which has the same number
+        # of particles in the subsystem.  So for now we just initialize both
+        # copies with the same exact positions.
+        walk.autoptr.reset(new CppRenyiModPossibleWalk(wfa, wfa.get().clone(), subsystem.sharedptr))
+        return walk
 
 class RenyiModPossibleMeasurementPlan(MeasurementPlan):
     __slots__ = ("walk",)
@@ -54,6 +67,16 @@ class RenyiSignWalkPlan(WalkPlan):
             "walk-type": "renyi-sign",
             "subsystem": self.subsystem.to_json(),
         }
+
+    def create_walk(self, RandomNumberGenerator rng not None):
+        cdef Subsystem subsystem = self.subsystem
+        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction)
+        cdef Walk walk = Walk()
+        # We need two copies of the system, each of which has the same number
+        # of particles in the subsystem.  So for now we just initialize both
+        # copies with the same exact positions.
+        walk.autoptr.reset(new CppRenyiSignWalk(wfa, wfa.get().clone(), subsystem.sharedptr))
+        return walk
 
 class RenyiSignMeasurementPlan(MeasurementPlan):
     __slots__ = ("walk",)

@@ -13,6 +13,7 @@ from twisted.internet import defer, task, reactor
 #from pyvmc.control.scheduler import default_scheduler
 
 from pyvmc.core.simulation import MetropolisSimulation
+from pyvmc.core.rng import RandomNumberGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +41,9 @@ class Walk(object):
     sim = None
     measurement_steps_completed = 0
 
-    def __init__(self, walk_json):
+    def __init__(self, walk_json, ww):
         self.walk_json = deepcopy(walk_json)
+        self.ww = ww
         self.equilibrium_steps = 500000
         self.measurements_in_progress = []
         self.measurements_pending = []
@@ -75,11 +77,11 @@ class Walk(object):
                 # XXX FIXME: if measurements_in_progress changes between
                 # advances, this WILL NOT notice and will continue with the
                 # old measurements.
-                vmc_core_input = copy(self.walk_json)
-                self.sim = MetropolisSimulation(json.dumps(vmc_core_input),
-                                               self.measurements_in_progress[0][0].measurement_plan.lattice,
-                                               [m[0].measurement for m in self.measurements_in_progress],
-                                               self.equilibrium_steps)
+                rng = RandomNumberGenerator()
+                self.sim = MetropolisSimulation(self.ww.create_walk(rng),
+                                                self.measurements_in_progress[0][0].measurement_plan.lattice,
+                                                [m[0].measurement for m in self.measurements_in_progress],
+                                                self.equilibrium_steps)
             # the following will always result in the number of steps completed
             # being a power of two
             steps = self.measurement_steps_completed or 512
@@ -100,14 +102,15 @@ class Walk(object):
         return deferred
 
 class WalkSet(object):
-    def __init__(self, walk_json, n_independent):
+    def __init__(self, walk_json, ww, n_independent):
         # walk_json has already been deepcopy'd, so we can just store a
         # reference to it and it shouldn't change.
         self.walk_json = walk_json
-        self.ws = [Walk(walk_json) for i in xrange(n_independent)]
+        self.ww = ww
+        self.ws = [Walk(walk_json, ww) for i in xrange(n_independent)]
 
     def extend_by(self, n):
-        self.ms.extend(Walk(self.walk_json) for i in xrange(n))
+        self.ms.extend(Walk(self.walk_json, self.ww) for i in xrange(n))
 
     def extend_to(self, n):
         if n > len(self.ws):
@@ -209,7 +212,7 @@ class Universe(object):
         try:
             walk_set = self.walksets[measurement_plan.hashable_walk]
         except KeyError:
-            walk_set = WalkSet(measurement_plan.walk, n_independent)
+            walk_set = WalkSet(measurement_plan.walk, measurement_plan.measurement_plan.walk, n_independent)
             self.walksets[measurement_plan.hashable_walk] = walk_set
         else:
             walk_set.extend_to(n_independent)

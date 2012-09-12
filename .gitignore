@@ -11,6 +11,7 @@ vmc-core/vmc-core.make
 
 # Cython intermediate files
 pyvmc/core/lattice.cpp
+pyvmc/core/wavefunction.cpp
 pyvmc/core/measurement.cpp
 pyvmc/core/walk.cpp
 pyvmc/core/rng.cpp

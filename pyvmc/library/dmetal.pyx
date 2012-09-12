@@ -2,6 +2,7 @@ import numbers
 
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.orbitals import Orbitals
+from pyvmc.core.orbitals cimport orbitals_to_orbitaldefinitions
 
 class DMetalWavefunction(Wavefunction):
     """DMetal"""
@@ -40,3 +41,15 @@ class DMetalWavefunction(Wavefunction):
                 'exponent-f_down': self.f_down_exponent,
             },
         }
+
+    def to_wavefunction(self):
+        cdef WavefunctionWrapper rv = WavefunctionWrapper()
+        rv.sharedptr.reset(new CppDMetalWavefunction(
+            orbitals_to_orbitaldefinitions(self.d1, self.lattice),
+            orbitals_to_orbitaldefinitions(self.d2, self.lattice),
+            orbitals_to_orbitaldefinitions(self.f_up, self.lattice),
+            orbitals_to_orbitaldefinitions(self.f_down, self.lattice),
+            self.d1_exponent, self.d2_exponent,
+            self.f_up_exponent, self.f_down_exponent
+        ))
+        return rv

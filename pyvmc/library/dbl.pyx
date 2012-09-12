@@ -2,6 +2,7 @@ import numbers
 
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.orbitals import Orbitals
+from pyvmc.core.orbitals cimport orbitals_to_orbitaldefinitions
 
 class DBLWavefunction(Wavefunction):
     """$d$-wave Bose Liquid"""
@@ -30,3 +31,12 @@ class DBLWavefunction(Wavefunction):
                 'exponent-d2': self.d2_exponent,
             }
         }
+
+    def to_wavefunction(self):
+        cdef WavefunctionWrapper rv = WavefunctionWrapper()
+        rv.sharedptr.reset(new CppDBLWavefunction(
+            orbitals_to_orbitaldefinitions(self.d1, self.lattice),
+            orbitals_to_orbitaldefinitions(self.d2, self.lattice),
+            self.d1_exponent, self.d2_exponent
+        ))
+        return rv

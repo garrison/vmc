@@ -1,4 +1,3 @@
-from libc.string cimport const_char
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
 from pyvmc.core.rng cimport RandomNumberGenerator, CppRandomNumberGenerator

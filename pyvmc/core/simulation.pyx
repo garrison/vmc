@@ -30,7 +30,7 @@ cdef class MetropolisSimulation(object):
         for measurement in measurements:
             measurement_ = measurement
             if not measurement_.sharedptr.get().is_valid_walk(deref(walk.autoptr)):
-                raise ValueError("invalid walk/measurement combination")
+                raise ValueError("invalid walk/measurement/wavefunction combination")
             measurement_list.push_back(measurement_.sharedptr)
         rng = RandomNumberGenerator()
         self.autoptr.reset(new CppMetropolisSimulation(walk.autoptr, measurement_list, equilibrium_steps, rng.autoptr))

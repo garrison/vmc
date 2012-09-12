@@ -65,6 +65,12 @@ public:
             return lattice;
         }
 
+    // CYTHON-LIMITATION: http://docs.cython.org/src/userguide/wrapping_CPlusPlus.html#c-left-values
+    static inline void set_matrix_coeff (Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int row, unsigned int col, amplitude_t value)
+        {
+            mat(row, col) = value;
+        }
+
 protected:
     /**
      * Stores the definition of each orbital at each possible position

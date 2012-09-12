@@ -21,15 +21,12 @@ Compiling vmc-core
 build.
 
 Requires a recent [boost](http://www.boost.org/) (headers only) and
-[eigen3](http://eigen.tuxfamily.org/).  The input mechanism for
-declaring calculations also requires
-[jsoncpp](http://jsoncpp.sourceforge.net/) 0.6.0-rc2 or later, though
-this requirement will soon be removed.
+[eigen3](http://eigen.tuxfamily.org/).
 
 To compile and run (using e.g. clang++):
 
     $ cd vmc-core
-    $ premake4 --os=linux gmake && CXX=clang++ INCLUDES="-I/path/to/eigen3/include -I/path/to/boost/include -I/path/to/jsoncpp/include" make
+    $ premake4 --os=linux gmake && CXX=clang++ INCLUDES="-I/path/to/eigen3/include -I/path/to/boost/include" make
 
 Run "premake4 --help" for a list of options.  Note that it is possible
 for premake to hook into a different build system instead of using
@@ -82,8 +79,7 @@ Compiling pyvmc
 
 First make sure a recent python2 is installed, along with virtualenv.
 The following uses clang++ for both compiling (CC) and linking (CXX),
-and assumes certain (typical) directories for boost, eigen and
-jsoncpp.
+and assumes certain (typical) directories for boost and eigen.
 
 The "pip" command below compiles all the python dependencies given in
 requirements.txt.  Some of these have their own dependencies, which
@@ -92,7 +88,7 @@ must be installed.
     $ virtualenv venv
     $ source venv/bin/activate
     $ pip install -r requirements.txt
-    $ CC=clang++ CXX=clang++ python setup.py build_ext -I/usr/include/boost -Lvmc-core --inplace
+    $ CC=clang++ CXX=clang++ python setup.py build_ext -I/usr/include/boost:/usr/include/eigen3 -Lvmc-core --inplace
 
 Sometimes you must pass the option "--force" to the build_ext command,
 since [dependencies are not tracked properly when pxd files are

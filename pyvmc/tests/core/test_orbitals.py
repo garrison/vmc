@@ -5,6 +5,10 @@ from pyvmc.core.lattice import Lattice
 from pyvmc.core.orbitals import Orbitals, MomentaOrbitals, Bands
 from pyvmc.core.boundary_conditions import periodic, antiperiodic
 
+# this should not be necessary.  see my bug report at
+# https://bitbucket.org/hpk42/pytest/issue/176/pytestraises-assertionerror-fails-with
+AssertionError = Exception
+
 def test_momenta_orbitals():
     lattice = Lattice([8, 8])
     MomentaOrbitals(lattice, [(0, 0)], [periodic, periodic])

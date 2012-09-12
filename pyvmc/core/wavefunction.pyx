@@ -1,7 +1,10 @@
+from cython.operator cimport dereference as deref
+
 import abc
 
 from pyvmc.core.lattice import Lattice
 from pyvmc.core.orbitals import Orbitals
+from pyvmc.core.orbitals cimport orbitals_to_orbitaldefinitions
 from pyvmc.utils.immutable import Immutable
 
 class Wavefunction(Immutable):
@@ -17,6 +20,10 @@ class Wavefunction(Immutable):
     def to_json(self):
         return None
 
+    @abc.abstractmethod
+    def to_wavefunction(self):
+        return None
+
 cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf):
     from pyvmc.utils import complex_json as json
     cdef unicode input_unicode = unicode(json.dumps(wf.to_json()))
@@ -24,7 +31,11 @@ cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf):
     cdef char* input_cstr = input_bytes
     cdef Lattice lattice = wf.lattice
     rng = RandomNumberGenerator()
-    return create_wfa_from_json(input_cstr, lattice.sharedptr, rng.autoptr)
+    cdef WavefunctionWrapper ww = wf.to_wavefunction()
+    cdef shared_ptr[CppWavefunctionAmplitude] wfa = ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.autoptr.get()))
+    if wfa.get() is NULL:
+        raise RuntimeError("could not find a nonzero wavefunction configuration")
+    return wfa
 
 class FreeFermionWavefunction(Wavefunction):
     """Free fermion wavefunction, consists of a single determinant"""
@@ -42,3 +53,8 @@ class FreeFermionWavefunction(Wavefunction):
                 'orbitals': self.orbitals.to_json(),
             }
         }
+
+    def to_wavefunction(self):
+        cdef WavefunctionWrapper rv = WavefunctionWrapper()
+        rv.sharedptr.reset(new CppFreeFermionWavefunction(orbitals_to_orbitaldefinitions(self.orbitals, self.lattice)))
+        return rv

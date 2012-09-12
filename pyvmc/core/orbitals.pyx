@@ -1,3 +1,5 @@
+from cython.operator cimport dereference as deref
+
 import abc
 import numbers
 import collections
@@ -5,7 +7,6 @@ import logging
 
 import numpy
 
-from pyvmc.core.lattice import Lattice
 from pyvmc.core.boundary_conditions import valid_boundary_conditions, periodic, antiperiodic
 from pyvmc.utils.immutable import Immutable
 
@@ -30,6 +31,23 @@ def allowed_momentum(momentum_site, lattice, boundary_conditions):
                  for ms, bc, ll in zip(momentum_site,
                                        boundary_conditions,
                                        lattice.dimensions))
+
+cdef shared_ptr[CppOrbitalDefinitions] orbitals_to_orbitaldefinitions(orbitals, Lattice lattice):
+    assert isinstance(orbitals, Orbitals)
+    m = orbitals.get_orbitals_matrix()
+    rows, cols = m.shape
+    cdef auto_ptr[CppOrbitalMatrix] mat
+    mat.reset(new CppOrbitalMatrix(rows, cols))
+    cdef unsigned int i, j
+    cdef complex_t c
+    for i in xrange(rows):
+        for j in xrange(cols):
+            c_ = m[(i, j)]
+            c = complex_t(c_.real, c_.imag)
+            set_matrix_coeff(deref(mat.get()), i, j, c)
+    cdef shared_ptr[CppOrbitalDefinitions] rv
+    rv.reset(new CppOrbitalDefinitions(deref(mat), lattice.sharedptr))
+    return rv
 
 class OrbitalsDescription(object):
     __metaclass__ = abc.ABCMeta

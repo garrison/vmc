@@ -22,6 +22,7 @@ def make_extension(ext_name, ext_libraries=()):
 extensions = [
     make_extension("pyvmc.core.lattice", ["vmc-core"]),
     make_extension("pyvmc.core.subsystem", ["vmc-core"]),
+    make_extension("pyvmc.core.orbitals", ["vmc-core"]),
     make_extension("pyvmc.core.wavefunction", ["vmc-core"]),
     make_extension("pyvmc.core.measurement", ["vmc-core"]),
     make_extension("pyvmc.core.walk", ["vmc-core"]),

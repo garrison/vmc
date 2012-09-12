@@ -10,18 +10,8 @@ from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.lattice cimport Lattice, LatticeSite
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
+from pyvmc.core.walk import WalkPlan, StandardWalkPlan
 from pyvmc.utils.immutable import Immutable
-
-class WalkPlan(Immutable):
-    __slots__ = ("wavefunction",)
-
-    def init_validate(self, wavefunction, *args, **kwargs):
-        assert isinstance(wavefunction, Wavefunction)
-        return super(WalkPlan, self).init_validate(wavefunction, *args, **kwargs)
-
-    @abc.abstractmethod
-    def to_json(self):
-        raise NotImplementedError
 
 class MeasurementPlan(Immutable):
     __slots__ = ("walk",)
@@ -40,12 +30,6 @@ class MeasurementPlan(Immutable):
 
 cdef class BaseMeasurement(object):
     pass
-
-class StandardWalkPlan(WalkPlan):
-    __slots__ = ("wavefunction",)
-
-    def to_json(self):
-        return {"walk-type": "standard"}
 
 class SiteHop(Immutable):
     __slots__ = ("source", "destination", "species")

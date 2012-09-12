@@ -1,4 +1,5 @@
-from pyvmc.core.measurement import WalkPlan, MeasurementPlan
+from pyvmc.core.walk import WalkPlan
+from pyvmc.core.measurement import MeasurementPlan
 from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.subsystem cimport Subsystem

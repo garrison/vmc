@@ -23,6 +23,7 @@ extensions = [
     make_extension("pyvmc.core.lattice", ["vmc-core"]),
     make_extension("pyvmc.core.subsystem", ["vmc-core"]),
     make_extension("pyvmc.core.measurement", ["vmc-core"]),
+    make_extension("pyvmc.core.walk", ["vmc-core"]),
     make_extension("pyvmc.library.renyi", ["vmc-core"]),
     make_extension("pyvmc.core.rng", ["vmc-core"]),
     make_extension("pyvmc.core.simulation", ["vmc-core"]),

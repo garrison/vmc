@@ -1,12 +1,19 @@
 #ifndef _RUN_INFORMATION_HPP
 #define _RUN_INFORMATION_HPP
 
-#include <json/json.h>
-
-class RunInformation
+namespace RunInformation
 {
-public:
-    static Json::Value json_info (void);
+    extern const char *compiler;
+
+    namespace Precision
+    {
+        extern int digits;
+        extern int min_exponent;
+        extern int max_exponent;
+    };
+
+    extern const char *boost_version;
+    extern const char *eigen_version;
 };
 
 #endif

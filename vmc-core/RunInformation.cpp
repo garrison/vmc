@@ -9,25 +9,15 @@
 #define STRINGIFY_(x) #x
 #define STRINGIFY(x) STRINGIFY_(x)
 
-Json::Value RunInformation::json_info (void)
-{
-    Json::Value rv(Json::objectValue);
-
 #ifdef __VERSION__
-    rv["compiler"] = __VERSION__;
+const char * RunInformation::compiler = __VERSION__;
 #else
-    rv["compiler"] = Json::Value(Json::nullValue);
-#endif
-#if 0
-    rv["compiler_commandline"] = STRINGIFY(VMC_COMPILER_COMMANDLINE);
+const char * RunInformation::compiler = 0;
 #endif
 
-    rv["precision"]["digits"] = std::numeric_limits<real_t>::digits;
-    rv["precision"]["min_exponent"] = std::numeric_limits<real_t>::min_exponent;
-    rv["precision"]["max_exponent"] = std::numeric_limits<real_t>::max_exponent;
+int RunInformation::Precision::digits = std::numeric_limits<real_t>::digits;
+int RunInformation::Precision::min_exponent = std::numeric_limits<real_t>::min_exponent;
+int RunInformation::Precision::max_exponent = std::numeric_limits<real_t>::max_exponent;
 
-    rv["version"]["boost"] = BOOST_LIB_VERSION;
-    rv["version"]["eigen"] = STRINGIFY(EIGEN_WORLD_VERSION) "." STRINGIFY(EIGEN_MAJOR_VERSION) "." STRINGIFY(EIGEN_MINOR_VERSION);
-
-    return rv;
-}
+const char * RunInformation::boost_version = BOOST_LIB_VERSION;
+const char * RunInformation::eigen_version = STRINGIFY(EIGEN_WORLD_VERSION) "." STRINGIFY(EIGEN_MAJOR_VERSION) "." STRINGIFY(EIGEN_MINOR_VERSION);

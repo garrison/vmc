@@ -334,7 +334,7 @@ static std::auto_ptr<Walk> create_walk (const Json::Value &json_simulation, boos
     }
 }
 
-std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements, unsigned int equilibrium_steps, std::auto_ptr<RandomNumberGenerator> &rng)
+std::auto_ptr<Walk> create_walk_from_json (const char *json_input_str, const boost::shared_ptr<const Lattice> &lattice, std::auto_ptr<RandomNumberGenerator> &rng)
 {
     Json::Value json_input;
     {
@@ -360,9 +360,6 @@ std::auto_ptr<MetropolisSimulation> create_simulation (const char *json_input_st
     if (!wfa)
         throw ParseError("could not find a nonzero wavefunction amplitude");
 
-    // set up the walk
-    std::auto_ptr<Walk> walk(create_walk(json_input["simulation"], wfa));
-
-    // return the simulation
-    return std::auto_ptr<MetropolisSimulation>(new MetropolisSimulation(walk, measurements, equilibrium_steps, rng));
+    // return the walk
+    return create_walk(json_input["simulation"], wfa);
 }

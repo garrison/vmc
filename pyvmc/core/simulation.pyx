@@ -10,15 +10,20 @@ from pyvmc.core.rng cimport RandomNumberGenerator, CppRandomNumberGenerator
 from pyvmc.core.lattice cimport Lattice, CppLattice
 from pyvmc.core.measurement cimport BaseMeasurement, CppBaseMeasurement
 
+cdef extern from "Walk.hpp":
+    cdef cppclass CppWalk "Walk":
+        pass
+
 cdef extern from "MetropolisSimulation.hpp":
     cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
+        CppMetropolisSimulation(auto_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, auto_ptr[CppRandomNumberGenerator]&)
         void iterate(unsigned int) nogil
         unsigned int steps_completed()
         unsigned int steps_accepted()
         unsigned int steps_fully_rejected()
 
 cdef extern from "vmc-core.hpp":
-    auto_ptr[CppMetropolisSimulation] create_simulation(const_char*, shared_ptr[CppLattice], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, auto_ptr[CppRandomNumberGenerator]&) except +
+    auto_ptr[CppWalk] create_walk_from_json(const_char*, shared_ptr[CppLattice], auto_ptr[CppRandomNumberGenerator]&) except +
 
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
@@ -36,7 +41,8 @@ cdef class MetropolisSimulation(object):
             #    raise ValueError("invalid walk/measurement combination")
             measurement_list.push_back(measurement_.sharedptr)
         rng = RandomNumberGenerator()
-        self.autoptr = create_simulation(input_cstr, lattice.sharedptr, measurement_list, equilibrium_steps, rng.autoptr)
+        cdef auto_ptr[CppWalk] walk = create_walk_from_json(input_cstr, lattice.sharedptr, rng.autoptr)
+        self.autoptr.reset(new CppMetropolisSimulation(walk, measurement_list, equilibrium_steps, rng.autoptr))
 
     def iterate(self, int sweeps):
         self.autoptr.get().iterate(sweeps)

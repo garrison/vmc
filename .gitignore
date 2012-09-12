@@ -10,12 +10,5 @@ vmc-core/Makefile
 vmc-core/vmc-core.make
 
 # Cython intermediate files
-pyvmc/core/lattice.cpp
-pyvmc/core/orbitals.cpp
-pyvmc/core/wavefunction.cpp
-pyvmc/core/measurement.cpp
-pyvmc/core/walk.cpp
-pyvmc/core/rng.cpp
-pyvmc/core/simulation.cpp
-pyvmc/core/subsystem.cpp
-pyvmc/library/renyi.cpp
+pyvmc/core/*.cpp
+pyvmc/library/*.cpp

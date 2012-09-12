@@ -26,9 +26,11 @@ extensions = [
     make_extension("pyvmc.core.wavefunction", ["vmc-core"]),
     make_extension("pyvmc.core.measurement", ["vmc-core"]),
     make_extension("pyvmc.core.walk", ["vmc-core"]),
-    make_extension("pyvmc.library.renyi", ["vmc-core"]),
     make_extension("pyvmc.core.rng", ["vmc-core"]),
     make_extension("pyvmc.core.simulation", ["vmc-core"]),
+    make_extension("pyvmc.library.renyi", ["vmc-core"]),
+    make_extension("pyvmc.library.dbl", ["vmc-core"]),
+    make_extension("pyvmc.library.dmetal", ["vmc-core"]),
 ]
 
 setup(**{

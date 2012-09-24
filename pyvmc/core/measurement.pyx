@@ -76,11 +76,11 @@ class OperatorMeasurementPlan(MeasurementPlan):
             "hops": hops_list,
             "sum": self.sum,
             "boundary-conditions": self.boundary_conditions,
-            "steps-per-measurement": 1,
+            "steps-per-measurement": 100,
         }
 
     def to_measurement(self):
-        return OperatorMeasurement(1, self.hops, self.sum, self.boundary_conditions, self.walk.wavefunction.lattice)
+        return OperatorMeasurement(100, self.hops, self.sum, self.boundary_conditions, self.walk.wavefunction.lattice)
 
 cdef class OperatorMeasurement(BaseMeasurement):
     def __init__(self, int steps_per_measurement, hops, sum, bcs, Lattice lattice not None):

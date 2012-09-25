@@ -1,4 +1,5 @@
 import numbers
+from fractions import Fraction
 
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.orbitals import Orbitals
@@ -26,6 +27,10 @@ class DMetalWavefunction(Wavefunction):
             float(f_up_exponent),
             float(f_down_exponent)
         )
+
+    @property
+    def rho(self):
+        return Fraction(len(self.d1.momentum_sites), len(self.lattice))
 
     def to_json(self):
         return {

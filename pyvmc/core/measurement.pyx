@@ -47,9 +47,9 @@ class SiteHop(Immutable):
         return True
 
 class OperatorMeasurementPlan(MeasurementPlan):
-    __slots__ = ("walk", "hops", "sum", "boundary_conditions")
+    __slots__ = ("walk", "hops", "sum", "boundary_conditions", "steps_per_measurement")
 
-    def __init__(self, wavefunction, hops, sum, boundary_conditions):
+    def __init__(self, wavefunction, hops, sum, boundary_conditions, steps_per_measurement=1000):
         walk = StandardWalkPlan(wavefunction)
         assert isinstance(hops, collections.Sequence)
         hops = tuple(hops)
@@ -62,7 +62,7 @@ class OperatorMeasurementPlan(MeasurementPlan):
         if boundary_conditions is not None:
             assert valid_boundary_conditions(boundary_conditions, len(wavefunction.lattice.dimensions))
             boundary_conditions = tuple(boundary_conditions)
-        super(OperatorMeasurementPlan, self).__init__(walk, hops, sum, boundary_conditions)
+        super(OperatorMeasurementPlan, self).__init__(walk, hops, sum, boundary_conditions, steps_per_measurement)
 
     def to_json(self):
         lattice = self.walk.wavefunction.lattice
@@ -76,11 +76,11 @@ class OperatorMeasurementPlan(MeasurementPlan):
             "hops": hops_list,
             "sum": self.sum,
             "boundary-conditions": self.boundary_conditions,
-            "steps-per-measurement": 100,
+            "steps-per-measurement": self.steps_per_measurement,
         }
 
     def to_measurement(self):
-        return OperatorMeasurement(100, self.hops, self.sum, self.boundary_conditions, self.walk.wavefunction.lattice)
+        return OperatorMeasurement(self.steps_per_measurement, self.hops, self.sum, self.boundary_conditions, self.walk.wavefunction.lattice)
 
 cdef class OperatorMeasurement(BaseMeasurement):
     def __init__(self, int steps_per_measurement, hops, sum, bcs, Lattice lattice not None):
@@ -113,9 +113,9 @@ cdef class OperatorMeasurement(BaseMeasurement):
 class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
     __slots__ = ("walk", "subsystem", "steps_per_measurement")
 
-    def __init__(self, wavefunction, subsystem):
+    def __init__(self, wavefunction, subsystem, steps_per_measurement=100):
         walk = StandardWalkPlan(wavefunction)
-        super(SubsystemOccupationProbabilityMeasurementPlan, self).__init__(walk, subsystem, 100)
+        super(SubsystemOccupationProbabilityMeasurementPlan, self).__init__(walk, subsystem, steps_per_measurement)
 
     def to_json(self):
         return {

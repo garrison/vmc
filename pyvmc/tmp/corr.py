@@ -15,6 +15,7 @@ def calculate_correlators(wf, filename):
         (
             # green
             OperatorMeasurementPlan(wf, [SiteHop(i, j, 0)], True, (periodic, periodic)),
+            OperatorMeasurementPlan(wf, [SiteHop(i, j, 1)], True, (periodic, periodic)),
             # density-density terms
             OperatorMeasurementPlan(wf, [SiteHop(i, i, 0), SiteHop(j, j, 1)], True, (periodic, periodic)),
             OperatorMeasurementPlan(wf, [SiteHop(i, i, 1), SiteHop(j, j, 0)], True, (periodic, periodic)),
@@ -49,19 +50,22 @@ def calculate_correlators(wf, filename):
     for zzz in xrange(500):
         sim.iterate(10000)
 
-        green = numpy.ndarray(shape=wf.lattice.dimensions, dtype=complex)
+        green0 = numpy.ndarray(shape=wf.lattice.dimensions, dtype=complex)
+        green1 = numpy.ndarray(shape=wf.lattice.dimensions, dtype=complex)
         dd = numpy.ndarray(shape=wf.lattice.dimensions, dtype=complex)
         ss = numpy.ndarray(shape=wf.lattice.dimensions, dtype=complex)
         for site, measurement in zip(wf.lattice, measurements):
-            green[site.bs] = measurement[0].get_result() / len(wf.lattice)
-            dd[site.bs] = sum([measurement[i].get_result() for i in xrange(1, 5)]) / len(wf.lattice) - (wf.rho ** 2)
-            ss[site.bs] = (-.5 * sum([measurement[i].get_result() for i in xrange(5, 7)])
-                           + .25 * sum([measurement[i].get_result() for i in xrange(3, 5)])
-                           - .25 * sum([measurement[i].get_result() for i in xrange(7, 9)])
+            green0[site.bs] = measurement[0].get_result() / len(wf.lattice)
+            green1[site.bs] = measurement[1].get_result() / len(wf.lattice)
+            dd[site.bs] = sum([measurement[i].get_result() for i in xrange(2, 6)]) / len(wf.lattice) - (wf.rho ** 2)
+            ss[site.bs] = (-.5 * sum([measurement[i].get_result() for i in xrange(6, 8)])
+                           + .25 * sum([measurement[i].get_result() for i in xrange(4, 6)])
+                           - .25 * sum([measurement[i].get_result() for i in xrange(8, 10)])
             ) / len(wf.lattice)
         ring = sum([more_measurements[i].get_result() for i in xrange(4)]).real / len(wf.lattice)  # one half of four terms plus their hermitian conjugates, average per site
         ss[(0, 0)] = .75 * wf.rho  # same-site commutation relations lead to a different result
-        green_fourier = numpy.fft.fftn(green)
+        green0_fourier = numpy.fft.fftn(green0)
+        green1_fourier = numpy.fft.fftn(green1)
         dd_fourier = numpy.fft.fftn(dd)
         ss_fourier = numpy.fft.fftn(ss)
 
@@ -69,13 +73,15 @@ def calculate_correlators(wf, filename):
         with h5py.File(filename, "w") as f:
             f.attrs["wf"] = repr(wf)
             # or require_dataset(exact=True)
-            f.create_dataset("Green", data=green)
-            f.create_dataset("GreenFourier", data=green_fourier)
+            f.create_dataset("Green_0", data=green0)
+            f.create_dataset("GreenFourier_0", data=green0_fourier)
+            f.create_dataset("Green_1", data=green1)
+            f.create_dataset("GreenFourier_1", data=green1_fourier)
             f.create_dataset("DensityDensity", data=dd)
-            f.create_dataset("Ring", data=ring)
             f.create_dataset("DensityDensityFourier", data=dd_fourier)
             f.create_dataset("SpinSpin", data=ss)
             f.create_dataset("SpinSpinFourier", data=ss_fourier)
+            f.create_dataset("Ring", data=ring)
             #f.flush()
 
             g = f.require_group("OperatorMeasurement")

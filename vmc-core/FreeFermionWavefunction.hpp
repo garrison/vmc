@@ -1,6 +1,8 @@
 #ifndef _FREE_FERMION_WAVEFUNCTION_HPP
 #define _FREE_FERMION_WAVEFUNCTION_HPP
 
+#include <vector>
+
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 
@@ -12,29 +14,31 @@
 /**
  * Free fermion wave function
  *
- * (a single determinant with no Jastrow factor)
+ * (a single determinant for each species, with no Jastrow factor)
  */
 class FreeFermionWavefunction : public Wavefunction
 {
 public:
-    const boost::shared_ptr<const OrbitalDefinitions> orbital_def;
+    const std::vector<boost::shared_ptr<const OrbitalDefinitions> > orbital_def;
 
-    FreeFermionWavefunction (const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_)
-        : Wavefunction(orbital_def_->get_lattice_ptr()),
-          orbital_def(orbital_def_)
-        {
-        }
+    FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_);
 
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
-        CeperleyMatrix<amplitude_t> cmat;
+        std::vector<CeperleyMatrix<amplitude_t> > m_cmat;
+        unsigned int m_partial_update_step;
+        std::vector<bool> m_species_move_in_progress;
+        Move m_current_move;
 
     public:
         Amplitude (const boost::shared_ptr<const FreeFermionWavefunction> &wf_, const PositionArguments &r_);
 
     private:
         void perform_move_ (const Move &move);
+
+        template <bool first_pass>
+        void do_perform_move (const Move &move);
 
         amplitude_t psi_ (void) const;
 
@@ -49,6 +53,11 @@ public:
         boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const;
 
         void reinitialize (void);
+
+        unsigned int get_N_species (void) const
+            {
+                return m_species_move_in_progress.size();
+            }
     };
 
     boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const
@@ -59,13 +68,13 @@ public:
 
     unsigned int get_N_species (void) const
         {
-            return 1;
+            return orbital_def.size();
         }
 
     unsigned int get_N_filled (unsigned int species) const
         {
-            BOOST_ASSERT(species == 0);
-            return orbital_def->get_N_filled();
+            BOOST_ASSERT(species < get_N_species());
+            return orbital_def[species]->get_N_filled();
         }
 };
 

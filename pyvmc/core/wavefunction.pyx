@@ -56,5 +56,7 @@ class FreeFermionWavefunction(Wavefunction):
 
     def to_wavefunction(self):
         cdef WavefunctionWrapper rv = WavefunctionWrapper()
-        rv.sharedptr.reset(new CppFreeFermionWavefunction(orbitals_to_orbitaldefinitions(self.orbitals, self.lattice)))
+        cdef vector[shared_ptr[const_CppOrbitalDefinitions]] orbital_defs
+        orbital_defs.push_back(orbitals_to_orbitaldefinitions(self.orbitals, self.lattice))
+        rv.sharedptr.reset(new CppFreeFermionWavefunction(orbital_defs))
         return rv

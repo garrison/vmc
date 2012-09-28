@@ -12,6 +12,8 @@ cdef extern from "OrbitalDefinitions.hpp":
     cdef cppclass CppOrbitalDefinitions "OrbitalDefinitions":
         CppOrbitalDefinitions(CppOrbitalMatrix&, shared_ptr[CppLattice])
 
+    ctypedef CppOrbitalDefinitions const_CppOrbitalDefinitions "const OrbitalDefinitions"
+
     cdef void set_matrix_coeff "OrbitalDefinitions::set_matrix_coeff" (CppOrbitalMatrix&, unsigned int, unsigned int, complex_t)
 
-cdef shared_ptr[CppOrbitalDefinitions] orbitals_to_orbitaldefinitions(orbitals, Lattice lattice)
+cdef shared_ptr[const_CppOrbitalDefinitions] orbitals_to_orbitaldefinitions(orbitals, Lattice lattice)

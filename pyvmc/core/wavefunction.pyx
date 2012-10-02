@@ -1,6 +1,7 @@
 from cython.operator cimport dereference as deref
 
 import abc
+import collections
 
 from pyvmc.core.lattice import Lattice
 from pyvmc.core.orbitals import Orbitals
@@ -44,19 +45,22 @@ class FreeFermionWavefunction(Wavefunction):
 
     def init_validate(self, lattice, orbitals):
         (lattice,) = super(FreeFermionWavefunction, self).init_validate(lattice)
-        return lattice, Orbitals.from_description(orbitals, lattice)
+        assert isinstance(orbitals, collections.Sequence)
+        orbitals = tuple([Orbitals.from_description(orb, lattice) for orb in orbitals])
+        return lattice, orbitals
 
     def to_json(self):
         return {
             'wavefunction': {
                 'type': 'free-fermion',
-                'orbitals': self.orbitals.to_json(),
+                'orbitals': [orbitals.to_json() for orbitals in self.orbitals],
             }
         }
 
     def to_wavefunction(self):
         cdef WavefunctionWrapper rv = WavefunctionWrapper()
         cdef vector[shared_ptr[const_CppOrbitalDefinitions]] orbital_defs
-        orbital_defs.push_back(orbitals_to_orbitaldefinitions(self.orbitals, self.lattice))
+        for orbitals in self.orbitals:
+            orbital_defs.push_back(orbitals_to_orbitaldefinitions(orbitals, self.lattice))
         rv.sharedptr.reset(new CppFreeFermionWavefunction(orbital_defs))
         return rv

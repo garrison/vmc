@@ -43,7 +43,7 @@ def test_1d_free_fermion_renyi(tolerance=0.02):
     lattice = Lattice([N])
     orbitals = Bands([F], [periodic])
 
-    free_fermion = FreeFermionWavefunction(lattice=lattice, orbitals=orbitals)
+    free_fermion = FreeFermionWavefunction(lattice=lattice, orbitals=[orbitals])
 
     exact = [free_fermions.exact_renyi(SimpleSubsystem([i], lattice), orbitals, [periodic], 2)
              for i in xrange(1, N // 2 + 1)]

@@ -16,6 +16,10 @@ cdef extern from "Lattice.hpp":
 
         int basis_index
 
+        bint operator==(CppLatticeSite&)
+        bint operator!=(CppLatticeSite&)
+        bint operator<(CppLatticeSite&)
+
     cdef cppclass lw_vector[T]:
         T& operator[](size_t)
         size_t size()

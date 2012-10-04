@@ -47,17 +47,29 @@ cdef class LatticeSite(object):
     def __hash__(self):
         return hash(self.bs) | hash(self.bi)
 
-    def __richcmp__(self, other, int op):
+    def __richcmp__(LatticeSite self not None, other, int op):
+        if self.__class__ != other.__class__:
+            if op == 2:  #  ==
+                return False
+            elif op == 3: #  !=
+                return True
+            else:
+                raise NotImplementedError
+
+        cdef LatticeSite other_ = other
+
         if op == 2:  # ==
-            return (self.__class__ == other.__class__ and
-                    self.bs == other.bs and
-                    self.bi == other.bi)
+            return self.cpp == other_.cpp
         elif op == 3:  # !=
-            return (self.__class__ != other.__class__ or
-                    self.bs != other.bs or
-                    self.bi != other.bi)
-        # we don't implement <, <=, >, >=
-        raise NotImplementedError
+            return self.cpp != other_.cpp
+        if op == 0:  # <
+            return self.cpp < other_.cpp
+        elif op == 1:  # <=
+            return not other_.cpp < self.cpp
+        elif op == 4:  # >
+            return other_.cpp < self.cpp
+        elif op == 5:  # >=
+            return not self.cpp < other_.cpp
 
     def __repr__(self):
         return "{}({}, {})".format(self.__class__.__name__,

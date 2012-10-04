@@ -1,5 +1,22 @@
 #include "Lattice.hpp"
 
+bool LatticeSite::operator< (const LatticeSite &other) const
+{
+    if (this->n_dimensions() != other.n_dimensions())
+        return bool(this->n_dimensions() < other.n_dimensions());
+    if (this->basis_index != other.basis_index)
+        return bool(this->basis_index < other.basis_index);
+
+    unsigned int i = this->n_dimensions();
+    for (;;) {
+        if (i == 0)
+            return false;
+        --i;
+        if (this->bs[i] != other.bs[i])
+            return this->bs[i] < other.bs[i];
+    }
+}
+
 LatticeSite Lattice::site_from_index (unsigned int n) const
 {
     BOOST_ASSERT(n < total_sites());

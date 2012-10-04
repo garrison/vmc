@@ -13,6 +13,23 @@ AssertionError = Exception
 def test_lattice_site():
     assert LatticeSite((1, 4)) == LatticeSite((1, 4), 0)
 
+    assert LatticeSite((1, 4)) != LatticeSite((1, 4), 1)
+    assert LatticeSite((0, 2)) != LatticeSite((0, 3))
+    assert LatticeSite((0, 2)) != LatticeSite((0, 2, 3))
+
+def test_lattice_site_inequality():
+    lattice = Lattice([4, 4], 2)
+    assert lattice[0] < lattice[1]
+    assert not (lattice[5] < lattice[3])
+    assert lattice[18] >= lattice[14]
+    assert lattice[3] > lattice[1]
+    assert lattice[7] <= lattice[19]
+
+    assert lattice[7] <= lattice[7]
+    assert lattice[5] >= lattice[5]
+    assert not (lattice[3] < lattice[3])
+    assert not (lattice[9] > lattice[9])
+
 def test_lattice_constructor():
     with pytest.raises(AssertionError):
         Lattice([-1, 2])

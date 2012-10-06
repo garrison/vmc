@@ -21,6 +21,10 @@ class DBLWavefunction(Wavefunction):
             float(d2_exponent)
         )
 
+    @property
+    def N_species(self):
+        return 1
+
     def to_json(self):
         return {
             'wavefunction': {

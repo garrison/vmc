@@ -32,6 +32,10 @@ class DMetalWavefunction(Wavefunction):
     def rho(self):
         return Fraction(len(self.d1.momentum_sites), len(self.lattice))
 
+    @property
+    def N_species(self):
+        return 2
+
     def to_json(self):
         return {
             'wavefunction': {

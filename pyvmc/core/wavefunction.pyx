@@ -25,6 +25,10 @@ class Wavefunction(Immutable):
     def to_wavefunction(self):
         return None
 
+    @abc.abstractproperty
+    def N_species(self):
+        raise NotImplementedError
+
 cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf):
     from pyvmc.utils import complex_json as json
     cdef unicode input_unicode = unicode(json.dumps(wf.to_json()))
@@ -46,8 +50,13 @@ class FreeFermionWavefunction(Wavefunction):
     def init_validate(self, lattice, orbitals):
         (lattice,) = super(FreeFermionWavefunction, self).init_validate(lattice)
         assert isinstance(orbitals, collections.Sequence)
+        assert len(orbitals) > 0
         orbitals = tuple([Orbitals.from_description(orb, lattice) for orb in orbitals])
         return lattice, orbitals
+
+    @property
+    def N_species(self):
+        return len(self.orbitals)
 
     def to_json(self):
         return {

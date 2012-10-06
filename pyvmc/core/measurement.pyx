@@ -42,9 +42,9 @@ class SiteHop(Immutable):
 
     def is_valid_for(self, wavefunction):
         assert isinstance(wavefunction, Wavefunction)
-        # fixme: implement some actual checks here, including looking at
-        # wavefunction.n_species() (which does not yet exist)
-        return True
+        return (self.source in wavefunction.lattice and
+                self.destination in wavefunction.lattice and
+                self.species < wavefunction.N_species)
 
 class OperatorMeasurementPlan(MeasurementPlan):
     __slots__ = ("walk", "hops", "sum", "boundary_conditions", "steps_per_measurement")

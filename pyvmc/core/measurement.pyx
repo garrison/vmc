@@ -52,7 +52,7 @@ class OperatorMeasurementPlan(MeasurementPlan):
     def __init__(self, wavefunction, hops, sum, boundary_conditions, steps_per_measurement=1000):
         walk = StandardWalkPlan(wavefunction)
         assert isinstance(hops, collections.Sequence)
-        hops = tuple(hops)
+        hops = tuple(sorted(hops, key=lambda hop: (hop.species, hop.source, hop.destination)))
         assert all([isinstance(hop, SiteHop) and hop.is_valid_for(wavefunction) for hop in hops])
         assert isinstance(sum, bool)
         if not sum and boundary_conditions is not None:

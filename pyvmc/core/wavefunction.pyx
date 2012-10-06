@@ -30,10 +30,6 @@ class Wavefunction(Immutable):
         raise NotImplementedError
 
 cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf):
-    from pyvmc.utils import custom_json as json
-    cdef unicode input_unicode = unicode(json.dumps(wf.to_json()))
-    cdef bytes input_bytes = input_unicode.encode('UTF-8')
-    cdef char* input_cstr = input_bytes
     cdef Lattice lattice = wf.lattice
     rng = RandomNumberGenerator()
     cdef WavefunctionWrapper ww = wf.to_wavefunction()

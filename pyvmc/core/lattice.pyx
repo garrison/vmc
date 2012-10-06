@@ -104,10 +104,15 @@ cdef class Lattice(object):
             return self.sharedptr.get().basis_indices
 
     def to_json(self):
-        assert self.basis_indices == 1  # for now
-        return {
-            'size': self.dimensions,
-        }
+        return collections.OrderedDict([
+            ("dimensions", list(self.dimensions)),
+            ("basis_indices", self.basis_indices),
+        ])
+
+    @classmethod
+    def from_json(cls, d):
+        assert cls == Lattice  # for now
+        return Lattice(d["dimensions"], d["basis_indices"])
 
     def abstract_lattice(self):
         """This will always return a Lattice object, never a LatticeRealization"""

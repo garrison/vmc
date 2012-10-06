@@ -56,7 +56,7 @@ class OrbitalsDescription(object):
     def get_orbitals(self, lattice):
         raise NotImplementedError
 
-class Orbitals(Immutable):
+class Orbitals(Immutable, collections.Sized):
     __slots__ = ("lattice",)
 
     def init_validate(self, lattice):
@@ -105,6 +105,9 @@ class MomentaOrbitals(Orbitals):
         assert valid_boundary_conditions(boundary_conditions, n_dimensions)
         object.__setattr__(self, "_orbitals_matrix", None)
         return lattice, momentum_sites, tuple(boundary_conditions)
+
+    def __len__(self):
+        return len(self.momentum_sites)
 
     def get_orbitals_matrix(self):
         if self._orbitals_matrix is None:

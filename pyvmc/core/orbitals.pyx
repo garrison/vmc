@@ -100,11 +100,11 @@ class MomentaOrbitals(Orbitals):
                         x >= 0 and x < ld
                         for x, ld in zip(ms, lattice_dimensions))
                     for ms in momentum_sites])
-        momentum_sites_set = frozenset(momentum_sites)
-        assert len(momentum_sites) == len(momentum_sites_set)
+        assert len(momentum_sites) == len(frozenset(momentum_sites))
+        momentum_sites = tuple(sorted(momentum_sites))
         assert valid_boundary_conditions(boundary_conditions, n_dimensions)
         object.__setattr__(self, "_orbitals_matrix", None)
-        return lattice, momentum_sites_set, tuple(boundary_conditions)
+        return lattice, momentum_sites, tuple(boundary_conditions)
 
     def get_orbitals_matrix(self):
         if self._orbitals_matrix is None:

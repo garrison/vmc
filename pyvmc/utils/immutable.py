@@ -71,11 +71,15 @@ class Immutable(Hashable):
             object.__setattr__(self, slot, arg)
 
     def __eq__(self, other):
+        if self is other:
+            return True
         return (self.__class__ == other.__class__ and
                 all(getattr(self, attr) == getattr(other, attr)
                     for attr in self._immutable_slots))
 
     def __ne__(self, other):
+        if self is other:
+            return False
         return (self.__class__ != other.__class__ or
                 any(getattr(self, attr) != getattr(other, attr)
                     for attr in self._immutable_slots))
@@ -86,10 +90,7 @@ class Immutable(Hashable):
                                          for attr in self._immutable_slots))
 
     def __hash__(self):
-        rv = 0
-        for attr in self._immutable_slots:
-            rv |= hash(getattr(self, attr))
-        return rv
+        return hash(tuple(getattr(self, attr) for attr in self._immutable_slots))
 
     def __setattr__(self, name, value):
         raise TypeError("Immutable object")

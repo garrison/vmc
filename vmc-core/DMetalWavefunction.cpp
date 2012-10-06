@@ -104,14 +104,14 @@ void DMetalWavefunction::Amplitude::do_perform_move (const Move &move)
 
     case 1:
         if (m_down_particles_in_progress) {
-            lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> f_down_cols;
+            lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> f_dn_cols;
             for (unsigned int i = 0; i < move.size(); ++i) {
                 if (move[i].particle.species != 0)
-                    f_down_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
+                    f_dn_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
             }
-            BOOST_ASSERT(f_down_cols.size() == m_down_particles_in_progress);
+            BOOST_ASSERT(f_dn_cols.size() == m_down_particles_in_progress);
             if (m_down_particles_in_progress)
-                m_cmat_f_down.update_columns(f_down_cols, wf_->orbital_f_down->get_orbitals());
+                m_cmat_f_dn.update_columns(f_dn_cols, wf_->orbital_f_dn->get_orbitals());
         }
         m_partial_update_step = 0;
 
@@ -129,7 +129,7 @@ amplitude_t DMetalWavefunction::Amplitude::psi_ (void) const
     return (complex_pow(m_cmat_d1.get_determinant(), wf_->d1_exponent)
             * complex_pow(m_cmat_d2.get_determinant(), wf_->d2_exponent)
             * complex_pow(m_cmat_f_up.get_determinant(), wf_->f_up_exponent)
-            * complex_pow(m_cmat_f_down.get_determinant(), wf_->f_down_exponent));
+            * complex_pow(m_cmat_f_dn.get_determinant(), wf_->f_dn_exponent));
 }
 
 void DMetalWavefunction::Amplitude::finish_move_ (void)
@@ -141,7 +141,7 @@ void DMetalWavefunction::Amplitude::finish_move_ (void)
     if (m_up_particles_in_progress)
         m_cmat_f_up.finish_columns_update();
     if (m_down_particles_in_progress)
-        m_cmat_f_down.finish_columns_update();
+        m_cmat_f_dn.finish_columns_update();
 }
 
 void DMetalWavefunction::Amplitude::cancel_move_ (void)
@@ -149,7 +149,7 @@ void DMetalWavefunction::Amplitude::cancel_move_ (void)
     switch (m_partial_update_step) {
     case 0:
         if (m_down_particles_in_progress)
-            m_cmat_f_down.cancel_columns_update();
+            m_cmat_f_dn.cancel_columns_update();
     case 1:
         if (m_up_particles_in_progress)
             m_cmat_f_up.cancel_columns_update();
@@ -172,7 +172,7 @@ void DMetalWavefunction::Amplitude::swap_particles_ (unsigned int particle1_inde
     const unsigned int particle2_column_index = (species == 0) ? particle2_index : particle2_index + M;
     m_cmat_d1.swap_columns(particle1_column_index, particle2_column_index);
     m_cmat_d2.swap_columns(particle1_column_index, particle2_column_index);
-    (species == 0 ? m_cmat_f_up : m_cmat_f_down).swap_columns(particle1_index, particle2_index);
+    (species == 0 ? m_cmat_f_up : m_cmat_f_dn).swap_columns(particle1_index, particle2_index);
 }
 
 void DMetalWavefunction::Amplitude::reset_ (const PositionArguments &r_)
@@ -190,12 +190,12 @@ void DMetalWavefunction::Amplitude::reinitialize (void)
     BOOST_ASSERT(r.get_N_sites() == wf_->orbital_d1->get_N_sites());
     BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_d2->get_lattice_ptr());
     BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_f_up->get_lattice_ptr());
-    BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_f_down->get_lattice_ptr());
+    BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_f_dn->get_lattice_ptr());
 
     BOOST_ASSERT(r.get_N_filled(0) + r.get_N_filled(1) == wf_->orbital_d1->get_N_filled());
     BOOST_ASSERT(r.get_N_filled(0) + r.get_N_filled(1) == wf_->orbital_d2->get_N_filled());
     BOOST_ASSERT(r.get_N_filled(0) == wf_->orbital_f_up->get_N_filled());
-    BOOST_ASSERT(r.get_N_filled(1) == wf_->orbital_f_down->get_N_filled());
+    BOOST_ASSERT(r.get_N_filled(1) == wf_->orbital_f_dn->get_N_filled());
 
     const unsigned int N = wf_->orbital_d1->get_N_filled();
     const unsigned int M = wf_->orbital_f_up->get_N_filled();
@@ -203,7 +203,7 @@ void DMetalWavefunction::Amplitude::reinitialize (void)
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat_d1(N, N);
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat_d2(N, N);
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat_f_up(M, M);
-    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat_f_down(N - M, N - M);
+    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat_f_dn(N - M, N - M);
 
     for (unsigned int i = 0; i < r.get_N_filled(0); ++i) {
         const Particle particle(i, 0);
@@ -216,13 +216,13 @@ void DMetalWavefunction::Amplitude::reinitialize (void)
         const Particle particle(i, 1);
         mat_d1.col(i + M) = wf_->orbital_d1->at_position(r[particle]);
         mat_d2.col(i + M) = wf_->orbital_d2->at_position(r[particle]);
-        mat_f_down.col(i) = wf_->orbital_f_down->at_position(r[particle]);
+        mat_f_dn.col(i) = wf_->orbital_f_dn->at_position(r[particle]);
     }
 
     m_cmat_d1 = mat_d1;
     m_cmat_d2 = mat_d2;
     m_cmat_f_up = mat_f_up;
-    m_cmat_f_down = mat_f_down;
+    m_cmat_f_dn = mat_f_dn;
 }
 
 boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction::Amplitude::clone_ (void) const

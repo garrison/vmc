@@ -19,33 +19,33 @@
 class DMetalWavefunction : public Wavefunction
 {
 public:
-    const boost::shared_ptr<const OrbitalDefinitions> orbital_d1, orbital_d2, orbital_f_up, orbital_f_down;
-    const real_t d1_exponent, d2_exponent, f_up_exponent, f_down_exponent;
+    const boost::shared_ptr<const OrbitalDefinitions> orbital_d1, orbital_d2, orbital_f_up, orbital_f_dn;
+    const real_t d1_exponent, d2_exponent, f_up_exponent, f_dn_exponent;
 
     DMetalWavefunction (const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1_,
                         const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2_,
                         const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up_,
-                        const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_down_,
+                        const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_dn_,
                         real_t d1_exponent_,
                         real_t d2_exponent_,
                         real_t f_up_exponent_,
-                        real_t f_down_exponent_)
+                        real_t f_dn_exponent_)
         : Wavefunction(orbital_d1_->get_lattice_ptr()),
           orbital_d1(orbital_d1_),
           orbital_d2(orbital_d2_),
           orbital_f_up(orbital_f_up_),
-          orbital_f_down(orbital_f_down_),
+          orbital_f_dn(orbital_f_dn_),
           d1_exponent(d1_exponent_),
           d2_exponent(d2_exponent_),
           f_up_exponent(f_up_exponent_),
-          f_down_exponent(f_down_exponent_)
+          f_dn_exponent(f_dn_exponent_)
         {
         }
 
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
-        CeperleyMatrix<amplitude_t> m_cmat_d1, m_cmat_d2, m_cmat_f_up, m_cmat_f_down;
+        CeperleyMatrix<amplitude_t> m_cmat_d1, m_cmat_d2, m_cmat_f_up, m_cmat_f_dn;
         int m_partial_update_step;
 
         // the following variables only need be set when a move is in progress

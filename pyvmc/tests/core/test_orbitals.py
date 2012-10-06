@@ -1,6 +1,6 @@
 import pytest
 
-from pyvmc.utils import complex_json as json
+from pyvmc.utils import custom_json as json
 from pyvmc.core.lattice import Lattice
 from pyvmc.core.orbitals import Orbitals, MomentaOrbitals, Bands
 from pyvmc.core.boundary_conditions import periodic, antiperiodic

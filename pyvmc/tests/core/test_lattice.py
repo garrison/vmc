@@ -2,7 +2,7 @@ from fractions import Fraction
 
 import pytest
 
-from pyvmc.utils import complex_json as json
+from pyvmc.utils import custom_json as json
 from pyvmc.core.boundary_conditions import periodic, antiperiodic
 from pyvmc.core import LatticeSite, Lattice, HypercubicLattice, HexagonalLattice
 

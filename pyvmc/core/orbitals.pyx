@@ -63,11 +63,9 @@ class Orbitals(Immutable, collections.Sized):
         assert isinstance(lattice, Lattice)
         return (lattice,)
 
+    @abc.abstractmethod
     def to_json(self):
-        orbital_defs = [list(a) for a in self.get_orbitals_matrix()]
-        return {
-            'definitions': orbital_defs,
-        }
+        return None
 
     @abc.abstractmethod
     def get_orbitals_matrix(self):
@@ -120,6 +118,13 @@ class MomentaOrbitals(Orbitals):
                                      for r in self.lattice])
             object.__setattr__(self, "_orbitals_matrix", numpy.array(orbital_defs, dtype=complex))
         return self._orbitals_matrix
+
+    def to_json(self):
+        return collections.OrderedDict([
+            ("type", self.__class__.__name__),
+            ("momentum_sites", self.momentum_sites),
+            ("boundary_conditions", self.boundary_conditions),
+        ])
 
 class Bands(OrbitalsDescription):
     """Used for a 2d, quasi-1d system

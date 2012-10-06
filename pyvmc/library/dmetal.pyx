@@ -1,3 +1,4 @@
+import collections
 import numbers
 from fractions import Fraction
 
@@ -37,19 +38,17 @@ class DMetalWavefunction(Wavefunction):
         return 2
 
     def to_json(self):
-        return {
-            'wavefunction': {
-                'type': 'dmetal',
-                'orbitals-d1': self.d1.to_json(),
-                'exponent-d1': self.d1_exponent,
-                'orbitals-d2': self.d2.to_json(),
-                'exponent-d2': self.d2_exponent,
-                'orbitals-f_up': self.f_up.to_json(),
-                'exponent-f_up': self.f_up_exponent,
-                'orbitals-f_dn': self.f_dn.to_json(),
-                'exponent-f_dn': self.f_dn_exponent,
-            },
-        }
+        return collections.OrderedDict([
+            ('type', self.__class__.__name__),
+            ('orbitals-d1', self.d1.to_json()),
+            ('orbitals-d2', self.d2.to_json()),
+            ('orbitals-f_up', self.f_up.to_json()),
+            ('orbitals-f_dn', self.f_dn.to_json()),
+            ('exponent-d1', self.d1_exponent),
+            ('exponent-d2', self.d2_exponent),
+            ('exponent-f_up', self.f_up_exponent),
+            ('exponent-f_dn', self.f_dn_exponent),
+        ])
 
     def to_wavefunction(self):
         cdef WavefunctionWrapper rv = WavefunctionWrapper()

@@ -1,4 +1,5 @@
 import numbers
+import collections
 
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.orbitals import Orbitals
@@ -26,15 +27,13 @@ class DBLWavefunction(Wavefunction):
         return 1
 
     def to_json(self):
-        return {
-            'wavefunction': {
-                'type': 'dbl',
-                'orbitals-d1': self.d1.to_json(),
-                'exponent-d1': self.d1_exponent,
-                'orbitals-d2': self.d2.to_json(),
-                'exponent-d2': self.d2_exponent,
-            }
-        }
+        return collections.OrderedDict([
+            ('type', self.__class__.__name__),
+            ('orbitals-d1', self.d1.to_json()),
+            ('orbitals-d2', self.d2.to_json()),
+            ('exponent-d1', self.d1_exponent),
+            ('exponent-d2', self.d2_exponent),
+        ])
 
     def to_wavefunction(self):
         cdef WavefunctionWrapper rv = WavefunctionWrapper()

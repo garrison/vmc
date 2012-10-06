@@ -1,6 +1,7 @@
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
 import abc
+import collections
 
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_wfa
@@ -26,7 +27,9 @@ class StandardWalkPlan(WalkPlan):
     __slots__ = ("wavefunction",)
 
     def to_json(self):
-        return {"walk-type": "standard"}
+        return collections.OrderedDict([
+            ("type", self.__class__.__name__),
+        ])
 
     def create_walk(self, RandomNumberGenerator rng not None):
         cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction)

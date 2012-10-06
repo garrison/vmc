@@ -30,7 +30,7 @@ class Wavefunction(Immutable):
         raise NotImplementedError
 
 cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf):
-    from pyvmc.utils import complex_json as json
+    from pyvmc.utils import custom_json as json
     cdef unicode input_unicode = unicode(json.dumps(wf.to_json()))
     cdef bytes input_bytes = input_unicode.encode('UTF-8')
     cdef char* input_cstr = input_bytes
@@ -59,12 +59,10 @@ class FreeFermionWavefunction(Wavefunction):
         return len(self.orbitals)
 
     def to_json(self):
-        return {
-            'wavefunction': {
-                'type': 'free-fermion',
-                'orbitals': [orbitals.to_json() for orbitals in self.orbitals],
-            }
-        }
+        return collections.OrderedDict([
+            ('type', self.__class__.__name__),
+            ('orbitals', [orbitals.to_json() for orbitals in self.orbitals]),
+        ])
 
     def to_wavefunction(self):
         cdef WavefunctionWrapper rv = WavefunctionWrapper()

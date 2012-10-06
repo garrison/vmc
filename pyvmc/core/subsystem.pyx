@@ -135,7 +135,7 @@ cdef class SimpleSubsystem(Subsystem):
                                    repr(self.lattice))
 
     def to_json(self):
-        return {
-            "type": "simple",
-            "dimensions": self.dimensions,
-        }
+        return collections.OrderedDict([
+            ("type", self.__class__.__name__),
+            ("dimensions", self.dimensions),
+        ])

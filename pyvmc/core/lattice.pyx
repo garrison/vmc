@@ -76,6 +76,9 @@ cdef class LatticeSite(object):
                                    repr(self.bs),
                                    self.bi)
 
+    def to_json(self):
+        return [self.bs, self.bi]
+
 cdef LatticeSite_from_cpp(CppLatticeSite cpp_lattice_site):
     cdef LatticeSite lattice_site = LatticeSite.__new__(LatticeSite)
     lattice_site.cpp = cpp_lattice_site

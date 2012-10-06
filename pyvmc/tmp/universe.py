@@ -2,7 +2,7 @@ from __future__ import division
 
 # fixme: remove need for copy, deepcopy, and hashable_json
 
-from pyvmc.utils import complex_json as json
+from pyvmc.utils import custom_json as json
 import random
 from copy import deepcopy, copy
 import logging

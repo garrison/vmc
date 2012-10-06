@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from pyvmc.core.walk import WalkPlan
 from pyvmc.core.walk cimport Walk
 from pyvmc.core.measurement import MeasurementPlan
@@ -18,10 +20,10 @@ class RenyiModPossibleWalkPlan(WalkPlan):
         return wavefunction, subsystem
 
     def to_json(self):
-        return {
-            "walk-type": "renyi-mod/possible",
-            "subsystem": self.subsystem.to_json(),
-        }
+        return OrderedDict([
+            ("type", self.__class__.__name__),
+            ("subsystem", self.subsystem.to_json()),
+        ])
 
     def create_walk(self, RandomNumberGenerator rng not None):
         cdef Subsystem subsystem = self.subsystem
@@ -41,7 +43,9 @@ class RenyiModPossibleMeasurementPlan(MeasurementPlan):
         super(RenyiModPossibleMeasurementPlan, self).__init__(walk)
 
     def to_json(self):
-        return {"type": "renyi-mod/possible"}
+        return OrderedDict([
+            ("type", self.__class__.__name__),
+        ])
 
     def to_measurement(self):
         return RenyiModPossibleMeasurement()
@@ -63,10 +67,10 @@ class RenyiSignWalkPlan(WalkPlan):
         return wavefunction, subsystem
 
     def to_json(self):
-        return {
-            "walk-type": "renyi-sign",
-            "subsystem": self.subsystem.to_json(),
-        }
+        return OrderedDict([
+            ("type", self.__class__.__name__),
+            ("subsystem", self.subsystem.to_json()),
+        ])
 
     def create_walk(self, RandomNumberGenerator rng not None):
         cdef Subsystem subsystem = self.subsystem
@@ -86,7 +90,9 @@ class RenyiSignMeasurementPlan(MeasurementPlan):
         super(RenyiSignMeasurementPlan, self).__init__(walk)
 
     def to_json(self):
-        return {"type": "renyi-sign"}
+        return OrderedDict([
+            ("type", self.__class__.__name__),
+        ])
 
     def to_measurement(self):
         return RenyiSignMeasurement()

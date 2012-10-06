@@ -1,6 +1,6 @@
 import pytest
 
-from pyvmc.utils import complex_json as json
+from pyvmc.utils import custom_json as json
 from pyvmc.core import Lattice, SimpleSubsystem
 
 def test_simple_subsystem():
@@ -27,7 +27,7 @@ def test_simple_subsystem():
 def test_simple_subsystem_json():
     lattice = Lattice([16, 8], 2)
     subsystem = SimpleSubsystem([4, 4], lattice)
-    assert json.dumps(subsystem.to_json()) == json.dumps({ 'type': 'simple', 'dimensions': (4, 4) })
+    assert json.dumps(subsystem.to_json()) == '{"type": "SimpleSubsystem", "dimensions": [4, 4]}'
 
 def test_subsystem_equality():
     lattice1 = Lattice([24, 4])

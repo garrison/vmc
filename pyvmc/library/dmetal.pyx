@@ -61,3 +61,72 @@ class DMetalWavefunction(Wavefunction):
             self.f_up_exponent, self.f_dn_exponent
         ))
         return rv
+
+from pyvmc.core.measurement import BaseMeasurementPlan, OperatorMeasurementPlan, SiteHop
+from pyvmc.core.lattice import LatticeSite
+from pyvmc.core.boundary_conditions import periodic # fixme: this is being assumed by these measurements ...
+
+class ElectronRingExchangeMeasurementPlan(BaseMeasurementPlan):
+    __slots__ = ("wavefunction", "plans")
+    _immutable_slots = ("wavefunction",)
+
+    def init_validate(self, wavefunction):
+        object.__setattr__(self, "plans", (
+            OperatorMeasurementPlan(wavefunction, [SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], True, (periodic, periodic)),
+            OperatorMeasurementPlan(wavefunction, [SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], True, (periodic, periodic)),
+            OperatorMeasurementPlan(wavefunction, [SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], True, (periodic, periodic)),
+            OperatorMeasurementPlan(wavefunction, [SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], True, (periodic, periodic)),
+        ))
+        return (wavefunction,)
+
+    def get_measurement_plans(self):
+        return set(self.plans)
+
+    def get_result(self, universe):
+        return .5 * sum([universe[p].get_result() for p in self.plans]) / len(self.wavefunction.lattice)
+
+from pyvmc.tmp.scan import calculate_plans, load_results
+
+class TJKEnergetics(object):
+    def __init__(self, wavefunction):
+        self.wavefunction = wavefunction
+        from pyvmc.measurements import GreenMeasurementPlan, SpinSpinMeasurementPlan
+
+        origin = LatticeSite((0, 0))
+        self.plans = {
+            'greenx_up': GreenMeasurementPlan(wavefunction, origin, LatticeSite((1, 0)), 0),
+            'greeny_up': GreenMeasurementPlan(wavefunction, origin, LatticeSite((0, 1)), 0),
+            'greenx_down': GreenMeasurementPlan(wavefunction, origin, LatticeSite((1, 0)), 1),
+            'greeny_down': GreenMeasurementPlan(wavefunction, origin, LatticeSite((0, 1)), 1),
+            'spinspinx': SpinSpinMeasurementPlan(wavefunction, origin, LatticeSite((1, 0))),
+            'spinspiny': SpinSpinMeasurementPlan(wavefunction, origin, LatticeSite((0, 1))),
+            'ringexchange': ElectronRingExchangeMeasurementPlan(wavefunction),
+        }
+
+    def calculate(self, h5group):
+        calculate_plans(self.plans, h5group)
+
+    def load_results(self, h5group):
+        self.results = load_results(self.plans, h5group)
+
+    def get_energy(self, J, K):
+        results = self.results
+
+        # don't double-count plaquettes on a 2-leg lattice
+        dimensions = self.wavefunction.lattice.dimensions
+        assert len(dimensions) == 2
+        assert dimensions[0] > 1 and dimensions[1] > 1
+        divx = 2 if dimensions[0] == 2 else 1
+        divy = 2 if dimensions[1] == 2 else 1
+
+        from pyvmc.utils import add_hc
+
+        return sum([
+            -add_hc(results['greenx_up']) /divx,
+            -add_hc(results['greenx_down']) / divx,
+            -add_hc(results['greeny_up']) / divy,
+            -add_hc(results['greeny_down']) / divy,
+            J * results['spinspinx'] /divx,
+            J * results['spinspiny'] / divy,
+            2 * K * add_hc(results['ringexchange']) / divx / divy,
+        ])

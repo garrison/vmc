@@ -13,7 +13,19 @@ from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.core.walk import WalkPlan, StandardWalkPlan
 from pyvmc.utils.immutable import Immutable
 
-class MeasurementPlan(Immutable):
+class BaseMeasurementPlan(Immutable):
+    """base class, for both actual measurements and composite measurements"""
+
+    __slots__ = ()
+
+    @abc.abstractmethod
+    def get_measurement_plans(self):
+        "should return a set"
+        raise NotImplementedError
+
+class MeasurementPlan(BaseMeasurementPlan):
+    """base class for fundamental measurements implemented in VMC"""
+
     __slots__ = ("walk",)
 
     def init_validate(self, walk, *args, **kwargs):
@@ -27,6 +39,12 @@ class MeasurementPlan(Immutable):
     @abc.abstractmethod
     def to_measurement(self):
         raise NotImplementedError
+
+    def get_measurement_plans(self):
+        return {self}
+
+    def get_result(self, universe):
+        return universe[self].get_result()
 
 cdef class BaseMeasurement(object):
     pass
@@ -45,6 +63,13 @@ class SiteHop(Immutable):
         return (self.source in wavefunction.lattice and
                 self.destination in wavefunction.lattice and
                 self.species < wavefunction.N_species)
+
+    def to_json(self):
+        return collections.OrderedDict([
+            ("source", self.source.to_json()),
+            ("destination", self.destination.to_json()),
+            ("species", self.species),
+        ])
 
 class OperatorMeasurementPlan(MeasurementPlan):
     __slots__ = ("walk", "hops", "sum", "boundary_conditions", "steps_per_measurement")
@@ -65,19 +90,13 @@ class OperatorMeasurementPlan(MeasurementPlan):
         super(OperatorMeasurementPlan, self).__init__(walk, hops, sum, boundary_conditions, steps_per_measurement)
 
     def to_json(self):
-        lattice = self.walk.wavefunction.lattice
-        hops_list = [{
-            "source": lattice.index(hop.source),
-            "destination": lattice.index(hop.destination),
-            "species": hop.species,
-        } for hop in self.hops]
-        return {
-            "type": "operator",
-            "hops": hops_list,
-            "sum": self.sum,
-            "boundary-conditions": self.boundary_conditions,
-            "steps-per-measurement": self.steps_per_measurement,
-        }
+        return collections.OrderedDict([
+            ("type", self.__class__.__name__),
+            ("hops", [hop.to_json() for hop in self.hops]),
+            ("sum", self.sum),
+            ("boundary_conditions", self.boundary_conditions),
+            ("steps-per-measurement", self.steps_per_measurement),
+        ])
 
     def to_measurement(self):
         return OperatorMeasurement(self.steps_per_measurement, self.hops, self.sum, self.boundary_conditions, self.walk.wavefunction.lattice)
@@ -118,11 +137,11 @@ class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
         super(SubsystemOccupationProbabilityMeasurementPlan, self).__init__(walk, subsystem, steps_per_measurement)
 
     def to_json(self):
-        return {
-            "type": "subsystem-occupation-number-probability",
-            "subsystem": self.subsystem.to_json(),
-            "steps-per-measurement": self.steps_per_measurement,
-        }
+        return collections.OrderedDict([
+            ("type", self.__class__.__name__),
+            ("subsystem", self.subsystem.to_json()),
+            ("steps-per-measurement", self.steps_per_measurement),
+        ])
 
     def to_measurement(self):
         return SubsystemOccupationNumberProbabilityMeasurement(self.steps_per_measurement, self.subsystem)

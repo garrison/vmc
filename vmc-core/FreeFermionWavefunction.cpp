@@ -110,6 +110,7 @@ void FreeFermionWavefunction::Amplitude::swap_particles_ (unsigned int particle1
 void FreeFermionWavefunction::Amplitude::reset_ (const PositionArguments &r_)
 {
     r = r_;
+    m_cmat.resize(0);
     reinitialize();
 }
 
@@ -124,6 +125,7 @@ void FreeFermionWavefunction::Amplitude::reinitialize (void)
         BOOST_ASSERT(r.get_N_filled(i) == wf_->orbital_def[i]->get_N_filled());
 #endif
 
+    BOOST_ASSERT(m_cmat.size() == 0);
     for (unsigned int j = 0; j < wf_->orbital_def.size(); ++j) {
         const unsigned int N = r.get_N_filled(j);
         Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);

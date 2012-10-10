@@ -17,7 +17,18 @@ cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf)
 
 cdef extern from "FreeFermionWavefunction.hpp":
     cdef cppclass CppFreeFermionWavefunction "FreeFermionWavefunction" (CppWavefunction):
-        CppFreeFermionWavefunction(vector[shared_ptr[const_CppOrbitalDefinitions]]&)
+        CppFreeFermionWavefunction(vector[shared_ptr[const_CppOrbitalDefinitions]]&, shared_ptr[CppJastrowFactor]&)
 
 cdef class WavefunctionWrapper(object):
     cdef shared_ptr[CppWavefunction] sharedptr
+
+cdef extern from "JastrowFactor.hpp":
+    cdef cppclass CppJastrowFactor "JastrowFactor":
+        pass
+
+cdef extern from "SingleOccupancyProjector.hpp":
+    cdef cppclass CppSingleOccupancyProjector "SingleOccupancyProjector" (CppJastrowFactor):
+        CppSingleOccupancyProjector()
+
+cdef class JastrowFactor(object):
+    cdef shared_ptr[CppJastrowFactor] sharedptr

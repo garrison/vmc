@@ -41,29 +41,48 @@ cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf):
 class FreeFermionWavefunction(Wavefunction):
     """Free fermion wavefunction, consists of a single determinant"""
 
-    __slots__ = ('lattice', 'orbitals')
+    __slots__ = ('lattice', 'orbitals', 'jastrow')
 
-    def init_validate(self, lattice, orbitals):
+    def init_validate(self, lattice, orbitals, jastrow=None):
         (lattice,) = super(FreeFermionWavefunction, self).init_validate(lattice)
         assert isinstance(orbitals, collections.Sequence)
         assert len(orbitals) > 0
         orbitals = tuple([Orbitals.from_description(orb, lattice) for orb in orbitals])
-        return lattice, orbitals
+        if jastrow is not None:
+            assert isinstance(jastrow, JastrowFactor)
+        return lattice, orbitals, jastrow
 
     @property
     def N_species(self):
         return len(self.orbitals)
 
     def to_json(self):
-        return collections.OrderedDict([
+        d = [
             ('type', self.__class__.__name__),
             ('orbitals', [orbitals.to_json() for orbitals in self.orbitals]),
-        ])
+        ]
+        if self.jastrow is not None:
+            d.append(('jastrow', self.jastrow.to_json()))
+        return collections.OrderedDict(d)
 
     def to_wavefunction(self):
-        cdef WavefunctionWrapper rv = WavefunctionWrapper()
         cdef vector[shared_ptr[const_CppOrbitalDefinitions]] orbital_defs
         for orbitals in self.orbitals:
             orbital_defs.push_back(orbitals_to_orbitaldefinitions(orbitals, self.lattice))
-        rv.sharedptr.reset(new CppFreeFermionWavefunction(orbital_defs))
+
+        cdef shared_ptr[CppJastrowFactor] jastrow_sharedptr
+        if self.jastrow is not None:
+            jastrow_sharedptr = (<JastrowFactor>self.jastrow).sharedptr
+
+        cdef WavefunctionWrapper rv = WavefunctionWrapper()
+        rv.sharedptr.reset(new CppFreeFermionWavefunction(orbital_defs, jastrow_sharedptr))
         return rv
+
+cdef class SingleOccupancyProjector(JastrowFactor):
+    def __init__(self):
+        self.sharedptr.reset(new CppSingleOccupancyProjector())
+
+    def to_json(self):
+        return collections.OrderedDict([
+            ('type', self.__class__.__name__),
+        ])

@@ -10,6 +10,7 @@
 #include "PositionArguments.hpp"
 #include "CeperleyMatrix.hpp"
 #include "OrbitalDefinitions.hpp"
+#include "JastrowFactor.hpp"
 
 /**
  * Free fermion wave function
@@ -20,13 +21,15 @@ class FreeFermionWavefunction : public Wavefunction
 {
 public:
     const std::vector<boost::shared_ptr<const OrbitalDefinitions> > orbital_def;
+    const boost::shared_ptr<const JastrowFactor> jastrow;
 
-    FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_);
+    FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>());
 
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
         std::vector<CeperleyMatrix<amplitude_t> > m_cmat;
+        real_t m_current_jastrow, m_old_jastrow;
         unsigned int m_partial_update_step;
         std::vector<bool> m_species_move_in_progress;
         Move m_current_move;

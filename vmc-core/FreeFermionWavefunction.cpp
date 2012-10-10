@@ -4,9 +4,10 @@
 
 #include "FreeFermionWavefunction.hpp"
 
-FreeFermionWavefunction::FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_)
+FreeFermionWavefunction::FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_)
     : Wavefunction(orbital_def_[0]->get_lattice_ptr()),
-      orbital_def(orbital_def_)
+      orbital_def(orbital_def_),
+      jastrow(jastrow_)
 {
     BOOST_ASSERT(orbital_def.size() > 0);
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
@@ -18,6 +19,7 @@ FreeFermionWavefunction::FreeFermionWavefunction (const std::vector<boost::share
 
 FreeFermionWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const FreeFermionWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction::Amplitude(wf_, r_),
+      m_current_jastrow(1),
       m_partial_update_step(0),
       m_species_move_in_progress(wf_->get_N_species())
 {
@@ -38,6 +40,8 @@ void FreeFermionWavefunction::Amplitude::perform_move_ (const Move &move)
 
     m_current_move = move;
 
+    m_old_jastrow = m_current_jastrow;
+
     do_perform_move<true>(move);
 }
 
@@ -50,6 +54,19 @@ template <bool first_pass>
 void FreeFermionWavefunction::Amplitude::do_perform_move (const Move &move)
 {
     const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction *>(wf.get());
+
+    if (first_pass) {
+        if (wf_->jastrow) {
+            m_current_jastrow = 1;
+            m_current_jastrow = wf_->jastrow->compute_jastrow(r);
+            if (m_current_jastrow == amplitude_t(0)) {
+                m_partial_update_step = get_N_species();
+                return;
+            }
+        } else {
+            BOOST_ASSERT(m_current_jastrow == 1);
+        }
+    }
 
     for (unsigned int i = (first_pass ? 0 : get_N_species() - m_partial_update_step); i < get_N_species(); ++i) {
         if (m_species_move_in_progress[i]) {
@@ -74,8 +91,8 @@ amplitude_t FreeFermionWavefunction::Amplitude::psi_ (void) const
     if (m_partial_update_step != 0)
         return amplitude_t(0);
 
-    amplitude_t rv = m_cmat[0].get_determinant();
-    for (unsigned int i = 1; i < get_N_species(); ++i)
+    amplitude_t rv = m_current_jastrow;
+    for (unsigned int i = 0; i < get_N_species(); ++i)
         rv *= m_cmat[i].get_determinant();
     return rv;
 }
@@ -98,6 +115,7 @@ void FreeFermionWavefunction::Amplitude::cancel_move_ (void)
         if (m_species_move_in_progress[i])
             m_cmat[i].cancel_columns_update();
     }
+    m_current_jastrow = m_old_jastrow;
     m_partial_update_step = 0;
 }
 
@@ -124,6 +142,10 @@ void FreeFermionWavefunction::Amplitude::reinitialize (void)
     for (unsigned int i = 0; i < get_N_species(); ++i)
         BOOST_ASSERT(r.get_N_filled(i) == wf_->orbital_def[i]->get_N_filled());
 #endif
+
+    if (wf_->jastrow) {
+        m_current_jastrow = wf_->jastrow->compute_jastrow(r);
+    }
 
     BOOST_ASSERT(m_cmat.size() == 0);
     for (unsigned int j = 0; j < wf_->orbital_def.size(); ++j) {

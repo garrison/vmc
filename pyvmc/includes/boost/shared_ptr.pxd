@@ -1,8 +1,8 @@
 cdef extern from "<boost/shared_ptr.hpp>" namespace "boost":
     cdef cppclass shared_ptr[T]:
-        shared_ptr()
-        shared_ptr(T*)
-        void reset()
-        void reset(T*)
-        T& operator*()
-        T* get()
+        shared_ptr() nogil
+        shared_ptr(T*) nogil
+        void reset() nogil
+        void reset(T*) nogil
+        T& operator*() nogil
+        T* get() nogil

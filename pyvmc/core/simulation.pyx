@@ -12,7 +12,7 @@ from pyvmc.core.measurement cimport BaseMeasurement, CppBaseMeasurement
 
 cdef extern from "MetropolisSimulation.hpp":
     cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
-        CppMetropolisSimulation(auto_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, auto_ptr[CppRandomNumberGenerator]&)
+        CppMetropolisSimulation(auto_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, auto_ptr[CppRandomNumberGenerator]&) nogil
         void iterate(unsigned int) nogil
         unsigned int steps_completed()
         unsigned int steps_accepted()
@@ -21,19 +21,25 @@ cdef extern from "MetropolisSimulation.hpp":
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
 
-    def __init__(self, Walk walk not None, Lattice lattice not None, measurements, int equilibrium_steps):
+    def __init__(self, Walk walk not None, Lattice lattice not None, measurements, unsigned int equilibrium_steps):
+        if walk.autoptr.get() is NULL:
+            raise RuntimeError("Walk's auto_ptr is null.  It cannot be recycled.")
+        cdef auto_ptr[CppWalk] walk_autoptr = walk.autoptr
+
         cdef stdlist[shared_ptr[CppBaseMeasurement]] measurement_list
         cdef BaseMeasurement measurement_
         assert isinstance(measurements, collections.Sequence)
-        if walk.autoptr.get() is NULL:
-            raise RuntimeError("Walk's auto_ptr is null.  It cannot be recycled.")
         for measurement in measurements:
             measurement_ = measurement
-            if not measurement_.sharedptr.get().is_valid_walk(deref(walk.autoptr)):
+            if not measurement_.sharedptr.get().is_valid_walk(deref(walk_autoptr)):
                 raise ValueError("invalid walk/measurement/wavefunction combination")
             measurement_list.push_back(measurement_.sharedptr)
+
         rng = RandomNumberGenerator()
-        self.autoptr.reset(new CppMetropolisSimulation(walk.autoptr, measurement_list, equilibrium_steps, rng.autoptr))
+        cdef auto_ptr[CppRandomNumberGenerator] rng_autoptr = rng.autoptr
+
+        with nogil:
+            self.autoptr.reset(new CppMetropolisSimulation(walk_autoptr, measurement_list, equilibrium_steps, rng_autoptr))
 
     def iterate(self, unsigned int sweeps):
         with nogil:

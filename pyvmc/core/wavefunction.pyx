@@ -86,3 +86,17 @@ cdef class SingleOccupancyProjector(JastrowFactor):
         return collections.OrderedDict([
             ('type', self.__class__.__name__),
         ])
+
+    def __richcmp__(self, other, int op):
+        if op == 2:  # ==
+            return (self.__class__ == other.__class__)
+        elif op == 3:  # !=
+            return (self.__class__ != other.__class__)
+        # we don't implement <, <=, >, >=
+        raise NotImplementedError
+
+    def __hash__(self):
+        return hash(self.__class__.__name__)
+
+    def __repr__(self):
+        return "{}()".format(self.__class__.__name__)

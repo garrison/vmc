@@ -36,7 +36,8 @@ cdef class MetropolisSimulation(object):
         self.autoptr.reset(new CppMetropolisSimulation(walk.autoptr, measurement_list, equilibrium_steps, rng.autoptr))
 
     def iterate(self, unsigned int sweeps):
-        self.autoptr.get().iterate(sweeps)
+        with nogil:
+            self.autoptr.get().iterate(sweeps)
 
     property steps_completed:
         def __get__(self):

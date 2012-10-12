@@ -32,7 +32,7 @@ def allowed_momentum(momentum_site, lattice, boundary_conditions):
                                        boundary_conditions,
                                        lattice.dimensions))
 
-cdef shared_ptr[const_CppOrbitalDefinitions] orbitals_to_orbitaldefinitions(orbitals, Lattice lattice):
+cdef shared_ptr[const_CppOrbitalDefinitions] orbitals_to_orbitaldefinitions(orbitals, Lattice lattice) except *:
     assert isinstance(orbitals, Orbitals)
     m = orbitals.get_orbitals_matrix()
     rows, cols = m.shape

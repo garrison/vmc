@@ -142,4 +142,5 @@ phases.  At the moment the following things are broken:
 
 * Renyi stuff uses only single particle moves
 
-* RVB wave function has not yet been tested
+* BCS wave function currently only works at half filling and has not
+  yet been wrapped with Cython, or even tested.

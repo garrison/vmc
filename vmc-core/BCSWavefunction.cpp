@@ -5,20 +5,20 @@
 #include <boost/make_shared.hpp>
 #include <boost/cast.hpp>
 
-#include "RVBWavefunction.hpp"
+#include "BCSWavefunction.hpp"
 #include "random-configuration.hpp"
 #include "random-move.hpp"
 
-RVBWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const RVBWavefunction> &wf_, const PositionArguments &r_)
+BCSWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const BCSWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction::Amplitude(wf_, r_),
       m_update_in_progress(false)
 {    
     reinitialize();
 }
 
-void RVBWavefunction::Amplitude::perform_move_ (const Move &move)
+void BCSWavefunction::Amplitude::perform_move_ (const Move &move)
 {
-    const RVBWavefunction *wf_ = boost::polymorphic_downcast<const RVBWavefunction *>(wf.get());
+    const BCSWavefunction *wf_ = boost::polymorphic_downcast<const BCSWavefunction *>(wf.get());
     const boost::shared_ptr<const Lattice> &lattice = wf->lattice;
 
     // first assert that it's a swap
@@ -63,24 +63,24 @@ void RVBWavefunction::Amplitude::perform_move_ (const Move &move)
     m_new_cmat.update_column(moved_down_particle_index, new_col);
 }
 
-amplitude_t RVBWavefunction::Amplitude::psi_ (void) const
+amplitude_t BCSWavefunction::Amplitude::psi_ (void) const
 {
     return (m_update_in_progress ? m_new_cmat : m_cmat).get_determinant();
 }
 
-void RVBWavefunction::Amplitude::finish_move_ (void)
+void BCSWavefunction::Amplitude::finish_move_ (void)
 {
     m_new_cmat.finish_column_update();
     m_cmat = m_new_cmat;
     m_update_in_progress = false;
 }
 
-void RVBWavefunction::Amplitude::cancel_move_ (void)
+void BCSWavefunction::Amplitude::cancel_move_ (void)
 {
     m_update_in_progress = false;
 }
 
-void RVBWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+void BCSWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     if (species == 0) {
         m_cmat.swap_rows(particle1_index, particle2_index);
@@ -90,15 +90,15 @@ void RVBWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, 
     }
 }
 
-void RVBWavefunction::Amplitude::reset_ (const PositionArguments &r_)
+void BCSWavefunction::Amplitude::reset_ (const PositionArguments &r_)
 {
     r = r_;
     reinitialize();
 }
 
-void RVBWavefunction::Amplitude::reinitialize (void)
+void BCSWavefunction::Amplitude::reinitialize (void)
 {
-    const RVBWavefunction *wf_ = boost::polymorphic_downcast<const RVBWavefunction *>(wf.get());
+    const BCSWavefunction *wf_ = boost::polymorphic_downcast<const BCSWavefunction *>(wf.get());
     const boost::shared_ptr<const Lattice> &lattice = wf->lattice;
 
     BOOST_ASSERT(r.get_N_species() == 2);
@@ -129,12 +129,12 @@ void RVBWavefunction::Amplitude::reinitialize (void)
     m_cmat = mat_phi;
 }
 
-boost::shared_ptr<Wavefunction::Amplitude> RVBWavefunction::Amplitude::clone_ (void) const
+boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<RVBWavefunction::Amplitude>(*this);
+    return boost::make_shared<BCSWavefunction::Amplitude>(*this);
 }
 
-boost::shared_ptr<Wavefunction::Amplitude> RVBWavefunction::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
+boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
     const unsigned int M = get_N_filled(0);
     const unsigned int N = lattice->total_sites();
@@ -163,7 +163,7 @@ boost::shared_ptr<Wavefunction::Amplitude> RVBWavefunction::create_nonzero_wavef
     return boost::shared_ptr<Wavefunction::Amplitude>();
 }
 
-Move RVBWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
+Move BCSWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
 {
     // choose a particle of each species and swap their positions
     Move move;

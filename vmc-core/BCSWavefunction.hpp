@@ -1,5 +1,5 @@
-#ifndef _RVB_WAVEFUNCTION_HPP
-#define _RVB_WAVEFUNCTION_HPP
+#ifndef _BCS_WAVEFUNCTION_HPP
+#define _BCS_WAVEFUNCTION_HPP
 
 #include <vector>
 
@@ -9,14 +9,14 @@
 #include "CeperleyMatrix.hpp"
 
 /**
- * RVB (projected BCS wave function at half-filling)
+ * Projected BCS wave function at half-filling
  */
-class RVBWavefunction : public Wavefunction
+class BCSWavefunction : public Wavefunction
 {
 public:
     const std::vector<complex_t> phi;
 
-    RVBWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi_)
+    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi_)
         : Wavefunction(lattice_),
           phi(phi_)
         {
@@ -32,7 +32,7 @@ public:
         CeperleyMatrix<amplitude_t> m_cmat, m_new_cmat;
 
     public:
-        Amplitude (const boost::shared_ptr<const RVBWavefunction> &wf_, const PositionArguments &r_);
+        Amplitude (const boost::shared_ptr<const BCSWavefunction> &wf_, const PositionArguments &r_);
 
         virtual Move propose_move (RandomNumberGenerator &rng) const;
 
@@ -59,7 +59,7 @@ public:
     boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const
         {
             BOOST_ASSERT(this == this_ptr.get());
-            return boost::make_shared<Amplitude>(boost::shared_polymorphic_downcast<const RVBWavefunction>(this_ptr), r);
+            return boost::make_shared<Amplitude>(boost::shared_polymorphic_downcast<const BCSWavefunction>(this_ptr), r);
         }
 
     unsigned int get_N_species (void) const

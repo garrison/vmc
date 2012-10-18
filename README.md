@@ -133,12 +133,7 @@ currently supported (i.e. fermions and hard-core bosons).
 Ways in which things are currently in flux
 ------------------------------------------
 
-We are currently generalizing things so that multi-particle moves can
-be made.  Instead of doing this all at once, we are making progress in
-phases.  At the moment the following things are broken:
-
-* If finish_update() is called on a multi-particle move, the inverse
-  matrix will be recalculated from scratch
+At the moment the following things are broken:
 
 * Renyi stuff uses only single particle moves
 

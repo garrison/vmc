@@ -37,7 +37,7 @@ private:
     // we can cancel an update if we wish
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat, new_invmat;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> old_data, offset_m;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> old_data;
     T detrat, det, old_det;
     unsigned int pending_index; // refers to a row or column index
     int nullity_lower_bound; // in general, a lower bound on the nullity.  but
@@ -51,7 +51,7 @@ private:
     // new_nullity_lower_bound > 0
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_inv_m;
     // these must be set during a columns update
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> old_data_m;
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> old_data_m, offset_m;
     lw_vector<unsigned int, MAX_MOVE_SIZE> pending_index_m;
 
     /**
@@ -406,22 +406,22 @@ public:
         {
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
-            // XXX: for now this method does a full inverse calculation unless
-            // it is a single particle update
-            if (pending_index_m.size() == 1) {
-                if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                    // same as above in finish_row_update(): update the inverse
-                    // matrix
-                    invmat -= ((invmat * offset_m.col(0)) * (invmat.row(pending_index_m[0]) / detrat)).eval();
-                }
-
-                nullity_lower_bound = new_nullity_lower_bound;
-                if (inverse_recalculated_for_current_update)
-                    invmat = new_invmat;
-                inverse_recalculated_for_current_update = false;
-            } else {
-                calculate_inverse(false);
+            if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
+                // same as above in finish_row_update(): update the inverse
+                // matrix
+                Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_offset(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(invmat.rows(), invmat.cols()));
+                for (unsigned int i = 0; i < pending_index_m.size(); ++i)
+                    invmat_offset -= invmat * ((offset_m * detrat_inv_m.col(i)) * invmat.row(pending_index_m[i]));
+                invmat += invmat_offset;
+                // fixme: we could make a special case for just updating one
+                // column (as there's no need to create invmat_offset or to
+                // loop)
             }
+
+            nullity_lower_bound = new_nullity_lower_bound;
+            if (inverse_recalculated_for_current_update)
+                invmat = new_invmat;
+            inverse_recalculated_for_current_update = false;
 
             current_state = READY_FOR_UPDATE;
 

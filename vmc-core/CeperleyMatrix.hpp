@@ -33,11 +33,10 @@ private:
         COLUMNS_UPDATE_IN_PROGRESS
     };
 
-    // old_det, new_invmat, old_data, and new_nullity_lower_bound all exist so
-    // we can cancel an update if we wish
+    // old_det, new_invmat, old_data_m, and new_nullity_lower_bound all exist
+    // so we can cancel an update if we wish
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat, new_invmat;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> old_data;
     T detrat, det, old_det;
     unsigned int pending_index; // refers to a row or column index
     int nullity_lower_bound; // in general, a lower bound on the nullity.  but
@@ -159,7 +158,8 @@ public:
             BOOST_ASSERT(!inverse_recalculated_for_current_update);
 
             // remember some things in case we decide to cancel the update
-            old_data = mat.row(r);
+            old_data_m.resize(mat.rows(), 1);
+            old_data_m.col(0) = mat.row(r);
             old_det = det;
             new_nullity_lower_bound = nullity_lower_bound;
 
@@ -204,7 +204,8 @@ public:
             BOOST_ASSERT(!inverse_recalculated_for_current_update);
 
             // remember some things in case we decide to cancel the update
-            old_data = mat.col(c);
+            old_data_m.resize(mat.rows(), 1);
+            old_data_m.col(0) = mat.col(c);
             old_det = det;
             new_nullity_lower_bound = nullity_lower_bound;
 
@@ -434,7 +435,7 @@ public:
         {
             BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
 
-            mat.row(pending_index) = old_data;
+            mat.row(pending_index) = old_data_m.col(0);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 
@@ -449,7 +450,7 @@ public:
         {
             BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
-            mat.col(pending_index) = old_data;
+            mat.col(pending_index) = old_data_m.col(0);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 

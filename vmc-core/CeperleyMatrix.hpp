@@ -37,7 +37,7 @@ private:
     // we can cancel an update if we wish
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat, new_invmat;
-    Eigen::Matrix<T, Eigen::Dynamic, 1> old_data;
+    Eigen::Matrix<T, Eigen::Dynamic, 1> old_data, offset_m;
     T detrat, det, old_det;
     unsigned int pending_index; // refers to a row or column index
     int nullity_lower_bound; // in general, a lower bound on the nullity.  but
@@ -256,6 +256,7 @@ public:
 
             // remember some things in case we decide to cancel the update
             old_data_m.resize(mat.rows(), cols.size());
+            offset_m.resize(mat.rows(), cols.size());
             pending_index_m.resize(0);
             for (unsigned int i = 0; i < cols.size(); ++i) {
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
@@ -267,7 +268,12 @@ public:
                 old_data_m.col(i) = mat.col(cols[i].first);
                 pending_index_m.push_back(cols[i].first);
                 // might as well update the matrix within this loop as well
-                mat.col(cols[i].first) = srcmat.col(cols[i].second);
+                //
+                // NOTE: the below lines seem redundant (adding and
+                // substracting the same vector), but it is essential that we
+                // base everything around offset_m for stability.
+                offset_m.col(i) = srcmat.col(cols[i].second) - mat.col(cols[i].first);
+                mat.col(cols[i].first) += offset_m.col(i);
             }
             old_det = det;
             new_nullity_lower_bound = nullity_lower_bound;
@@ -280,8 +286,9 @@ public:
                 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_m(cols.size(), cols.size());
                 for (unsigned int i = 0; i < cols.size(); ++i) {
                     for (unsigned int j = 0; j < cols.size(); ++j) {
-                        detrat_m(i, j) = invmat.row(cols[i].first) * srcmat.col(cols[j].second);
+                        detrat_m(i, j) = invmat.row(cols[i].first) * offset_m.col(j);
                     }
+                    detrat_m(i, i) += 1; // add the identity matrix
                 }
 
                 // we need the determinant and inverse of detrat_m
@@ -405,9 +412,7 @@ public:
                 if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
                     // same as above in finish_row_update(): update the inverse
                     // matrix
-                    Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index_m[0]));
-                    invmat -= ((invmat * mat.col(pending_index_m[0])) * (invmat.row(pending_index_m[0]) / detrat)).eval();
-                    invmat.row(pending_index_m[0]) = oldrow / detrat;
+                    invmat -= ((invmat * offset_m.col(0)) * (invmat.row(pending_index_m[0]) / detrat)).eval();
                 }
 
                 nullity_lower_bound = new_nullity_lower_bound;

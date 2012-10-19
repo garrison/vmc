@@ -2,6 +2,7 @@ from pyvmc.core.measurement import BaseMeasurementPlan, OperatorMeasurementPlan,
 from pyvmc.core.lattice import LatticeSite
 from pyvmc.core.boundary_conditions import periodic # fixme: this is being assumed by these measurements ...
 from pyvmc.core.wavefunction import Wavefunction
+from pyvmc.utils import add_hc
 
 class GreenMeasurementPlan(BaseMeasurementPlan):
     __slots__ = ("wavefunction", "site1", "site2", "species")
@@ -53,10 +54,9 @@ class SpinSpinMeasurementPlan(BaseMeasurementPlan):
             object.__setattr__(self, "plans", (
                 OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, 0), SiteHop(site2, site2, 0)], True, (periodic, periodic)),
                 OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, 1), SiteHop(site2, site2, 1)], True, (periodic, periodic)),
-                OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site2, 0), SiteHop(site2, site1, 1)], True, (periodic, periodic)),
-                OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site2, 1), SiteHop(site2, site1, 0)], True, (periodic, periodic)),
                 OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, 0), SiteHop(site2, site2, 1)], True, (periodic, periodic)),
                 OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, 1), SiteHop(site2, site2, 0)], True, (periodic, periodic)),
+                OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site2, 0), SiteHop(site2, site1, 1)], True, (periodic, periodic)),
             ))
         return (wavefunction, site1, site2)
 
@@ -68,6 +68,6 @@ class SpinSpinMeasurementPlan(BaseMeasurementPlan):
             # same-site anti-commutation relations give a different result
             return 0.75 * self.wavefunction.rho
         else:
-            return (-.5 * sum([universe[self.plans[i]].get_result() for i in xrange(2, 4)])
+            return (-.5 * add_hc(universe[self.plans[4]].get_result())
                     + .25 * sum([universe[self.plans[i]].get_result() for i in xrange(0, 2)])
-                    - .25 * sum([universe[self.plans[i]].get_result() for i in xrange(4, 6)])) / len(self.wavefunction.lattice)
+                    - .25 * sum([universe[self.plans[i]].get_result() for i in xrange(2, 4)])) / len(self.wavefunction.lattice)

@@ -30,8 +30,11 @@ private:
         READY_FOR_UPDATE,
         ROW_UPDATE_IN_PROGRESS,
         COLUMN_UPDATE_IN_PROGRESS,
-        COLUMNS_UPDATE_IN_PROGRESS
+        COLUMNS_UPDATE_IN_PROGRESS,
+        ROWCOL_UPDATE_IN_PROGRESS
     };
+
+    State current_state;
 
     // old_det, new_invmat, old_data_m, and new_nullity_lower_bound all exist
     // so we can cancel an update if we wish
@@ -44,14 +47,13 @@ private:
                              // precisely zero (and the matrix is invertible)
     int new_nullity_lower_bound;
     bool inverse_recalculated_for_current_update;
-    State current_state;
 
-    // this must be set during a columns update, unless
-    // new_nullity_lower_bound > 0
+    // this must be set during an update, unless new_nullity_lower_bound > 0
+    // (or unless we are using update_row() or update_column())
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_inv_m;
     // these must be set during a columns update
-    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> old_data_m, offset_m;
-    lw_vector<unsigned int, MAX_MOVE_SIZE> pending_index_m;
+    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> old_cols_m, old_rows_m, cols_offset_m, rows_offset_m;
+    lw_vector<unsigned int, MAX_MOVE_SIZE> pending_col_indices, pending_row_indices;
 
     /**
      * As long as the determinant remains below this value, the O(N^2) update
@@ -66,9 +68,9 @@ public:
      * Constructor for initializing a CeperleyMatrix from a square Eigen::Matrix
      */
     CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
-        : mat(initial_mat),
-          inverse_recalculated_for_current_update(false),
-          current_state(READY_FOR_UPDATE)
+        : current_state(READY_FOR_UPDATE),
+          mat(initial_mat),
+          inverse_recalculated_for_current_update(false)
         {
             BOOST_ASSERT(initial_mat.rows() == initial_mat.cols());
 
@@ -158,8 +160,8 @@ public:
             BOOST_ASSERT(!inverse_recalculated_for_current_update);
 
             // remember some things in case we decide to cancel the update
-            old_data_m.resize(mat.rows(), 1);
-            old_data_m.col(0) = mat.row(r);
+            old_cols_m.resize(mat.rows(), 1);
+            old_cols_m.col(0) = mat.row(r);
             old_det = det;
             new_nullity_lower_bound = nullity_lower_bound;
 
@@ -204,8 +206,8 @@ public:
             BOOST_ASSERT(!inverse_recalculated_for_current_update);
 
             // remember some things in case we decide to cancel the update
-            old_data_m.resize(mat.rows(), 1);
-            old_data_m.col(0) = mat.col(c);
+            old_cols_m.resize(mat.rows(), 1);
+            old_cols_m.col(0) = mat.col(c);
             old_det = det;
             new_nullity_lower_bound = nullity_lower_bound;
 
@@ -248,6 +250,15 @@ public:
      */
     void update_columns (const lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> &cols, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &srcmat)
         {
+#if 0
+            Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> srcmat2(mat.rows(), mat.cols());
+            lw_vector<unsigned int, MAX_MOVE_SIZE> c;
+            for (unsigned int i = 0; i < cols.size(); ++i) {
+                srcmat2.col(cols[i].first) = srcmat.col(cols[i].second);
+                c.push_back(cols[i].first);
+            }
+            update_rows_and_columns(lw_vector<unsigned int, MAX_MOVE_SIZE>(), c, srcmat2);
+#else
             BOOST_ASSERT(cols.size() > 0);
             BOOST_ASSERT(cols.size() <= (unsigned int) mat.cols());
             BOOST_ASSERT(srcmat.rows() == mat.rows());
@@ -256,9 +267,9 @@ public:
             BOOST_ASSERT(nullity_lower_bound >= 0);
 
             // remember some things in case we decide to cancel the update
-            old_data_m.resize(mat.rows(), cols.size());
-            offset_m.resize(mat.rows(), cols.size());
-            pending_index_m.resize(0);
+            old_cols_m.resize(mat.rows(), cols.size());
+            cols_offset_m.resize(mat.rows(), cols.size());
+            pending_col_indices.resize(0);
             for (unsigned int i = 0; i < cols.size(); ++i) {
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
                 BOOST_ASSERT(cols[i].second < srcmat.cols());
@@ -266,15 +277,15 @@ public:
                 for (unsigned int j = 0; j < i; ++j)
                     BOOST_ASSERT(cols[i].first != cols[j].first);
 #endif
-                old_data_m.col(i) = mat.col(cols[i].first);
-                pending_index_m.push_back(cols[i].first);
+                old_cols_m.col(i) = mat.col(cols[i].first);
+                pending_col_indices.push_back(cols[i].first);
                 // might as well update the matrix within this loop as well
                 //
                 // NOTE: the below lines seem redundant (adding and
                 // substracting the same vector), but it is essential that we
-                // base everything around offset_m for stability.
-                offset_m.col(i) = srcmat.col(cols[i].second) - mat.col(cols[i].first);
-                mat.col(cols[i].first) += offset_m.col(i);
+                // base everything around cols_offset_m for stability.
+                cols_offset_m.col(i) = srcmat.col(cols[i].second) - mat.col(cols[i].first);
+                mat.col(cols[i].first) += cols_offset_m.col(i);
             }
             old_det = det;
             new_nullity_lower_bound = nullity_lower_bound;
@@ -287,7 +298,7 @@ public:
                 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_m(cols.size(), cols.size());
                 for (unsigned int i = 0; i < cols.size(); ++i) {
                     for (unsigned int j = 0; j < cols.size(); ++j) {
-                        detrat_m(i, j) = invmat.row(cols[i].first) * offset_m.col(j);
+                        detrat_m(i, j) = invmat.row(cols[i].first) * cols_offset_m.col(j);
                     }
                     detrat_m(i, i) += 1; // add the identity matrix
                 }
@@ -331,6 +342,126 @@ public:
             }
 
             current_state = COLUMNS_UPDATE_IN_PROGRESS;
+#endif
+        }
+
+    /**
+     * Update one or more columns and/or rows in the matrix by replacing them
+     * with the given entries in srcmat.
+     */
+    void update_rows_and_columns (const lw_vector<unsigned int, MAX_MOVE_SIZE> &rows, const lw_vector<unsigned int, MAX_MOVE_SIZE> &cols, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &srcmat)
+        {
+            BOOST_ASSERT(cols.size() > 0 || rows.size() > 0);
+            BOOST_ASSERT(cols.size() <= (unsigned int) mat.cols());
+            BOOST_ASSERT(rows.size() <= (unsigned int) mat.rows());
+            BOOST_ASSERT(srcmat.rows() == mat.rows());
+            BOOST_ASSERT(srcmat.cols() == mat.cols());
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
+            BOOST_ASSERT(!inverse_recalculated_for_current_update);
+            BOOST_ASSERT(nullity_lower_bound >= 0);
+
+            // remember and update rows
+            old_rows_m.resize(rows.size(), mat.cols());
+            rows_offset_m.resizeLike(old_rows_m);
+            pending_row_indices = rows;
+            for (unsigned int i = 0; i < rows.size(); ++i) {
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+                BOOST_ASSERT(rows[i] < mat.rows());
+                for (unsigned int j = 0; j < i; ++j)
+                    BOOST_ASSERT(rows[i] != rows[j]);
+#endif
+                // remember old row
+                old_rows_m.row(i) = mat.row(rows[i]);
+                // NOTE: the below lines seem redundant (adding and
+                // substracting the same vector), but it is essential that we
+                // base everything around rows_offset_m for stability.
+                rows_offset_m.row(i) = srcmat.row(rows[i]) - mat.row(rows[i]);
+                mat.row(rows[i]) += rows_offset_m.row(i);
+            }
+
+            // remember and update columns
+            old_cols_m.resize(mat.rows(), cols.size());
+            cols_offset_m.resizeLike(old_cols_m);
+            pending_col_indices = cols;
+            for (unsigned int i = 0; i < cols.size(); ++i) {
+#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+                BOOST_ASSERT(cols[i] < mat.cols());
+                for (unsigned int j = 0; j < i; ++j)
+                    BOOST_ASSERT(cols[i] != cols[j]);
+#endif
+                // remember old column
+                old_cols_m.col(i) = mat.col(cols[i]);
+                // NOTE: the below lines seem redundant (adding and
+                // substracting the same vector), but it is essential that we
+                // base everything around cols_offset_m for stability.
+                cols_offset_m.col(i) = srcmat.col(cols[i]) - mat.col(cols[i]);
+                mat.col(cols[i]) += cols_offset_m.col(i);
+            }
+
+            // remember old determinant, etc
+            old_det = det;
+            new_nullity_lower_bound = nullity_lower_bound;
+
+            if (nullity_lower_bound != 0) {
+                perform_singular_update(cols.size());
+            } else {
+                // The matrix is not singular, so we calculate the new
+                // determinant using the Sherman-Morrison-Woodbury formula.
+                const unsigned int nr = rows.size(), nc = cols.size();
+                Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_m(nc + nr, nc + nr);
+                for (unsigned int i = 0; i < nc; ++i) {
+                    for (unsigned int j = 0; j < nc; ++j)
+                        detrat_m(i, j) = invmat.row(cols[i]) * cols_offset_m.col(j);
+                    for (unsigned int j = 0; j < nr; ++j)
+                        detrat_m(i, j + nc) = invmat(cols[i], rows[j]);
+                    detrat_m(i, i) += 1; // add the identity matrix
+                }
+                for (unsigned int i = 0; i < nr; ++i) {
+                    for (unsigned int j = 0; j < nc; ++j)
+                        detrat_m(i + nc, j) = rows_offset_m.row(i) * invmat * cols_offset_m.col(j);
+                    for (unsigned int j = 0; j < nr; ++j)
+                        detrat_m(i + nc, j + nc) = rows_offset_m.row(i) * invmat.col(rows[j]);
+                    detrat_m(i + nc, i + nc) += 1; // add the identity matrix
+                }
+                // we need the determinant and inverse of detrat_m
+                if (detrat_m.cols() == 1) {
+                    // for a 1x1 matrix, there's no need to do a decomposition
+                    detrat = detrat_m(0, 0);
+                    if (detrat != T(0)) {
+                        detrat_inv_m.resize(1, 1);
+                        detrat_inv_m(0, 0) = T(1) / detrat;
+                    }
+                } else {
+                    // lu decomposition
+                    Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(detrat_m);
+                    if (lu_decomposition.isInvertible()) {
+                        detrat = lu_decomposition.determinant();
+                        detrat_inv_m = lu_decomposition.inverse();
+                    } else {
+                        // oddly enough, lu_decomposition.determinant() is not
+                        // guaranteed to be zero, so we handle this case explicitly
+                        detrat = T(0);
+                    }
+                }
+
+                // update the value of the determinant
+                det *= detrat;
+
+                // handle cases in which the matrix has (possibly) become
+                // singular
+                if (det == T(0)) {
+                    // mark that the matrix has become singular
+                    new_nullity_lower_bound = 1;
+                } else {
+                    // If the determinant has become sufficiently small, the matrix
+                    // might have become singular so we recompute its inverse from
+                    // scratch just to be safe.
+                    if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                        calculate_inverse(true);
+                }
+            }
+
+            current_state = ROWCOL_UPDATE_IN_PROGRESS;
         }
 
     /**
@@ -405,18 +536,57 @@ public:
      */
     void finish_columns_update (void)
         {
+#if 0
+            finish_rows_and_columns_update();
+#else
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
                 // same as above in finish_row_update(): update the inverse
                 // matrix
                 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_offset(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(invmat.rows(), invmat.cols()));
-                for (unsigned int i = 0; i < pending_index_m.size(); ++i)
-                    invmat_offset -= invmat * ((offset_m * detrat_inv_m.col(i)) * invmat.row(pending_index_m[i]));
+                for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
+                    invmat_offset -= invmat * ((cols_offset_m * detrat_inv_m.col(i)) * invmat.row(pending_col_indices[i]));
                 invmat += invmat_offset;
                 // fixme: we could make a special case for just updating one
                 // column (as there's no need to create invmat_offset or to
                 // loop)
+            }
+
+            nullity_lower_bound = new_nullity_lower_bound;
+            if (inverse_recalculated_for_current_update)
+                invmat = new_invmat;
+            inverse_recalculated_for_current_update = false;
+
+            current_state = READY_FOR_UPDATE;
+#endif
+
+#ifdef VMC_CAREFUL
+            be_careful();
+#endif
+        }
+
+    /**
+     *
+     */
+    void finish_rows_and_columns_update (void)
+        {
+            BOOST_ASSERT(current_state == ROWCOL_UPDATE_IN_PROGRESS);
+
+            if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
+                // update the inverse matrix using Sherman-Morrison-Woodbury
+                Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_offset(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(invmat.rows(), invmat.cols()));
+                const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> cm(invmat * cols_offset_m), rm(rows_offset_m * invmat);
+                const unsigned int nr = pending_row_indices.size(), nc = pending_col_indices.size();
+                for (unsigned int i = 0; i < nc; ++i) {
+                    invmat_offset -= (cm * detrat_inv_m.block(0, i, nc, 1)) * invmat.row(pending_col_indices[i]);
+                    for (unsigned int j = 0; j < nr; ++j)
+                        invmat_offset -= invmat.col(pending_row_indices[j]) * detrat_inv_m(j + nc, i) * invmat.row(pending_col_indices[i]);
+                }
+                for (unsigned int j = 0; j < nr; ++j)
+                    invmat_offset -= invmat.col(pending_row_indices[j]) * (detrat_inv_m.block(j + nc, nc, 1, nr) * rm);
+                invmat_offset -= cm * detrat_inv_m.block(0, nc, nc, nr) * rm;
+                invmat += invmat_offset;
             }
 
             nullity_lower_bound = new_nullity_lower_bound;
@@ -435,7 +605,7 @@ public:
         {
             BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
 
-            mat.row(pending_index) = old_data_m.col(0);
+            mat.row(pending_index) = old_cols_m.col(0);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 
@@ -450,7 +620,7 @@ public:
         {
             BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
-            mat.col(pending_index) = old_data_m.col(0);
+            mat.col(pending_index) = old_cols_m.col(0);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 
@@ -463,10 +633,32 @@ public:
 
     void cancel_columns_update (void)
         {
+#if 0
+            cancel_rows_and_columns_update();
+#else
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
-            for (unsigned int i = 0; i < pending_index_m.size(); ++i)
-                mat.col(pending_index_m[i]) = old_data_m.col(i);
+            for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
+                mat.col(pending_col_indices[i]) = old_cols_m.col(i);
+            det = old_det;
+            inverse_recalculated_for_current_update = false;
+
+            current_state = READY_FOR_UPDATE;
+#endif
+
+#ifdef VMC_CAREFUL
+            be_careful();
+#endif
+        }
+
+    void cancel_rows_and_columns_update (void)
+        {
+            BOOST_ASSERT(current_state == ROWCOL_UPDATE_IN_PROGRESS);
+
+            for (unsigned int i = 0; i < pending_row_indices.size(); ++i)
+                mat.row(pending_row_indices[i]) = old_rows_m.row(i);
+            for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
+                mat.col(pending_col_indices[i]) = old_cols_m.col(i);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 

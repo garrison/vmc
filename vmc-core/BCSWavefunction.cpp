@@ -24,8 +24,6 @@ void BCSWavefunction::Amplitude::perform_move_ (const Move &move)
     // first assert that it's a swap
     BOOST_ASSERT(move.size() == 2);
     BOOST_ASSERT(move[0].particle.species != move[1].particle.species);
-    BOOST_ASSERT(r[move[0].particle] == move[1].destination);
-    BOOST_ASSERT(r[move[1].particle] == move[0].destination);
 
     const unsigned int M = r.get_N_filled(0);
     BOOST_ASSERT(M == r.get_N_filled(1));
@@ -167,14 +165,15 @@ Move BCSWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
     // choose a particle of each species and swap their positions
     Move move;
     const Particle particle(choose_random_particle(r, rng));
+    const unsigned int other_species = particle.species ^ 1;
     const unsigned int proposed_site_index = plan_particle_move_to_nearby_empty_site(particle, r, *wf->lattice, rng);
-    if (proposed_site_index != r[particle]) {
-        const unsigned int other_species = particle.species ^ 1;
+    if (r.is_occupied(proposed_site_index, other_species)) {
         const int other_particle_index = r.particle_index_at_pos(proposed_site_index, other_species);
         BOOST_ASSERT(other_particle_index >= 0);
         const Particle other_particle(other_particle_index, other_species);
+        BOOST_ASSERT(r[other_particle] == proposed_site_index);
 
-        move.push_back(SingleParticleMove(particle, proposed_site_index));
+        move.push_back(SingleParticleMove(particle, r[other_particle]));
         move.push_back(SingleParticleMove(other_particle, r[particle]));
     }
     return move;

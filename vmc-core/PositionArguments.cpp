@@ -25,6 +25,23 @@ void PositionArguments::reset (const std::vector<std::vector<unsigned int> > &r_
     _populate_positions(get_N_sites());
 }
 
+int PositionArguments::particle_index_at_pos (unsigned int position, unsigned int species) const
+{
+    BOOST_ASSERT(position < get_N_sites());
+    BOOST_ASSERT(species < get_N_species());
+
+    if (positions[species][position] == 0)
+        return -1;
+    for (unsigned int i = 0; i < get_N_filled(species); ++i) {
+        if (r[species][i] == position)
+            return i;
+    }
+
+    // should not be reached
+    BOOST_ASSERT(false);
+    return -1;
+}
+
 void PositionArguments::_populate_positions (unsigned int N_sites)
 {
     N_filled_total = 0;

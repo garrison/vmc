@@ -31,6 +31,7 @@ extensions = [
     make_extension("pyvmc.library.renyi", ["vmc-core"]),
     make_extension("pyvmc.library.dbl", ["vmc-core"]),
     make_extension("pyvmc.library.dmetal", ["vmc-core"]),
+    make_extension("pyvmc.library.bcs", ["vmc-core"]),
 ]
 
 setup(**{

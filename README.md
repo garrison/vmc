@@ -58,7 +58,7 @@ assertions liberally.  There are some tests/assertions that slow the
 code significantly if enabled.  To run with these tests, compile with
 the flag -DVMC_CAREFUL by running:
 
-    $ make config=Careful
+    $ make config=careful
 
 Be sure to pass all the appropriate environment variables, given
 above, to "make."
@@ -139,3 +139,13 @@ At the moment the following things are broken:
 
 * BCS wave function currently only works at half filling and has not
   yet been wrapped with Cython, or even tested.
+
+* Projected Fermi sea does not yet use multi-particle moves so does
+  not work at half filling
+
+* Non-Bravais lattices have never been tested, and may not be fully
+  implemented in the python layer
+
+* Cylindrical boundary conditions are not supported.  Also, boundary
+  conditions in python are the reciprocal of their representation in
+  C++, which should be fixed at some point.

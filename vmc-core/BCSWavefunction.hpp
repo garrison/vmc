@@ -29,7 +29,7 @@ public:
         // single step, on each step we copy m_cmat to m_new_cmat, update it
         // twice, and copy it back if we choose to accept the move.
         bool m_update_in_progress;
-        CeperleyMatrix<amplitude_t> m_cmat, m_new_cmat;
+        CeperleyMatrix<amplitude_t> m_cmat;
 
     public:
         Amplitude (const boost::shared_ptr<const BCSWavefunction> &wf_, const PositionArguments &r_);

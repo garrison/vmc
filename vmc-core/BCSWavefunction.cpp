@@ -36,47 +36,46 @@ void BCSWavefunction::Amplitude::perform_move_ (const Move &move)
     const LatticeSite new_site_for_up(lattice->site_from_index(move[move[0].particle.species].destination));
     const LatticeSite new_site_for_down(lattice->site_from_index(move[move[1].particle.species].destination));
 
-    Eigen::Matrix<complex_t, Eigen::Dynamic, 1> new_row(M);
+    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> srcmat(M, M);
+
     const std::vector<unsigned int> & down_pos = r.r_vector(1);
     for (unsigned int i = 0; i < M; ++i) {
         LatticeSite rup_minus_rdown(new_site_for_up);
         lattice->asm_subtract_site_vector(rup_minus_rdown, lattice->site_from_index(down_pos[i]).bravais_site());
         lattice->enforce_boundary(rup_minus_rdown);
-        new_row[i] = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
+        srcmat(moved_up_particle_index, i) = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
     }
 
-    m_update_in_progress = true;
-    m_new_cmat = m_cmat;
-
-    m_new_cmat.update_row(moved_up_particle_index, new_row);
-    m_new_cmat.finish_row_update();
-    
-    Eigen::Matrix<complex_t, Eigen::Dynamic, 1> new_col(M);
     const std::vector<unsigned int> & up_pos = r.r_vector(0);
     for (unsigned int i = 0; i < M; ++i) {
         LatticeSite rup_minus_rdown(lattice->site_from_index(up_pos[i]));
         lattice->asm_subtract_site_vector(rup_minus_rdown, new_site_for_down.bravais_site());
         lattice->enforce_boundary(rup_minus_rdown);
-        new_col[i] = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
+        srcmat(i, moved_down_particle_index) = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
     }
 
-    m_new_cmat.update_column(moved_down_particle_index, new_col);
+    lw_vector<unsigned int, MAX_MOVE_SIZE> rows, cols;
+    rows.push_back(moved_up_particle_index);
+    cols.push_back(moved_down_particle_index);
+    m_cmat.update_rows_and_columns(rows, cols, srcmat);
+
+    m_update_in_progress = true;
 }
 
 amplitude_t BCSWavefunction::Amplitude::psi_ (void) const
 {
-    return (m_update_in_progress ? m_new_cmat : m_cmat).get_determinant();
+    return m_cmat.get_determinant();
 }
 
 void BCSWavefunction::Amplitude::finish_move_ (void)
 {
-    m_new_cmat.finish_column_update();
-    m_cmat = m_new_cmat;
+    m_cmat.finish_rows_and_columns_update();
     m_update_in_progress = false;
 }
 
 void BCSWavefunction::Amplitude::cancel_move_ (void)
 {
+    m_cmat.cancel_rows_and_columns_update();
     m_update_in_progress = false;
 }
 
@@ -113,7 +112,7 @@ void BCSWavefunction::Amplitude::reinitialize (void)
 
     const unsigned int M = r.get_N_filled(0);
 
-    Eigen::Matrix<complex_t, Eigen::Dynamic, Eigen::Dynamic> mat_phi(M, M);
+    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat_phi(M, M);
     const std::vector<unsigned int> & up_pos = r.r_vector(0);
     const std::vector<unsigned int> & down_pos = r.r_vector(1);
     for (unsigned int i = 0; i < M; ++i) {

@@ -32,31 +32,31 @@ void BCSWavefunction::Amplitude::perform_move_ (const Move &move)
 
     // the next four lines are a bit opaque, but correct
     const unsigned int moved_up_particle_index = move[move[0].particle.species].particle.index;
-    const unsigned int moved_down_particle_index = move[move[1].particle.species].particle.index;
+    const unsigned int moved_dn_particle_index = move[move[1].particle.species].particle.index;
     const LatticeSite new_site_for_up(lattice->site_from_index(move[move[0].particle.species].destination));
-    const LatticeSite new_site_for_down(lattice->site_from_index(move[move[1].particle.species].destination));
+    const LatticeSite new_site_for_dn(lattice->site_from_index(move[move[1].particle.species].destination));
 
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> srcmat(M, M);
 
-    const std::vector<unsigned int> & down_pos = r.r_vector(1);
+    const std::vector<unsigned int> & dn_pos = r.r_vector(1);
     for (unsigned int i = 0; i < M; ++i) {
-        LatticeSite rup_minus_rdown(new_site_for_up);
-        lattice->asm_subtract_site_vector(rup_minus_rdown, lattice->site_from_index(down_pos[i]).bravais_site());
-        lattice->enforce_boundary(rup_minus_rdown);
-        srcmat(moved_up_particle_index, i) = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
+        LatticeSite rup_minus_rdn(new_site_for_up);
+        lattice->asm_subtract_site_vector(rup_minus_rdn, lattice->site_from_index(dn_pos[i]).bravais_site());
+        lattice->enforce_boundary(rup_minus_rdn);
+        srcmat(moved_up_particle_index, i) = wf_->phi[lattice->site_to_index(rup_minus_rdn)];
     }
 
     const std::vector<unsigned int> & up_pos = r.r_vector(0);
     for (unsigned int i = 0; i < M; ++i) {
-        LatticeSite rup_minus_rdown(lattice->site_from_index(up_pos[i]));
-        lattice->asm_subtract_site_vector(rup_minus_rdown, new_site_for_down.bravais_site());
-        lattice->enforce_boundary(rup_minus_rdown);
-        srcmat(i, moved_down_particle_index) = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
+        LatticeSite rup_minus_rdn(lattice->site_from_index(up_pos[i]));
+        lattice->asm_subtract_site_vector(rup_minus_rdn, new_site_for_dn.bravais_site());
+        lattice->enforce_boundary(rup_minus_rdn);
+        srcmat(i, moved_dn_particle_index) = wf_->phi[lattice->site_to_index(rup_minus_rdn)];
     }
 
     lw_vector<unsigned int, MAX_MOVE_SIZE> rows, cols;
     rows.push_back(moved_up_particle_index);
-    cols.push_back(moved_down_particle_index);
+    cols.push_back(moved_dn_particle_index);
     m_cmat.update_rows_and_columns(rows, cols, srcmat);
 
     m_update_in_progress = true;
@@ -114,14 +114,14 @@ void BCSWavefunction::Amplitude::reinitialize (void)
 
     Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat_phi(M, M);
     const std::vector<unsigned int> & up_pos = r.r_vector(0);
-    const std::vector<unsigned int> & down_pos = r.r_vector(1);
+    const std::vector<unsigned int> & dn_pos = r.r_vector(1);
     for (unsigned int i = 0; i < M; ++i) {
         const LatticeSite rup(lattice->site_from_index(up_pos[i]));
         for (unsigned int j = 0; j < M; ++j) {
-            LatticeSite rup_minus_rdown(rup);
-            lattice->asm_subtract_site_vector(rup_minus_rdown, lattice->site_from_index(down_pos[j]).bravais_site());
-            lattice->enforce_boundary(rup_minus_rdown);
-            mat_phi(i, j) = wf_->phi[lattice->site_to_index(rup_minus_rdown)];
+            LatticeSite rup_minus_rdn(rup);
+            lattice->asm_subtract_site_vector(rup_minus_rdn, lattice->site_from_index(dn_pos[j]).bravais_site());
+            lattice->enforce_boundary(rup_minus_rdn);
+            mat_phi(i, j) = wf_->phi[lattice->site_to_index(rup_minus_rdn)];
         }
     }
 

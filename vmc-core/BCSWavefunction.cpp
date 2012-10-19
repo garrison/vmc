@@ -168,7 +168,7 @@ Move BCSWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
     const unsigned int other_species = particle.species ^ 1;
     const unsigned int proposed_site_index = plan_particle_move_to_nearby_empty_site(particle, r, *wf->lattice, rng);
     if (r.is_occupied(proposed_site_index, other_species)) {
-        const int other_particle_index = r.particle_index_at_pos(proposed_site_index, other_species);
+        const int other_particle_index = r.particle_index_at_position(proposed_site_index, other_species);
         BOOST_ASSERT(other_particle_index >= 0);
         const Particle other_particle(other_particle_index, other_species);
         BOOST_ASSERT(r[other_particle] == proposed_site_index);

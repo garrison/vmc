@@ -65,7 +65,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
                 phase /= lattice.enforce_boundary(src, bcs.get());
             else if (!lattice.site_is_valid(src))
                 goto current_measurement_is_zero;
-            const int particle_index = r.particle_index_at_pos(lattice.site_to_index(src), species);
+            const int particle_index = r.particle_index_at_position(lattice.site_to_index(src), species);
             if (particle_index < 0)
                 goto current_measurement_is_zero;
             if (m_operator.hopv[j].get_source() != m_operator.hopv[j].get_destination()) {

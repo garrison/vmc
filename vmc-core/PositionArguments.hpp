@@ -121,7 +121,7 @@ public:
      * Returns the index of a given particle of type species located at position;
      * if no such particle is present, returns -1
      */
-    int particle_index_at_pos (unsigned int position, unsigned int species) const;
+    int particle_index_at_position (unsigned int position, unsigned int species) const;
 
     /**
      * Returns the number of sites on the lattice

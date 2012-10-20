@@ -655,10 +655,12 @@ public:
         {
             BOOST_ASSERT(current_state == ROWCOL_UPDATE_IN_PROGRESS);
 
-            for (unsigned int i = 0; i < pending_row_indices.size(); ++i)
-                mat.row(pending_row_indices[i]) = old_rows_m.row(i);
+            // NOTE: we must cancel the rows after the columns since we saved
+            // the old columns after the rows had already been updated
             for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
                 mat.col(pending_col_indices[i]) = old_cols_m.col(i);
+            for (unsigned int i = 0; i < pending_row_indices.size(); ++i)
+                mat.row(pending_row_indices[i]) = old_rows_m.row(i);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 

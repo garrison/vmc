@@ -250,15 +250,6 @@ public:
      */
     void update_columns (const lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> &cols, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &srcmat)
         {
-#if 0
-            Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> srcmat2(mat.rows(), mat.cols());
-            lw_vector<unsigned int, MAX_MOVE_SIZE> c;
-            for (unsigned int i = 0; i < cols.size(); ++i) {
-                srcmat2.col(cols[i].first) = srcmat.col(cols[i].second);
-                c.push_back(cols[i].first);
-            }
-            update_rows_and_columns(lw_vector<unsigned int, MAX_MOVE_SIZE>(), c, srcmat2);
-#else
             BOOST_ASSERT(cols.size() > 0);
             BOOST_ASSERT(cols.size() <= (unsigned int) mat.cols());
             BOOST_ASSERT(srcmat.rows() == mat.rows());
@@ -342,7 +333,6 @@ public:
             }
 
             current_state = COLUMNS_UPDATE_IN_PROGRESS;
-#endif
         }
 
     /**
@@ -536,9 +526,6 @@ public:
      */
     void finish_columns_update (void)
         {
-#if 0
-            finish_rows_and_columns_update();
-#else
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
@@ -559,7 +546,6 @@ public:
             inverse_recalculated_for_current_update = false;
 
             current_state = READY_FOR_UPDATE;
-#endif
 
 #ifdef VMC_CAREFUL
             be_careful();
@@ -633,9 +619,6 @@ public:
 
     void cancel_columns_update (void)
         {
-#if 0
-            cancel_rows_and_columns_update();
-#else
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
             for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
@@ -644,7 +627,6 @@ public:
             inverse_recalculated_for_current_update = false;
 
             current_state = READY_FOR_UPDATE;
-#endif
 
 #ifdef VMC_CAREFUL
             be_careful();

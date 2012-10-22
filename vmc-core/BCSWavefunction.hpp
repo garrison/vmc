@@ -25,10 +25,6 @@ public:
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
-        // Because we don't yet have a way of doing row-column updates in a
-        // single step, on each step we copy m_cmat to m_new_cmat, update it
-        // twice, and copy it back if we choose to accept the move.
-        bool m_update_in_progress;
         CeperleyMatrix<amplitude_t> m_cmat;
 
     public:

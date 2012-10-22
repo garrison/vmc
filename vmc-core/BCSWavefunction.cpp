@@ -10,8 +10,7 @@
 #include "random-move.hpp"
 
 BCSWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const BCSWavefunction> &wf_, const PositionArguments &r_)
-    : Wavefunction::Amplitude(wf_, r_),
-      m_update_in_progress(false)
+    : Wavefunction::Amplitude(wf_, r_)
 {    
     reinitialize();
 }
@@ -56,8 +55,6 @@ void BCSWavefunction::Amplitude::perform_move_ (const Move &move)
     rows.push_back(moved_up_particle_index);
     cols.push_back(moved_dn_particle_index);
     m_cmat.update_rows_and_columns(rows, cols, srcmat);
-
-    m_update_in_progress = true;
 }
 
 amplitude_t BCSWavefunction::Amplitude::psi_ (void) const
@@ -68,13 +65,11 @@ amplitude_t BCSWavefunction::Amplitude::psi_ (void) const
 void BCSWavefunction::Amplitude::finish_move_ (void)
 {
     m_cmat.finish_rows_and_columns_update();
-    m_update_in_progress = false;
 }
 
 void BCSWavefunction::Amplitude::cancel_move_ (void)
 {
     m_cmat.cancel_rows_and_columns_update();
-    m_update_in_progress = false;
 }
 
 void BCSWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)

@@ -135,16 +135,16 @@ Ways in which things are currently in flux
 
 At the moment the following things are broken:
 
-* Renyi stuff uses only single particle moves
+* Renyi stuff uses only single particle moves, even on wavefunctions
+  where that doesn't work well.
 
-* BCS wave function currently only works at half filling and has not
-  yet been wrapped with Cython, or even tested.
+* BCS wavefunction has not been tested.
 
 * Projected Fermi sea does not yet use multi-particle moves so does
-  not work at half filling
+  not work at half filling.
 
 * Non-Bravais lattices have never been tested, and may not be fully
-  implemented in the python layer
+  implemented in the python layer.
 
 * Cylindrical boundary conditions are not supported.  Also, boundary
   conditions in python are the reciprocal of their representation in

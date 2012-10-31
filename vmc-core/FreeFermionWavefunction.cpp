@@ -57,7 +57,6 @@ void FreeFermionWavefunction::Amplitude::do_perform_move (const Move &move)
 
     if (first_pass) {
         if (wf_->jastrow) {
-            m_current_jastrow = 1;
             m_current_jastrow = wf_->jastrow->compute_jastrow(r);
             if (m_current_jastrow == amplitude_t(0)) {
                 m_partial_update_step = get_N_species();

@@ -7,4 +7,4 @@ from pyvmc.core.lattice cimport CppLattice, Lattice
 
 cdef extern from "BCSWavefunction.hpp":
     cdef cppclass CppBCSWavefunction "BCSWavefunction" (CppWavefunction):
-        CppBCSWavefunction(shared_ptr[CppLattice]&, vector[complex_t]&)
+        CppBCSWavefunction(shared_ptr[CppLattice]&, vector[complex_t]&, unsigned int)

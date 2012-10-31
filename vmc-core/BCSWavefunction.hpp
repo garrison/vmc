@@ -4,28 +4,44 @@
 #include <vector>
 
 #include <boost/make_shared.hpp>
+#include <boost/assert.hpp>
 
 #include "Wavefunction.hpp"
 #include "CeperleyMatrix.hpp"
+#include "JastrowFactor.hpp"
 
 /**
- * Projected BCS wave function at half-filling
+ * Projected BCS wave function
+ *
+ * Assumes unpolarized state.
+ *
+ * Assumes periodic boundary conditions.
  */
 class BCSWavefunction : public Wavefunction
 {
 public:
     const std::vector<complex_t> phi;
+    const unsigned int M; // number of particles of each species
+    const boost::shared_ptr<const JastrowFactor> jastrow;
 
-    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi_)
+    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>())
         : Wavefunction(lattice_),
-          phi(phi_)
+          phi(phi_),
+          M(M_),
+          jastrow(jastrow_)
         {
+            BOOST_ASSERT(M > 0);
+            BOOST_ASSERT(2 * M <= lattice->total_sites());
+            BOOST_ASSERT(lattice->total_sites() == phi.size());
         }
 
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
         CeperleyMatrix<amplitude_t> m_cmat;
+        real_t m_current_jastrow, m_old_jastrow;
+        unsigned int m_partial_update_step;
+        Move m_current_move;
 
     public:
         Amplitude (const boost::shared_ptr<const BCSWavefunction> &wf_, const PositionArguments &r_);
@@ -34,6 +50,9 @@ public:
 
     private:
         void perform_move_ (const Move &move);
+
+        template <bool first_pass>
+        void do_perform_move (const Move &move);
 
         amplitude_t psi_ (void) const;
 
@@ -67,7 +86,7 @@ public:
         {
             BOOST_ASSERT(species < 2);
             // assumes half filling
-            return lattice->total_sites() / 2;
+            return M;
         }
 };
 

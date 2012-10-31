@@ -338,6 +338,12 @@ public:
     /**
      * Update one or more columns and/or rows in the matrix by replacing them
      * with the given entries in srcmat.
+     *
+     * All entries in srcmat outside the given rows and columns are irrelevant
+     * and as such are ignored.
+     *
+     * This requires O(N) time if we are updating only rows or only columns.
+     * If we are updating both it requires O(N^2) time.
      */
     void update_rows_and_columns (const lw_vector<unsigned int, MAX_MOVE_SIZE> &rows, const lw_vector<unsigned int, MAX_MOVE_SIZE> &cols, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &srcmat)
         {
@@ -408,6 +414,7 @@ public:
                 }
                 for (unsigned int i = 0; i < nr; ++i) {
                     for (unsigned int j = 0; j < nc; ++j)
+                        // the following line requires O(N^2) steps
                         detrat_m(i + nc, j) = rows_offset_m.row(i) * invmat * cols_offset_m.col(j);
                     for (unsigned int j = 0; j < nr; ++j)
                         detrat_m(i + nc, j + nc) = rows_offset_m.row(i) * invmat.col(rows[j]);

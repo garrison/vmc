@@ -128,7 +128,13 @@ public:
          * Must maintain balance.
          *
          * It is allowed for this to return the null move occasionally (which
-         * may be useful to obtain balance).
+         * can be useful for obtaining balance).
+         *
+         * This method should be ergodic in that each configuration of the
+         * wavefunction with nonzero amplitude should be reachable (eventually)
+         * from any other such configuration.  It is *not* necessary for moves
+         * with zero amplitude to be included here.  But including them is
+         * often an easy way to ensure that balance is maintained.
          */
         virtual Move propose_move (RandomNumberGenerator &rng) const;
 
@@ -137,7 +143,14 @@ public:
          * This method is responsible for updating the state of the object such
          * that psi_() returns the new amplitude.  The PositionArguments "r"
          * will be updated before this method is called.  Also, a null move
-         * should never be sent to this method.
+         * will never be sent to this method.  And the method can assume that
+         * the move is valid (i.e. the destination of each particle does not
+         * already hold a particle of the same species; for more details see
+         * Move.cpp) Also, this method should be able to handle any valid move,
+         * that is, even moves that would never be proposed by propose_move(),
+         * as such moves are often necessary to perform measurements.  In
+         * particular, this method should be able to handle moves that result
+         * in zero wavefunction amplitude.
          */
         virtual void perform_move_ (const Move &move) = 0;
 

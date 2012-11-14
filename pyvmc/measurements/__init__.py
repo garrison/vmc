@@ -28,7 +28,7 @@ class DensityDensityMeasurementPlan(BaseMeasurementPlan):
         assert isinstance(wavefunction, Wavefunction)
         assert isinstance(site1, LatticeSite)
         assert isinstance(site2, LatticeSite)
-        object.__setattr_(self, "plans", [OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, i)] + ([SiteHop(site2, site2, j)] if site1 != site2 and i != j else []), True, (periodic, periodic)) for i in xrange(wavefunction.N_species) for j in xrange(wavefunction.N_species)])
+        object.__setattr_(self, "plans", [OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, i)] + ([SiteHop(site2, site2, j)] if site1 != site2 or i != j else []), True, (periodic, periodic)) for i in xrange(wavefunction.N_species) for j in xrange(wavefunction.N_species)])
         return (wavefunction, site1, site2)
 
     def get_measurement_plans(self):

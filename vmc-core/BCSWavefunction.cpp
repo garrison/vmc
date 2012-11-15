@@ -40,7 +40,6 @@ template <bool first_pass>
 void BCSWavefunction::Amplitude::do_perform_move (const Move &move)
 {
     const BCSWavefunction *wf_ = boost::polymorphic_downcast<const BCSWavefunction *>(wf.get());
-    const boost::shared_ptr<const Lattice> &lattice = wf->lattice;
     const unsigned int M = wf_->M;
 
     if (first_pass) {
@@ -72,26 +71,18 @@ void BCSWavefunction::Amplitude::do_perform_move (const Move &move)
 
             for (unsigned int j = 0; j < move.size(); ++j) {
                 const unsigned int particle_index = move[j].particle.index;
-                const LatticeSite new_site(lattice->site_from_index(move[j].destination));
+                const unsigned int destination = move[j].destination;
 
                 if (move[j].particle.species == 0) {
                     const std::vector<unsigned int> & dn_pos = r.r_vector(1);
-                    for (unsigned int i = 0; i < M; ++i) {
-                        LatticeSite rup_minus_rdn(new_site);
-                        lattice->asm_subtract_site_vector(rup_minus_rdn, lattice->site_from_index(dn_pos[i]).bravais_site());
-                        lattice->enforce_boundary(rup_minus_rdn);
-                        srcmat(particle_index, i) = wf_->phi[lattice->site_to_index(rup_minus_rdn)];
-                    }
+                    for (unsigned int i = 0; i < M; ++i)
+                        srcmat(particle_index, i) = wf_->phi(destination, dn_pos[i]);
                     rows.push_back(particle_index);
                 } else {
                     BOOST_ASSERT(move[j].particle.species == 1);
                     const std::vector<unsigned int> & up_pos = r.r_vector(0);
-                    for (unsigned int i = 0; i < M; ++i) {
-                        LatticeSite rup_minus_rdn(lattice->site_from_index(up_pos[i]));
-                        lattice->asm_subtract_site_vector(rup_minus_rdn, new_site.bravais_site());
-                        lattice->enforce_boundary(rup_minus_rdn);
-                        srcmat(i, particle_index) = wf_->phi[lattice->site_to_index(rup_minus_rdn)];
-                    }
+                    for (unsigned int i = 0; i < M; ++i)
+                        srcmat(i, particle_index) = wf_->phi(up_pos[i], destination);
                     cols.push_back(particle_index);
                 }
             }
@@ -165,12 +156,8 @@ void BCSWavefunction::Amplitude::reinitialize (void)
     const std::vector<unsigned int> & up_pos = r.r_vector(0);
     const std::vector<unsigned int> & dn_pos = r.r_vector(1);
     for (unsigned int i = 0; i < M; ++i) {
-        const LatticeSite rup(lattice->site_from_index(up_pos[i]));
         for (unsigned int j = 0; j < M; ++j) {
-            LatticeSite rup_minus_rdn(rup);
-            lattice->asm_subtract_site_vector(rup_minus_rdn, lattice->site_from_index(dn_pos[j]).bravais_site());
-            lattice->enforce_boundary(rup_minus_rdn);
-            mat_phi(i, j) = wf_->phi[lattice->site_to_index(rup_minus_rdn)];
+            mat_phi(i, j) = wf_->phi(up_pos[i], dn_pos[j]);
         }
     }
 

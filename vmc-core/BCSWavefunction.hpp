@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include <Eigen/Dense>
 #include <boost/make_shared.hpp>
 #include <boost/assert.hpp>
 
@@ -14,17 +15,15 @@
  * Projected BCS wave function
  *
  * Assumes unpolarized state.
- *
- * Assumes periodic boundary conditions.
  */
 class BCSWavefunction : public Wavefunction
 {
 public:
-    const std::vector<complex_t> phi;
+    const Eigen::Matrix<complex_t, Eigen::Dynamic, Eigen::Dynamic> phi;
     const unsigned int M; // number of particles of each species
     const boost::shared_ptr<const JastrowFactor> jastrow;
 
-    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const std::vector<complex_t> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>())
+    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const Eigen::Matrix<complex_t, Eigen::Dynamic, Eigen::Dynamic> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>())
         : Wavefunction(lattice_),
           phi(phi_),
           M(M_),
@@ -32,7 +31,8 @@ public:
         {
             BOOST_ASSERT(M > 0);
             BOOST_ASSERT(2 * M <= lattice->total_sites());
-            BOOST_ASSERT(lattice->total_sites() == phi.size());
+            BOOST_ASSERT(lattice->total_sites() == phi.rows());
+            BOOST_ASSERT(lattice->total_sites() == phi.cols());
         }
 
     class Amplitude : public Wavefunction::Amplitude
@@ -87,6 +87,12 @@ public:
             BOOST_ASSERT(species < 2);
             // assumes half filling
             return M;
+        }
+
+    // CYTHON-LIMITATION: http://docs.cython.org/src/userguide/wrapping_CPlusPlus.html#c-left-values
+    static inline void set_matrix_coeff (Eigen::Matrix<complex_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int row, unsigned int col, amplitude_t value)
+        {
+            mat(row, col) = value;
         }
 };
 

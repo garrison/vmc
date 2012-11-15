@@ -353,3 +353,19 @@ class HexagonalLattice(LatticeRealization):
                 LatticeSite((bs[0] + 1, bs[1] - 1), 0),
             )
         return rv
+
+    def third_nearest_neighbors(self, point, double_count=True):
+        assert point in self
+        bs = point.bs
+        rv = (
+            LatticeSite((bs[0], bs[1] + 2), 0),
+            LatticeSite((bs[0] + 2, bs[1] + 2), 0),
+            LatticeSite((bs[0] + 2, bs[1]), 0),
+        )
+        if double_count:
+            rv += (
+                LatticeSite((bs[0], bs[1] - 2), 0),
+                LatticeSite((bs[0] - 2, bs[1] - 2), 0),
+                LatticeSite((bs[0] - 2, bs[1]), 0),
+            )
+        return rv

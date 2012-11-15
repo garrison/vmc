@@ -45,7 +45,7 @@ class Immutable(Hashable):
 
     Attributes which are in __slots__ but not _immutable_slots should not
     affect the identity of the object; they are not considered in hashes or
-    equality tests.  The exist so that if there is an expensive method of the
+    equality tests.  They exist so that if there is an expensive method of the
     object, its results can be cached in such an attribute.  You have to call
     object.__setattr__ to set any attribute in _immutable_slots, in order to
     get around the Immutable object's write protection.

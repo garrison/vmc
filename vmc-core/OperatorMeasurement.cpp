@@ -51,7 +51,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
     // FIXME: need a faster way of iterating the lattice
     for (unsigned int i = 0; i < n_iterations; ++i) {
         const LatticeSite site_offset(lattice.site_from_index(i));
-        // we only want to iterate of BravaisSite's
+        // we only want to iterate over BravaisSite's
         BOOST_ASSERT(site_offset.basis_index == 0);
 
         phase_t phase = 1;

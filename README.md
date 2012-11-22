@@ -130,6 +130,17 @@ Caveats
 Only wavefunctions whose (slave) particles obey Pauli exclusion are
 currently supported (i.e. fermions and hard-core bosons).
 
+Only wavefunctions with a definite particle number are supported.
+
+Also, only wavefunctions that have a definite $S_z$ are supported.
+Otherwise, it is not entirely accurate to think of spin-up and
+spin-down particles as separate species (as the code does), since
+annihilation operators anticommute even if the spins of the two
+operators are different.
+
+Another way of phrasing the above two requirements is that moves and
+operators must consist only of SiteHop's.
+
 Ways in which things are currently in flux
 ------------------------------------------
 

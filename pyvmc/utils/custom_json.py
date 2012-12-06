@@ -4,6 +4,9 @@ from collections import OrderedDict
 from fractions import Fraction
 
 class CustomEncoder(json.JSONEncoder):
+    """This custom JSON encoder can handle complex and Fraction types.
+    """
+
     def default(self, obj):
         if isinstance(obj, complex):
             return OrderedDict([

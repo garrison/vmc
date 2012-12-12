@@ -326,15 +326,15 @@ class HexagonalLattice(LatticeRealization):
         assert point in self
         bs = point.bs
         rv = (
-            LatticeSite((bs[0], bs[1] + 1), 0),
-            LatticeSite((bs[0] + 1, bs[1] + 1), 0),
             LatticeSite((bs[0] + 1, bs[1]), 0),
+            LatticeSite((bs[0] + 1, bs[1] + 1), 0),
+            LatticeSite((bs[0], bs[1] + 1), 0),
         )
         if double_count:
             rv += (
-                LatticeSite((bs[0], bs[1] - 1), 0),
-                LatticeSite((bs[0] - 1, bs[1] - 1), 0),
                 LatticeSite((bs[0] - 1, bs[1]), 0),
+                LatticeSite((bs[0] - 1, bs[1] - 1), 0),
+                LatticeSite((bs[0], bs[1] - 1), 0),
             )
         return rv
 
@@ -358,14 +358,14 @@ class HexagonalLattice(LatticeRealization):
         assert point in self
         bs = point.bs
         rv = (
-            LatticeSite((bs[0], bs[1] + 2), 0),
-            LatticeSite((bs[0] + 2, bs[1] + 2), 0),
             LatticeSite((bs[0] + 2, bs[1]), 0),
+            LatticeSite((bs[0] + 2, bs[1] + 2), 0),
+            LatticeSite((bs[0], bs[1] + 2), 0),
         )
         if double_count:
             rv += (
-                LatticeSite((bs[0], bs[1] - 2), 0),
-                LatticeSite((bs[0] - 2, bs[1] - 2), 0),
                 LatticeSite((bs[0] - 2, bs[1]), 0),
+                LatticeSite((bs[0] - 2, bs[1] - 2), 0),
+                LatticeSite((bs[0], bs[1] - 2), 0),
             )
         return rv

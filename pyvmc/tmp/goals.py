@@ -1,7 +1,8 @@
 from twisted.internet import defer
 
 from pyvmc.core import SimpleSubsystem
-from pyvmc.core.measurement import SubsystemOccupationProbabilityMeasurementPlan, OperatorMeasurementPlan
+from pyvmc.core.measurement import SubsystemOccupationProbabilityMeasurementPlan, BasicOperatorMeasurementPlan
+from pyvmc.core.operator import BasicOperator, SiteHop
 from pyvmc.library.renyi import RenyiSignMeasurementPlan, RenyiModPossibleMeasurementPlan
 from pyvmc.tmp.universe import TmpMeasurementPlan, get_default_universe
 
@@ -207,7 +208,7 @@ class Operator(Goal):
         if universe is None:
             universe = get_default_universe()
 
-        measurement = OperatorMeasurementPlan(system, hops, sum, boundary_conditions)
+        measurement = BasicOperatorMeasurementPlan(system, BasicOperator(hops, sum, boundary_conditions))
         plan = TmpMeasurementPlan(measurement, self.parse_result)
         self.measurement_set = universe.get_measurement_set(plan, independent)
 
@@ -225,7 +226,6 @@ class Operator(Goal):
 class SingletPairOperator(Goal):
     def __init__(self, system, r1, r2, r1p, r2p, sum, boundary_conditions, independent=30, universe=None):
         """r1, r2, r1p, r2p should all be unique sites"""
-        from pyvmc.core.measurement import SiteHop
         hops1 = (
             SiteHop(r2p, r2, 1),
             SiteHop(r1p, r1, 0),

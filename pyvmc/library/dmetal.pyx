@@ -62,7 +62,8 @@ class DMetalWavefunction(Wavefunction):
         ))
         return rv
 
-from pyvmc.core.measurement import BaseMeasurementPlan, OperatorMeasurementPlan, SiteHop
+from pyvmc.core.measurement import BaseMeasurementPlan, BasicOperatorMeasurementPlan
+from pyvmc.core.operator import SiteHop, BasicOperator
 from pyvmc.core.lattice import LatticeSite
 from pyvmc.core.boundary_conditions import periodic # fixme: this is being assumed by these measurements ...
 
@@ -72,10 +73,10 @@ class ElectronRingExchangeMeasurementPlan(BaseMeasurementPlan):
 
     def init_validate(self, wavefunction):
         object.__setattr__(self, "plans", (
-            OperatorMeasurementPlan(wavefunction, [SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], True, (periodic, periodic)),
-            OperatorMeasurementPlan(wavefunction, [SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], True, (periodic, periodic)),
-            OperatorMeasurementPlan(wavefunction, [SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], True, (periodic, periodic)),
-            OperatorMeasurementPlan(wavefunction, [SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], True, (periodic, periodic)),
+            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], True, (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], True, (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], True, (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], True, (periodic, periodic))),
         ))
         return (wavefunction,)
 
@@ -90,7 +91,7 @@ from pyvmc.tmp.scan import calculate_plans, load_results
 class TJKEnergetics(object):
     def __init__(self, wavefunction):
         self.wavefunction = wavefunction
-        from pyvmc.measurements import GreenMeasurementPlan, SpinSpinMeasurementPlan
+        from pyvmc.tmp.old_measurements import GreenMeasurementPlan, SpinSpinMeasurementPlan
 
         origin = LatticeSite((0, 0))
         self.plans = {
@@ -122,11 +123,11 @@ class TJKEnergetics(object):
         from pyvmc.utils import add_hc
 
         return sum([
-            -add_hc(results['greenx_up']) /divx,
+            -add_hc(results['greenx_up']) / divx,
             -add_hc(results['greenx_down']) / divx,
             -add_hc(results['greeny_up']) / divy,
             -add_hc(results['greeny_down']) / divy,
-            J * results['spinspinx'] /divx,
+            J * results['spinspinx'] / divx,
             J * results['spinspiny'] / divy,
             2 * K * add_hc(results['ringexchange']) / divx / divy,
         ])

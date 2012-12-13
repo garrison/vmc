@@ -1,4 +1,5 @@
-from pyvmc.core.measurement import BaseMeasurementPlan, OperatorMeasurementPlan, SiteHop
+from pyvmc.core.operator import SiteHop, BasicOperator
+from pyvmc.core.measurement import BaseMeasurementPlan, BasicOperatorMeasurementPlan
 from pyvmc.core.lattice import LatticeSite
 from pyvmc.core.boundary_conditions import periodic # fixme: this is being assumed by these measurements ...
 from pyvmc.core.wavefunction import Wavefunction
@@ -15,7 +16,7 @@ class GreenMeasurementPlan(BaseMeasurementPlan):
         return (wavefunction, site1, site2, species)
 
     def get_measurement_plans(self):
-        return {OperatorMeasurementPlan(self.wavefunction, [SiteHop(self.site1, self.site2, self.species)], True, (periodic, periodic))}
+        return {BasicOperatorMeasurementPlan(self.wavefunction, BasicOperator([SiteHop(self.site1, self.site2, self.species)], True, (periodic, periodic)))}
 
     def get_result(self, universe):
         return universe[self.get_measurement_plans().pop()].get_result() / len(self.wavefunction.lattice)
@@ -28,7 +29,7 @@ class DensityDensityMeasurementPlan(BaseMeasurementPlan):
         assert isinstance(wavefunction, Wavefunction)
         assert isinstance(site1, LatticeSite)
         assert isinstance(site2, LatticeSite)
-        object.__setattr_(self, "plans", [OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, i)] + ([SiteHop(site2, site2, j)] if site1 != site2 or i != j else []), True, (periodic, periodic)) for i in xrange(wavefunction.N_species) for j in xrange(wavefunction.N_species)])
+        object.__setattr_(self, "plans", [BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(site1, site1, i)] + ([SiteHop(site2, site2, j)] if site1 != site2 or i != j else []), True, (periodic, periodic))) for i in xrange(wavefunction.N_species) for j in xrange(wavefunction.N_species)])
         return (wavefunction, site1, site2)
 
     def get_measurement_plans(self):
@@ -52,11 +53,11 @@ class SpinSpinMeasurementPlan(BaseMeasurementPlan):
             object.__setattr__(self, "plans", ())
         else:
             object.__setattr__(self, "plans", (
-                OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, 0), SiteHop(site2, site2, 0)], True, (periodic, periodic)),
-                OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, 1), SiteHop(site2, site2, 1)], True, (periodic, periodic)),
-                OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, 0), SiteHop(site2, site2, 1)], True, (periodic, periodic)),
-                OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site1, 1), SiteHop(site2, site2, 0)], True, (periodic, periodic)),
-                OperatorMeasurementPlan(wavefunction, [SiteHop(site1, site2, 0), SiteHop(site2, site1, 1)], True, (periodic, periodic)),
+                BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 0)], True, (periodic, periodic))),
+                BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 1)], True, (periodic, periodic))),
+                BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 1)], True, (periodic, periodic))),
+                BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 0)], True, (periodic, periodic))),
+                BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(site1, site2, 0), SiteHop(site2, site1, 1)], True, (periodic, periodic))),
             ))
         return (wavefunction, site1, site2)
 

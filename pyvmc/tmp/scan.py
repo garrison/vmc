@@ -1,3 +1,5 @@
+from itertools import chain
+
 import numpy
 
 from pyvmc.utils import custom_json as json
@@ -5,12 +7,9 @@ from pyvmc.core.simulation import MetropolisSimulation
 from pyvmc.core.rng import RandomNumberGenerator
 
 def _create_universe_set(plans):
-    universe_set = set()
-    for p in plans.itervalues():
-        universe_set.update(p.get_measurement_plans())
-    return universe_set
+    return set(chain.from_iterable(p.get_measurement_plans() for p in plans))
 
-def calculate_plans(plans, h5group):
+def do_calculate_plans(plans):
     # first get all the measurements that need to be performed
     universe = {p: p.to_measurement() for p in _create_universe_set(plans)}
 
@@ -36,9 +35,14 @@ def calculate_plans(plans, h5group):
             universe_results[p].append(m.get_result())
             # FIXME: do a reset!
 
+    return universe_results
+
+def calculate_plans(plan_dict, h5group):
+    universe_results = do_calculate_plans(plan_dict.values())
+
     # now save the results
-    for p in universe:
-        dataset = h5group.create_dataset(json.dumps(p.to_json()), data=numpy.array(universe_results[p]))
+    for p, results in universe_results.iteritems():
+        dataset = h5group.create_dataset(json.dumps(p.to_json()), data=numpy.array(results))
         dataset.attrs["NOTE"] = "measurement reset not yet implemented"
     h5group.file.flush()
 
@@ -49,9 +53,9 @@ class ResultReturner(object):
     def get_result(self):
         return self.result
 
-def load_results(plans, h5group):
-    universe_set = _create_universe_set(plans)
-    universe = {plan: ResultReturner(h5group[json.dumps(plan.to_json())]) for plan in universe_set}
-    results = {k: plan.get_result(universe) for k, plan in plans.iteritems()}
+def load_results(plan_dict, h5group):
+    universe_set = _create_universe_set(plan_dict.values())
+    universe = {plan: ResultReturner(h5group[json.dumps(plan.to_json())][-1]) for plan in universe_set}
+    results = {k: plan.get_result(universe) for k, plan in plan_dict.iteritems()}
 
     return results

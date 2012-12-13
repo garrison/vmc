@@ -154,14 +154,14 @@ class TestHexagonalSpace:
     def test_nearest_neighbors_distance(self):
         lattice = HexagonalLattice([8, 8])
         nn = lattice.nearest_neighbors(LatticeSite([0, 0]))
-        nn = [lattice.real_space_point(point) for point in nn]
+        nn = [lattice.spatial_coordinates(point) for point in nn]
         norms = [sum(a * a for a in point) for point in nn]
         assert min(norms) + .0000001 > max(norms)
 
     def test_next_nearest_neighbors_distance(self):
         lattice = HexagonalLattice([8, 8])
         nn = lattice.next_nearest_neighbors(LatticeSite([0, 0]))
-        nn = [lattice.real_space_point(point) for point in nn]
+        nn = [lattice.spatial_coordinates(point) for point in nn]
         norms = [sum(a * a for a in point) for point in nn]
         assert min(norms) + .0000001 > max(norms)
 
@@ -177,6 +177,6 @@ class TestHypercubicSpace:
     def test_nearest_neighbors_distance(self):
         lattice = HypercubicLattice([8, 16, 24])
         nn = lattice.nearest_neighbors(LatticeSite([0, 0, 0]))
-        nn = [lattice.real_space_point(point) for point in nn]
+        nn = [lattice.spatial_coordinates(point) for point in nn]
         norms = [sum(a * a for a in point) for point in nn]
         assert min(norms) + .0000001 > max(norms)

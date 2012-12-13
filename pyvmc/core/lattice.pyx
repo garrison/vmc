@@ -224,15 +224,22 @@ class LatticeRealization(Lattice):
             tuple(0.0 for i in xrange(len(self.dimensions))),
         )
 
-    def real_space_point(self, point):
-        # NOTE: this method doesn't even require that the resulting point is on
-        # the lattice
+    def spatial_coordinates(self, point):
+        """
+        Returns the real-space coordinates of the given LatticeSite
+
+        NOTE: this method doesn't even require that the resulting point be on
+        the lattice
+        """
         assert isinstance(point, LatticeSite)
         basis_offsets = self.basis_offsets
         assert len(basis_offsets) == self.basis_indices
         assert point.bi < self.basis_indices
         return tuple(sum(z) for z in zip(basis_offsets[point.bi],
                                          *(numpy.multiply(p, pv) for p, pv in zip(point.bs, self.primitive_vectors))))
+
+    # old method name, for compatibility
+    real_space_point = spatial_coordinates
 
     @abc.abstractmethod
     def nearest_neighbors(self, point, double_count=True):

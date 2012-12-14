@@ -10,3 +10,6 @@ if __name__ == "__main__":
 
     from pyvmc.mc_tests.dmetal_tests import test_dmetal_energy
     test_dmetal_energy()
+
+    from pyvmc.mc_tests.spinmodel_tests import test_spinmodel
+    test_spinmodel()

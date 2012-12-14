@@ -25,8 +25,8 @@ public:
             RunningEstimate<T>::add_value(value);
 
             // perform the binning
-            BOOST_ASSERT(1 << binlevel_data.size() > this->get_num_values());
-            BOOST_ASSERT(1 << (binlevel_data.size() - 1) <= this->get_num_values());
+            BOOST_ASSERT(1u << binlevel_data.size() > this->get_num_values());
+            BOOST_ASSERT(1u << (binlevel_data.size() - 1) <= this->get_num_values());
 
             for (unsigned int i = 0; i < binlevel_data.size(); ++i)
                 binlevel_data[i].current_sum += value;

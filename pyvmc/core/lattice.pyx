@@ -238,9 +238,6 @@ class LatticeRealization(Lattice):
         return tuple(sum(z) for z in zip(basis_offsets[point.bi],
                                          *(numpy.multiply(p, pv) for p, pv in zip(point.bs, self.primitive_vectors))))
 
-    # old method name, for compatibility
-    real_space_point = spatial_coordinates
-
     @abc.abstractmethod
     def nearest_neighbors(self, point, double_count=True):
         """Returns a point's nearest neighbors.

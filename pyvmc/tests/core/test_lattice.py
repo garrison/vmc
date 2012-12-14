@@ -52,6 +52,13 @@ def test_lattice_iteration():
     assert lattice.count(LatticeSite((5, 3))) == 1
     assert lattice.count(LatticeSite((245, 2))) == 0
 
+def test_lattice_bravais_site_iteration():
+    lattice = Lattice((4, 8), 3)
+    for site, bs in zip(lattice, lattice.iterate_bravais_sites()):
+        assert site.bi == 0
+        assert site.bs == bs
+    assert len(list(lattice.iterate_bravais_sites())) == len(lattice) / lattice.basis_indices
+
 def test_lattice_immutable():
     lattice = Lattice((48, 2))
     with pytest.raises(Exception):

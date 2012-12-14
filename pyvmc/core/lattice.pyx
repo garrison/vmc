@@ -163,6 +163,20 @@ cdef class Lattice(object):
             else:
                 raise StopIteration
 
+    def iterate_bravais_sites(self):
+        dimensions = self.dimensions
+        d = len(dimensions)
+        s = [0] * d
+        while True:
+            yield tuple(s)
+            for i in xrange(d):
+                s[i] += 1
+                if s[i] < dimensions[i]:
+                    break
+                s[i] = 0
+            else:
+                raise StopIteration
+
     def __getitem__(self, unsigned int index):
         if index >= len(self):
             raise ValueError

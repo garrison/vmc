@@ -93,6 +93,10 @@ must be installed.
 Sometimes you must pass the option `--force` to the `build_ext` command,
 since [dependencies are not tracked properly when pxd files are
 modified](http://www.mail-archive.com/cython-dev@codespeak.net/msg09729.html).
+In fact, if one accelerates compilation using
+[ccache](http://ccache.samba.org/), then there is little penalty from
+using `--force` all the time, and the compilation is guaranteed
+to be correct.
 
 `LD_LIBRARY_PATH`
 -----------------

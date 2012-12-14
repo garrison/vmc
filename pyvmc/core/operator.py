@@ -149,7 +149,7 @@ class SpinSpinOperator(CompositeOperator):
                     +.25 * context[operators[1]] +
                     -.25 * context[operators[2]] +
                     -.25 * context[operators[3]]
-                )
+                ).real
         return _evaluate
 
 # FIXME: move everything below to pyvmc.library.dmetal

@@ -43,7 +43,7 @@ def test_dmetal_energy(tolerance=None):
     # this? That is, should do_calculate_plans return a data stream or a
     # result?)
     context = {p.operator: result[-1] for p, result in results.iteritems()}
-    energy = hamiltonian.evaluate(context)(t=1, J=2, K=2).real / len(wf.lattice)
+    energy = hamiltonian.evaluate(context)(t=1, J=2, K=2) / len(wf.lattice)
 
     logging.info("Energy (new method): %f", energy)
     assert energy < -0.74 and energy > -0.8

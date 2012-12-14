@@ -8,6 +8,7 @@
 # http://pypi.python.org/pypi/virtualenv for details.
 
 numpy
+scipy
 h5py
 blist
 Cython>=0.17

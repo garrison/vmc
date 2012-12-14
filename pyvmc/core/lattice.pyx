@@ -148,20 +148,9 @@ cdef class Lattice(object):
         return self.sharedptr.get().total_sites()
 
     def __iter__(self):
-        dimensions = self.dimensions
-        d = len(dimensions)
-        s_bound = dimensions + (self.basis_indices,)
-        s_len = d + 1
-        s = [0] * s_len
-        while True:
-            yield LatticeSite(s[:d], s[-1])
-            for i in xrange(s_len):
-                s[i] += 1
-                if s[i] < s_bound[i]:
-                    break
-                s[i] = 0
-            else:
-                raise StopIteration
+        for bi in xrange(self.basis_indices):
+            for bs in self.iterate_bravais_sites():
+                yield LatticeSite(bs, bi)
 
     def iterate_bravais_sites(self):
         dimensions = self.dimensions

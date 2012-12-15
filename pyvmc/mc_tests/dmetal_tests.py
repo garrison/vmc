@@ -25,7 +25,7 @@ def test_dmetal_energy(tolerance=None):
     with h5py.File('/tmp/pyvmc_mc_test.hdf5', 'w', libver='latest') as f:
         e.calculate(f)
         e.load_results(f)
-        energy = e.get_energy(J=2, K=2).real
+        energy = e.get_energy(J=2, K=2)
 
     logging.info("Energy (old method): %f", energy)
     assert energy < -0.74 and energy > -0.8

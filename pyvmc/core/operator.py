@@ -7,7 +7,7 @@ from pyvmc.utils.immutable import Immutable
 from pyvmc.core.lattice import Lattice, LatticeSite
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.core.wavefunction import Wavefunction
-from pyvmc.utils import add_hc
+from pyvmc.utils import add_hc, ensure_real
 
 class SiteHop(Immutable):
     __slots__ = ("source", "destination", "species")
@@ -143,13 +143,13 @@ class SpinSpinOperator(CompositeOperator):
             if self.samesite:
                 return .75 * (context[operators[0]] + context[operators[1]])  # i.e. .75 * rho, scaled by number of sites if sum==True
             else:
-                return (
+                return ensure_real(
                     -.5 * add_hc(context[operators[4]]) +
                     +.25 * context[operators[0]] +
                     +.25 * context[operators[1]] +
                     -.25 * context[operators[2]] +
                     -.25 * context[operators[3]]
-                ).real
+                )
         return _evaluate
 
 # FIXME: move everything below to pyvmc.library.dmetal
@@ -297,7 +297,7 @@ class SpinSpinTimesSpinSpinOperator(CompositeOperator):
         def _evaluate():
             assert len(self.operators) == 26
             return sum(chain(
-                [.0625 * p * o.evaluate(context)().real for p, o in _enumerate_with_parity(self.operators[0:16])],
+                [.0625 * p * ensure_real(o.evaluate(context)()) for p, o in _enumerate_with_parity(self.operators[0:16])],
                 [-.125 * p * add_hc(o.evaluate(context)()) for p, o in _enumerate_with_parity(self.operators[16:20])],
                 [-.125 * p * add_hc(o.evaluate(context)()) for p, o in _enumerate_with_parity(self.operators[20:24])],
                 [.25 * add_hc(o.evaluate(context)()) for o in self.operators[24:26]],

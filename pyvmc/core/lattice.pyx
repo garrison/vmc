@@ -147,6 +147,9 @@ cdef class Lattice(object):
     def __len__(self):
         return self.sharedptr.get().total_sites()
 
+    def total_bravais_sites(self):
+        return self.sharedptr.get().total_bravais_sites()
+
     def __iter__(self):
         for bi in xrange(self.basis_indices):
             for bs in self.iterate_bravais_sites():

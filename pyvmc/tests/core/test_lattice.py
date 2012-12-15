@@ -57,7 +57,7 @@ def test_lattice_bravais_site_iteration():
     for site, bs in zip(lattice, lattice.iterate_bravais_sites()):
         assert site.bi == 0
         assert site.bs == bs
-    assert len(list(lattice.iterate_bravais_sites())) == len(lattice) / lattice.basis_indices
+    assert len(list(lattice.iterate_bravais_sites())) == lattice.total_bravais_sites()
 
 def test_lattice_immutable():
     lattice = Lattice((48, 2))

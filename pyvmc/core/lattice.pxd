@@ -35,6 +35,7 @@ cdef extern from "Lattice.hpp":
         CppLattice(DimensionVector, int)
 
         unsigned int total_sites()
+        unsigned int total_bravais_sites()
         unsigned int n_dimensions()
         CppLatticeSite site_from_index(unsigned int)
         unsigned int site_to_index(CppLatticeSite)

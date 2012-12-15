@@ -169,6 +169,14 @@ public:
         }
 
     /**
+     * Returns the total number of Bravais sites on the lattice
+     */
+    unsigned int total_bravais_sites (void) const
+        {
+            return m_total_sites / basis_indices;
+        }
+
+    /**
      * Maps a lattice index (0..N-1) to a LatticeSite (i.e. its coordinates)
      *
      * @see site_to_index()

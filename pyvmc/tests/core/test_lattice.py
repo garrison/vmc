@@ -26,6 +26,14 @@ def test_lattice_site_inequality():
     assert not (lattice[3] < lattice[3])
     assert not (lattice[9] > lattice[9])
 
+def test_lattice_site_displacement():
+    assert LatticeSite([3, 1, -2]).displaced([-4, 1, 3]) == LatticeSite([-1, 2, 1])
+    assert LatticeSite([0, 1], 1).negative_displaced([2, 3]) == LatticeSite([-2, -2], 1)
+    with pytest.raises(ValueError):
+        LatticeSite([3, 1, 2]).displaced([1, 2])
+    with pytest.raises(AssertionError):
+        LatticeSite([1, 3, 4]).displaced(LatticeSite([2, 3, 4]))
+
 def test_lattice_constructor():
     with pytest.raises(AssertionError):
         Lattice([-1, 2])

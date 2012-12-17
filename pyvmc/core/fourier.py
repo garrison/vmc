@@ -7,7 +7,8 @@ from pyvmc.core.lattice import Lattice
 from pyvmc.core.orbitals import allowed_momentum
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 
-# fixme: it would be much smarter to use n-dimensional fft somehow
+# NOTE: The code below scales as O(N^2).  An n-dimensional FFT would scale
+# better on large lattices, but it is unlikely that we will ever need this.
 
 two_pi_i = complex(0, pi + pi)
 

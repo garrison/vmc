@@ -56,13 +56,43 @@ cdef class LatticeSite(object):
                            self.bi)
 
     def negative_displaced(self, displacement):
-        """Returns the site displaced by a Bravais lattice vector (given by a tuple of integers)"""
+        """Returns the site displaced in the negative direction by a Bravais lattice vector (given by a tuple of integers)"""
         assert isinstance(displacement, collections.Sequence)
         assert all(isinstance(x, numbers.Integral) for x in displacement)
         if len(displacement) != self.cpp.n_dimensions():
             raise ValueError("Displacement vector has wrong number of dimensions")
         return LatticeSite([a - b for a, b in zip(self.bs, displacement)],
                            self.bi)
+
+    def __add__(self, displacement):
+        """Adds a displacement to the given LatticeSite and returns the result.
+
+        The basis index will remain the same.
+
+        The LatticeSite must be given on the left side of the expression.
+
+        >>> LatticeSite([1, 2]) + (2, 3)
+        LatticeSite((3, 5), 0)
+        """
+        if not isinstance(self, LatticeSite):
+            # see http://docs.cython.org/src/userguide/special_methods.html#arithmetic-methods
+            return NotImplemented
+        return self.displaced(displacement)
+
+    def __sub__(self, displacement):
+        """Subtracts a displacement from the given LatticeSite and returns the result.
+
+        The basis index will remain the same.
+
+        The LatticeSite must be given on the left side of the expression.
+
+        >>> LatticeSite([2, 4], 1) - [1, -3]
+        LatticeSite((1, 7), 1)
+        """
+        if not isinstance(self, LatticeSite):
+            # see http://docs.cython.org/src/userguide/special_methods.html#arithmetic-methods
+            return NotImplemented
+        return self.negative_displaced(displacement)
 
     def __hash__(self):
         return hash(self.bs) | hash(self.bi)

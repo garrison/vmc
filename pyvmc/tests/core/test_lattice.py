@@ -34,6 +34,19 @@ def test_lattice_site_displacement():
     with pytest.raises(AssertionError):
         LatticeSite([1, 3, 4]).displaced(LatticeSite([2, 3, 4]))
 
+    assert LatticeSite([3, 1, -2]) + [-4, 1, 3] == LatticeSite([-1, 2, 1])
+    assert LatticeSite([0, 1], 1) - [2, 3] == LatticeSite([-2, -2], 1)
+    with pytest.raises(ValueError):
+        LatticeSite([3, 1, 2]) + (1, 2)
+    with pytest.raises(AssertionError):
+        LatticeSite([1, 3, 4]) + LatticeSite([2, 3, 4])
+
+    # addition must have the LatticeSite on the left
+    with pytest.raises(TypeError):
+        [1, 2] + LatticeSite([1, 3])
+    with pytest.raises(TypeError):
+        (1, 2) + LatticeSite([1, 3])
+
 def test_lattice_constructor():
     with pytest.raises(AssertionError):
         Lattice([-1, 2])

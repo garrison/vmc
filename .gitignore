@@ -3,12 +3,12 @@
 *.pyc
 __pycache__
 
-docs/generated/
+/docs/generated/
 
-vmc-core/obj/
-vmc-core/Makefile
-vmc-core/vmc-core.make
+/vmc-core/obj/
+/vmc-core/Makefile
+/vmc-core/vmc-core.make
 
 # Cython intermediate files
-pyvmc/core/*.cpp
-pyvmc/library/*.cpp
+/pyvmc/core/*.cpp
+/pyvmc/library/*.cpp

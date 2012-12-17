@@ -1,4 +1,6 @@
-"""
+"""All the Lattice infrastructure is in this file.
+
+This wraps Lattice.hpp and provides abstractions on top of it, e.g. various LatticeRealization's.
 """
 
 import abc
@@ -43,6 +45,15 @@ cdef class LatticeSite(object):
     property bi:
         def __get__(self):
             return self.cpp.basis_index
+
+    def displaced(self, displacement):
+        """Returns the site displaced by a Bravais lattice vector (given by a tuple of integers)"""
+        assert isinstance(displacement, collections.Sequence)
+        assert all(isinstance(x, numbers.Integral) for x in displacement)
+        if len(displacement) != self.cpp.n_dimensions():
+            raise ValueError("Displacement vector has wrong number of dimensions")
+        return LatticeSite([a + b for a, b in zip(self.bs, displacement)],
+                           self.bi)
 
     def __hash__(self):
         return hash(self.bs) | hash(self.bi)

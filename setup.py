@@ -6,9 +6,9 @@ import os
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
+from Cython.Build import cythonize
 
-# fixme: pxd files are not automatically included as dependencies.  see
-# http://www.mail-archive.com/cython-dev@codespeak.net/msg09729.html
+nthreads = int(os.environ.get('PYVMC_NUM_THREADS', 0))
 
 def make_extension(ext_name, ext_libraries=()):
     return Extension(
@@ -17,6 +17,7 @@ def make_extension(ext_name, ext_libraries=()):
         include_dirs=(["vmc-core", "."]),
         language="c++",
         libraries=ext_libraries,
+        #depends=["vmc-core/libvmc-core.so"],
     )
 
 extensions = [
@@ -40,6 +41,6 @@ setup(**{
         "pyvmc",
         "pyvmc.core",
     ],
-    "ext_modules": extensions,
+    "ext_modules": cythonize(extensions, nthreads=nthreads),
     "cmdclass": {'build_ext': build_ext},
 })

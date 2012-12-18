@@ -90,13 +90,13 @@ must be installed.
     $ pip install -r requirements.txt
     $ CC=clang++ CXX=clang++ python setup.py build_ext -I/usr/include/boost:/usr/include/eigen3 -Lvmc-core --inplace
 
-Sometimes you must pass the option `--force` to the `build_ext` command,
-since [dependencies are not tracked properly when pxd files are
-modified](http://www.mail-archive.com/cython-dev@codespeak.net/msg09729.html).
-In fact, if one accelerates compilation using
+Sometimes you must pass the option `--force` to the `build_ext`
+command, since changes to `vmc-core` C++ header files are not
+considered when determining which `.pyx` files to recompile.  In fact,
+if one accelerates compilation using
 [ccache](http://ccache.samba.org/), then there is little penalty from
-using `--force` all the time, and the compilation is guaranteed
-to be correct.
+using `--force` all the time, and the compilation is guaranteed to be
+correct.
 
 `LD_LIBRARY_PATH`
 -----------------

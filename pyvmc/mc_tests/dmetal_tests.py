@@ -5,6 +5,8 @@ import logging
 from pyvmc.core import Lattice, Bands, periodic, antiperiodic
 from pyvmc.library.dmetal import DMetalWavefunction
 
+logger = logging.getLogger(__name__)
+
 def test_dmetal_energy(tolerance=None):
     wf = DMetalWavefunction(**{
         'lattice': Lattice([12, 2]),
@@ -27,7 +29,7 @@ def test_dmetal_energy(tolerance=None):
         e.load_results(f)
         energy = e.get_energy(J=2, K=2)
 
-    logging.info("Energy (old method): %f", energy)
+    logger.info("Energy (old method): %f", energy)
     assert energy < -0.74 and energy > -0.8
 
     # new method
@@ -45,7 +47,7 @@ def test_dmetal_energy(tolerance=None):
     context = {p.operator: result[-1] for p, result in results.iteritems()}
     energy = hamiltonian.evaluate(context)(t=1, J=2, K=2) / len(wf.lattice)
 
-    logging.info("Energy (new method): %f", energy)
+    logger.info("Energy (new method): %f", energy)
     assert energy < -0.74 and energy > -0.8
 
 if __name__ == "__main__":

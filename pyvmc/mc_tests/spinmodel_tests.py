@@ -4,6 +4,8 @@ import logging
 
 from pyvmc.core import Lattice, Bands, periodic, antiperiodic
 
+logger = logging.getLogger(__name__)
+
 def test_spinmodel(tolerance=None):
     from pyvmc.library.dmetal import DMetalWavefunction
 
@@ -31,7 +33,7 @@ def test_spinmodel(tolerance=None):
     # this? That is, should do_calculate_plans return a data stream or a
     # result?)
     context = {p.operator: result[-1] for p, result in results.iteritems()}
-    logging.info("Spin model: %f", spin_operator.evaluate(context)())
+    logger.info("Spin model: %f", spin_operator.evaluate(context)())
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

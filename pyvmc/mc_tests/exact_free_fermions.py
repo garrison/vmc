@@ -9,11 +9,13 @@ from pyvmc.tmp.goals import RenyiLengthScaling
 from pyvmc.core import Lattice, Bands, FreeFermionWavefunction, SimpleSubsystem, periodic, antiperiodic
 from pyvmc.exact import free_fermions
 
+logger = logging.getLogger(__name__)
+
 def do_test_of_plan(plan, exact, get_measured, tolerance):
     def my_cb(args, plan):
         differences = [measured_value - exact_value
                        for measured_value, exact_value in zip(get_measured(plan), exact)]
-        logging.info("differences from expected: %s", differences)
+        logger.info("differences from expected: %s", differences)
         if all(numpy.abs(d) < tolerance for d in differences):
             raise StopIteration
 

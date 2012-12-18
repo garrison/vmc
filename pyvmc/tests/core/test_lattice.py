@@ -186,12 +186,27 @@ class TestHexagonalSpace:
         norms = [sum(a * a for a in point) for point in nn]
         assert min(norms) + .0000001 > max(norms)
 
-    def test_next_nearest_neighbors_distance(self):
+    def test_second_nearest_neighbors_distance(self):
         lattice = HexagonalLattice([8, 8])
-        nn = lattice.next_nearest_neighbors(LatticeSite([0, 0]))
+        nn = lattice.second_nearest_neighbors(LatticeSite([0, 0]))
         nn = [lattice.spatial_coordinates(point) for point in nn]
         norms = [sum(a * a for a in point) for point in nn]
         assert min(norms) + .0000001 > max(norms)
+
+    def test_third_nearest_neighbors_distance(self):
+        lattice = HexagonalLattice([8, 8])
+        nn = lattice.third_nearest_neighbors(LatticeSite([0, 0]))
+        nn = [lattice.spatial_coordinates(point) for point in nn]
+        norms = [sum(a * a for a in point) for point in nn]
+        assert min(norms) + .0000001 > max(norms)
+
+    def test_basic_plaquettes_distance(self):
+        lattice = HexagonalLattice([8, 8])
+        for site1, site2, site3, site4 in lattice.basic_plaquettes():
+            assert abs(sum(a * a for a in lattice.spatial_coordinates(site1 - site2.bs)) - 1) < .0000001
+            assert abs(sum(a * a for a in lattice.spatial_coordinates(site2 - site3.bs)) - 1) < .0000001
+            assert abs(sum(a * a for a in lattice.spatial_coordinates(site3 - site4.bs)) - 1) < .0000001
+            assert abs(sum(a * a for a in lattice.spatial_coordinates(site4 - site1.bs)) - 1) < .0000001
 
 class TestHypercubicSpace:
     def test_primitive_vectors(self):

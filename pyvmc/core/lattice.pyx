@@ -398,7 +398,7 @@ class HexagonalLattice(LatticeRealization):
             )
         return rv
 
-    def next_nearest_neighbors(self, point, double_count=True):
+    def second_nearest_neighbors(self, point, double_count=True):
         assert point in self
         bs = point.bs
         rv = (
@@ -413,6 +413,8 @@ class HexagonalLattice(LatticeRealization):
                 LatticeSite((bs[0] + 1, bs[1] - 1), 0),
             )
         return rv
+
+    next_nearest_neighbors = second_nearest_neighbors
 
     def third_nearest_neighbors(self, point, double_count=True):
         assert point in self
@@ -429,3 +431,10 @@ class HexagonalLattice(LatticeRealization):
                 LatticeSite((bs[0], bs[1] - 2), 0),
             )
         return rv
+
+    def basic_plaquettes(self):
+        return (
+            (LatticeSite([0, 0]), LatticeSite([1, 0]), LatticeSite([1, 1]), LatticeSite([0, 1])),
+            (LatticeSite([0, 0]), LatticeSite([1, 0]), LatticeSite([2, 1]), LatticeSite([1, 1])),
+            (LatticeSite([0, 0]), LatticeSite([1, 1]), LatticeSite([1, 2]), LatticeSite([0, 1])),
+        )

@@ -31,6 +31,10 @@ class ProjectedBCSWavefunction(Wavefunction):
 
         return (lattice, phi, N_up, N_dn)
 
+    def __hash__(self):
+        # self.phi is a numpy.ndarray, which is unhashable, so we ignore it here
+        return hash((self.lattice, self.N_up, self.N_dn))
+
     @property
     def N_species(self):
         return 2

@@ -94,7 +94,7 @@ cdef class OperatorMeasurement(BaseMeasurement):
             if operator_.boundary_conditions:
                 for bc in operator_.boundary_conditions:
                     # NOTE: we store the fraction's inverse in python vs c++ code
-                    cppbcs_.push_back(CppBoundaryCondition(boost_rational[int](bc.denominator, bc.numerator)))
+                    cppbcs_.push_back(CppBoundaryCondition(boost_rational[int](bc.numerator, bc.denominator)))
                 cppbcs = &cppbcs_
             self.sharedptr.reset(new CppOperatorMeasurement(steps_per_measurement, deref(operator), operator_.sum, cppbcs))
         finally:

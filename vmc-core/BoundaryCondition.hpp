@@ -27,7 +27,7 @@ public:
      *
      * @param p_ specifies what fraction (of \f$2\pi\f$) the phase is increased
      * when moving once through the system in the relevant direction.  1
-     * corresponds to periodic boundary conditions; 2 corresponds to
+     * corresponds to periodic boundary conditions; 1/2 corresponds to
      * antiperiodic; etc.
      */
     explicit BoundaryCondition (const boost::rational<int> &p_)

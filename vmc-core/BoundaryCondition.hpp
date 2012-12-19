@@ -38,6 +38,7 @@ public:
             BOOST_ASSERT(p_ > 0 && p_ <= 1);
         }
 
+#if 0
     /**
      * Alternative constructor for convenience, as it allows one to specify
      * boundary conditions with a single integer in any case where they are not
@@ -53,6 +54,7 @@ public:
           m_phase(calculate_phase(p_))
         {
         }
+#endif
 
     /**
      * Uninitialized default constructor
@@ -121,7 +123,7 @@ private:
 typedef lw_vector<BoundaryCondition, MAX_DIMENSION> BoundaryConditions;
 
 // fixme: initialize these once only?
-static const BoundaryCondition periodic_bc(1);
-static const BoundaryCondition antiperiodic_bc(2);
+static const BoundaryCondition periodic_bc(boost::rational<int>(1, 1));
+static const BoundaryCondition antiperiodic_bc(boost::rational<int>(1, 2));
 
 #endif

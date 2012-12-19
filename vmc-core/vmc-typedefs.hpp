@@ -13,7 +13,7 @@ typedef complex_t amplitude_t;
 typedef complex_t phase_t;
 
 static const unsigned int MAX_DIMENSION = 3;
-static const unsigned int MAX_MOVE_SIZE = 2;
+static const unsigned int MAX_MOVE_SIZE = 4;
 
 class accumulator_t
 {

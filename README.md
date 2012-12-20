@@ -164,3 +164,13 @@ At the moment the following things are broken:
   implemented in the python layer.
 
 * Cylindrical boundary conditions are not supported.
+
+Research based on results of this code
+--------------------------------------
+
+* "Non-Fermi-liquid d-wave metal phase of strongly interacting
+  electrons," Hong-Chen Jiang, Matthew S. Block, Ryan V. Mishmash,
+  James R. Garrison, D. N. Sheng, Olexei I. Motrunich and Matthew
+  P. A. Fisher, Nature 493, 39-44 (2013)
+  [[arXiv:1207.6608](http://arxiv.org/abs/1207.6608)].  (used for
+  Renyi entropy calculations)

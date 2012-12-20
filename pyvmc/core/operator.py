@@ -228,82 +228,6 @@ class TJKHamiltonian(CompositeOperator):
 
 # FIXME: move below things somewhere else
 
-def _enumerate_with_parity(values):
-    """This gives us the correct series of signs if we e.g. multiply out (a-b)(c-d)...(y-z)
-    >>> list(_enumerate_with_parity(range(16)))
-    [(1, 0), (-1, 1), (-1, 2), (1, 3), (-1, 4), (1, 5), (1, 6), (-1, 7), (-1, 8), (1, 9), (1, 10), (-1, 11), (1, 12), (-1, 13), (-1, 14), (1, 15)]
-    """
-    for n, value in enumerate(values):
-        hamming_weight = bin(n).count('1')
-        yield (1 if (hamming_weight % 2 == 0) else -1), value
-
-class SpinSpinTimesSpinSpinOperator(CompositeOperator):
-    """Calculates $(S_1 \cdot S_2) (S_3 \cdot S_4)$"""
-
-    __slots__ = ("operators",)
-
-    def init_validate(self, site1, site2, site3, site4, sum, boundary_conditions):
-        operators = tuple(chain(
-            [
-                BasicOperator([
-                    SiteHop(site1, site1, i),
-                    SiteHop(site2, site2, j),
-                    SiteHop(site3, site3, k),
-                    SiteHop(site4, site4, l),
-                ], sum, boundary_conditions)
-                for i in range(2)
-                for j in range(2)
-                for k in range(2)
-                for l in range(2)
-            ],
-            [
-                BasicOperator([
-                    SiteHop(site1, site2, 0),
-                    SiteHop(site2, site1, 1),
-                    SiteHop(site3, site3, i),
-                    SiteHop(site4, site4, j),
-                ], sum, boundary_conditions)
-                for i in range(2)
-                for j in range(2)
-            ],
-            [
-                BasicOperator([
-                    SiteHop(site3, site4, 0),
-                    SiteHop(site4, site3, 1),
-                    SiteHop(site1, site1, i),
-                    SiteHop(site2, site2, j),
-                ], sum, boundary_conditions)
-                for i in range(2)
-                for j in range(2)
-            ],
-            [
-                BasicOperator([
-                    SiteHop(site1, site2, 0),
-                    SiteHop(site2, site1, 1),
-                    SiteHop(site3, site4, 0),
-                    SiteHop(site4, site3, 1),
-                ], sum, boundary_conditions),
-                BasicOperator([
-                    SiteHop(site1, site2, 0),
-                    SiteHop(site2, site1, 1),
-                    SiteHop(site3, site4, 1),
-                    SiteHop(site4, site3, 0),
-                ], sum, boundary_conditions),
-            ]
-        ))
-        return (operators,)
-
-    def evaluate(self, context):
-        def _evaluate():
-            assert len(self.operators) == 26
-            return sum(chain(
-                [.0625 * p * ensure_real(o.evaluate(context)()) for p, o in _enumerate_with_parity(self.operators[0:16])],
-                [-.125 * p * add_hc(o.evaluate(context)()) for p, o in _enumerate_with_parity(self.operators[16:20])],
-                [-.125 * p * add_hc(o.evaluate(context)()) for p, o in _enumerate_with_parity(self.operators[20:24])],
-                [.25 * add_hc(o.evaluate(context)()) for o in self.operators[24:26]],
-            ))
-        return _evaluate
-
 class SpinModelRingExchangeOperator(CompositeOperator):
     __slots__ = ("operators",)
 
@@ -313,32 +237,32 @@ class SpinModelRingExchangeOperator(CompositeOperator):
         This is a hermitian operator.
         """
         operators = (
-            SpinSpinOperator(site1, site2, sum, boundary_conditions),
-            SpinSpinOperator(site1, site3, sum, boundary_conditions),
-            SpinSpinOperator(site1, site4, sum, boundary_conditions),
-            SpinSpinOperator(site2, site3, sum, boundary_conditions),
-            SpinSpinOperator(site2, site4, sum, boundary_conditions),
-            SpinSpinOperator(site3, site4, sum, boundary_conditions),
-            SpinSpinTimesSpinSpinOperator(site1, site2, site3, site4, sum, boundary_conditions),
-            SpinSpinTimesSpinSpinOperator(site1, site4, site2, site3, sum, boundary_conditions),
-            SpinSpinTimesSpinSpinOperator(site1, site3, site2, site4, sum, boundary_conditions),
+            # all four spins the same
+            BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 0), SiteHop(site3, site3, 0), SiteHop(site4, site4, 0)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 1), SiteHop(site3, site3, 1), SiteHop(site4, site4, 1)], sum, boundary_conditions),
+            # two spins up, two spins down (with all spins being changed)
+            BasicOperator([SiteHop(site1, site2, 0), SiteHop(site2, site1, 1), SiteHop(site3, site4, 0), SiteHop(site4, site3, 1)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site1, site2, 1), SiteHop(site2, site1, 0), SiteHop(site3, site4, 1), SiteHop(site4, site3, 0)], sum, boundary_conditions),
+            # three spins one way, one the other
+            BasicOperator([SiteHop(site4, site4, 0), SiteHop(site1, site1, 0), SiteHop(site2, site3, 0), SiteHop(site3, site2, 1)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site4, site4, 1), SiteHop(site1, site1, 1), SiteHop(site2, site3, 1), SiteHop(site3, site2, 0)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 0), SiteHop(site3, site4, 0), SiteHop(site4, site3, 1)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 1), SiteHop(site3, site4, 1), SiteHop(site4, site3, 0)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site2, site2, 0), SiteHop(site3, site3, 0), SiteHop(site4, site1, 0), SiteHop(site1, site4, 1)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site2, site2, 1), SiteHop(site3, site3, 1), SiteHop(site4, site1, 1), SiteHop(site1, site4, 0)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site3, site3, 0), SiteHop(site4, site4, 0), SiteHop(site1, site2, 0), SiteHop(site2, site1, 1)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site3, site3, 1), SiteHop(site4, site4, 1), SiteHop(site1, site2, 1), SiteHop(site2, site1, 0)], sum, boundary_conditions),
+            # two spins up, two spins down (with only two spins being changed)
+            BasicOperator([SiteHop(site2, site2, 0), SiteHop(site4, site4, 1), SiteHop(site1, site3, 1), SiteHop(site3, site1, 0)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site2, site2, 1), SiteHop(site4, site4, 0), SiteHop(site1, site3, 0), SiteHop(site3, site1, 1)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 0), SiteHop(site3, site3, 1), SiteHop(site4, site2, 1), SiteHop(site2, site4, 0)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 1), SiteHop(site3, site3, 0), SiteHop(site4, site2, 0), SiteHop(site2, site4, 1)], sum, boundary_conditions),
         )
         return (operators,)
 
     def evaluate(self, context):
         def _evaluate():
-            return (
-                .25 +
-                # two site terms
-                self.operators[0].evaluate(context)() +
-                self.operators[1].evaluate(context)() +
-                self.operators[2].evaluate(context)() +
-                self.operators[3].evaluate(context)() +
-                self.operators[4].evaluate(context)() +
-                self.operators[5].evaluate(context)() +
-                # four site terms
-                4 * self.operators[6].evaluate(context)() +
-                4 * self.operators[7].evaluate(context)() +
-                -4 * self.operators[8].evaluate(context)()
-            )
+            assert len(self.operators) == 16
+            return add_hc(sum(o.evaluate(context)() for o in self.operators[0:4])
+                          - sum(o.evaluate(context)() for o in self.operators[4:16]))
         return _evaluate

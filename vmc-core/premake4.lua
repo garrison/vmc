@@ -10,10 +10,11 @@ solution "vmc-core"
     -- variable.  see the README for an example.
     includedirs { "/usr/include/eigen3", "/usr/include/boost" }
 
-    -- see http://shorestreet.com/why-your-dso-is-slow
-    linkoptions { "-Wl,-Bsymbolic-functions" }
-
     buildoptions { "-Wall", "-Wextra" }
+
+    -- see http://shorestreet.com/why-your-dso-is-slow
+    configuration "linux"
+      linkoptions { "-Wl,-Bsymbolic-functions" }
 
     configuration "Local"
       flags { "OptimizeSpeed" }

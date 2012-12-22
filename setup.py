@@ -8,7 +8,8 @@ from distutils.extension import Extension
 from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 
-nthreads = int(os.environ.get('PYVMC_NUM_THREADS', 0))
+# Use parallel compilation on this number of cores.
+nthreads = int(os.environ.get('COMPILE_NTHREADS', 0))
 
 def make_extension(ext_name, ext_libraries=()):
     return Extension(

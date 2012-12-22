@@ -35,6 +35,9 @@ for premake to hook into a different build system instead of using
 The code should compile on recent versions of ``g++``, ``clang++``, and
 ``icc``.
 
+A sample build script, which compiles both ``vmc-core`` and ``pyvmc``,
+is located at ``./do-build.example``.
+
 ``vmc-core`` API documentation
 ------------------------------
 

@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Choices for operating system include "linux", "macosx", and more.
+# Run ``premake --help`` for more options.
+OPERATING_SYSTEM=linux
+
+# Header file include directories
+export BOOST_INCLUDE_DIR=/usr/include/boost
+export EIGEN3_INCLUDE_DIR=/usr/include/eigen3
+
+# Use parallel compilation on this number of cores.
+export COMPILE_NTHREADS=4
+
+# Optionally, use a different C++ compiler than the default
+#export CXX="clang++"
+
+# Optionally, use ccache (requires separate installation) to speed up
+# the build.  In particular, this allows us to use ``--force`` in the
+# pyvmc compilation process with little penalty.
+#export PATH=/usr/lib/ccache:$PATH
+
+### END OF SETTINGS ###
+
+# Exit immediately upon any error
+set -e
+
+# Activate the virtualenv
+source ../vmc/venv/bin/activate
+
+# Compile vmc-core
+( cd vmc-core && premake4 --os=$OPERATING_SYSTEM gmake && INCLUDES="-I$BOOST_INCLUDE_DIR -I$EIGEN3_INCLUDE_DIR" make -j$COMPILE_NTHREADS $@ )
+
+# Compile pyvmc
+#
+# (We set CC=$CXX here because oddly python uses $CC to compile and
+# $CXX to link.  Most programs use $CC for the C compiler and $CXX for
+# the C++ compiler.)
+CC=$CXX OPT="-O3 -g" python setup.py build_ext -I$BOOST_INCLUDE_DIR:$EIGEN3_INCLUDE_DIR -Lvmc-core --inplace --force

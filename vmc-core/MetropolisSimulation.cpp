@@ -45,6 +45,10 @@ bool MetropolisSimulation::perform_single_step (void)
 {
     probability_t probability_ratio = walk->compute_probability_ratio_of_random_transition(*rng);
     ++m_steps;
+#if defined(VMC_METROPOLIS_SIMULATION_LOGGING)
+    if (m_steps % 200 == 0)
+        std::cerr << m_steps << " steps complete" << std::endl;
+#endif
 #if 1
     if (!(probability_ratio >= 0))
         std::cerr << "invalid probability ratio: " << probability_ratio << std::endl;

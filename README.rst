@@ -163,8 +163,6 @@ At the moment the following things are broken:
 -  Renyi stuff uses only single particle moves, even on wavefunctions
    where that doesn't work well.
 
--  BCS wavefunction has not been tested.
-
 -  Projected Fermi sea does not yet use multi-particle moves so does not
    work at half filling.
 

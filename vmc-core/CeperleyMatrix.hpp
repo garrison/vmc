@@ -589,7 +589,11 @@ public:
         }
 
     /**
+     * Finish a [row[s]]+[column[s]] update.  Must be called after update_rows_and_columns().
      *
+     * This takes O(N^2) time.
+     *
+     * @see update_rows_and_columns()
      */
     void finish_rows_and_columns_update (void)
         {

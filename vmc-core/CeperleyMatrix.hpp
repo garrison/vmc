@@ -36,6 +36,22 @@ private:
 
     State current_state;
 
+    // We like to recalculate the inverse just to be safe any time the
+    // determinant drops below the `ceperley_determinant_cutoff`.  In most
+    // cases, it is okay if this recalculation is done only if the move is
+    // accepted.  However, in some cases the determinant should be recalculated
+    // during the "update" step, before the new determinant is reported.  In
+    // particular, if a determinant has a negative exponent applied to it, then
+    // a very small determinant will result in a large probability weight.
+    // However, a very small determinant often implies that the matrix is
+    // singular, in which case there should be no probability at all for the
+    // state.  Recalculating the inverse will detect this singularity and get
+    // the probability weight correct before deciding to accept the move.  In
+    // short, any time a negative exponent is going to be applied to a
+    // determinant, then it is best to set this flag to be true.  In most other
+    // cases, setting it to false should be fine.
+    bool be_extra_careful;
+
     // old_det, new_invmat, old_data_m, and new_nullity_lower_bound all exist
     // so we can cancel an update if we wish
 
@@ -67,8 +83,9 @@ public:
     /**
      * Constructor for initializing a CeperleyMatrix from a square Eigen::Matrix
      */
-    CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
+    CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat, bool be_extra_careful_=false)
         : current_state(READY_FOR_UPDATE),
+          be_extra_careful(be_extra_careful_),
           mat(initial_mat),
           inverse_recalculated_for_current_update(false)
         {
@@ -179,7 +196,7 @@ public:
                     // If the determinant has become sufficiently small, the
                     // matrix might have become singular so we recompute its
                     // inverse from scratch.
-                    if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
                 } else {
                     // the matrix must have become singular
@@ -225,7 +242,7 @@ public:
                     // If the determinant has become sufficiently small, the
                     // matrix might have become singular so we recompute its
                     // inverse from scratch.
-                    if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
                 } else {
                     // the matrix must have become singular
@@ -327,7 +344,7 @@ public:
                     // If the determinant has become sufficiently small, the matrix
                     // might have become singular so we recompute its inverse from
                     // scratch just to be safe.
-                    if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
                 }
             }
@@ -453,7 +470,7 @@ public:
                     // If the determinant has become sufficiently small, the matrix
                     // might have become singular so we recompute its inverse from
                     // scratch just to be safe.
-                    if (std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
                 }
             }
@@ -474,12 +491,16 @@ public:
             BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                // implement equation (12) of Ceperley et al, correctly given
-                // as eqn (4.22) of Kent's thesis
-                // http://www.ornl.gov/~pk7/thesis/thesis.ps.gz
-                Eigen::Matrix<T, Eigen::Dynamic, 1> oldcol(invmat.col(pending_index));
-                invmat -= ((invmat.col(pending_index) / detrat) * (mat.row(pending_index) * invmat)).eval();
-                invmat.col(pending_index) = oldcol / detrat;
+                if (!be_extra_careful && std::abs(detrat) < std::abs(ceperley_determinant_cutoff)) {
+                    calculate_inverse(true);
+                } else {
+                    // implement equation (12) of Ceperley et al, correctly given
+                    // as eqn (4.22) of Kent's thesis
+                    // http://www.ornl.gov/~pk7/thesis/thesis.ps.gz
+                    Eigen::Matrix<T, Eigen::Dynamic, 1> oldcol(invmat.col(pending_index));
+                    invmat -= ((invmat.col(pending_index) / detrat) * (mat.row(pending_index) * invmat)).eval();
+                    invmat.col(pending_index) = oldcol / detrat;
+                }
             }
 
             nullity_lower_bound = new_nullity_lower_bound;
@@ -508,11 +529,15 @@ public:
             BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                // same as above in finish_row_update(): update the inverse
-                // matrix
-                Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index));
-                invmat -= ((invmat * mat.col(pending_index)) * (invmat.row(pending_index) / detrat)).eval();
-                invmat.row(pending_index) = oldrow / detrat;
+                if (!be_extra_careful && std::abs(detrat) < std::abs(ceperley_determinant_cutoff)) {
+                    calculate_inverse(true);
+                } else {
+                    // same as above in finish_row_update(): update the inverse
+                    // matrix
+                    Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index));
+                    invmat -= ((invmat * mat.col(pending_index)) * (invmat.row(pending_index) / detrat)).eval();
+                    invmat.row(pending_index) = oldrow / detrat;
+                }
             }
 
             nullity_lower_bound = new_nullity_lower_bound;
@@ -536,15 +561,19 @@ public:
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                // same as above in finish_row_update(): update the inverse
-                // matrix
-                Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_offset(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(invmat.rows(), invmat.cols()));
-                for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
-                    invmat_offset -= invmat * ((cols_offset_m * detrat_inv_m.col(i)) * invmat.row(pending_col_indices[i]));
-                invmat += invmat_offset;
-                // fixme: we could make a special case for just updating one
-                // column (as there's no need to create invmat_offset or to
-                // loop)
+                if (!be_extra_careful && std::abs(detrat) < std::abs(ceperley_determinant_cutoff)) {
+                    calculate_inverse(true);
+                } else {
+                    // same as above in finish_row_update(): update the inverse
+                    // matrix
+                    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_offset(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(invmat.rows(), invmat.cols()));
+                    for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
+                        invmat_offset -= invmat * ((cols_offset_m * detrat_inv_m.col(i)) * invmat.row(pending_col_indices[i]));
+                    invmat += invmat_offset;
+                    // fixme: we could make a special case for just updating one
+                    // column (as there's no need to create invmat_offset or to
+                    // loop)
+                }
             }
 
             nullity_lower_bound = new_nullity_lower_bound;
@@ -567,19 +596,23 @@ public:
             BOOST_ASSERT(current_state == ROWCOL_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                // update the inverse matrix using Sherman-Morrison-Woodbury
-                Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_offset(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(invmat.rows(), invmat.cols()));
-                const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> cm(invmat * cols_offset_m), rm(rows_offset_m * invmat);
-                const unsigned int nr = pending_row_indices.size(), nc = pending_col_indices.size();
-                for (unsigned int i = 0; i < nc; ++i) {
-                    invmat_offset -= (cm * detrat_inv_m.block(0, i, nc, 1)) * invmat.row(pending_col_indices[i]);
+                if (!be_extra_careful && std::abs(detrat) < std::abs(ceperley_determinant_cutoff)) {
+                    calculate_inverse(true);
+                } else {
+                    // update the inverse matrix using Sherman-Morrison-Woodbury
+                    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_offset(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(invmat.rows(), invmat.cols()));
+                    const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> cm(invmat * cols_offset_m), rm(rows_offset_m * invmat);
+                    const unsigned int nr = pending_row_indices.size(), nc = pending_col_indices.size();
+                    for (unsigned int i = 0; i < nc; ++i) {
+                        invmat_offset -= (cm * detrat_inv_m.block(0, i, nc, 1)) * invmat.row(pending_col_indices[i]);
+                        for (unsigned int j = 0; j < nr; ++j)
+                            invmat_offset -= invmat.col(pending_row_indices[j]) * detrat_inv_m(j + nc, i) * invmat.row(pending_col_indices[i]);
+                    }
                     for (unsigned int j = 0; j < nr; ++j)
-                        invmat_offset -= invmat.col(pending_row_indices[j]) * detrat_inv_m(j + nc, i) * invmat.row(pending_col_indices[i]);
+                        invmat_offset -= invmat.col(pending_row_indices[j]) * (detrat_inv_m.block(j + nc, nc, 1, nr) * rm);
+                    invmat_offset -= cm * detrat_inv_m.block(0, nc, nc, nr) * rm;
+                    invmat += invmat_offset;
                 }
-                for (unsigned int j = 0; j < nr; ++j)
-                    invmat_offset -= invmat.col(pending_row_indices[j]) * (detrat_inv_m.block(j + nc, nc, 1, nr) * rm);
-                invmat_offset -= cm * detrat_inv_m.block(0, nc, nc, nr) * rm;
-                invmat += invmat_offset;
             }
 
             nullity_lower_bound = new_nullity_lower_bound;
@@ -761,6 +794,10 @@ public:
 private:
     void calculate_inverse (bool update_in_progress)
         {
+#if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
+            std::cerr << "calculating an inverse: " << update_in_progress << std::endl;
+#endif
+
             Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);
 
             // fixme (?)

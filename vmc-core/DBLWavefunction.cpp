@@ -133,8 +133,8 @@ void DBLWavefunction::Amplitude::reinitialize (void)
         mat1.col(i) = wf_->orbital_def1->at_position(r[particle]);
         mat2.col(i) = wf_->orbital_def2->at_position(r[particle]);
     }
-    cmat1 = mat1;
-    cmat2 = mat2;
+    cmat1 = CeperleyMatrix<amplitude_t>(mat1, wf_->d1_exponent < 0);
+    cmat2 = CeperleyMatrix<amplitude_t>(mat2, wf_->d2_exponent < 0);
 }
 
 boost::shared_ptr<Wavefunction::Amplitude> DBLWavefunction::Amplitude::clone_ (void) const

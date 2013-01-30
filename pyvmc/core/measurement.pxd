@@ -65,5 +65,5 @@ cdef extern from "ParticleOperator.hpp":
 
 cdef extern from "OperatorMeasurement.hpp":
     cdef cppclass CppOperatorMeasurement "OperatorMeasurement" (CppBaseMeasurement):
-        CppOperatorMeasurement(unsigned int, CppParticleOperator&, bint, CppBoundaryConditions*)
+        CppOperatorMeasurement(unsigned int, CppParticleOperator&, bint, CppBoundaryConditions&)
         CppComplexBinnedEstimate& get_estimate()

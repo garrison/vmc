@@ -17,7 +17,7 @@ static inline LatticeSite inline_enforce_boundary (const LatticeSite &site, cons
 {
     LatticeSite rv(site);
     // ignore the phase change (which is not necessary/meaningful here)
-    lattice.enforce_boundary(rv);
+    lattice.enforce_boundary(rv, BoundaryConditions());
     return rv;
 }
 

@@ -12,12 +12,6 @@
 #include "ParticleOperator.hpp"
 #include "BinnedEstimate.hpp"
 
-template <class T>
-static inline std::auto_ptr<T> ptr_to_auto_ptr (T *p)
-{
-    return std::auto_ptr<T>(p ? new T(*p) : 0);
-}
-
 /**
  * Operator measurement
  *
@@ -36,15 +30,13 @@ class OperatorMeasurement : public Measurement<StandardWalk>
 public:
     OperatorMeasurement (unsigned int steps_per_measurement,
                          const ParticleOperator &operator_,
-                         bool sum_=false,
-                         const BoundaryConditions *bcs_=0)
+                         bool sum_,
+                         const BoundaryConditions &bcs_)
         : Measurement<StandardWalk>(steps_per_measurement),
           m_operator(operator_),
           sum(sum_),
-          bcs(ptr_to_auto_ptr(bcs_))
+          bcs(bcs_)
         {
-            // boundary conditions should only be given if (sum == true)
-            BOOST_ASSERT(!bcs_ || sum_);
         }
 
     /**
@@ -80,7 +72,7 @@ private:
 
     const ParticleOperator m_operator;
     bool sum;
-    const std::auto_ptr<const BoundaryConditions> bcs;
+    const BoundaryConditions bcs;
 
     BinnedEstimate<amplitude_t> estimate;
     amplitude_t most_recent_value;

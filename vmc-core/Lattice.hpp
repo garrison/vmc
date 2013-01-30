@@ -229,10 +229,18 @@ public:
      * If the site is outside the lattice, move it to the corresponding site
      * inside the lattice
      *
-     * @return the phase change due to any crossings of the boundary.  If
-     * boundary conditions are not given, the value 1 will be returned.
+     * @return the phase change due to any crossings of the boundary.
+     *
+     * If the original site is off the lattice in a direction with open
+     * boundary conditions, the `site` will still be moved to a site on the
+     * lattice, but the phase difference returned will be zero.
+     *
+     * If the BoundaryConditions array has zero elements, then the boundary
+     * will be enforced but it is assumed that the phase is irrelevant.  The
+     * value 1 will be returned for the phase in this case, i.e. everything
+     * will be treated as if it has periodic boundary conditions.
      */
-    phase_t enforce_boundary (LatticeSite &site, const BoundaryConditions *bcs=0) const;
+    phase_t enforce_boundary (LatticeSite &site, const BoundaryConditions &bcs) const;
 
     /**
      * Returns the number of move axes
@@ -277,7 +285,7 @@ public:
             for (unsigned int i = 0; i < n_dimensions(); ++i)
                 site[i] += step_direction * m.bravais_site[i];
             site.basis_index += step_direction * m.basis_index;
-            enforce_boundary(site);
+            enforce_boundary(site, BoundaryConditions());
         }
 
 private:

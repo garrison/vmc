@@ -77,21 +77,21 @@ void Lattice::asm_subtract_site_vector (LatticeSite &site, const BravaisSite &ot
         site[i] -= other[i];
 }
 
-phase_t Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions *bcs) const
+phase_t Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions &bcs) const
 {
     BOOST_ASSERT(site.n_dimensions() == n_dimensions());
-    BOOST_ASSERT(!bcs || bcs->size() == n_dimensions());
+    BOOST_ASSERT(bcs.size() == 0 || bcs.size() == n_dimensions());
     phase_t phase_change = 1;
     for (unsigned int dim = 0; dim < n_dimensions(); ++dim) {
         while (site[dim] >= dimensions[dim]) {
             site[dim] -= dimensions[dim];
-            if (bcs)
-                phase_change *= (*bcs)[dim].phase();
+            if (bcs.size() != 0)
+                phase_change *= bcs[dim].phase();
         }
         while (site[dim] < 0) {
             site[dim] += dimensions[dim];
-            if (bcs)
-                phase_change /= (*bcs)[dim].phase();
+            if (bcs.size() != 0)
+                phase_change *= std::conj(bcs[dim].phase());
         }
     }
 

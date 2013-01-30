@@ -169,7 +169,8 @@ At the moment the following things are broken:
 -  Non-Bravais lattices have never been tested, and may not be fully
    implemented in the python layer.
 
--  Cylindrical boundary conditions are not supported.
+-  Cylindrical boundary conditions have not yet been tested, and are
+   not fully implemented in the python layer.
 
 Research based on results of this code
 --------------------------------------

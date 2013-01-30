@@ -37,23 +37,6 @@ public:
             BOOST_ASSERT(p_ > 0 && p_ <= 1);
         }
 
-#if 0
-    /**
-     * Alternative constructor for convenience, as it allows one to specify
-     * boundary conditions with a single integer in any case where they are not
-     * crazy.
-     *
-     * @param p_ specifies how many times one must move through the system
-     * to return to the same phase.  1 means periodic; 2 means antiperiodic;
-     * etc.
-     */
-    explicit BoundaryCondition (unsigned int p_)
-        : m_p(boost::rational<int>(1, p_)),
-          m_phase(calculate_phase(p_))
-        {
-        }
-#endif
-
     /**
      * Uninitialized default constructor
      */

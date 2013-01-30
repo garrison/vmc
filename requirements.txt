@@ -11,7 +11,7 @@ numpy
 scipy
 h5py
 blist
-Cython>=0.17
+Cython>=0.18
 Twisted
 matplotlib
 pytest

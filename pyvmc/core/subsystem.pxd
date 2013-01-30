@@ -1,6 +1,6 @@
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
-from pyvmc.core.lattice cimport CppLattice, UDimensionVector, const_UDimensionVector
+from pyvmc.core.lattice cimport CppLattice, UDimensionVector
 
 cdef extern from "Subsystem.hpp":
     cdef unsigned int MAX_DIMENSION

@@ -26,10 +26,7 @@ cdef extern from "Lattice.hpp":
         void push_back(T&)
 
     ctypedef lw_vector[int] DimensionVector "lw_vector<int, MAX_DIMENSION>"
-    ctypedef DimensionVector const_DimensionVector "const lw_vector<int, MAX_DIMENSION>"
-
     ctypedef lw_vector[int] UDimensionVector "lw_vector<unsigned int, MAX_DIMENSION>"
-    ctypedef UDimensionVector const_UDimensionVector "const lw_vector<unsigned int, MAX_DIMENSION>"
 
     cdef cppclass CppLattice "Lattice":
         CppLattice(DimensionVector, int)

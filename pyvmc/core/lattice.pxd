@@ -7,7 +7,7 @@ cdef extern from "Lattice.hpp":
     cdef cppclass CppLatticeSite "LatticeSite":
         CppLatticeSite()
         CppLatticeSite(unsigned int)
-        CppLatticeSite(CppLatticeSite&)
+        CppLatticeSite(const CppLatticeSite&)
 
         int operator[](int)
         void set_n_dimensions(unsigned int)
@@ -16,12 +16,12 @@ cdef extern from "Lattice.hpp":
 
         int basis_index
 
-        bint operator==(CppLatticeSite&)
-        bint operator!=(CppLatticeSite&)
-        bint operator<(CppLatticeSite&)
+        bint operator==(const CppLatticeSite&)
+        bint operator!=(const CppLatticeSite&)
+        bint operator<(const CppLatticeSite&)
 
     cdef cppclass lw_vector[T]:
-        T& operator[](size_t)
+        const T& operator[](size_t)
         size_t size()
         void push_back(T&)
 
@@ -29,17 +29,17 @@ cdef extern from "Lattice.hpp":
     ctypedef lw_vector[int] UDimensionVector "lw_vector<unsigned int, MAX_DIMENSION>"
 
     cdef cppclass CppLattice "Lattice":
-        CppLattice(DimensionVector, int)
+        CppLattice(const DimensionVector&, int)
 
         unsigned int total_sites()
         unsigned int total_bravais_sites()
         unsigned int n_dimensions()
         CppLatticeSite site_from_index(unsigned int)
-        unsigned int site_to_index(CppLatticeSite)
-        bint site_is_valid(CppLatticeSite)
+        unsigned int site_to_index(const CppLatticeSite&)
+        bint site_is_valid(const CppLatticeSite&)
 
-        DimensionVector dimensions
-        int basis_indices
+        const DimensionVector dimensions
+        const int basis_indices
 
 cdef class LatticeSite(object):
     cdef CppLatticeSite cpp

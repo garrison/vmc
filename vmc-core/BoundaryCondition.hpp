@@ -32,7 +32,6 @@ public:
      */
     explicit BoundaryCondition (const boost::rational<int> &p_)
         : m_p(p_),
-          m_p_floor(p_ == 1 ? 0 : m_p),
           m_phase(calculate_phase(p_))
         {
             BOOST_ASSERT(p_ > 0 && p_ <= 1);
@@ -50,7 +49,6 @@ public:
      */
     explicit BoundaryCondition (unsigned int p_)
         : m_p(boost::rational<int>(1, p_)),
-          m_p_floor(p_ == 1 ? 0 : m_p),
           m_phase(calculate_phase(p_))
         {
         }
@@ -61,7 +59,6 @@ public:
      */
     BoundaryCondition (void)
         : m_p(0),
-          m_p_floor(0),
           m_phase(0)
         {
         }
@@ -73,15 +70,6 @@ public:
         {
             BOOST_ASSERT(m_p != 0); // otherwise it is uninitialized
             return m_p;
-        }
-
-    /**
-     * returns a value in [0, 1)
-     */
-    boost::rational<int> p_floor (void) const
-        {
-            BOOST_ASSERT(m_p != 0); // otherwise it is uninitialized
-            return m_p_floor;
         }
 
     /**
@@ -115,7 +103,7 @@ private:
                 return std::exp(complex_t(0, 1) * complex_t(2 * boost::math::constants::pi<real_t>() * boost::rational_cast<real_t>(p)));
         }
 
-    boost::rational<int> m_p, m_p_floor;
+    boost::rational<int> m_p;
     phase_t m_phase;
 };
 

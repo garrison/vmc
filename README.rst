@@ -166,8 +166,7 @@ At the moment the following things are broken:
 -  Projected Fermi sea does not yet use multi-particle moves so does not
    work at half filling.
 
--  Non-Bravais lattices have never been tested, and may not be fully
-   implemented in the python layer.
+-  Non-Bravais lattices have never been tested.
 
 -  Cylindrical boundary conditions have not yet been fully tested.
 

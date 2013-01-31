@@ -14,6 +14,9 @@ export COMPILE_NTHREADS=4
 # Optionally, use a different C++ compiler than the default
 #export CXX="clang++"
 
+# Set here any flags that should be sent to the vmc-core compilation
+#VMC_CORE_CFLAGS="-DVMC_METROPOLIS_SIMULATION_LOGGING"
+
 # Optionally, use ccache (requires separate installation) to speed up
 # the build.  In particular, this allows us to use ``--force`` in the
 # pyvmc compilation process with little penalty.
@@ -28,7 +31,7 @@ set -e
 source ../vmc/venv/bin/activate
 
 # Compile vmc-core
-( cd vmc-core && premake4 --os=$OPERATING_SYSTEM gmake && INCLUDES="-I$BOOST_INCLUDE_DIR -I$EIGEN3_INCLUDE_DIR" make -j$COMPILE_NTHREADS $@ )
+( cd vmc-core && premake4 --os=$OPERATING_SYSTEM gmake && INCLUDES="-I$BOOST_INCLUDE_DIR -I$EIGEN3_INCLUDE_DIR" CFLAGS=$VMC_CORE_CFLAGS make -j$COMPILE_NTHREADS $@ )
 
 # Compile pyvmc
 #

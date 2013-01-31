@@ -225,6 +225,52 @@ class TJKHamiltonian(CompositeOperator):
 
 # FIXME: move below things somewhere else
 
+class JKHamiltonian(CompositeOperator):
+    __slots__ = ("operators", "divx", "divy")
+
+    parameters = ('J', 'Jperp', 'K')
+
+    def init_validate(self, boundary_conditions, lattice):
+        assert isinstance(lattice, Lattice)
+        assert valid_boundary_conditions(boundary_conditions, len(lattice.dimensions))
+        operators = (
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0)], boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0)], boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], boundary_conditions),
+        )
+
+        # don't double-count plaquettes on a 2-leg ladder
+        divx = 2 if (lattice.dimensions[0] == 2 and boundary_conditions[0] != 0) else 1
+        divy = 2 if (lattice.dimensions[1] == 2 and boundary_conditions[1] != 0) else 1
+
+        return (operators, divx, divy)
+
+    def evaluate(self, context):
+        operators = self.operators
+        greenx = add_hc(context[operators[0]])
+        greeny = add_hc(context[operators[1]])
+        ringexchange = add_hc(operators[2].evaluate(context)())
+
+        divx = self.divx
+        divy = self.divy
+
+        def _evaluate(J, K, Jperp=None):
+            # of course, Jperp only means what you think it does if the legs
+            # are long in the x direction
+
+            if Jperp is None:
+                Jperp = J
+
+            return ensure_real(
+                -J * greenx / divx +
+                -Jperp * greeny / divy +
+                K * ringexchange / divx / divy
+             )
+
+        return _evaluate
+
+# FIXME: move below things somewhere else
+
 class SpinModelRingExchangeOperator(CompositeOperator):
     __slots__ = ("operators",)
 

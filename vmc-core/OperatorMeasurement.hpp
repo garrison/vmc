@@ -17,11 +17,10 @@
  *
  * Measures the given operator on the lattice.
  *
- * If `sum` is true, it will loop over all sites, summing the expectation value
- * of the operator as translated across the lattice.  Further, if boundary
- * conditions are given, the operator sum will also count operators in the sum
- * that go off the lattice, there assuming that the lattice wraps with the
- * boundary conditions given.
+ * If boundary conditions are given, this measurement will loop over all sites,
+ * summing the expectation value of the operator as translated across the
+ * lattice (wrapping around any boundary conditions that are not open).  If
+ * `boundary_conditions` is the empty array, no sum is performed.
  *
  * @see StandardWalk
  */
@@ -30,11 +29,9 @@ class OperatorMeasurement : public Measurement<StandardWalk>
 public:
     OperatorMeasurement (unsigned int steps_per_measurement,
                          const ParticleOperator &operator_,
-                         bool sum_,
                          const BoundaryConditions &bcs_)
         : Measurement<StandardWalk>(steps_per_measurement),
           m_operator(operator_),
-          sum(sum_),
           bcs(bcs_)
         {
         }
@@ -70,8 +67,12 @@ private:
                                               walk.get_wavefunctionamplitude().get_positions().get_N_species());
         }
 
+    bool is_sum_over_sites (void) const
+        {
+            return bcs.size() != 0;
+        }
+
     const ParticleOperator m_operator;
-    bool sum;
     const BoundaryConditions bcs;
 
     BinnedEstimate<amplitude_t> estimate;

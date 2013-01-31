@@ -14,6 +14,9 @@ from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.utils import product
 from pyvmc.constants import two_pi, sqrt_three_over_two, pi
 
+class OffTheLattice(Exception):
+    pass
+
 cdef class LatticeSite(object):
     """represents a site on a lattice
 
@@ -136,6 +139,12 @@ cdef LatticeSite_from_cpp(CppLatticeSite cpp_lattice_site):
 
 collections.Hashable.register(LatticeSite)
 
+def _phase_wrap(wraps, bc):
+    if bc == 0 and wraps != 0:
+        raise OffTheLattice()
+    else:
+        return wraps * bc
+
 cdef class Lattice(object):
     def __init__(self, dimensions, basis_indices=1):
         assert isinstance(dimensions, collections.Sequence)
@@ -171,7 +180,7 @@ cdef class Lattice(object):
         """This will always return a Lattice object, never a LatticeRealization"""
         return self
 
-    def enforce_boundary(self, site, boundary_conditions=None):
+    def enforce_boundary(self, site, boundary_conditions):
         """Enforce the boundary of a site which may be outside the lattice
 
         Any quantum amplitudes should be multiplied by
@@ -186,13 +195,12 @@ cdef class Lattice(object):
         new_bravais_site = tuple(x % length for x, length in zip(bravais_site, lattice_dimensions))
         new_site = LatticeSite(new_bravais_site, site.bi) if is_LatticeSite else new_bravais_site
         assert (not is_LatticeSite) or new_site in self
-        if boundary_conditions is None:
+        if boundary_conditions is False:
             return new_site
-        else:
-            assert valid_boundary_conditions(boundary_conditions, len(lattice_dimensions))
-            phase_adjustment = sum((x // length) * bc for x, length, bc
-                                   in zip(bravais_site, lattice_dimensions, boundary_conditions)) % 1
-            return new_site, phase_adjustment
+        assert valid_boundary_conditions(boundary_conditions, len(lattice_dimensions))
+        phase_adjustment = sum(_phase_wrap(x // length, bc) for x, length, bc
+                               in zip(bravais_site, lattice_dimensions, boundary_conditions)) % 1
+        return new_site, phase_adjustment
 
     def __len__(self):
         return self.sharedptr.get().total_sites()

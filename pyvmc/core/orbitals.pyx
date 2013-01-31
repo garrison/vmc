@@ -7,7 +7,7 @@ import logging
 
 import numpy
 
-from pyvmc.core.boundary_conditions import valid_boundary_conditions, periodic, antiperiodic
+from pyvmc.core.boundary_conditions import valid_closed_boundary_conditions, periodic, antiperiodic
 from pyvmc.utils.immutable import Immutable
 
 logger = logging.getLogger(__name__)
@@ -100,7 +100,7 @@ class MomentaOrbitals(Orbitals):
                     for ms in momentum_sites])
         assert len(momentum_sites) == len(frozenset(momentum_sites))
         momentum_sites = tuple(sorted(momentum_sites))
-        assert valid_boundary_conditions(boundary_conditions, n_dimensions)
+        assert valid_closed_boundary_conditions(boundary_conditions, n_dimensions)
         object.__setattr__(self, "_orbitals_matrix", None)
         return lattice, momentum_sites, tuple(boundary_conditions)
 
@@ -141,7 +141,7 @@ class Bands(OrbitalsDescription):
         assert all(isinstance(n, numbers.Integral) and n >= 0 for n in particles_by_band)
         self.particles_by_band = tuple(particles_by_band)
         n_dimensions = 1 if len(particles_by_band) == 1 else 2
-        assert valid_boundary_conditions(boundary_conditions, n_dimensions)
+        assert valid_closed_boundary_conditions(boundary_conditions, n_dimensions)
         self.boundary_conditions = tuple(boundary_conditions)
         if boundary_conditions[0] in (periodic, antiperiodic):
             # check for bad bands

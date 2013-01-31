@@ -15,19 +15,19 @@ def calculate_correlators(wf, filename):
     plans = [
         (
             # green
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, j, 0)], True, (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, j, 1)], True, (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, j, 0)], (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, j, 1)], (periodic, periodic))),
             # density-density terms
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 0), SiteHop(j, j, 1)], True, (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 1), SiteHop(j, j, 0)], True, (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 0), SiteHop(j, j, 1)], (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 1), SiteHop(j, j, 0)], (periodic, periodic))),
             # terms in density-density and spin-spin
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 0)] + ([SiteHop(j, j, 0)] if j != i else []), True, (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 1)] + ([SiteHop(j, j, 1)] if j != i else []), True, (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 0)] + ([SiteHop(j, j, 0)] if j != i else []), (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 1)] + ([SiteHop(j, j, 1)] if j != i else []), (periodic, periodic))),
             # spin-spin terms
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, j, 0), SiteHop(j, i, 1)], True, (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, j, 1), SiteHop(j, i, 0)], True, (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 0), SiteHop(j, j, 1)], True, (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 1), SiteHop(j, j, 0)], True, (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, j, 0), SiteHop(j, i, 1)], (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, j, 1), SiteHop(j, i, 0)], (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 0), SiteHop(j, j, 1)], (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(i, i, 1), SiteHop(j, j, 0)], (periodic, periodic))),
         )
         for j in wf.lattice
     ]
@@ -35,10 +35,10 @@ def calculate_correlators(wf, filename):
 
     more_plans = [
         # ring-exchange terms
-        BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], True, (periodic, periodic))),
-        BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], True, (periodic, periodic))),
-        BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], True, (periodic, periodic))),
-        BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], True, (periodic, periodic))),
+        BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], (periodic, periodic))),
+        BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], (periodic, periodic))),
+        BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], (periodic, periodic))),
+        BasicOperatorMeasurementPlan(wf, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], (periodic, periodic))),
     ]
     more_measurements = [plan.to_measurement() for plan in more_plans]
 
@@ -88,7 +88,7 @@ def calculate_correlators(wf, filename):
             g = f.require_group("OperatorMeasurement")
             om_data = {}
             for plan, measurement in zip(all_plans, all_measurements):
-                om_data[repr((plan.hops, plan.sum, plan.boundary_conditions))] = measurement.get_result()
+                om_data[repr((plan.hops, plan.boundary_conditions))] = measurement.get_result()
             for k, v in om_data.iteritems():
                 g.create_dataset(k, data=v)
 

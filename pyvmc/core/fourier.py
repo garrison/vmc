@@ -5,7 +5,7 @@ from numpy import exp, pi
 
 from pyvmc.core.lattice import Lattice
 from pyvmc.core.orbitals import allowed_momentum
-from pyvmc.core.boundary_conditions import valid_boundary_conditions
+from pyvmc.core.boundary_conditions import valid_closed_boundary_conditions
 
 # NOTE: The code below scales as O(N^2).  An n-dimensional FFT would scale
 # better on large lattices, but it is unlikely that we will ever need this.
@@ -22,8 +22,7 @@ def fourier_transform(values, lattice, boundary_conditions):
     assert isinstance(values, collections.Sequence)
     if not len(values) == lattice.total_bravais_sites():
         raise RuntimeError("wrong number of values provided for lattice fourier transform")
-    assert boundary_conditions is not None
-    assert valid_boundary_conditions(boundary_conditions, len(lattice.dimensions))
+    assert valid_closed_boundary_conditions(boundary_conditions, len(lattice.dimensions))
 
     return [sum([exp(-two_pi_i * numpy.dot(r, allowed_momentum(momentum_site, lattice, boundary_conditions))) * v
                  for r, v in zip(lattice.iterate_bravais_sites(), values)])
@@ -34,8 +33,7 @@ def inverse_fourier_transform(values, lattice, boundary_conditions):
     assert isinstance(values, collections.Sequence)
     if not len(values) == lattice.total_bravais_sites():
         raise RuntimeError("wrong number of values provided for lattice fourier transform")
-    assert boundary_conditions is not None
-    assert valid_boundary_conditions(boundary_conditions, len(lattice.dimensions))
+    assert valid_closed_boundary_conditions(boundary_conditions, len(lattice.dimensions))
 
     normalization = 1.0 / len(values)
 

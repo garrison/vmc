@@ -121,13 +121,13 @@ def test_enforce_boundary_without_boundary_conditions():
     lattice = Lattice([24, 4])
 
     # BravaisSite
-    assert lattice.enforce_boundary((24, 3)) == (0, 3)
-    assert lattice.enforce_boundary((-1, 4)) == (23, 0)
+    assert lattice.enforce_boundary((24, 3), False) == (0, 3)
+    assert lattice.enforce_boundary((-1, 4), False) == (23, 0)
 
     # LatticeSite
-    assert lattice.enforce_boundary(LatticeSite((-1, 0))) == LatticeSite((23, 0))
+    assert lattice.enforce_boundary(LatticeSite((-1, 0)), False) == LatticeSite((23, 0))
     with pytest.raises(AssertionError):
-        lattice.enforce_boundary(LatticeSite((-1, 0), 1))
+        lattice.enforce_boundary(LatticeSite((-1, 0), 1), False)
 
 def test_enforce_boundary_with_boundary_conditions():
     lattice = Lattice([8, 8], 2)

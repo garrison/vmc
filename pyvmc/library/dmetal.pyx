@@ -73,10 +73,10 @@ class ElectronRingExchangeMeasurementPlan(BaseMeasurementPlan):
 
     def init_validate(self, wavefunction):
         object.__setattr__(self, "plans", (
-            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], True, (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], True, (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], True, (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], True, (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], (periodic, periodic))),
+            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], (periodic, periodic))),
         ))
         return (wavefunction,)
 

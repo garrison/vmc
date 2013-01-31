@@ -46,7 +46,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
 
     // we only iterate if doing a sum, and even then we only want to iterate
     // over BraivaisSite's
-    const unsigned int n_iterations = sum ? lattice.total_sites() / lattice.basis_indices : 1;
+    const unsigned int n_iterations = is_sum_over_sites() ? lattice.total_sites() / lattice.basis_indices : 1;
 
     // FIXME: need a faster way of iterating the lattice
     for (unsigned int i = 0; i < n_iterations; ++i) {
@@ -62,6 +62,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
             const unsigned int species = m_operator.hopv[j].get_species();
             LatticeSite src(m_operator.hopv[j].get_source());
             lattice.asm_add_site_vector(src, site_offset.bravais_site());
+            BOOST_ASSERT(is_sum_over_sites() || lattice.site_is_valid(src));
             srcphase = lattice.enforce_boundary(src, bcs);
             if (srcphase == phase_t(0))
                 goto current_measurement_is_zero;
@@ -71,6 +72,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
             if (m_operator.hopv[j].get_source() != m_operator.hopv[j].get_destination()) {
                 LatticeSite dest(m_operator.hopv[j].get_destination());
                 lattice.asm_add_site_vector(dest, site_offset.bravais_site());
+                BOOST_ASSERT(is_sum_over_sites() || lattice.site_is_valid(dest));
                 phase *= lattice.enforce_boundary(dest, bcs) / srcphase;
                 if (phase == phase_t(0))
                     goto current_measurement_is_zero;

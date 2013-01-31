@@ -204,11 +204,11 @@ class Green(Goal):
         return rv
 
 class Operator(Goal):
-    def __init__(self, system, hops, sum, boundary_conditions, independent=30, universe=None):
+    def __init__(self, system, hops, boundary_conditions, independent=30, universe=None):
         if universe is None:
             universe = get_default_universe()
 
-        measurement = BasicOperatorMeasurementPlan(system, BasicOperator(hops, sum, boundary_conditions))
+        measurement = BasicOperatorMeasurementPlan(system, BasicOperator(hops, boundary_conditions))
         plan = TmpMeasurementPlan(measurement, self.parse_result)
         self.measurement_set = universe.get_measurement_set(plan, independent)
 
@@ -224,7 +224,7 @@ class Operator(Goal):
         return self.measurement_set[index].get_aggregate_result()
 
 class SingletPairOperator(Goal):
-    def __init__(self, system, r1, r2, r1p, r2p, sum, boundary_conditions, independent=30, universe=None):
+    def __init__(self, system, r1, r2, r1p, r2p, boundary_conditions, independent=30, universe=None):
         """r1, r2, r1p, r2p should all be unique sites"""
         hops1 = (
             SiteHop(r2p, r2, 1),
@@ -243,10 +243,10 @@ class SingletPairOperator(Goal):
             SiteHop(r2p, r2, 0),
         )
         self.operators = (
-            Operator(system, hops1, sum, boundary_conditions, independent, universe),
-            Operator(system, hops2, sum, boundary_conditions, independent, universe),
-            Operator(system, hops3, sum, boundary_conditions, independent, universe),
-            Operator(system, hops4, sum, boundary_conditions, independent, universe),
+            Operator(system, hops1, boundary_conditions, independent, universe),
+            Operator(system, hops2, boundary_conditions, independent, universe),
+            Operator(system, hops3, boundary_conditions, independent, universe),
+            Operator(system, hops4, boundary_conditions, independent, universe),
         )
 
     def advance(self):
@@ -257,7 +257,7 @@ class SingletPairOperator(Goal):
         return sum([o.get_expectation_value(index) for o in self.operators])
 
 class DiagonalDWaveCooperPairOperator(Goal):
-    def __init__(self, system, x, sum, boundary_conditions, independent=30, universe=None):
+    def __init__(self, system, x, boundary_conditions, independent=30, universe=None):
         # assert two leg ladder
         assert len(system.lattice.dimensions) == 2 and system.lattice.dimensions[1] == 2
         from pyvmc.core.lattice import LatticeSite
@@ -268,8 +268,8 @@ class DiagonalDWaveCooperPairOperator(Goal):
         r1ps = LatticeSite([x, 1])
         r2ps = LatticeSite([x + 1, 0])
         self.operators = (
-            SingletPairOperator(system, r1, r2, r1p, r2p, sum, boundary_conditions, independent, universe),
-            SingletPairOperator(system, r1, r2, r1ps, r2ps, sum, boundary_conditions, independent, universe),
+            SingletPairOperator(system, r1, r2, r1p, r2p, boundary_conditions, independent, universe),
+            SingletPairOperator(system, r1, r2, r1ps, r2ps, boundary_conditions, independent, universe),
         )
 
     def advance(self):
@@ -288,7 +288,7 @@ class DiagonalDWaveCooperPairOperator(Goal):
     get_expectation_value = get_antisymmetric_expectation_value
 
 class LegDWaveCooperPairOperator(Goal):
-    def __init__(self, system, x, sum, boundary_conditions, independent=30, universe=None):
+    def __init__(self, system, x, boundary_conditions, independent=30, universe=None):
         # assert two leg ladder
         assert len(system.lattice.dimensions) == 2 and system.lattice.dimensions[1] == 2
         from pyvmc.core.lattice import LatticeSite
@@ -299,8 +299,8 @@ class LegDWaveCooperPairOperator(Goal):
         r1ps = LatticeSite([x, 1])
         r2ps = LatticeSite([x + 1, 1])
         self.operators = (
-            SingletPairOperator(system, r1, r2, r1p, r2p, sum, boundary_conditions, independent, universe),
-            SingletPairOperator(system, r1, r2, r1ps, r2ps, sum, boundary_conditions, independent, universe),
+            SingletPairOperator(system, r1, r2, r1p, r2p, boundary_conditions, independent, universe),
+            SingletPairOperator(system, r1, r2, r1ps, r2ps, boundary_conditions, independent, universe),
         )
 
     def advance(self):

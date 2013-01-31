@@ -26,7 +26,7 @@ def test_spinmodel(tolerance=None):
 
     spin_operator = SpinModelRingExchangeOperator(LatticeSite([0, 0]), LatticeSite([1, 0]),
                                                   LatticeSite([1, 1]), LatticeSite([0, 1]),
-                                                  True, (periodic, periodic))
+                                                  (periodic, periodic))
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in spin_operator.get_basic_operators()]
     results = do_calculate_plans(plans)
     # result[-1] gets the last element of the binned array (FIXME: how to do

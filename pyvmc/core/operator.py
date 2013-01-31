@@ -44,29 +44,27 @@ class Operator(object):
         raise NotImplementedError
 
 class BasicOperator(Immutable):
-    """A BasicOperator represents anything that can be represented a SiteHop's"""
+    """A BasicOperator represents anything that can be represented a SiteHop's
 
-    __slots__ = ("hops", "sum", "boundary_conditions")
+    If a sum is to be performed over all sites, set boundary_conditions.
+    Otherwise, if no sum is to be performed set boundary_conditions to None.
+    """
 
-    def init_validate(self, hops, sum, boundary_conditions):
+    __slots__ = ("hops", "boundary_conditions")
+
+    def init_validate(self, hops, boundary_conditions=None):
         assert isinstance(hops, collections.Sequence)
         hops = tuple(sorted(hops, key=lambda hop: (hop.species, hop.source, hop.destination)))
         assert all([isinstance(hop, SiteHop) for hop in hops])
-        assert isinstance(sum, bool)
-        if not sum and boundary_conditions is not None:
-            from warnings import warn
-            warn("boundary_conditions are needlessly given, as sum==False", RuntimeWarning)
-            boundary_conditions = None
         if boundary_conditions is not None:
             boundary_conditions = tuple(boundary_conditions)
             assert valid_boundary_conditions(boundary_conditions, len(boundary_conditions))
-        return (hops, sum, boundary_conditions)
+        return (hops, boundary_conditions)
 
     def to_json(self):
         return collections.OrderedDict([
             ("type", self.__class__.__name__),
             ("hops", [hop.to_json() for hop in self.hops]),
-            ("sum", self.sum),
             ("boundary_conditions", self.boundary_conditions),
         ])
 
@@ -104,12 +102,12 @@ Operator.register(CompositeOperator)
 class DensityDensityOperator(CompositeOperator):
     __slots__ = ("operators",)
 
-    def init_validate(self, site1, site2, N_species, sum, boundary_conditions):
+    def init_validate(self, site1, site2, N_species, boundary_conditions):
         # it would be nice if we didn't have to specify N_species here (or at
         # least if we had a way of asserting it's correct in evaluate())...
         assert isinstance(site1, LatticeSite)
         assert isinstance(site2, LatticeSite)
-        operators = tuple([BasicOperator([SiteHop(site1, site1, i)] + ([SiteHop(site2, site2, j)] if site1 != site2 or i != j else []), sum, boundary_conditions) for i in xrange(N_species) for j in xrange(N_species)])
+        operators = tuple([BasicOperator([SiteHop(site1, site1, i)] + ([SiteHop(site2, site2, j)] if site1 != site2 or i != j else []), boundary_conditions) for i in xrange(N_species) for j in xrange(N_species)])
         return (operators,)
 
     def evaluate(self, context):
@@ -120,20 +118,20 @@ class DensityDensityOperator(CompositeOperator):
 class SpinSpinOperator(CompositeOperator):
     __slots__ = ("operators", "samesite")
 
-    def init_validate(self, site1, site2, sum, boundary_conditions):
+    def init_validate(self, site1, site2, boundary_conditions):
         if site1 == site2:
             operators = (
-                BasicOperator([SiteHop(site1, site1, 0)], sum, boundary_conditions),
-                BasicOperator([SiteHop(site1, site1, 1)], sum, boundary_conditions),
+                BasicOperator([SiteHop(site1, site1, 0)], boundary_conditions),
+                BasicOperator([SiteHop(site1, site1, 1)], boundary_conditions),
             )
             return (operators, True)
         else:
             operators = (
-                BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 0)], sum, boundary_conditions),
-                BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 1)], sum, boundary_conditions),
-                BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 1)], sum, boundary_conditions),
-                BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 0)], sum, boundary_conditions),
-                BasicOperator([SiteHop(site1, site2, 0), SiteHop(site2, site1, 1)], sum, boundary_conditions),
+                BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 0)], boundary_conditions),
+                BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 1)], boundary_conditions),
+                BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 1)], boundary_conditions),
+                BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 0)], boundary_conditions),
+                BasicOperator([SiteHop(site1, site2, 0), SiteHop(site2, site1, 1)], boundary_conditions),
             )
             return (operators, False)
 
@@ -141,7 +139,7 @@ class SpinSpinOperator(CompositeOperator):
         operators = self.operators
         def _evaluate():
             if self.samesite:
-                return .75 * (context[operators[0]] + context[operators[1]])  # i.e. .75 * rho, scaled by number of sites if sum==True
+                return .75 * (context[operators[0]] + context[operators[1]])  # i.e. .75 * rho, scaled by number of sites if summing
             else:
                 return ensure_real(
                     -.5 * add_hc(context[operators[4]]) +
@@ -157,12 +155,12 @@ class SpinSpinOperator(CompositeOperator):
 class SingletRingExchangeOperator(CompositeOperator):
     __slots__ = ("operators",)
 
-    def init_validate(self, sum, boundary_conditions):
+    def init_validate(self, boundary_conditions):
         operators = (
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], sum, boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], sum, boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], sum, boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], sum, boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], boundary_conditions),
         )
         return (operators,)
 
@@ -180,19 +178,18 @@ class TJKHamiltonian(CompositeOperator):
         assert isinstance(lattice, Lattice)
         assert valid_boundary_conditions(boundary_conditions, len(lattice.dimensions))
         operators = (
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0)], True, boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1)], True, boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0)], True, boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1)], True, boundary_conditions),
-            SpinSpinOperator(LatticeSite((0, 0)), LatticeSite((1, 0)), True, boundary_conditions),
-            SpinSpinOperator(LatticeSite((0, 0)), LatticeSite((0, 1)), True, boundary_conditions),
-            SingletRingExchangeOperator(True, boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0)], boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1)], boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0)], boundary_conditions),
+            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1)], boundary_conditions),
+            SpinSpinOperator(LatticeSite((0, 0)), LatticeSite((1, 0)), boundary_conditions),
+            SpinSpinOperator(LatticeSite((0, 0)), LatticeSite((0, 1)), boundary_conditions),
+            SingletRingExchangeOperator(boundary_conditions),
         )
 
         # don't double-count plaquettes on a 2-leg ladder
-        # (FIXME: fix this logic if we migrate to allow cylindrical boundary conditions)
-        divx = 2 if (lattice.dimensions[0] == 2 and boundary_conditions is not None) else 1
-        divy = 2 if (lattice.dimensions[1] == 2 and boundary_conditions is not None) else 1
+        divx = 2 if (lattice.dimensions[0] == 2 and boundary_conditions[0] != 0) else 1
+        divy = 2 if (lattice.dimensions[1] == 2 and boundary_conditions[1] != 0) else 1
 
         return (operators, divx, divy)
 
@@ -231,32 +228,32 @@ class TJKHamiltonian(CompositeOperator):
 class SpinModelRingExchangeOperator(CompositeOperator):
     __slots__ = ("operators",)
 
-    def init_validate(self, site1, site2, site3, site4, sum, boundary_conditions):
+    def init_validate(self, site1, site2, site3, site4, boundary_conditions):
         """sites 1,2,3,4 should be in cyclical order.
 
         This is a hermitian operator.
         """
         operators = (
             # all four spins the same
-            BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 0), SiteHop(site3, site3, 0), SiteHop(site4, site4, 0)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 1), SiteHop(site3, site3, 1), SiteHop(site4, site4, 1)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 0), SiteHop(site3, site3, 0), SiteHop(site4, site4, 0)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 1), SiteHop(site3, site3, 1), SiteHop(site4, site4, 1)], boundary_conditions),
             # two spins up, two spins down (with all spins being changed)
-            BasicOperator([SiteHop(site1, site2, 0), SiteHop(site2, site1, 1), SiteHop(site3, site4, 0), SiteHop(site4, site3, 1)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site1, site2, 1), SiteHop(site2, site1, 0), SiteHop(site3, site4, 1), SiteHop(site4, site3, 0)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site1, site2, 0), SiteHop(site2, site1, 1), SiteHop(site3, site4, 0), SiteHop(site4, site3, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site2, 1), SiteHop(site2, site1, 0), SiteHop(site3, site4, 1), SiteHop(site4, site3, 0)], boundary_conditions),
             # three spins one way, one the other
-            BasicOperator([SiteHop(site4, site4, 0), SiteHop(site1, site1, 0), SiteHop(site2, site3, 0), SiteHop(site3, site2, 1)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site4, site4, 1), SiteHop(site1, site1, 1), SiteHop(site2, site3, 1), SiteHop(site3, site2, 0)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 0), SiteHop(site3, site4, 0), SiteHop(site4, site3, 1)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 1), SiteHop(site3, site4, 1), SiteHop(site4, site3, 0)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site2, site2, 0), SiteHop(site3, site3, 0), SiteHop(site4, site1, 0), SiteHop(site1, site4, 1)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site2, site2, 1), SiteHop(site3, site3, 1), SiteHop(site4, site1, 1), SiteHop(site1, site4, 0)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site3, site3, 0), SiteHop(site4, site4, 0), SiteHop(site1, site2, 0), SiteHop(site2, site1, 1)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site3, site3, 1), SiteHop(site4, site4, 1), SiteHop(site1, site2, 1), SiteHop(site2, site1, 0)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site4, site4, 0), SiteHop(site1, site1, 0), SiteHop(site2, site3, 0), SiteHop(site3, site2, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site4, site4, 1), SiteHop(site1, site1, 1), SiteHop(site2, site3, 1), SiteHop(site3, site2, 0)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 0), SiteHop(site2, site2, 0), SiteHop(site3, site4, 0), SiteHop(site4, site3, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 1), SiteHop(site2, site2, 1), SiteHop(site3, site4, 1), SiteHop(site4, site3, 0)], boundary_conditions),
+            BasicOperator([SiteHop(site2, site2, 0), SiteHop(site3, site3, 0), SiteHop(site4, site1, 0), SiteHop(site1, site4, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site2, site2, 1), SiteHop(site3, site3, 1), SiteHop(site4, site1, 1), SiteHop(site1, site4, 0)], boundary_conditions),
+            BasicOperator([SiteHop(site3, site3, 0), SiteHop(site4, site4, 0), SiteHop(site1, site2, 0), SiteHop(site2, site1, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site3, site3, 1), SiteHop(site4, site4, 1), SiteHop(site1, site2, 1), SiteHop(site2, site1, 0)], boundary_conditions),
             # two spins up, two spins down (with only two spins being changed)
-            BasicOperator([SiteHop(site2, site2, 0), SiteHop(site4, site4, 1), SiteHop(site1, site3, 1), SiteHop(site3, site1, 0)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site2, site2, 1), SiteHop(site4, site4, 0), SiteHop(site1, site3, 0), SiteHop(site3, site1, 1)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site1, site1, 0), SiteHop(site3, site3, 1), SiteHop(site4, site2, 1), SiteHop(site2, site4, 0)], sum, boundary_conditions),
-            BasicOperator([SiteHop(site1, site1, 1), SiteHop(site3, site3, 0), SiteHop(site4, site2, 0), SiteHop(site2, site4, 1)], sum, boundary_conditions),
+            BasicOperator([SiteHop(site2, site2, 0), SiteHop(site4, site4, 1), SiteHop(site1, site3, 1), SiteHop(site3, site1, 0)], boundary_conditions),
+            BasicOperator([SiteHop(site2, site2, 1), SiteHop(site4, site4, 0), SiteHop(site1, site3, 0), SiteHop(site3, site1, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 0), SiteHop(site3, site3, 1), SiteHop(site4, site2, 1), SiteHop(site2, site4, 0)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site1, 1), SiteHop(site3, site3, 0), SiteHop(site4, site2, 0), SiteHop(site2, site4, 1)], boundary_conditions),
         )
         return (operators,)
 

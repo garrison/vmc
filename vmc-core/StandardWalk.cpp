@@ -50,6 +50,10 @@ void StandardWalk::accept_transition (void)
     BOOST_ASSERT(wfa.unique()); // ensure copy-on-write is implemented correctly
     wfa->finish_move();
 
+    // finish_move() may recalculate the inverse from scratch, so for sanity
+    // we check that the amplitude here is still nonzero.
+    BOOST_ASSERT(wfa->psi() != amplitude_t(0));
+
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     transition_in_progress = false;
 #endif

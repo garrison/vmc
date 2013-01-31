@@ -172,7 +172,7 @@ class SingletRingExchangeOperator(CompositeOperator):
 class TJKHamiltonian(CompositeOperator):
     __slots__ = ("operators", "divx", "divy")
 
-    parameters = ('t', 'tperp', 'J', 'Jperp', 'K', 'Kperp')
+    parameters = ('t', 'tperp', 'J', 'Jperp', 'K')
 
     def init_validate(self, boundary_conditions, lattice):
         assert isinstance(lattice, Lattice)

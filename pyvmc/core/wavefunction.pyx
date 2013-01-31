@@ -78,9 +78,9 @@ class FreeFermionWavefunction(Wavefunction):
         rv.sharedptr.reset(new CppFreeFermionWavefunction(orbital_defs, jastrow_sharedptr))
         return rv
 
-cdef class SingleOccupancyProjector(JastrowFactor):
+cdef class NoDoubleOccupancyProjector(JastrowFactor):
     def __init__(self):
-        self.sharedptr.reset(new CppSingleOccupancyProjector())
+        self.sharedptr.reset(new CppNoDoubleOccupancyProjector())
 
     def to_json(self):
         return collections.OrderedDict([
@@ -100,3 +100,6 @@ cdef class SingleOccupancyProjector(JastrowFactor):
 
     def __repr__(self):
         return "{}()".format(self.__class__.__name__)
+
+# for compatibility with previous versions
+SingleOccupancyProjector = NoDoubleOccupancyProjector

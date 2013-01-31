@@ -1,8 +1,8 @@
 #include <boost/assert.hpp>
 
-#include "SingleOccupancyProjector.hpp"
+#include "NoDoubleOccupancyProjector.hpp"
 
-real_t SingleOccupancyProjector::compute_jastrow (const PositionArguments &r) const
+real_t NoDoubleOccupancyProjector::compute_jastrow (const PositionArguments &r) const
 {
     // FIXME: we should make this requirement more explicit to callers
     BOOST_ASSERT(r.get_N_species() == 2);

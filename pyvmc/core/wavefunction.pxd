@@ -26,9 +26,9 @@ cdef extern from "JastrowFactor.hpp":
     cdef cppclass CppJastrowFactor "JastrowFactor":
         pass
 
-cdef extern from "SingleOccupancyProjector.hpp":
-    cdef cppclass CppSingleOccupancyProjector "SingleOccupancyProjector" (CppJastrowFactor):
-        CppSingleOccupancyProjector()
+cdef extern from "NoDoubleOccupancyProjector.hpp":
+    cdef cppclass CppNoDoubleOccupancyProjector "NoDoubleOccupancyProjector" (CppJastrowFactor):
+        CppNoDoubleOccupancyProjector()
 
 cdef class JastrowFactor(object):
     cdef shared_ptr[CppJastrowFactor] sharedptr

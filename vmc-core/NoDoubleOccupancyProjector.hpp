@@ -1,5 +1,5 @@
-#ifndef _SINGLE_OCCUPANCY_PROJECTOR_HPP
-#define _SINGLE_OCCUPANCY_PROJECTOR_HPP
+#ifndef _NO_DOUBLE_OCCUPANCY_PROJECTOR_HPP
+#define _NO_DOUBLE_OCCUPANCY_PROJECTOR_HPP
 
 #include "JastrowFactor.hpp"
 
@@ -8,7 +8,7 @@
  *
  * Currently, should only be used when get_N_species == 2.
  */
-class SingleOccupancyProjector : public JastrowFactor
+class NoDoubleOccupancyProjector : public JastrowFactor
 {
     real_t compute_jastrow (const PositionArguments &r) const;
 };

@@ -20,7 +20,7 @@ class CustomEncoder(json.JSONEncoder):
                 ("numerator", obj.numerator),
                 ("denominator", obj.denominator),
             ])
-        return super(ComplexEncoder, self).default(obj)
+        return super(CustomEncoder, self).default(obj)
 
 dumps = partial(json.dumps, cls=CustomEncoder)
 dump = partial(json.dump, cls=CustomEncoder)

@@ -30,7 +30,7 @@ def test_dmetal_energy(tolerance=None):
         energy = e.get_energy(J=2, K=2)
 
     logger.info("Energy (old method): %f", energy)
-    assert energy < -0.74 and energy > -0.8
+    assert -0.8 < energy < -0.74
 
     # new method
 
@@ -48,7 +48,7 @@ def test_dmetal_energy(tolerance=None):
     energy = hamiltonian.evaluate(context)(t=1, J=2, K=2) / len(wf.lattice)
 
     logger.info("Energy (new method): %f", energy)
-    assert energy < -0.74 and energy > -0.8
+    assert -0.8 < energy < -0.74
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

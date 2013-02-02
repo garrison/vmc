@@ -4,3 +4,9 @@ cdef extern from "vmc-typedefs.hpp":
         complex_t(double, double)
         float real()
         float imag()
+
+cdef extern from "lw_vector.hpp":
+    cdef cppclass lw_vector[T]:
+        const T& operator[](size_t)
+        size_t size()
+        void push_back(T&)

@@ -1,3 +1,4 @@
+from pyvmc.core cimport lw_vector
 from pyvmc.includes.libcpp.memory cimport auto_ptr
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
@@ -19,11 +20,6 @@ cdef extern from "Lattice.hpp":
         bint operator==(const CppLatticeSite&)
         bint operator!=(const CppLatticeSite&)
         bint operator<(const CppLatticeSite&)
-
-    cdef cppclass lw_vector[T]:
-        const T& operator[](size_t)
-        size_t size()
-        void push_back(T&)
 
     ctypedef lw_vector[int] DimensionVector "lw_vector<int, MAX_DIMENSION>"
     ctypedef lw_vector[int] UDimensionVector "lw_vector<unsigned int, MAX_DIMENSION>"

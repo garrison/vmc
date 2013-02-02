@@ -6,6 +6,13 @@ periodic_bc = periodic = 1
 antiperiodic_bc = antiperiodic = Fraction(1, 2)
 open_bc = 0
 
+def boundary_condition_to_string(bc):
+    return {
+        periodic: 'periodic',
+        antiperiodic: 'antiperiodic',
+        open_bc: 'open',
+    }.get(bc, repr(bc))
+
 def valid_boundary_conditions(boundary_conditions, n_dimensions):
     assert isinstance(n_dimensions, numbers.Integral) and n_dimensions > 0
     return bool(isinstance(boundary_conditions, collections.Sequence) and

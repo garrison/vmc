@@ -35,9 +35,9 @@ def exact_renyi(subsystem, orbitals, boundary_conditions, alpha):
     assert lattice.basis_indices == 1
     for i_, i in enumerate(subsystem):
         for j_, j in enumerate(subsystem):
-            site, phase_adjustment = lattice.enforce_boundary(tuple(numpy.subtract(i.bs, j.bs)), boundary_conditions)
+            site, phase = lattice.enforce_boundary(tuple(numpy.subtract(i.bs, j.bs)), boundary_conditions)
             # fixme: check phase multiply logic
-            corrmat[i_][j_] = numpy.exp(2j * numpy.pi * phase_adjustment) * GN(site)
+            corrmat[i_][j_] = phase * GN(site)
     sign, logprefactor = numpy.linalg.slogdet(numpy.identity(subsystem_size) - corrmat)
     eigenvalues = [a / (1 - a) for a in numpy.linalg.eigvalsh(corrmat)]
     return -alpha * logprefactor - sum(numpy.log(1 + a.real ** alpha) for a in eigenvalues)

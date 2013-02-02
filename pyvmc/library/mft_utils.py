@@ -194,7 +194,7 @@ def create_t_matrix_basic(lattice, boundary_conditions, t_value, neighbors_func)
         for site in neighbors_func(site_r):
             site_rp, phase = lattice.enforce_boundary(site, boundary_conditions)
             ind_rp = lattice.index(site_rp)
-            t[ind_r, ind_rp] = t_value * numpy.exp(2*pi*1j * phase)
+            t[ind_r, ind_rp] = t_value * phase
 
     assert numpy.max(numpy.abs(t - t.conjugate().transpose())) < 1e-12
 
@@ -211,7 +211,7 @@ def create_delta_matrix(lattice, boundary_conditions, delta_value, pairing_func,
         for site in neighbors_func(site_r):
             site_rp, phase = lattice.enforce_boundary(site, boundary_conditions)
             ind_rp = lattice.index(site_rp)
-            delta[ind_r, ind_rp] = delta_value * pairing_func(lattice, site_r, site) * numpy.exp(2*pi*1j * phase)
+            delta[ind_r, ind_rp] = delta_value * pairing_func(lattice, site_r, site) * phase
 
     if channel == 'singlet':
         assert numpy.max(numpy.abs(delta - delta.transpose())) < 1e-12

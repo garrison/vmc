@@ -1,8 +1,8 @@
 from libcpp.vector cimport vector
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
-from pyvmc.includes.boost.rational cimport rational as boost_rational
 
-from pyvmc.core.lattice cimport CppLattice, CppLatticeSite, lw_vector
+from pyvmc.core.lattice cimport CppLattice, CppLatticeSite
+from pyvmc.core.boundary_conditions cimport CppBoundaryCondition, CppBoundaryConditions
 from pyvmc.core.subsystem cimport CppSubsystem
 from pyvmc.core.walk cimport CppWalk
 from pyvmc.core cimport complex_t
@@ -44,15 +44,6 @@ cdef extern from "SubsystemOccupationNumberProbabilityMeasurement.hpp":
         CppSubsystemOccupationNumberProbabilityMeasurement(unsigned int, shared_ptr[CppSubsystem]&)
         CppIntegerBinnedEstimate& get_estimate(CppOccupationBounds&)
         CppOccupationBounds& get_bounds()
-
-cdef extern from "BoundaryCondition.hpp":
-    cdef cppclass CppBoundaryCondition "BoundaryCondition":
-        CppBoundaryCondition(boost_rational[int]&)
-
-    CppBoundaryCondition periodic_bc
-    CppBoundaryCondition antiperiodic_bc
-
-    ctypedef lw_vector[CppBoundaryCondition] CppBoundaryConditions "lw_vector<BoundaryCondition, MAX_DIMENSION>"
 
 cdef extern from "ParticleOperator.hpp":
     cdef cppclass CppSiteHop "SiteHop":

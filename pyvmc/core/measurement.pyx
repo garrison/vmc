@@ -2,6 +2,7 @@ import abc
 import collections
 
 from cython.operator cimport dereference as deref
+from pyvmc.includes.boost.rational cimport rational as boost_rational
 
 import numpy
 

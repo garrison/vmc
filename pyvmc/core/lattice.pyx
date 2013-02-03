@@ -136,24 +136,14 @@ cdef LatticeSite_from_cpp(CppLatticeSite cpp_lattice_site):
 
 collections.Hashable.register(LatticeSite)
 
-cdef __phase_rotation_to_phase(phase_rotation):
-    assert phase_rotation != open_bc
-    if phase_rotation == periodic_bc:
-        return 1
-    elif phase_rotation == antiperiodic_bc:
-        return -1
-    else:
-        from numpy import exp, pi
-        two_pi_i = complex(0, pi + pi)
-        return exp(two_pi_i * phase_rotation)
-
-cdef __phase_wrap(wraps, bc):
+cdef __phase_wrap(wraps, phase):
     if wraps == 0:
         return 1
-    elif bc == open_bc:
+    elif phase == 0:
+        # consider this case explicitly so we never raise 0 to a negative power
         return 0
     else:
-        return __phase_rotation_to_phase(bc) ** wraps
+        return phase ** wraps
 
 cdef class Lattice(object):
     def __init__(self, dimensions, basis_indices=1):
@@ -208,7 +198,7 @@ cdef class Lattice(object):
         if boundary_conditions is False:
             return new_site
         assert valid_boundary_conditions(boundary_conditions, len(lattice_dimensions))
-        phase = product(__phase_wrap(x // length, bc) for x, length, bc
+        phase = product(__phase_wrap(x // length, bc.phase) for x, length, bc
                         in zip(bravais_site, lattice_dimensions, boundary_conditions))
         return new_site, phase
 

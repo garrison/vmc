@@ -23,7 +23,7 @@ class CustomEncoder(json.JSONEncoder):
                 ("denominator", obj.denominator),
             ])
         if isinstance(obj, BoundaryCondition):
-            return self.default(obj.p)
+            return obj.p
         return super(CustomEncoder, self).default(obj)
 
 dumps = partial(json.dumps, cls=CustomEncoder)

@@ -20,7 +20,12 @@ cdef class BoundaryCondition(object):
 
     property p:
         def __get__(self):
-            return Fraction(self.cpp.p().numerator(), self.cpp.p().denominator())
+            cdef int num = self.cpp.p().numerator()
+            cdef int den = self.cpp.p().denominator()
+            if den == 1:
+                return num
+            else:
+                return Fraction(num, den)
 
     property phase:
         def __get__(self):

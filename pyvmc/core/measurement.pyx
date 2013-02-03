@@ -2,6 +2,7 @@ import abc
 import collections
 
 from cython.operator cimport dereference as deref
+from pyvmc.includes.libcpp.memory cimport auto_ptr
 
 import numpy
 
@@ -88,15 +89,12 @@ cdef class OperatorMeasurement(BaseMeasurement):
             src = hop.source
             dest = hop.destination
             hopv.push_back(CppSiteHop(src.cpp, dest.cpp, hop.species))
-        cdef CppParticleOperator *operator
-        operator = new CppParticleOperator(hopv, lattice.sharedptr)
-        try:
-            if operator_.boundary_conditions is not None:
-                for bc in operator_.boundary_conditions:
-                    cppbcs.push_back((<BoundaryCondition>bc).cpp)
-            self.sharedptr.reset(new CppOperatorMeasurement(steps_per_measurement, deref(operator), cppbcs))
-        finally:
-            del operator
+        cdef auto_ptr[CppParticleOperator] operator
+        operator.reset(new CppParticleOperator(hopv, lattice.sharedptr))
+        if operator_.boundary_conditions is not None:
+            for bc in operator_.boundary_conditions:
+                cppbcs.push_back((<BoundaryCondition>bc).cpp)
+        self.sharedptr.reset(new CppOperatorMeasurement(steps_per_measurement, deref(operator), cppbcs))
 
     def get_result(self):
         cdef complex_t c = (<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate().get_result()

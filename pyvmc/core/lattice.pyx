@@ -183,8 +183,7 @@ cdef class Lattice(object):
     def enforce_boundary(self, site, boundary_conditions):
         """Enforce the boundary of a site which may be outside the lattice
 
-        Any quantum amplitudes should be multiplied by
-        exp(2 * pi * i * phase_adjustment)
+        Any quantum amplitudes should be multiplied by `phase`
         """
         lattice_dimensions = self.dimensions
         is_LatticeSite = isinstance(site, LatticeSite)

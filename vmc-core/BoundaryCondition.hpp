@@ -66,6 +66,21 @@ public:
             return m_phase;
         }
 
+    bool is_initialized (void) const
+        {
+            return m_p != -1;
+        }
+
+    bool operator== (const BoundaryCondition &other) const
+        {
+            return (m_p == other.m_p);
+        }
+
+    bool operator!= (const BoundaryCondition &other) const
+        {
+            return (m_p != other.m_p);
+        }
+
 private:
     /**
      * This function is called to initialize the data member m_phase during

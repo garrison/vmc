@@ -2,11 +2,11 @@ import abc
 import collections
 
 from cython.operator cimport dereference as deref
-from pyvmc.includes.boost.rational cimport rational as boost_rational
 
 import numpy
 
 from pyvmc.core.wavefunction import Wavefunction
+from pyvmc.core.boundary_conditions cimport BoundaryCondition
 from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.lattice cimport Lattice, LatticeSite
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
@@ -93,7 +93,7 @@ cdef class OperatorMeasurement(BaseMeasurement):
         try:
             if operator_.boundary_conditions is not None:
                 for bc in operator_.boundary_conditions:
-                    cppbcs.push_back(CppBoundaryCondition(boost_rational[int](bc.numerator, bc.denominator)))
+                    cppbcs.push_back((<BoundaryCondition>bc).cpp)
             self.sharedptr.reset(new CppOperatorMeasurement(steps_per_measurement, deref(operator), cppbcs))
         finally:
             del operator

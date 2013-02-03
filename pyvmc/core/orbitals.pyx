@@ -27,7 +27,7 @@ def allowed_momentum(momentum_site, lattice, boundary_conditions):
     from fractions import Fraction
     from pyvmc.core.lattice import LatticeSite
     assert LatticeSite(momentum_site) in lattice
-    return tuple((ms + (bc % 1)) * Fraction(1, ll)
+    return tuple((ms + (bc.p % 1)) * Fraction(1, ll)
                  for ms, bc, ll in zip(momentum_site,
                                        boundary_conditions,
                                        lattice.dimensions))

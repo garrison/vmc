@@ -102,11 +102,17 @@ def bcs_stats(u, v):
         Tvec[ind_r, :] = 2.0 * Tvec[ind_r, :]  # 2.0 to be consistent with Lesik.
         Ttot[ind_r] = numpy.sqrt( numpy.dot( Tvec[ind_r, :], Tvec[ind_r, :].conjugate() ) ).real
 
-    if numpy.max(numpy.std(Tvec, 0)) > 1e-10:
+    return {'fdagf':fdagf, 'fdownfup':fdownfup, 'Tvec':Tvec, 'Ttot':Ttot}
+
+
+def bcs_stats_average(u, v):
+    stats = bcs_stats(u, v)
+
+    if numpy.max(numpy.std(stats['Tvec'], 0)) > 1e-10:
         logger.warning(' This BCS state is not translationally invariant!  standard deviation of Tvec = ...')
         logger.warning(numpy.std(Tvec, 0))
 
-    return {'fdagf':fdagf, 'fdownfup':fdownfup, 'Tvec':Tvec, 'Ttot':Ttot}
+    return dict([( stats.items()[i][0], numpy.mean(stats.items()[i][1], 0) ) for i in xrange(0,len(stats))])
 
 
 def calculate_Tz(mu0_try, t, delta):
@@ -116,11 +122,11 @@ def calculate_Tz(mu0_try, t, delta):
 
     tt = t + mu0_try * numpy.identity(t.shape[0])
     soln = bcs_soln(tt, delta)
-    stats = bcs_stats(soln['u'], soln['v'])
+    stats = bcs_stats_average(soln['u'], soln['v'])
 
-    logger.debug(' fdagf_try = %.9f', numpy.mean(stats['fdagf']))
+    logger.debug(' fdagf_try = %.9f', stats['fdagf'])
 
-    return numpy.mean(stats['Tvec'][:,2])
+    return stats['Tvec'][2]
 
 
 def calculate_pairing_matrix(u, v, norm):
@@ -268,11 +274,11 @@ def did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, delta0, mu0_star
     delta = delta + delta0 * numpy.identity(Nsites)
 
     soln = bcs_soln(tt, delta)
-    stats = bcs_stats(soln['u'], soln['v'])
+    stats = bcs_stats_average(soln['u'], soln['v'])
 
     logger.info(' mu0 = %.9f', mu0)
-    logger.info(' fdagf = %.9f', numpy.mean(stats['fdagf']))
-    logger.info(' Ttot = %.9f', numpy.mean(stats['Ttot']))
+    logger.info(' fdagf = %.9f', stats['fdagf'])
+    logger.info(' Ttot = %.9f', stats['Ttot'])
 
     phi = calculate_pairing_matrix(soln['u'], soln['v'], norm)
 

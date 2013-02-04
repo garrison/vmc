@@ -56,8 +56,8 @@ def alpha_scan(tolerance=None):
         phi = bcs_theory['pairing_matrix']
 
         mu0 = bcs_theory['chemical_potential']
-        fdagf = numpy.mean(bcs_theory['bcs_stats']['fdagf'])
-        Ttot = numpy.mean(bcs_theory['bcs_stats']['Ttot'])
+        fdagf = bcs_theory['bcs_stats']['fdagf']
+        Ttot = bcs_theory['bcs_stats']['Ttot']
 
         wf = ProjectedBCSWavefunction(**{
             'lattice': lattice,

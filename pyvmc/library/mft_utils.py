@@ -16,19 +16,19 @@ import matplotlib.pyplot as plt
 
 ##### General stuff #####
 
-def bcs_soln(tt, delta):
-    assert isinstance(tt, numpy.ndarray)
-    assert isinstance(delta, numpy.ndarray)
-    assert tt.ndim == delta.ndim == 2
-    assert tt.shape[0] == tt.shape[1] == delta.shape[0] == delta.shape[1]
+def bcs_soln(t, delta):
+    # both t and delta should include on-site terms, e.g., t_{ij} = ttilde_{ij} = t_{ij} + mu_i * krondelta_{ij} from notes
+    assert_ismatrix(t)
+    assert_ismatrix(delta)
+    assert t.shape[0] == delta.shape[0]
 
-    Nsites = tt.shape[0]
+    Nsites = t.shape[0]
 
     H = numpy.zeros((Nsites, Nsites, 2, 2), dtype=complex)
     for ind_r in range(0, Nsites):
         for ind_rp in range(0, Nsites):
-            H[ind_r, ind_rp] = -numpy.array([[tt[ind_r, ind_rp], delta[ind_r, ind_rp]],
-                                             [delta[ind_r, ind_rp].conjugate(), -tt[ind_r, ind_rp].conjugate()]])
+            H[ind_r, ind_rp] = -numpy.array([[t[ind_r, ind_rp], delta[ind_r, ind_rp]],
+                                             [delta[ind_r, ind_rp].conjugate(), -t[ind_r, ind_rp].conjugate()]])
 
     Hflat = numpy.zeros((2*Nsites, 2*Nsites), dtype=complex)
     for i in range(0, 2*Nsites):
@@ -53,8 +53,8 @@ def bcs_soln(tt, delta):
     evalsPos = evals[Nsites:2*Nsites]
     evecsPos = evecs[:, Nsites:2*Nsites]
 
-    logger.debug(' positive eigenvalues = ...')
-    logger.debug(evalsPos)
+#    logger.debug(' positive eigenvalues = ...')
+#    logger.debug(evalsPos)
 #    logger.debug(' negative eigenvalues = ...')
 #    logger.debug(evalsNeg[::-1])
 
@@ -79,10 +79,9 @@ def bcs_soln(tt, delta):
 
 
 def bcs_stats(u, v):
-    assert isinstance(u, numpy.ndarray)
-    assert isinstance(v, numpy.ndarray)
-    assert u.ndim == v.ndim == 2
-    assert u.shape[0] == u.shape[1] == v.shape[0] == v.shape[1]
+    assert_ismatrix(u)
+    assert_ismatrix(v)
+    assert u.shape[0] == v.shape[0]
 
     Nsites = u.shape[0]
 
@@ -110,18 +109,18 @@ def bcs_stats_average(u, v):
 
     if numpy.max(numpy.std(stats['Tvec'], 0)) > 1e-10:
         logger.warning(' This BCS state is not translationally invariant!  standard deviation of Tvec = ...')
-        logger.warning(numpy.std(Tvec, 0))
+        logger.warning(numpy.std(stats['Tvec'], 0))
 
     return dict([( stats.items()[i][0], numpy.mean(stats.items()[i][1], 0) ) for i in xrange(0,len(stats))])
 
 
-def calculate_Tz(mu0_try, t, delta):
-    assert numpy.max(numpy.abs(t.diagonal())) == 0
+def calculate_Tz(mu0_try, t_offsite, delta):
+    check_offsite_for_onsite(t_offsite)  # otherwise mu0_try won't be what we think it is
 
     logger.debug(' mu0_try = %.9f', mu0_try)
 
-    tt = t + mu0_try * numpy.identity(t.shape[0])
-    soln = bcs_soln(tt, delta)
+    t = add_onsite_terms(t_offsite, mu0_try)
+    soln = bcs_soln(t, delta)
     stats = bcs_stats_average(soln['u'], soln['v'])
 
     logger.debug(' fdagf_try = %.9f', stats['fdagf'])
@@ -130,10 +129,9 @@ def calculate_Tz(mu0_try, t, delta):
 
 
 def calculate_pairing_matrix(u, v, norm):
-    assert isinstance(u, numpy.ndarray)
-    assert isinstance(v, numpy.ndarray)
-    assert u.ndim == v.ndim == 2
-    assert u.shape[0] == u.shape[1] == v.shape[0] == v.shape[1]
+    assert_ismatrix(u)
+    assert_ismatrix(v)
+    assert u.shape[0] == v.shape[0]
 
     # Warn if u is singular, but don't abort cuz sometimes this is OK..
     (signdet, logdet) = numpy.linalg.slogdet(u)
@@ -171,9 +169,7 @@ def norm_of_pairing_matrix(phiMat):
 
 
 def plot_pairing_matrix(phiMat):
-    assert isinstance(phiMat, numpy.ndarray)
-    assert phiMat.ndim == 2
-    assert phiMat.shape[0] == phiMat.shape[1]
+    assert_ismatrix(phiMat)
 
     from mpl_toolkits.mplot3d import Axes3D
     from matplotlib import cm
@@ -206,7 +202,7 @@ def create_t_matrix_basic(lattice, boundary_conditions, t_value, neighbors_func)
             ind_rp = lattice.index(site_rp)
             t[ind_r, ind_rp] = t_value * phase
 
-    assert numpy.max(numpy.abs(t - t.conjugate().transpose())) < 1e-12
+    check_t_matrix(t)  # FIXME: not sure if we always want to check this here, or outside the function
 
     return t
 
@@ -223,6 +219,44 @@ def create_delta_matrix(lattice, boundary_conditions, delta_value, pairing_func,
             ind_rp = lattice.index(site_rp)
             delta[ind_r, ind_rp] = delta_value * pairing_func(lattice, site_r, site) * phase
 
+    check_delta_matrix(delta, channel)  # FIXME: not sure if we always want to check this here, or outside the function
+
+    return delta
+
+
+def add_onsite_terms(offsite, onsite):
+    assert_ismatrix(offsite)
+
+    check_offsite_for_onsite(offsite)  # since we're singling out the on-site terms with this function
+
+    Nsites = offsite.shape[0]
+
+    # total_{ij} = offsite_{ij} + onsite_i * krondelta_{ij}
+    if isinstance(onsite, numpy.ndarray):
+        assert onsite.ndim == 1
+        assert onsite.shape[0] == 1 or onsite.shape[0] == Nsites
+        if onsite.shape[0] == 1:
+            total = offsite + onsite * numpy.identity(Nsites)
+        elif onsite.shape[0] == Nsites:
+            total = offsite + numpy.diag(onsite)
+    else:
+        total = offsite + onsite * numpy.identity(Nsites)
+
+    return total
+
+
+# FIXME: this is pretty general; could be placed in a more general location..
+def assert_ismatrix(guy):
+    assert isinstance(guy, numpy.ndarray)
+    assert guy.ndim == 2
+    assert guy.shape[0] == guy.shape[1]
+
+
+def check_t_matrix(t):
+    assert numpy.max(numpy.abs(t - t.conjugate().transpose())) < 1e-12
+
+
+def check_delta_matrix(delta, channel):
     if channel == 'singlet':
         assert numpy.max(numpy.abs(delta - delta.transpose())) < 1e-12
     elif channel == 'triplet':
@@ -230,7 +264,10 @@ def create_delta_matrix(lattice, boundary_conditions, delta_value, pairing_func,
     else:
         logger.warning(' unable to check delta for appropriate pairing channel (singlet or triplet).')
 
-    return delta
+
+def check_offsite_for_onsite(offsite):
+    assert numpy.max(numpy.abs(offsite.diagonal())) == 0
+
 
 
 ##### Ansatz-specific stuff #####
@@ -256,24 +293,25 @@ def dx2minusy2_pairing_pattern(lattice, site1, site2):
 
 
 def did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, delta0, mu0_start, mu0=None, norm=None):
-    Nsites = len(lattice)
 
-    t = create_t_matrix_basic(lattice, boundary_conditions, t1, lattice.nearest_neighbors)
-    delta = create_delta_matrix(lattice, boundary_conditions, delta1, did_pairing_pattern, lattice.nearest_neighbors, 'singlet')
+    delta_offsite = create_delta_matrix(lattice, boundary_conditions, delta1, did_pairing_pattern, lattice.nearest_neighbors, 'singlet')
+    delta = add_onsite_terms(delta_offsite, delta0)
+    # this will never fail for singlet pairing (create_delta_matrix also checks delta)
+    check_delta_matrix(delta, 'singlet')
 
-    assert numpy.max(numpy.abs(t.diagonal())) == 0
-    assert numpy.max(numpy.abs(delta.diagonal())) == 0
+    t_offsite = create_t_matrix_basic(lattice, boundary_conditions, t1, lattice.nearest_neighbors)
+    check_offsite_for_onsite(t_offsite) # calculate_Tz also currently checks this..
 
     if mu0 is None:
-        mu0_soln = optimize.fsolve(calculate_Tz, mu0_start, args=(t, delta), full_output=True, xtol=1e-06, epsfcn=0.1)
+        mu0_soln = optimize.fsolve(calculate_Tz, mu0_start, args=(t_offsite, delta_offsite), full_output=True, xtol=1e-06, epsfcn=0.1)
         logger.info(' mu0_soln = %s', mu0_soln)
         mu0 = mu0_soln[0][0]
 #        mu0 = optimize.newton(calculate_Tz, mu0_start, tol=1e-06)
 
-    tt = t + mu0 * numpy.identity(Nsites)
-    delta = delta + delta0 * numpy.identity(Nsites)
+    t = add_onsite_terms(t_offsite, mu0)
+    check_t_matrix(t)  # this would only fail if mu0 were complex or something
 
-    soln = bcs_soln(tt, delta)
+    soln = bcs_soln(t, delta)
     stats = bcs_stats_average(soln['u'], soln['v'])
 
     logger.info(' mu0 = %.9f', mu0)
@@ -288,7 +326,7 @@ def did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, delta0, mu0_star
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    lattice = HexagonalLattice([6, 6])
+    lattice = HexagonalLattice([18, 18])
     boundary_conditions = (periodic, antiperiodic)
 
     theta = 0.816814
@@ -296,6 +334,6 @@ if __name__ == '__main__':
     t1 = numpy.cos(theta)
     delta1 = numpy.sin(theta)
 
-    bcs_theory = did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, 0, 0)
+    bcs_theory = did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, 0, 0, mu0=None, norm=None)
 
     plot_pairing_matrix(bcs_theory['pairing_matrix'])

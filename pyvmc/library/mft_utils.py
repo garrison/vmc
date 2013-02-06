@@ -290,7 +290,7 @@ def dx2minusy2_pairing_pattern(lattice, site1, site2):
     return Rhat[0]**2 - Rhat[1]**2
 
 
-def did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, delta0, mu0_start, mu0=None, norm=None):
+def did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, delta0, mu0_start=0, mu0=None, norm=None):
 
     delta_offsite = create_delta_matrix(lattice, boundary_conditions, delta1, did_pairing_pattern, lattice.nearest_neighbors, 'singlet')
     delta = add_onsite_terms(delta_offsite, delta0)

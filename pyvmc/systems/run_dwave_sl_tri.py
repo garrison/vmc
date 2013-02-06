@@ -15,8 +15,10 @@ import os
 from collections import OrderedDict
 
 
-def parameter_scan(states_iterable, use_prev=False):
-    from pyvmc.library.mft_utils import did_hf_bcs_theory, plot_pairing_matrix
+def parameter_scan(theory_func, states_iterable, use_prev=False):
+    assert theory_func is did_hf_bcs_theory or theory_func is dx2minusy2_hf_bcs_theory
+
+    from pyvmc.library.mft_utils import plot_pairing_matrix
 
     from pyvmc.library.bcs import ProjectedBCSWavefunction
 
@@ -26,7 +28,7 @@ def parameter_scan(states_iterable, use_prev=False):
     from pyvmc.tmp.scan import do_calculate_plans
 
     datadir = 'data/test'
-    prefix = 'did_nn'
+    prefix = 'dnodal_nn'
 
     lattice = HexagonalLattice([6, 6])
     boundary_conditions = (periodic, antiperiodic)  # for partons in mft (physical bound. conds. will always be fully periodic)
@@ -79,7 +81,8 @@ def parameter_scan(states_iterable, use_prev=False):
         wf_params['norm'] = len(lattice)  # FIXME..
 
         logger.info('starting a new state! wf_params = %s', wf_params)
-        bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, **wf_params)
+#        bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, **wf_params)
+        bcs_theory = theory_func(lattice, boundary_conditions, **wf_params)
 
         phi = bcs_theory['pairing_matrix']
         wf = ProjectedBCSWavefunction(**{
@@ -136,6 +139,8 @@ def parameter_scan(states_iterable, use_prev=False):
 
 
 if __name__ == "__main__":
+    from pyvmc.library.mft_utils import did_hf_bcs_theory, dx2minusy2_hf_bcs_theory
+
     logging.basicConfig(level=logging.INFO)
 
     def nn_alpha_parameters():
@@ -150,7 +155,7 @@ if __name__ == "__main__":
                 'delta3': 0,
             }
 
-    parameter_scan(nn_alpha_parameters(), use_prev=True)
+    parameter_scan(dx2minusy2_hf_bcs_theory, nn_alpha_parameters(), use_prev=True)
 
 #    from pyvmc.utils.parameter_iteration import iterate_parameters
 #    parameter_scan([d for d in iterate_parameters(['t1', 'delta1']) if d['delta1'] != 0])

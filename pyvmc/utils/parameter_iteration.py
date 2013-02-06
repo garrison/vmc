@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from itertools import product
 from math import sqrt
 
@@ -25,5 +26,5 @@ def iterate_values(n_parameters, n_steps=None, exp_func=None):
             if 0 in a)
 
 def iterate_parameters(parameters, n_steps=None, exp_func=None):
-    return (dict(zip(parameters, values))
+    return (OrderedDict(zip(parameters, values))
             for values in iterate_values(len(parameters), n_steps, exp_func))

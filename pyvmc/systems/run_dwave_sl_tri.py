@@ -15,10 +15,8 @@ import os
 from collections import OrderedDict
 
 
-def parameter_scan(theory_func, states_iterable, use_prev=False):
+def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, boundary_conditions, wf_params, use_prev=False):
     assert theory_func is did_hf_bcs_theory or theory_func is dx2minusy2_hf_bcs_theory
-
-    from pyvmc.library.mft_utils import plot_pairing_matrix
 
     from pyvmc.library.bcs import ProjectedBCSWavefunction
 
@@ -26,17 +24,6 @@ def parameter_scan(theory_func, states_iterable, use_prev=False):
     from pyvmc.core.measurement import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
     from pyvmc.tmp.scan import do_calculate_plans
-
-    datadir = 'data/test'
-    prefix = 'dnodal_nn'
-
-    lattice = HexagonalLattice([6, 6])
-    boundary_conditions = (periodic, antiperiodic)  # for partons in mft (physical bound. conds. will always be fully periodic)
-
-    wf_params = {
-        'delta0': 0,
-        'mu0_start': 0.1,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
-    }
 
     boundary_conditions_string = [boundary_condition_to_string(bc) for bc in boundary_conditions]
     filename = (prefix + '_' +
@@ -81,7 +68,6 @@ def parameter_scan(theory_func, states_iterable, use_prev=False):
         wf_params['norm'] = len(lattice)  # FIXME..
 
         logger.info('starting a new state! wf_params = %s', wf_params)
-#        bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, **wf_params)
         bcs_theory = theory_func(lattice, boundary_conditions, **wf_params)
 
         phi = bcs_theory['pairing_matrix']
@@ -155,7 +141,19 @@ if __name__ == "__main__":
                 'delta3': 0,
             }
 
-    parameter_scan(dx2minusy2_hf_bcs_theory, nn_alpha_parameters(), use_prev=True)
+    parameter_scan(
+        theory_func = did_hf_bcs_theory,
+        states_iterable = nn_alpha_parameters(),
+        datadir = '.',
+        prefix = 'did_nn',
+        lattice = HexagonalLattice([12, 12]),
+        boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
+        wf_params = {
+            'delta0': 0,
+            'mu0_start': 0.1,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
+        },
+        use_prev = True,
+    )
 
 #    from pyvmc.utils.parameter_iteration import iterate_parameters
 #    parameter_scan([d for d in iterate_parameters(['t1', 'delta1']) if d['delta1'] != 0])

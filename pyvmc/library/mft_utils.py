@@ -290,20 +290,28 @@ def dx2minusy2_pairing_pattern(lattice, site1, site2):
     return Rhat[0]**2 - Rhat[1]**2
 
 
-def did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, delta0, mu0_start=0, mu0=None, norm=None):
+# hf is for 'half-filling' since the function currently solves for the root of Tz: Tz=0 (fdagf=1)
+# FIXME: have desired average fdagf or Tvec be a parameter
+def did_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0=None, delta0=0, norm=None, t2=0, delta2=0, t3=0, delta3=0):
 
-    delta_offsite = create_delta_matrix(lattice, boundary_conditions, delta1, did_pairing_pattern, lattice.nearest_neighbors, 'singlet')
+    delta_offsite = \
+        create_delta_matrix(lattice, boundary_conditions, delta1, did_pairing_pattern, lattice.nearest_neighbors, 'singlet') + \
+        create_delta_matrix(lattice, boundary_conditions, delta2, did_pairing_pattern, lattice.second_nearest_neighbors, 'singlet') + \
+        create_delta_matrix(lattice, boundary_conditions, delta3, did_pairing_pattern, lattice.third_nearest_neighbors, 'singlet')
     delta = add_onsite_terms(delta_offsite, delta0)
     check_delta_matrix(delta, 'singlet')  # this will never fail for singlet pairing (create_delta_matrix also checks delta)
 
-    t_offsite = create_t_matrix_basic(lattice, boundary_conditions, t1, lattice.nearest_neighbors)
-    check_offsite_for_onsite(t_offsite) # calculate_Tz also currently checks this everytime we call add_onsite_terms
+    t_offsite = \
+        create_t_matrix_basic(lattice, boundary_conditions, t1, lattice.nearest_neighbors) + \
+        create_t_matrix_basic(lattice, boundary_conditions, t2, lattice.second_nearest_neighbors) + \
+        create_t_matrix_basic(lattice, boundary_conditions, t3, lattice.third_nearest_neighbors)
+    check_offsite_for_onsite(t_offsite)
 
     if mu0 is None:
         mu0_soln = optimize.fsolve(calculate_Tz, mu0_start, args=(t_offsite, delta_offsite), full_output=True, xtol=1e-06, epsfcn=0.1)
         logger.info(' mu0_soln = %s', mu0_soln)
         mu0 = mu0_soln[0][0]
-#        mu0 = optimize.newton(calculate_Tz, mu0_start, tol=1e-06)
+    #        mu0 = optimize.newton(calculate_Tz, mu0_start, tol=1e-06)
 
     t = add_onsite_terms(t_offsite, mu0)
     check_t_matrix(t)  # this would only fail if mu0 were complex or something
@@ -323,14 +331,11 @@ def did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, delta0, mu0_star
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    lattice = HexagonalLattice([18, 18])
+    lattice = HexagonalLattice([6, 6])
     boundary_conditions = (periodic, antiperiodic)
 
     theta = 0.816814
 
-    t1 = numpy.cos(theta)
-    delta1 = numpy.sin(theta)
-
-    bcs_theory = did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, 0, 0, mu0=None, norm=None)
+    bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, t1=numpy.cos(theta), delta1=numpy.sin(theta))
 
     plot_pairing_matrix(bcs_theory['pairing_matrix'])

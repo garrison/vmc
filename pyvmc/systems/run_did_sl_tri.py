@@ -15,8 +15,8 @@ import os
 from collections import OrderedDict
 
 
-def parameter_scan(states_iterable):
-    from pyvmc.library.mft_utils import did_nn_bcs_theory, plot_pairing_matrix
+def parameter_scan(states_iterable, use_prev=False):
+    from pyvmc.library.mft_utils import did_hf_bcs_theory, plot_pairing_matrix
 
     from pyvmc.library.bcs import ProjectedBCSWavefunction
 
@@ -25,10 +25,10 @@ def parameter_scan(states_iterable):
     from pyvmc.core import LatticeSite
     from pyvmc.tmp.scan import do_calculate_plans
 
-    datadir = 'data'
-    prefix = 'did_nn-test2'
+    datadir = 'data/test'
+    prefix = 'did_nn'
 
-    lattice = HexagonalLattice([12, 12])
+    lattice = HexagonalLattice([6, 6])
     boundary_conditions = (periodic, antiperiodic)  # for partons in mft (physical bound. conds. will always be fully periodic)
 
     wf_params = {
@@ -45,16 +45,20 @@ def parameter_scan(states_iterable):
     fullpath = os.path.join(datadir, filename)
 
     info_keys = (
-        'HeisNN',
-        'HeisNNN',
-        'HeisNNNN',
-        'ring4site',
         't1',
         'delta1',
+        't2',
+        'delta2',
+        't3',
+        'delta3',
         'delta0',
         'mu0',
         'fdagf',
         'Ttot',
+        'HeisNN',
+        'HeisNNN',
+        'HeisNNNN',
+        'ring4site',
     )
 
     if not os.path.exists(fullpath):
@@ -64,6 +68,7 @@ def parameter_scan(states_iterable):
         datafile.write('# ')
         for key in info_keys: datafile.write(key + '  ')
         datafile.write('\n')
+        datafile.flush()
     else:
         datafile = open(fullpath, 'a')
 
@@ -74,7 +79,7 @@ def parameter_scan(states_iterable):
         wf_params['norm'] = len(lattice)  # FIXME..
 
         logger.info('starting a new state! wf_params = %s', wf_params)
-        bcs_theory = did_nn_bcs_theory(lattice, boundary_conditions, **wf_params)
+        bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, **wf_params)
 
         phi = bcs_theory['pairing_matrix']
         wf = ProjectedBCSWavefunction(**{
@@ -103,16 +108,20 @@ def parameter_scan(states_iterable):
             logger.info(term[0] + ' = %.6f', term[1])
 
         output = {
-            'HeisNN': Hami_terms['HeisNN'],
-            'HeisNNN': Hami_terms['HeisNNN'],
-            'HeisNNNN': Hami_terms['HeisNNNN'],
-            'ring4site': Hami_terms['ring4site'],
             't1': wf_params['t1'],
             'delta1': wf_params['delta1'],
+            't2': wf_params['t2'],
+            'delta2': wf_params['delta2'],
+            't3': wf_params['t3'],
+            'delta3': wf_params['delta3'],
             'delta0': wf_params['delta0'],
             'mu0': bcs_theory['chemical_potential'],
             'fdagf': bcs_theory['bcs_stats']['fdagf'],
             'Ttot': bcs_theory['bcs_stats']['Ttot'],
+            'HeisNN': Hami_terms['HeisNN'],
+            'HeisNNN': Hami_terms['HeisNNN'],
+            'HeisNNNN': Hami_terms['HeisNNNN'],
+            'ring4site': Hami_terms['ring4site'],
         }
 
         data2write = numpy.array( [ output[k] for k in info_keys ] )
@@ -120,7 +129,8 @@ def parameter_scan(states_iterable):
         datafile.write('\n')
         datafile.flush()
 
-#        wf_params['mu0_start'] = bcs_theory['chemical_potential']
+        if use_prev:
+            wf_params['mu0_start'] = bcs_theory['chemical_potential']
 
     datafile.close()
 
@@ -129,14 +139,18 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
 
     def nn_alpha_parameters():
-        for alpha in numpy.arange(pi/100, pi/2, pi/100):
-            logger.info(' Starting new state, alpha = %f', alpha)
+        for alpha in numpy.linspace(pi/100, pi/2, 50):
+            logger.info('starting new state, alpha = %f', alpha)
             yield {
                 't1': numpy.cos(alpha),
                 'delta1': numpy.sin(alpha),
+                't2': 0,
+                'delta2': 0,
+                't3': 0,
+                'delta3': 0,
             }
 
-    #parameter_scan(nn_alpha_parameters())
+    parameter_scan(nn_alpha_parameters(), use_prev=True)
 
-    from pyvmc.utils.parameter_iteration import iterate_parameters
-    parameter_scan([d for d in iterate_parameters(['t1', 'delta1']) if d['delta1'] != 0])
+#    from pyvmc.utils.parameter_iteration import iterate_parameters
+#    parameter_scan([d for d in iterate_parameters(['t1', 'delta1']) if d['delta1'] != 0])

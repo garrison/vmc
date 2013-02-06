@@ -15,7 +15,7 @@ import os
 from collections import OrderedDict
 
 
-def alpha_scan(tolerance=None):
+def parameter_scan(states_iterable):
     from pyvmc.library.mft_utils import did_nn_bcs_theory, plot_pairing_matrix
 
     from pyvmc.library.bcs import ProjectedBCSWavefunction
@@ -26,33 +26,15 @@ def alpha_scan(tolerance=None):
     from pyvmc.tmp.scan import do_calculate_plans
 
     datadir = 'data'
-    prefix = 'did_nn-head'
+    prefix = 'did_nn-test2'
 
     lattice = HexagonalLattice([12, 12])
     boundary_conditions = (periodic, antiperiodic)  # for partons in mft (physical bound. conds. will always be fully periodic)
 
-    alphas = numpy.arange(pi/100, pi/2, pi/100)
-
-    wf_params = OrderedDict([
-        ('t1', None),
-        ('delta1', None),
-        ('delta0', 0),
-        ('mu0_start', 0),
-        ('mu0', None),
-        ('norm', None)
-    ])
-
-    wf_stats = OrderedDict([
-        ('fdagf', None),
-        ('Ttot', None)
-    ])
-
-    Hami_terms = OrderedDict([
-        ('HeisNN', None),
-        ('HeisNNN', None),
-        ('HeisNNNN', None),
-        ('ring4site', None)
-    ])
+    wf_params = {
+        'delta0': 0,
+        'mu0_start': 0.1,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
+    }
 
     boundary_conditions_string = [boundary_condition_to_string(bc) for bc in boundary_conditions]
     filename = (prefix + '_' +
@@ -62,7 +44,18 @@ def alpha_scan(tolerance=None):
                'BCY' + boundary_conditions_string[1][0] + '.dat')
     fullpath = os.path.join(datadir, filename)
 
-    info_keys = OrderedDict(Hami_terms.items() + wf_params.items() + wf_stats.items()).keys()
+    info_keys = (
+        'HeisNN',
+        'HeisNNN',
+        'HeisNNNN',
+        'ring4site',
+        't1',
+        'delta1',
+        'delta0',
+        'mu0',
+        'fdagf',
+        'Ttot',
+    )
 
     if not os.path.exists(fullpath):
         datafile = open(fullpath, 'w')
@@ -75,17 +68,15 @@ def alpha_scan(tolerance=None):
         datafile = open(fullpath, 'a')
 
 
-    for alpha in alphas:
-        logger.info(' Starting new state, alpha = %f', alpha)
-
-        wf_params['t1'] = numpy.cos(alpha)
-        wf_params['delta1'] = numpy.sin(alpha)
+    for wf_params_override in states_iterable:
+        for k, v in wf_params_override.items():
+            wf_params[k] = v
         wf_params['norm'] = len(lattice)  # FIXME..
 
+        logger.info('starting a new state! wf_params = %s', wf_params)
         bcs_theory = did_nn_bcs_theory(lattice, boundary_conditions, **wf_params)
 
         phi = bcs_theory['pairing_matrix']
-
         wf = ProjectedBCSWavefunction(**{
             'lattice': lattice,
             'phi': phi,
@@ -101,30 +92,51 @@ def alpha_scan(tolerance=None):
         context = {p.operator: result[-1] for p, result in results.iteritems()}
         evaluator = hamiltonian.evaluate(context)
 
-        Hami_terms['HeisNN'] = evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3
-        Hami_terms['HeisNNN'] = evaluator(J1=0, J2=1, J3=0, K=0) / len(lattice) / 3
-        Hami_terms['HeisNNNN'] = evaluator(J1=0, J2=0, J3=1, K=0) / len(lattice) / 3
-        Hami_terms['ring4site'] = evaluator(J1=0, J2=0, J3=0, K=1) / len(lattice) / 3
+        Hami_terms = OrderedDict([
+            ('HeisNN', evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3),
+            ('HeisNNN', evaluator(J1=0, J2=1, J3=0, K=0) / len(lattice) / 3),
+            ('HeisNNNN', evaluator(J1=0, J2=0, J3=1, K=0) / len(lattice) / 3),
+            ('ring4site', evaluator(J1=0, J2=0, J3=0, K=1) / len(lattice) / 3),
+        ])
 
         for term in Hami_terms.items():
             logger.info(term[0] + ' = %.6f', term[1])
 
-        wf_params['mu0'] = bcs_theory['chemical_potential']
-        wf_stats['fdagf'] = bcs_theory['bcs_stats']['fdagf']
-        wf_stats['Ttot'] = bcs_theory['bcs_stats']['Ttot']
+        output = {
+            'HeisNN': Hami_terms['HeisNN'],
+            'HeisNNN': Hami_terms['HeisNNN'],
+            'HeisNNNN': Hami_terms['HeisNNNN'],
+            'ring4site': Hami_terms['ring4site'],
+            't1': wf_params['t1'],
+            'delta1': wf_params['delta1'],
+            'delta0': wf_params['delta0'],
+            'mu0': bcs_theory['chemical_potential'],
+            'fdagf': bcs_theory['bcs_stats']['fdagf'],
+            'Ttot': bcs_theory['bcs_stats']['Ttot'],
+        }
 
-        data2write = numpy.array( OrderedDict(Hami_terms.items() + wf_params.items() + wf_stats.items()).values() )
+        data2write = numpy.array( [ output[k] for k in info_keys ] )
         data2write.tofile(datafile, '  ')
         datafile.write('\n')
         datafile.flush()
 
-        # fix things up for next iteration..
-        wf_params['mu0_start'] = wf_params['mu0']
-        wf_params['mu0'] = None
+#        wf_params['mu0_start'] = bcs_theory['chemical_potential']
 
     datafile.close()
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    alpha_scan()
+
+    def nn_alpha_parameters():
+        for alpha in numpy.arange(pi/100, pi/2, pi/100):
+            logger.info(' Starting new state, alpha = %f', alpha)
+            yield {
+                't1': numpy.cos(alpha),
+                'delta1': numpy.sin(alpha),
+            }
+
+    #parameter_scan(nn_alpha_parameters())
+
+    from pyvmc.utils.parameter_iteration import iterate_parameters
+    parameter_scan([d for d in iterate_parameters(['t1', 'delta1']) if d['delta1'] != 0])

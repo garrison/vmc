@@ -115,8 +115,6 @@ def bcs_stats_average(u, v):
 
 
 def calculate_Tz(mu0_try, t_offsite, delta):
-    check_offsite_for_onsite(t_offsite)  # otherwise mu0_try won't be what we think it is
-
     logger.debug(' mu0_try = %.9f', mu0_try)
 
     t = add_onsite_terms(t_offsite, mu0_try)
@@ -296,11 +294,10 @@ def did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, delta0, mu0_star
 
     delta_offsite = create_delta_matrix(lattice, boundary_conditions, delta1, did_pairing_pattern, lattice.nearest_neighbors, 'singlet')
     delta = add_onsite_terms(delta_offsite, delta0)
-    # this will never fail for singlet pairing (create_delta_matrix also checks delta)
-    check_delta_matrix(delta, 'singlet')
+    check_delta_matrix(delta, 'singlet')  # this will never fail for singlet pairing (create_delta_matrix also checks delta)
 
     t_offsite = create_t_matrix_basic(lattice, boundary_conditions, t1, lattice.nearest_neighbors)
-    check_offsite_for_onsite(t_offsite) # calculate_Tz also currently checks this..
+    check_offsite_for_onsite(t_offsite) # calculate_Tz also currently checks this everytime we call add_onsite_terms
 
     if mu0 is None:
         mu0_soln = optimize.fsolve(calculate_Tz, mu0_start, args=(t_offsite, delta_offsite), full_output=True, xtol=1e-06, epsfcn=0.1)
@@ -320,7 +317,7 @@ def did_nn_bcs_theory(lattice, boundary_conditions, t1, delta1, delta0, mu0_star
 
     phi = calculate_pairing_matrix(soln['u'], soln['v'], norm)
 
-    return {'pairing_matrix':phi, 'bcs_stats':stats, 'chemical_potential':mu0}
+    return {'pairing_matrix':phi, 'chemical_potential':mu0, 'bcs_stats':stats}
 
 
 if __name__ == '__main__':

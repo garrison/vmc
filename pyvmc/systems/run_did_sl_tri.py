@@ -12,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 import os
 
+from collections import OrderedDict
+
 
 def alpha_scan(tolerance=None):
     from pyvmc.library.mft_utils import did_nn_bcs_theory, plot_pairing_matrix
@@ -24,40 +26,65 @@ def alpha_scan(tolerance=None):
     from pyvmc.tmp.scan import do_calculate_plans
 
     datadir = 'data'
-    prefix = 'did_nn-test'
+    prefix = 'did_nn-head'
 
+    lattice = HexagonalLattice([12, 12])
     boundary_conditions = (periodic, antiperiodic)  # for partons in mft (physical bound. conds. will always be fully periodic)
-    lattice = HexagonalLattice([18, 18])
 
     alphas = numpy.arange(pi/100, pi/2, pi/100)
 
-    boundary_conditions_string = [boundary_condition_to_string(bc)[0] for bc in boundary_conditions]
+    wf_params = OrderedDict([
+        ('t1', None),
+        ('delta1', None),
+        ('delta0', 0),
+        ('mu0_start', 0),
+        ('mu0', None),
+        ('norm', None)
+    ])
+
+    wf_stats = OrderedDict([
+        ('fdagf', None),
+        ('Ttot', None)
+    ])
+
+    Hami_terms = OrderedDict([
+        ('HeisNN', None),
+        ('HeisNNN', None),
+        ('HeisNNNN', None),
+        ('ring4site', None)
+    ])
+
+    boundary_conditions_string = [boundary_condition_to_string(bc) for bc in boundary_conditions]
     filename = (prefix + '_' +
                'Lx' + str(lattice.dimensions[0]) + '_' +
                'Ly' + str(lattice.dimensions[1]) + '_' +
-               'BCX' + boundary_conditions_string[0] + '_' +
-               'BCY' + boundary_conditions_string[1] + '.dat')
-    datafile = open(os.path.join(datadir, filename), 'a')
+               'BCX' + boundary_conditions_string[0][0] + '_' +
+               'BCY' + boundary_conditions_string[1][0] + '.dat')
+    fullpath = os.path.join(datadir, filename)
+
+    info_keys = OrderedDict(Hami_terms.items() + wf_params.items() + wf_stats.items()).keys()
+
+    if not os.path.exists(fullpath):
+        datafile = open(fullpath, 'w')
+        datafile.write('# lattice dimensions = ' + str(lattice.dimensions) + '\n')
+        datafile.write('# boundary conditions = ' + str(boundary_conditions_string) + '\n')
+        datafile.write('# ')
+        for key in info_keys: datafile.write(key + '  ')
+        datafile.write('\n')
+    else:
+        datafile = open(fullpath, 'a')
+
 
     for alpha in alphas:
         logger.info(' Starting new state, alpha = %f', alpha)
 
-        wf_params = {
-            't1': numpy.cos(alpha),
-            'delta1': numpy.sin(alpha),
-            'delta0': 0,
-            'mu0_start': 0,
-            'mu0': None,
-            'norm': len(lattice)
-            }
+        wf_params['t1'] = numpy.cos(alpha)
+        wf_params['delta1'] = numpy.sin(alpha)
+        wf_params['norm'] = len(lattice)  # FIXME..
 
         bcs_theory = did_nn_bcs_theory(lattice, boundary_conditions, **wf_params)
 
         phi = bcs_theory['pairing_matrix']
-
-        mu0 = bcs_theory['chemical_potential']
-        fdagf = bcs_theory['bcs_stats']['fdagf']
-        Ttot = bcs_theory['bcs_stats']['Ttot']
 
         wf = ProjectedBCSWavefunction(**{
             'lattice': lattice,
@@ -74,20 +101,26 @@ def alpha_scan(tolerance=None):
         context = {p.operator: result[-1] for p, result in results.iteritems()}
         evaluator = hamiltonian.evaluate(context)
 
-        HeisNN = evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3
-        HeisNNN = evaluator(J1=0, J2=1, J3=0, K=0) / len(lattice) / 3
-        HeisNNNN = evaluator(J1=0, J2=0, J3=1, K=0) / len(lattice) / 3
-        ring4site = evaluator(J1=0, J2=0, J3=0, K=1) / len(lattice) / 3
+        Hami_terms['HeisNN'] = evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3
+        Hami_terms['HeisNNN'] = evaluator(J1=0, J2=1, J3=0, K=0) / len(lattice) / 3
+        Hami_terms['HeisNNNN'] = evaluator(J1=0, J2=0, J3=1, K=0) / len(lattice) / 3
+        Hami_terms['ring4site'] = evaluator(J1=0, J2=0, J3=0, K=1) / len(lattice) / 3
 
-        logger.info(' HeisNN = %.6f', HeisNN)
-        logger.info(' HeisNNN = %.6f', HeisNNN)
-        logger.info(' HeisNNNN = %.6f', HeisNNNN)
-        logger.info(' ring4site = %.6f', ring4site)
+        for term in Hami_terms.items():
+            logger.info(term[0] + ' = %.6f', term[1])
 
-        data2write = numpy.array([alpha, HeisNN, HeisNNN, HeisNNNN, ring4site, mu0, fdagf, Ttot])
+        wf_params['mu0'] = bcs_theory['chemical_potential']
+        wf_stats['fdagf'] = bcs_theory['bcs_stats']['fdagf']
+        wf_stats['Ttot'] = bcs_theory['bcs_stats']['Ttot']
+
+        data2write = numpy.array( OrderedDict(Hami_terms.items() + wf_params.items() + wf_stats.items()).values() )
         data2write.tofile(datafile, '  ')
         datafile.write('\n')
         datafile.flush()
+
+        # fix things up for next iteration..
+        wf_params['mu0_start'] = wf_params['mu0']
+        wf_params['mu0'] = None
 
     datafile.close()
 

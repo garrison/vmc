@@ -1,10 +1,13 @@
 from itertools import chain
+import logging
 
 import numpy
 
 from pyvmc.utils import custom_json as json
 from pyvmc.core.simulation import MetropolisSimulation
 from pyvmc.core.rng import RandomNumberGenerator
+
+logger = logging.getLogger(__name__)
 
 def _create_universe_set(plans):
     return set(chain.from_iterable(p.get_measurement_plans() for p in plans))
@@ -34,6 +37,12 @@ def do_calculate_plans(plans):
 
             universe_results[p].append(m.get_result())
             # FIXME: do a reset!
+
+    for sim, walk in zip(sims, by_walk):
+        logger.info("%s had %.2f%% of steps accepted (with %.2f%% fully rejected)",
+                    walk.__class__.__name__,
+                    (100.0 * sim.steps_accepted / sim.steps_completed),
+                    (100.0 * sim.steps_fully_rejected / sim.steps_completed))
 
     return universe_results
 

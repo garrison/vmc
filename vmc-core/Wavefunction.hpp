@@ -180,6 +180,7 @@ public:
         , move_in_progress(false)
 #endif
             {
+                BOOST_ASSERT(wf_); // check that it is not null
             }
 
         const Move & get_reverse_move (void) const

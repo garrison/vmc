@@ -81,7 +81,7 @@ public:
     boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const
         {
             BOOST_ASSERT(this == this_ptr.get());
-            return boost::make_shared<Amplitude>(boost::shared_polymorphic_downcast<const DMetalWavefunction>(this_ptr), r);
+            return boost::make_shared<Amplitude>(boost::dynamic_pointer_cast<const DMetalWavefunction>(this_ptr), r);
         }
 
     unsigned int get_N_species (void) const

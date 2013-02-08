@@ -210,26 +210,25 @@ boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction::create_nonzero_wavef
 
 Move BCSWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
 {
-    const BCSWavefunction *wf_ = boost::polymorphic_downcast<const BCSWavefunction *>(wf.get());
-    const unsigned int N = wf->lattice->total_sites();
-    const unsigned int M = wf_->M;
+    Move move;
 
-    BOOST_ASSERT(2 * M <= N);
-    const unsigned int empty_sites = N - 2 * M;
+    // choose a particle and plan to move it to a site that doesn't already
+    // contain a particle of the same spin
+    const Particle particle(choose_random_particle(r, rng));
+    const unsigned int target_site_index = plan_particle_move_to_nearby_empty_site(particle, r, *wf->lattice, rng);
+    if (target_site_index == r[particle])
+        return Move();
+    move.push_back(SingleParticleMove(particle, target_site_index));
 
-    if (empty_sites != 0) {
-        if (rng.random_small_uint(2) == 0) { // FIXME: consider a more efficient heuristic
-            // move a random particle to an empty site (by calling the
-            // superclass's implementation)
-            return Wavefunction::Amplitude::propose_move(rng);
-        }
+    // if the target site has a particle of opposite spin, we want it to swap
+    // positions with our original particle
+    BOOST_ASSERT(wf->get_N_species() == 2);
+    const unsigned int other_species = particle.species ^ 1;
+    if (r.is_occupied(target_site_index, other_species)) {
+        const int target_particle_index = r.particle_index_at_position(target_site_index, other_species);
+        BOOST_ASSERT(target_particle_index >= 0);
+        move.push_back(SingleParticleMove(Particle(target_particle_index, other_species), r[particle]));
     }
 
-    // choose a particle of each species and swap their positions
-    Move move;
-    const Particle up_particle(rng.random_small_uint(M), 0);
-    const Particle dn_particle(rng.random_small_uint(M), 1);
-    move.push_back(SingleParticleMove(up_particle, r[dn_particle]));
-    move.push_back(SingleParticleMove(dn_particle, r[up_particle]));
     return move;
 }

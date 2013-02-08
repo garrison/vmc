@@ -7,8 +7,7 @@ from pyvmc.core import HexagonalLattice, Bands, periodic, antiperiodic
 
 logger = logging.getLogger(__name__)
 
-def test_ansatz(chi, eta, a0_3, expected_results, tolerance):
-    lattice = HexagonalLattice([18, 18])
+def test_ansatz(lattice, chi, eta, a0_3, expected_results, tolerance):
     parton_boundary_conditions = (periodic, antiperiodic)
 
     from pyvmc.library.mft_utils import did_nn_bcs_theory
@@ -50,10 +49,16 @@ def test_ansatz(chi, eta, a0_3, expected_results, tolerance):
 
 def test_projected_bcs_states(tolerance=.01):
     # Z2A
-    test_ansatz(chi=0, eta=1, a0_3=0, expected_results=(-.157, .028, .025, -.10), tolerance=tolerance)
+    test_ansatz(HexagonalLattice([6, 6]), chi=0, eta=1, a0_3=0,
+                expected_results=(-.157, .028, .025, -.10), tolerance=2*tolerance)
+    #test_ansatz(HexagonalLattice([18, 18]), chi=0, eta=1, a0_3=0,
+    #            expected_results=(-.157, .028, .025, -.10), tolerance=tolerance)
 
     # ChSU2B
-    test_ansatz(chi=1, eta=sqrt(2), a0_3=0, expected_results=(-.160, .029, .017, .102), tolerance=tolerance)
+    test_ansatz(HexagonalLattice([6, 6]), chi=1, eta=sqrt(2), a0_3=0,
+                expected_results=(-.160, .029, .017, .102), tolerance=2*tolerance)
+    #test_ansatz(HexagonalLattice([18, 18]), chi=1, eta=sqrt(2), a0_3=0,
+    #            expected_results=(-.160, .029, .017, .102), tolerance=tolerance)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

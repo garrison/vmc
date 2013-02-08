@@ -3,7 +3,7 @@
 from __future__ import division
 
 from pyvmc.core import HexagonalLattice, Bands, periodic, antiperiodic, boundary_condition_to_string
-from pyvmc.utils import average
+from pyvmc.utils import average_and_stddevmean
 from math import sqrt, pi
 
 import numpy
@@ -87,24 +87,28 @@ def parameter_scan(states_iterable):
         hamiltonian = HeisenbergPlusRingExchangeHamiltonian((periodic, periodic), lattice)
         plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]
         results = do_calculate_plans(plans)
-        context = {p.operator: average(result) for p, result in results.iteritems()}
-        evaluator = hamiltonian.evaluate(context)
+        result_lengths = [len(result) for result in results.itervalues()]
+        assert len(set(result_lengths)) == 1
+        evaluators = []
+        for i in xrange(result_lengths[0]):
+            context = {p.operator: result[i] for p, result in results.iteritems()}
+            evaluators.append(hamiltonian.evaluate(context))
 
         Hami_terms = OrderedDict([
-            ('HeisNN', evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3),
-            ('HeisNNN', evaluator(J1=0, J2=1, J3=0, K=0) / len(lattice) / 3),
-            ('HeisNNNN', evaluator(J1=0, J2=0, J3=1, K=0) / len(lattice) / 3),
-            ('ring4site', evaluator(J1=0, J2=0, J3=0, K=1) / len(lattice) / 3),
+            ('HeisNN', average_and_stddevmean([evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3 for evaluator in evaluators])),
+            ('HeisNNN', average_and_stddevmean([evaluator(J1=0, J2=1, J3=0, K=0) / len(lattice) / 3 for evaluator in evaluators])),
+            ('HeisNNNN', average_and_stddevmean([evaluator(J1=0, J2=0, J3=1, K=0) / len(lattice) / 3 for evaluator in evaluators])),
+            ('ring4site', average_and_stddevmean([evaluator(J1=0, J2=0, J3=0, K=1) / len(lattice) / 3 for evaluator in evaluators])),
         ])
 
-        for term in Hami_terms.items():
-            logger.info(term[0] + ' = %.6f', term[1])
+        for k, v in Hami_terms.items():
+            logger.info('%s = %.6f (%.6f)', k, v[0], v[1])
 
         output = {
-            'HeisNN': Hami_terms['HeisNN'],
-            'HeisNNN': Hami_terms['HeisNNN'],
-            'HeisNNNN': Hami_terms['HeisNNNN'],
-            'ring4site': Hami_terms['ring4site'],
+            'HeisNN': Hami_terms['HeisNN'][0],
+            'HeisNNN': Hami_terms['HeisNNN'][0],
+            'HeisNNNN': Hami_terms['HeisNNNN'][0],
+            'ring4site': Hami_terms['ring4site'][0],
             't1': wf_params['t1'],
             'delta1': wf_params['delta1'],
             'delta0': wf_params['delta0'],

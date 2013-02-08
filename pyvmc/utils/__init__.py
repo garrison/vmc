@@ -33,3 +33,6 @@ def stddevmean(seq):
         return numpy.sqrt(variance / len(seq))
     else:
         return 0.0
+
+def average_and_stddevmean(seq):
+    return average(seq), stddevmean(seq)

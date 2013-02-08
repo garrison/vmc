@@ -39,6 +39,11 @@ private:
                                         / walk.get_phialpha2().psi()));
         }
 
+    void reset (void)
+        {
+            estimate.reset();
+        }
+
     BinnedEstimate<real_t> estimate;
 };
 

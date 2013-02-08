@@ -4,6 +4,7 @@ import logging
 
 from pyvmc.core import Lattice, Bands, periodic, antiperiodic
 from pyvmc.library.dmetal import DMetalWavefunction
+from pyvmc.utils import average
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +42,7 @@ def test_dmetal_energy(tolerance=None):
     hamiltonian = TJKHamiltonian((periodic, periodic), wf.lattice)
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]
     results = do_calculate_plans(plans)
-    # result[-1] gets the last element of the binned array (FIXME: how to do
-    # this? That is, should do_calculate_plans return a data stream or a
-    # result?)
-    context = {p.operator: result[-1] for p, result in results.iteritems()}
+    context = {p.operator: average(result) for p, result in results.iteritems()}
     energy = hamiltonian.evaluate(context)(t=1, J=2, K=2) / len(wf.lattice)
 
     logger.info("Energy (new method): %f", energy)

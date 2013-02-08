@@ -17,6 +17,7 @@ cdef extern from "MetropolisSimulation.hpp":
         unsigned int steps_completed()
         unsigned int steps_accepted()
         unsigned int steps_fully_rejected()
+        void reset_measurement_estimates()
 
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
@@ -44,6 +45,9 @@ cdef class MetropolisSimulation(object):
     def iterate(self, unsigned int sweeps):
         with nogil:
             self.autoptr.get().iterate(sweeps)
+
+    def reset_measurement_estimates(self):
+        self.autoptr.get().reset_measurement_estimates()
 
     property steps_completed:
         def __get__(self):

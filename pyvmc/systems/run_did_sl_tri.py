@@ -3,6 +3,7 @@
 from __future__ import division
 
 from pyvmc.core import HexagonalLattice, Bands, periodic, antiperiodic, boundary_condition_to_string
+from pyvmc.utils import average
 from math import sqrt, pi
 
 import numpy
@@ -86,10 +87,7 @@ def parameter_scan(states_iterable):
         hamiltonian = HeisenbergPlusRingExchangeHamiltonian((periodic, periodic), lattice)
         plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]
         results = do_calculate_plans(plans)
-        # result[-1] gets the last element of the binned array (FIXME: how to do
-        # this? That is, should do_calculate_plans return a data stream or a
-        # result?)
-        context = {p.operator: result[-1] for p, result in results.iteritems()}
+        context = {p.operator: average(result) for p, result in results.iteritems()}
         evaluator = hamiltonian.evaluate(context)
 
         Hami_terms = OrderedDict([

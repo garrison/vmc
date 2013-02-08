@@ -4,6 +4,7 @@ import logging
 from math import sqrt
 
 from pyvmc.core import HexagonalLattice, Bands, periodic, antiperiodic
+from pyvmc.utils import average
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +29,7 @@ def test_ansatz(lattice, chi, eta, a0_3, expected_results, tolerance):
     hamiltonian = HeisenbergPlusRingExchangeHamiltonian(parton_boundary_conditions, lattice)
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]
     results = do_calculate_plans(plans)
-    # result[-1] gets the last element of the binned array (FIXME: how to do
-    # this? That is, should do_calculate_plans return a data stream or a
-    # result?)
-    context = {p.operator: result[-1] for p, result in results.iteritems()}
+    context = {p.operator: average(result) for p, result in results.iteritems()}
     evaluator = hamiltonian.evaluate(context)
     final_results = (
         evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3,

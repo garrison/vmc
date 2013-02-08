@@ -83,3 +83,10 @@ void MetropolisSimulation::perform_initialization (unsigned int initialization_s
     for (std::list<boost::shared_ptr<BaseMeasurement> >::iterator m = measurements.begin(); m != measurements.end(); ++m)
         (*m)->initialize(*walk);
 }
+
+void MetropolisSimulation::reset_measurement_estimates (void)
+{
+    for (std::list<boost::shared_ptr<BaseMeasurement> >::iterator m = measurements.begin(); m != measurements.end(); ++m) {
+        (*m)->reset();
+    }
+}

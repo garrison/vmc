@@ -46,15 +46,10 @@ unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const P
     // otherwise, we find a "nearby" site
     BOOST_ASSERT(r.particle_is_valid(particle));
 
-    unsigned int move_axis;
-    if (lattice.move_axes_count() == 1) {
-        move_axis = 0;
-    } else {
-        move_axis = rng.random_small_uint(lattice.move_axes_count());
-    }
+    const unsigned int move_axis = rng.random_small_uint(lattice.move_axes_count());
 
     // will be either +1 or -1
-    int step_direction = rng.random_small_uint(2) * 2 - 1;
+    const int step_direction = rng.random_small_uint(2) * 2 - 1;
 
     const unsigned int original_site_index = r[particle];
     LatticeSite site(lattice.site_from_index(original_site_index));

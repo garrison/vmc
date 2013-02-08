@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def _create_universe_set(plans):
     return set(chain.from_iterable(p.get_measurement_plans() for p in plans))
 
-def do_calculate_plans(plans):
+def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_sweeps_per_bin=10000):
     # first get all the measurements that need to be performed
     universe = {p: p.to_measurement() for p in _create_universe_set(plans)}
 
@@ -24,13 +24,13 @@ def do_calculate_plans(plans):
     # prepare and equilibriate simulations
     sims = []
     for walk, measurements in by_walk.iteritems():
-        sims.append(MetropolisSimulation(walk.create_walk(RandomNumberGenerator()), walk.wavefunction.lattice, measurements, 500000))
+        sims.append(MetropolisSimulation(walk.create_walk(RandomNumberGenerator()), walk.wavefunction.lattice, measurements,  equilibrium_sweeps))
 
     # perform simulations
     universe_results = {p: [] for p in universe}
-    for i in xrange(100):
+    for i in xrange(bins):
         for sim in sims:
-            sim.iterate(10000)
+            sim.iterate(measurement_sweeps_per_bin)
         for p, m in universe.iteritems():
             # fixme: can we guarantee that p.to_json() doesn't have any forward slashes?
             # fixme: we should really save each measurement in a subgroup for that walk, and in there store information from the walk's completion... INCLUDING rusage, etc

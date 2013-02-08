@@ -2,7 +2,7 @@
 
 from __future__ import division
 
-from pyvmc.core import HexagonalLattice, Bands, periodic, antiperiodic, boundary_condition_to_string
+from pyvmc.core import HexagonalLattice, Bands, periodic, antiperiodic
 from math import sqrt, pi
 
 import numpy
@@ -25,13 +25,19 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
     from pyvmc.core import LatticeSite
     from pyvmc.tmp.scan import do_calculate_plans
 
-    boundary_conditions_string = [boundary_condition_to_string(bc) for bc in boundary_conditions]
-    filename = (prefix + '_' +
+    boundary_conditions_string = [str(bc) for bc in boundary_conditions]
+    fileroot = (prefix + '_' +
                'Lx' + str(lattice.dimensions[0]) + '_' +
                'Ly' + str(lattice.dimensions[1]) + '_' +
                'BCX' + boundary_conditions_string[0][0] + '_' +
-               'BCY' + boundary_conditions_string[1][0] + '.dat')
-    fullpath = os.path.join(datadir, filename)
+               'BCY' + boundary_conditions_string[1][0])
+
+    logpath = os.path.join(datadir, fileroot + '.log')
+    hdlr = logging.FileHandler(logpath)
+    hdlr.setFormatter(logging.Formatter('%(asctime)s %(levelname)s: %(message)s'))
+    logging.getLogger().addHandler(hdlr)
+
+    datapath = os.path.join(datadir, fileroot + '.dat')
 
     info_keys = (
         't1',
@@ -50,8 +56,8 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
         'ring4site',
     )
 
-    if not os.path.exists(fullpath):
-        datafile = open(fullpath, 'w')
+    if not os.path.exists(datapath):
+        datafile = open(datapath, 'w')
         datafile.write('# lattice dimensions = ' + str(lattice.dimensions) + '\n')
         datafile.write('# boundary conditions = ' + str(boundary_conditions_string) + '\n')
         datafile.write('# ')
@@ -59,13 +65,13 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
         datafile.write('\n')
         datafile.flush()
     else:
-        datafile = open(fullpath, 'a')
+        datafile = open(datapath, 'a')
 
 
     for wf_params_override in states_iterable:
         for k, v in wf_params_override.items():
             wf_params[k] = v
-        wf_params['norm'] = len(lattice)  # FIXME..
+        wf_params['norm'] = len(lattice) ** 0.7  # FIXME..
 
         logger.info('starting a new state! wf_params = %s', wf_params)
         bcs_theory = theory_func(lattice, boundary_conditions, **wf_params)
@@ -78,8 +84,8 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
         })
 
         hamiltonian = HeisenbergPlusRingExchangeHamiltonian((periodic, periodic), lattice)
-        plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]
-        results = do_calculate_plans(plans)
+        plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=1000) for o in hamiltonian.get_basic_operators()]
+        results = do_calculate_plans(plans, equilibrium_sweeps=100000, bins=20, measurement_sweeps_per_bin=30000)
         # result[-1] gets the last element of the binned array (FIXME: how to do
         # this? That is, should do_calculate_plans return a data stream or a
         # result?)
@@ -127,7 +133,11 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
 if __name__ == "__main__":
     from pyvmc.library.mft_utils import did_hf_bcs_theory, dx2minusy2_hf_bcs_theory
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s %(levelname)s: %(message)s"',
+                        )
+    logging.getLogger().handlers[0].setLevel(logging.ERROR)
+#    logging.StreamHandler().setLevel(logging.ERROR)
 
     def nn_alpha_parameters():
         for alpha in numpy.linspace(pi/100, pi/2, 50):
@@ -141,6 +151,18 @@ if __name__ == "__main__":
                 'delta3': 0,
             }
 
+    def nnnCenke_beta_parameters():
+        for beta in numpy.linspace(pi/100, pi/2, 50):
+            logger.info('starting new state, beta = %f', beta)
+            yield {
+                't1': 0,
+                'delta1': numpy.cos(beta),
+                't2': 0,
+                'delta2': numpy.sin(beta),
+                't3': 0,
+                'delta3': 0,
+            }
+
     parameter_scan(
         theory_func = did_hf_bcs_theory,
         states_iterable = nn_alpha_parameters(),
@@ -150,7 +172,7 @@ if __name__ == "__main__":
         boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
         wf_params = {
             'delta0': 0,
-            'mu0_start': 0.1,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
+            'mu0_start': 0,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
         },
         use_prev = True,
     )

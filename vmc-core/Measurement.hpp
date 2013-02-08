@@ -22,6 +22,13 @@ public:
     virtual void step_repeated (const Walk &walk) = 0;
 
     virtual bool is_valid_walk (const Walk &walk) = 0;
+
+    /**
+     * When called, this should reset each estimate
+     *
+     * @see RunningEstimate
+     */
+    virtual void reset (void) = 0;
 };
 
 template <class Walk_T>

@@ -13,11 +13,11 @@ class RunningEstimate
 private:
     // The point of the following section of code is to use C++ "partial
     // template specialization" to determine the correct return type for
-    // get_result()
+    // get_*_result()
     template <bool, class>
     class ResultType;
 
-    // if we are estimating an integral type, get_result() should return a
+    // if we are estimating an integral type, get_*_result() should return a
     // real_t
     template <class T1>
     class ResultType<true, T1>
@@ -26,7 +26,7 @@ private:
         typedef real_t type;
     };
 
-    // if we are estimating a non-integral type, get_result() should return
+    // if we are estimating a non-integral type, get_*_result() should return
     // that type
     template <class T1>
     class ResultType<false, T1>
@@ -40,8 +40,10 @@ public:
     typedef typename ResultType<boost::is_integral<T>::value, T>::type result_t;
 
     RunningEstimate (void)
-        : m_total_value(T(0)),
-          m_num_values(0)
+        : m_recent_total_value(T(0)),
+          m_cumulative_total_value(T(0)),
+          m_num_recent_values(0),
+          m_num_cumulative_values(0)
         {
         }
 
@@ -51,30 +53,67 @@ public:
 
     virtual void add_value (T value)
         {
-            m_total_value += value;
-            ++m_num_values;
+            m_recent_total_value += value;
+            ++m_num_recent_values;
+
+            m_cumulative_total_value += value;
+            ++m_num_cumulative_values;
         }
 
-    result_t get_result (void) const
+    /**
+     * Returns the average of all measurements since the most recent reset
+     */
+    result_t get_recent_result (void) const
         {
-            BOOST_ASSERT(m_num_values > 0);
-            return m_total_value / real_t(m_num_values);
+            BOOST_ASSERT(m_num_recent_values > 0);
+            return m_recent_total_value / real_t(m_num_recent_values);
         }
 
-    unsigned int get_num_values (void) const
+    /**
+     * Returns the average of all measurements, regardless of whether the
+     * simulation has been reset
+     */
+    result_t get_cumulative_result (void) const
         {
-            return m_num_values;
+            BOOST_ASSERT(m_num_cumulative_values > 0);
+            return m_cumulative_total_value / real_t(m_num_cumulative_values);
+        }
+
+    /**
+     * Returns the number of samples since the last reset
+     */
+    unsigned int get_num_recent_values (void) const
+        {
+            return m_num_recent_values;
+        }
+
+    /**
+     * Returns the cumulative number of samples in the history of this
+     * estimator
+     */
+    unsigned int get_num_cumulative_values (void) const
+        {
+            return m_num_cumulative_values;
+        }
+
+    /**
+     * Resets the estimator
+     */
+    void reset (void)
+        {
+            m_num_recent_values = 0;
+            m_recent_total_value = T(0);
         }
 
 protected:
-    T get_total_value (void) const
+    T get_cumulative_total_value (void) const
         {
-            return m_total_value;
+            return m_cumulative_total_value;
         }
 
 private:
-    T m_total_value;
-    unsigned int m_num_values;
+    T m_recent_total_value, m_cumulative_total_value;
+    unsigned int m_num_recent_values, m_num_cumulative_values;
 };
 
 #endif

@@ -54,8 +54,11 @@ cdef class RenyiModPossibleMeasurement(BaseMeasurement):
     def __init__(self):
         self.sharedptr.reset(new CppRenyiModPossibleMeasurement())
 
-    def get_result(self):
-        return (<CppRenyiModPossibleMeasurement*>self.sharedptr.get()).get_estimate().get_result()
+    def get_recent_result(self):
+        return (<CppRenyiModPossibleMeasurement*>self.sharedptr.get()).get_estimate().get_recent_result()
+
+    def get_cumulative_result(self):
+        return (<CppRenyiModPossibleMeasurement*>self.sharedptr.get()).get_estimate().get_cumulative_result()
 
 class RenyiSignWalkPlan(WalkPlan):
     __slots__ = ("wavefunction", "subsystem")
@@ -101,6 +104,10 @@ cdef class RenyiSignMeasurement(BaseMeasurement):
     def __init__(self):
         self.sharedptr.reset(new CppRenyiSignMeasurement())
 
-    def get_result(self):
-        cdef complex_t c = (<CppRenyiSignMeasurement*>self.sharedptr.get()).get_estimate().get_result()
+    def get_recent_result(self):
+        cdef complex_t c = (<CppRenyiSignMeasurement*>self.sharedptr.get()).get_estimate().get_recent_result()
+        return complex(c.real(), c.imag())
+
+    def get_cumulative_result(self):
+        cdef complex_t c = (<CppRenyiSignMeasurement*>self.sharedptr.get()).get_estimate().get_cumulative_result()
         return complex(c.real(), c.imag())

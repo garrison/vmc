@@ -54,6 +54,11 @@ private:
             estimate.add_value(std::exp(i * a));
         }
 
+    void reset (void)
+        {
+            estimate.reset();
+        }
+
     BinnedEstimate<amplitude_t> estimate;
 };
 

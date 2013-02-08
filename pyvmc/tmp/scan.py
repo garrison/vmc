@@ -6,6 +6,7 @@ import numpy
 from pyvmc.utils import custom_json as json
 from pyvmc.core.simulation import MetropolisSimulation
 from pyvmc.core.rng import RandomNumberGenerator
+from pyvmc.utils import average
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +31,12 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
     universe_results = {p: [] for p in universe}
     for i in xrange(bins):
         for sim in sims:
+            sim.reset_measurement_estimates()
             sim.iterate(measurement_sweeps_per_bin)
         for p, m in universe.iteritems():
             # fixme: can we guarantee that p.to_json() doesn't have any forward slashes?
             # fixme: we should really save each measurement in a subgroup for that walk, and in there store information from the walk's completion... INCLUDING rusage, etc
-
-            universe_results[p].append(m.get_result())
-            # FIXME: do a reset!
+            universe_results[p].append(m.get_recent_result())
 
     for sim, walk in zip(sims, by_walk):
         logger.info("%s had %.2f%% of steps accepted (with %.2f%% fully rejected)",
@@ -44,16 +44,20 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
                     (100.0 * sim.steps_accepted / sim.steps_completed),
                     (100.0 * sim.steps_fully_rejected / sim.steps_completed))
 
-    return universe_results
+    return {p: numpy.array(results) for p, results in universe_results.iteritems()}
 
 def calculate_plans(plan_dict, h5group):
     universe_results = do_calculate_plans(plan_dict.values())
 
     # now save the results
     for p, results in universe_results.iteritems():
-        dataset = h5group.create_dataset(json.dumps(p.to_json()), data=numpy.array(results))
-        dataset.attrs["NOTE"] = "measurement reset not yet implemented"
+        dataset = h5group.create_dataset(json.dumps(p.to_json()), data=results)
     h5group.file.flush()
+
+def load_results(plan_dict, h5group):
+    return {p: h5group[json.dumps(p.to_json())] for p in _create_universe_set(plan_dict.values())}
+
+# OLD
 
 class ResultReturner(object):
     def __init__(self, result):
@@ -64,7 +68,7 @@ class ResultReturner(object):
 
 def load_results(plan_dict, h5group):
     universe_set = _create_universe_set(plan_dict.values())
-    universe = {plan: ResultReturner(h5group[json.dumps(plan.to_json())][-1]) for plan in universe_set}
+    universe = {plan: ResultReturner(average(numpy.array(h5group[json.dumps(plan.to_json())]))) for plan in universe_set}
     results = {k: plan.get_result(universe) for k, plan in plan_dict.iteritems()}
 
     return results

@@ -56,7 +56,7 @@ class Walk(object):
             "steps-fully-rejected": self.sim.steps_fully_rejected,
         })
         for measurement, deferred in self.measurements_in_progress:
-            deferred.callback((measurement.measurement.get_result(),))
+            deferred.callback((measurement.measurement.get_cumulative_result(),))
         del self.measurements_in_progress[:]
         if self.measurements_pending:
             reactor.callLater(0, self._advance_pending_measurements)

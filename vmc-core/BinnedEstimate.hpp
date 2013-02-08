@@ -19,14 +19,14 @@ public:
     void add_value (T value)
         {
             // create a new bin-level if necessary
-            if (is_just_below_a_power_of_two(this->get_num_values()))
-                binlevel_data.push_back(BinnedSum(this->get_total_value()));
+            if (is_just_below_a_power_of_two(this->get_num_cumulative_values()))
+                binlevel_data.push_back(BinnedSum(this->get_cumulative_total_value()));
 
             RunningEstimate<T>::add_value(value);
 
             // perform the binning
-            BOOST_ASSERT(1u << binlevel_data.size() > this->get_num_values());
-            BOOST_ASSERT(1u << (binlevel_data.size() - 1) <= this->get_num_values());
+            BOOST_ASSERT(1u << binlevel_data.size() > this->get_num_cumulative_values());
+            BOOST_ASSERT(1u << (binlevel_data.size() - 1) <= this->get_num_cumulative_values());
 
             for (unsigned int i = 0; i < binlevel_data.size(); ++i)
                 binlevel_data[i].current_sum += value;
@@ -36,7 +36,7 @@ public:
                 binlevel_data[i].cumulative_sum += binlevel_data[i].current_sum;
                 binlevel_data[i].cumulative_sum_squared += binlevel_data[i].current_sum * binlevel_data[i].current_sum;
                 binlevel_data[i].current_sum = 0;
-                if (this->get_num_values() & (1 << i))
+                if (this->get_num_cumulative_values() & (1 << i))
                     break;
             }
         }

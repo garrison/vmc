@@ -45,11 +45,8 @@ class MeasurementPlan(BaseMeasurementPlan):
     def get_measurement_plans(self):
         return {self}
 
-    def get_result(self, universe):
-        return universe[self].get_result()
-
-cdef class BaseMeasurement(object):
-    pass
+#    def get_result(self, universe):
+#        return universe[self].get_result()
 
 # fixme: we could move everything below to pyvmc.measurements
 
@@ -96,8 +93,12 @@ cdef class OperatorMeasurement(BaseMeasurement):
                 cppbcs.push_back((<BoundaryCondition>bc).cpp)
         self.sharedptr.reset(new CppOperatorMeasurement(steps_per_measurement, deref(operator), cppbcs))
 
-    def get_result(self):
-        cdef complex_t c = (<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate().get_result()
+    def get_recent_result(self):
+        cdef complex_t c = (<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate().get_recent_result()
+        return complex(c.real(), c.imag())
+
+    def get_cumulative_result(self):
+        cdef complex_t c = (<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate().get_cumulative_result()
         return complex(c.real(), c.imag())
 
 class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
@@ -121,7 +122,7 @@ cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
     def __init__(self, unsigned int steps_per_measurement, Subsystem subsystem not None):
         self.sharedptr.reset(new CppSubsystemOccupationNumberProbabilityMeasurement(steps_per_measurement, subsystem.sharedptr))
 
-    def get_result(self):
+    cdef _get_result(self, bint is_recent):
         cdef unsigned int i
         # fixme: in cython 0.17 we will be able to do this iteration directly
         bounds = []
@@ -135,5 +136,14 @@ cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
         for occupation in numpy.ndindex(*bounds):
             for i in xrange(len(bounds)):
                 occ[i] = occupation[i]
-            rv.append((tuple(occupation), (<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ).get_result()))
+            if is_recent:
+                rv.append((tuple(occupation), (<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ).get_recent_result()))
+            else:
+                rv.append((tuple(occupation), (<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ).get_cumulative_result()))
         return rv
+
+    def get_recent_result(self):
+        return self._get_result(True)
+
+    def get_cumulative_result(self):
+        return self._get_result(False)

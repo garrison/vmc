@@ -3,6 +3,7 @@
 import logging
 
 from pyvmc.core import Lattice, Bands, periodic, antiperiodic
+from pyvmc.utils import average
 
 logger = logging.getLogger(__name__)
 
@@ -29,10 +30,7 @@ def test_spinmodel(tolerance=None):
                                                   (periodic, periodic))
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in spin_operator.get_basic_operators()]
     results = do_calculate_plans(plans)
-    # result[-1] gets the last element of the binned array (FIXME: how to do
-    # this? That is, should do_calculate_plans return a data stream or a
-    # result?)
-    context = {p.operator: result[-1] for p, result in results.iteritems()}
+    context = {p.operator: average(result) for p, result in results.iteritems()}
     logger.info("Spin model: %f", spin_operator.evaluate(context)())
 
 if __name__ == "__main__":

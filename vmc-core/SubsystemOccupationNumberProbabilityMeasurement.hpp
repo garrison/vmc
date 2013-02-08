@@ -111,6 +111,12 @@ private:
             }
         }
 
+    void reset (void)
+        {
+            for (unsigned int i = 0; i < estimate.size(); ++i)
+                estimate[i].reset();
+        }
+
     unsigned int do_subsystem_particle_count (const Wavefunction::Amplitude &wfa, unsigned int species) const
         {
             const PositionArguments &r = wfa.get_positions();

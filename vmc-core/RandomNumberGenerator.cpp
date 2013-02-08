@@ -23,6 +23,8 @@ protected:
     unsigned int random_small_uint (unsigned int lower_bound, unsigned int upper_cutoff)
         {
             BOOST_ASSERT(lower_bound < upper_cutoff);
+            if (lower_bound == upper_cutoff - 1)
+                return lower_bound; // there's only one possibility, so we don't need randomness
             boost::uniform_smallint<> distribution(lower_bound, upper_cutoff - 1);
             boost::variate_generator<T&, boost::uniform_smallint<> > generator(rng, distribution);
             return generator();

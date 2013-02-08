@@ -19,6 +19,10 @@ extern Particle choose_random_particle (const PositionArguments &r, RandomNumber
 /**
  * Chooses a random empty site
  *
+ * NOTE: "empty" here means that there is not already a particle of the given
+ * species on the site.  An "empty" site may in fact contain particle(s) of a
+ * different species.
+ *
  * @param r PositionArguments representing the particles in the system
  * @param rng random number generator
  * @return index of chosen empty site, which is a number less than
@@ -34,6 +38,10 @@ extern unsigned int choose_random_empty_site (const PositionArguments &r, unsign
  *
  * On occasion, this function will return a site that is far away, just to make
  * sure things are ergodic in the simulation.
+ *
+ * NOTE: "empty" here means that there is not already a particle of the given
+ * species on the site.  An "empty" site may in fact contain particle(s) of a
+ * different species.
  *
  * @param particle index of particle to move
  * @param r PositionArguments representing the particles in the system

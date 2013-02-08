@@ -13,3 +13,6 @@ if __name__ == "__main__":
 
     from pyvmc.mc_tests.spinmodel_tests import test_spinmodel
     test_spinmodel()
+
+    from pyvmc.mc_tests.bcs_tests import test_projected_bcs_states
+    test_projected_bcs_states()

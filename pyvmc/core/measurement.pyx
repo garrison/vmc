@@ -48,9 +48,6 @@ class MeasurementPlan(BaseMeasurementPlan):
     def get_result(self, universe):
         return universe[self].get_result()
 
-cdef class BaseMeasurement(object):
-    pass
-
 # fixme: we could move everything below to pyvmc.measurements
 
 class BasicOperatorMeasurementPlan(MeasurementPlan):

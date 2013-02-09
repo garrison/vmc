@@ -85,7 +85,7 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
         })
 
         hamiltonian = HeisenbergPlusRingExchangeHamiltonian((periodic, periodic), lattice)
-        plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=1000) for o in hamiltonian.get_basic_operators()]
+        plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=100) for o in hamiltonian.get_basic_operators()]
         results = do_calculate_plans(plans, equilibrium_sweeps=100000, bins=20, measurement_sweeps_per_bin=30000)
         result_lengths = [len(result) for result in results.itervalues()]
         assert len(set(result_lengths)) == 1
@@ -94,11 +94,12 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
             context = {p.operator: result[i] for p, result in results.iteritems()}
             evaluators.append(hamiltonian.evaluate(context))
 
+        # get energies *per site*
         Hami_terms = OrderedDict([
-            ('HeisNN', average_and_stddevmean([evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3 for evaluator in evaluators])),
-            ('HeisNNN', average_and_stddevmean([evaluator(J1=0, J2=1, J3=0, K=0) / len(lattice) / 3 for evaluator in evaluators])),
-            ('HeisNNNN', average_and_stddevmean([evaluator(J1=0, J2=0, J3=1, K=0) / len(lattice) / 3 for evaluator in evaluators])),
-            ('ring4site', average_and_stddevmean([evaluator(J1=0, J2=0, J3=0, K=1) / len(lattice) / 3 for evaluator in evaluators])),
+            ('HeisNN', average_and_stddevmean([evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) for evaluator in evaluators])),
+            ('HeisNNN', average_and_stddevmean([evaluator(J1=0, J2=1, J3=0, K=0) / len(lattice) for evaluator in evaluators])),
+            ('HeisNNNN', average_and_stddevmean([evaluator(J1=0, J2=0, J3=1, K=0) / len(lattice) for evaluator in evaluators])),
+            ('ring4site', average_and_stddevmean([evaluator(J1=0, J2=0, J3=0, K=1) / len(lattice) for evaluator in evaluators])),
         ])
 
         for k, v in Hami_terms.items():

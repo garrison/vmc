@@ -6,6 +6,7 @@ from pyvmc.includes.libcpp.memory cimport auto_ptr
 
 import numpy
 
+from pyvmc.core cimport complex_t
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.boundary_conditions cimport BoundaryCondition
 from pyvmc.core.subsystem cimport Subsystem

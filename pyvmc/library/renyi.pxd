@@ -1,7 +1,8 @@
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
 from pyvmc.core.walk cimport CppWalk
-from pyvmc.core.measurement cimport CppBaseMeasurement, CppRealBinnedEstimate, CppComplexBinnedEstimate
+from pyvmc.core.measurement cimport CppBaseMeasurement
+from pyvmc.core.estimate cimport CppRealBinnedEstimate, CppComplexBinnedEstimate
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude
 from pyvmc.core.subsystem cimport CppSubsystem
 

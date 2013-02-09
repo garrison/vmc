@@ -16,6 +16,18 @@ template <typename T>
 class BinnedEstimate : public RunningEstimate<T>
 {
 public:
+    struct BinnedSum
+    {
+        T current_sum, cumulative_sum, cumulative_sum_squared;
+
+        BinnedSum (T current_sum_)
+            : current_sum(current_sum_),
+              cumulative_sum(0),
+              cumulative_sum_squared(0)
+            {
+            }
+    };
+
     void add_value (T value)
         {
             // create a new bin-level if necessary
@@ -41,19 +53,12 @@ public:
             }
         }
 
+    const std::vector<BinnedSum> & get_binlevel_data (void) const
+        {
+            return binlevel_data;
+        }
+
 protected:
-    struct BinnedSum
-    {
-        T current_sum, cumulative_sum, cumulative_sum_squared;
-
-        BinnedSum (T current_sum_)
-            : current_sum(current_sum_),
-              cumulative_sum(0),
-              cumulative_sum_squared(0)
-            {
-            }
-    };
-
     // binlevel_data[n] puts 2^n consecutive measurements in the same bin
     std::vector<BinnedSum> binlevel_data;
 };

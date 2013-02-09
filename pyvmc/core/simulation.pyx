@@ -60,3 +60,46 @@ cdef class MetropolisSimulation(object):
     property steps_fully_rejected:
         def __get__(self):
             return self.autoptr.get().steps_fully_rejected()
+
+    property run_information:
+        def __get__(self):
+            return RunInformation()
+
+cdef extern from "RunInformation.hpp" namespace "RunInformation":
+    const char *compiler
+    const char *boost_version
+    const char *eigen_version
+
+    int precision_digits "RunInformation::Precision::digits"
+    int precision_min_exponent "RunInformation::Precision::min_exponent"
+    int precision_max_exponent "RunInformation::Precision::max_exponent"
+
+cdef class RunInformation(object):
+    property compiler:
+        def __get__(self):
+            return compiler
+
+    property boost_version:
+        def __get__(self):
+            return boost_version
+
+    property eigen_version:
+        def __get__(self):
+            return eigen_version
+
+    property precision:
+        def __get__(self):
+            return PrecisionInformation()
+
+cdef class PrecisionInformation(object):
+    property digits:
+        def __get__(self):
+            return precision_digits
+
+    property min_exponent:
+        def __get__(self):
+            return precision_min_exponent
+
+    property max_exponent:
+        def __get__(self):
+            return precision_max_exponent

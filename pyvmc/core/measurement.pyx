@@ -69,9 +69,9 @@ class BasicOperatorMeasurementPlan(MeasurementPlan):
         ])
 
     def to_measurement(self):
-        return OperatorMeasurement(self.steps_per_measurement, self.operator, self.walk.wavefunction.lattice)
+        return BasicOperatorMeasurement(self.steps_per_measurement, self.operator, self.walk.wavefunction.lattice)
 
-cdef class OperatorMeasurement(BaseMeasurement):
+cdef class BasicOperatorMeasurement(BaseMeasurement):
     """A VMC measurement which works on BasicOperator's"""
 
     def __init__(self, unsigned int steps_per_measurement, operator_, Lattice lattice not None):

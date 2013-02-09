@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 def test_ansatz(lattice, chi, eta, a0_3, expected_results, tolerance):
     parton_boundary_conditions = (periodic, antiperiodic)
 
-    from pyvmc.library.mft_utils import did_nn_bcs_theory
-    phi = did_nn_bcs_theory(lattice, parton_boundary_conditions, t1=chi, delta1=eta, mu0=a0_3, delta0=0)['pairing_matrix']
+    from pyvmc.library.mft_utils import did_hf_bcs_theory
+    phi = did_hf_bcs_theory(lattice, parton_boundary_conditions, t1=chi, delta1=eta, mu0=a0_3, delta0=0)['pairing_matrix']
 
     from pyvmc.library.bcs import ProjectedBCSWavefunction
     wf = ProjectedBCSWavefunction(**{

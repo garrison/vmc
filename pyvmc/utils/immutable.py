@@ -4,7 +4,7 @@ from collections import Hashable
 # initial inspiration from http://stackoverflow.com/questions/4828080/how-to-make-an-immutable-object-in-python
 # I got a bit carried away, I think...
 
-class _ImmutableMetaclass(ABCMeta):
+class ImmutableMetaclass(ABCMeta):
     def __init__(cls, name, bases, attrs):
         try:
             Immutable
@@ -29,7 +29,7 @@ class _ImmutableMetaclass(ABCMeta):
         else:
             cls._immutable_slots = tuple(attrs["__slots__"])
             attrs["_immutable_slots"] = cls._immutable_slots
-        super(_ImmutableMetaclass, cls).__init__(name, bases, attrs)
+        super(ImmutableMetaclass, cls).__init__(name, bases, attrs)
 
 class Immutable(Hashable):
     """Base class for various immutable objects.
@@ -58,7 +58,7 @@ class Immutable(Hashable):
     __slots__.  Each element of this tuple must be a hashable object.
     """
 
-    __metaclass__ = _ImmutableMetaclass
+    __metaclass__ = ImmutableMetaclass
 
     __slots__ = ()
 

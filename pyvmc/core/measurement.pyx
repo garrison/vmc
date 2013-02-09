@@ -13,7 +13,7 @@ from pyvmc.core.lattice cimport Lattice, LatticeSite
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.core.walk import WalkPlan, StandardWalkPlan
 from pyvmc.core.operator import SiteHop, BasicOperator, Operator
-from pyvmc.utils.immutable import Immutable
+from pyvmc.utils.immutable import Immutable, ImmutableMetaclass
 
 class BaseMeasurementPlan(Immutable):
     """base class, for both actual measurements and composite measurements"""
@@ -25,10 +25,20 @@ class BaseMeasurementPlan(Immutable):
         "should return a set of [fundamental] MeasurementPlan's"
         raise NotImplementedError
 
+__measurement_plan_registry = {}
+
+class MeasurementPlanMetaclass(ImmutableMetaclass):
+    def __init__(cls, name, bases, dct):
+        assert name not in __measurement_plan_registry
+        __measurement_plan_registry[name] = cls
+        super(MeasurementPlanMetaclass, cls).__init__(name, bases, dct)
+
 class MeasurementPlan(BaseMeasurementPlan):
     """base class for fundamental measurements implemented in VMC"""
 
     __slots__ = ("walk",)
+
+    __metaclass__ = MeasurementPlanMetaclass
 
     def init_validate(self, walk, *args, **kwargs):
         assert isinstance(walk, WalkPlan)

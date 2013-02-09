@@ -87,11 +87,6 @@ periodic_bc = periodic = BoundaryCondition_from_cpp(cpp_periodic_bc)
 antiperiodic_bc = antiperiodic = BoundaryCondition_from_cpp(cpp_antiperiodic_bc)
 open_bc = BoundaryCondition_from_cpp(cpp_open_bc)
 
-def boundary_condition_to_string(bc):
-    from warnings import warn
-    warn("boundary_condition_to_string() is deprecated.  use str(bc) instead.", DeprecationWarning, stacklevel=2)
-    return str(bc)
-
 def valid_boundary_conditions(boundary_conditions, n_dimensions):
     assert isinstance(n_dimensions, numbers.Integral) and 0 < n_dimensions <= MAX_DIMENSION
     return bool(isinstance(boundary_conditions, collections.Sequence) and

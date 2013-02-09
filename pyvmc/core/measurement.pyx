@@ -22,7 +22,7 @@ class BaseMeasurementPlan(Immutable):
 
     @abc.abstractmethod
     def get_measurement_plans(self):
-        "should return a set"
+        "should return a set of [fundamental] MeasurementPlan's"
         raise NotImplementedError
 
 class MeasurementPlan(BaseMeasurementPlan):

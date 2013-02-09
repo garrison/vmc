@@ -29,14 +29,14 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
 
     # perform simulations
     universe_results = {p: [] for p in universe}
-    for i in xrange(bins):
+    for i in xrange(bins):  # FIXME: this outer loop should be unnecessary.  the measurements should keep track of something like this themselves
         for sim in sims:
             sim.reset_measurement_estimates()
             sim.iterate(measurement_sweeps_per_bin)
         for p, m in universe.iteritems():
             # fixme: can we guarantee that p.to_json() doesn't have any forward slashes?
             # fixme: we should really save each measurement in a subgroup for that walk, and in there store information from the walk's completion... INCLUDING rusage, etc
-            universe_results[p].append(m.get_recent_result())
+            universe_results[p].append(m.get_estimate().recent_result)   # NOTE: this assumes that each measurement object returns precisely a single result
 
     for sim, walk in zip(sims, by_walk):
         logger.info("%s had %.2f%% of steps accepted (with %.2f%% fully rejected)",

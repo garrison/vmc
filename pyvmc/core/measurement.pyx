@@ -14,6 +14,7 @@ from pyvmc.core.lattice cimport Lattice, LatticeSite
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.core.walk import WalkPlan, StandardWalkPlan
 from pyvmc.core.operator import SiteHop, BasicOperator, Operator
+from pyvmc.core.estimate cimport Estimate_from_CppIntegerBinnedEstimate, Estimate_from_CppComplexBinnedEstimate
 from pyvmc.utils.immutable import Immutable, ImmutableMetaclass
 
 class BaseMeasurementPlan(Immutable):
@@ -104,13 +105,13 @@ cdef class BasicOperatorMeasurement(BaseMeasurement):
                 cppbcs.push_back((<BoundaryCondition>bc).cpp)
         self.sharedptr.reset(new CppOperatorMeasurement(steps_per_measurement, deref(operator), cppbcs))
 
-    def get_recent_result(self):
-        cdef complex_t c = (<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate().get_recent_result()
-        return complex(c.real(), c.imag())
+    def get_estimate(self, key=None):
+        if key is not None:
+            raise KeyError
+        return Estimate_from_CppComplexBinnedEstimate((<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate())
 
-    def get_cumulative_result(self):
-        cdef complex_t c = (<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate().get_cumulative_result()
-        return complex(c.real(), c.imag())
+    def get_estimates(self):
+        return {None: self.get_estimate()}
 
 class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
     __slots__ = ("walk", "subsystem", "steps_per_measurement")
@@ -133,7 +134,7 @@ cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
     def __init__(self, unsigned int steps_per_measurement, Subsystem subsystem not None):
         self.sharedptr.reset(new CppSubsystemOccupationNumberProbabilityMeasurement(steps_per_measurement, subsystem.sharedptr))
 
-    cdef _get_result(self, bint is_recent):
+    def get_estimates(self):
         cdef unsigned int i
         # fixme: in cython 0.17 we will be able to do this iteration directly
         bounds = []
@@ -143,18 +144,13 @@ cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
             bounds.append(deref(cppbounds)[i] + 1)
         cdef vector[unsigned int] occ
         occ.resize(len(bounds))
-        rv = []
+        rv = {}
         for occupation in numpy.ndindex(*bounds):
             for i in xrange(len(bounds)):
                 occ[i] = occupation[i]
-            if is_recent:
-                rv.append((tuple(occupation), (<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ).get_recent_result()))
-            else:
-                rv.append((tuple(occupation), (<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ).get_cumulative_result()))
+            rv[tuple(occupation)] = Estimate_from_CppIntegerBinnedEstimate((<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ))
         return rv
 
-    def get_recent_result(self):
-        return self._get_result(True)
-
-    def get_cumulative_result(self):
-        return self._get_result(False)
+    def get_estimate(self, key):
+        # fixme: not efficient
+        return self.get_estimates()[key]

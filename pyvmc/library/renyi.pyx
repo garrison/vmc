@@ -6,6 +6,7 @@ from pyvmc.core.measurement import MeasurementPlan
 from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_wfa
+from pyvmc.core.estimate cimport Estimate_from_CppRealBinnedEstimate, Estimate_from_CppComplexBinnedEstimate
 from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.rng cimport RandomNumberGenerator
 from pyvmc.core cimport complex_t
@@ -54,11 +55,13 @@ cdef class RenyiModPossibleMeasurement(BaseMeasurement):
     def __init__(self):
         self.sharedptr.reset(new CppRenyiModPossibleMeasurement())
 
-    def get_recent_result(self):
-        return (<CppRenyiModPossibleMeasurement*>self.sharedptr.get()).get_estimate().get_recent_result()
+    def get_estimate(self, key=None):
+        if key is not None:
+            raise KeyError
+        return Estimate_from_CppRealBinnedEstimate((<CppRenyiModPossibleMeasurement*>self.sharedptr.get()).get_estimate())
 
-    def get_cumulative_result(self):
-        return (<CppRenyiModPossibleMeasurement*>self.sharedptr.get()).get_estimate().get_cumulative_result()
+    def get_estimates(self):
+        return {None: self.get_estimate()}
 
 class RenyiSignWalkPlan(WalkPlan):
     __slots__ = ("wavefunction", "subsystem")
@@ -104,10 +107,10 @@ cdef class RenyiSignMeasurement(BaseMeasurement):
     def __init__(self):
         self.sharedptr.reset(new CppRenyiSignMeasurement())
 
-    def get_recent_result(self):
-        cdef complex_t c = (<CppRenyiSignMeasurement*>self.sharedptr.get()).get_estimate().get_recent_result()
-        return complex(c.real(), c.imag())
+    def get_estimate(self, key=None):
+        if key is not None:
+            raise KeyError
+        return Estimate_from_CppComplexBinnedEstimate((<CppRenyiSignMeasurement*>self.sharedptr.get()).get_estimate())
 
-    def get_cumulative_result(self):
-        cdef complex_t c = (<CppRenyiSignMeasurement*>self.sharedptr.get()).get_estimate().get_cumulative_result()
-        return complex(c.real(), c.imag())
+    def get_estimates(self):
+        return {None: self.get_estimate()}

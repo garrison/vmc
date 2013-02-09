@@ -28,3 +28,11 @@ cdef extern from "BinnedEstimate.hpp":
 
     cdef cppclass CppComplexBinnedEstimate "BinnedEstimate<amplitude_t>" (CppComplexRunningEstimate):
         pass
+
+cdef Estimate_from_CppIntegerRunningEstimate(const CppIntegerRunningEstimate& cpp)
+cdef Estimate_from_CppRealRunningEstimate(const CppRealRunningEstimate& cpp)
+cdef Estimate_from_CppComplexRunningEstimate(const CppComplexRunningEstimate& cpp)
+
+cdef Estimate_from_CppIntegerBinnedEstimate(const CppIntegerBinnedEstimate& cpp)
+cdef Estimate_from_CppRealBinnedEstimate(const CppRealBinnedEstimate& cpp)
+cdef Estimate_from_CppComplexBinnedEstimate(const CppComplexBinnedEstimate& cpp)

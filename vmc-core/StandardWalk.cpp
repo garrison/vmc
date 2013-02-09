@@ -52,7 +52,7 @@ void StandardWalk::accept_transition (void)
 
     // finish_move() may recalculate the inverse from scratch, so for sanity
     // we check that the amplitude here is still nonzero.
-    BOOST_ASSERT(wfa->psi() != amplitude_t(0));
+    BOOST_ASSERT(wfa->is_nonzero());
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     transition_in_progress = false;

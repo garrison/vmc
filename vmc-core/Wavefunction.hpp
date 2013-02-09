@@ -54,6 +54,15 @@ public:
         void perform_move (const Move &move);
 
         /**
+         * Returns true if the wavefunction has zero amplitude in the current position
+         */
+        // fixme: this should soon be virtual and not defined
+        bool is_nonzero (void) const
+            {
+                return psi() != amplitude_t(0);
+            }
+
+        /**
          * Returns the current amplitude of the wavefunction
          */
         amplitude_t psi (void) const

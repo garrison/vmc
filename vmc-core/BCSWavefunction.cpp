@@ -202,7 +202,7 @@ boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction::create_nonzero_wavef
         BOOST_ASSERT(vv[1].size() == M);
 
         boost::shared_ptr<Wavefunction::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
-        if (wfa->psi() != amplitude_t(0))
+        if (wfa->is_nonzero())
             return wfa;
     }
     return boost::shared_ptr<Wavefunction::Amplitude>();

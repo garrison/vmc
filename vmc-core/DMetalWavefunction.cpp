@@ -243,7 +243,7 @@ boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction::create_nonzero_wa
             vv[1].push_back(vv[0][i]);
         vv[0].resize(M);
         boost::shared_ptr<Wavefunction::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
-        if (wfa->psi() != amplitude_t(0))
+        if (wfa->is_nonzero())
             return wfa;
     }
     return boost::shared_ptr<Wavefunction::Amplitude>();

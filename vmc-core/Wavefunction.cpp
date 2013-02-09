@@ -58,7 +58,7 @@ boost::shared_ptr<Wavefunction::Amplitude> Wavefunction::create_nonzero_wavefunc
         for (unsigned int i = 0; i < get_N_species(); ++i)
             vv.push_back(some_random_configuration(get_N_filled(i), *lattice, rng));
         boost::shared_ptr<Wavefunction::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
-        if (wfa->psi() != amplitude_t(0))
+        if (wfa->is_nonzero())
             return wfa;
     }
     return boost::shared_ptr<Wavefunction::Amplitude>();

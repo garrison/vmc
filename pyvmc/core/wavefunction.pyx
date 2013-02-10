@@ -29,9 +29,9 @@ class Wavefunction(Immutable):
     def N_species(self):
         raise NotImplementedError
 
-cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf) except *:
+cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf, RandomNumberGenerator rng) except *:
+    assert rng.is_good()
     cdef Lattice lattice = wf.lattice
-    rng = RandomNumberGenerator()
     cdef WavefunctionWrapper ww = wf.to_wavefunction()
     cdef shared_ptr[CppWavefunctionAmplitude] wfa = ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.autoptr.get()))
     if wfa.get() is NULL:

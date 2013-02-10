@@ -32,7 +32,7 @@ class StandardWalkPlan(WalkPlan):
         ])
 
     def create_walk(self, RandomNumberGenerator rng not None):
-        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction)
+        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction, rng)
         cdef Walk walk = Walk()
         walk.autoptr.reset(new CppStandardWalk(wfa))
         return walk

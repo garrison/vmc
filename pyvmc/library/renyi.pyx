@@ -28,7 +28,7 @@ class RenyiModPossibleWalkPlan(WalkPlan):
 
     def create_walk(self, RandomNumberGenerator rng not None):
         cdef Subsystem subsystem = self.subsystem
-        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction)
+        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction, rng)
         cdef Walk walk = Walk()
         # We need two copies of the system, each of which has the same number
         # of particles in the subsystem.  So for now we just initialize both
@@ -80,7 +80,7 @@ class RenyiSignWalkPlan(WalkPlan):
 
     def create_walk(self, RandomNumberGenerator rng not None):
         cdef Subsystem subsystem = self.subsystem
-        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction)
+        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction, rng)
         cdef Walk walk = Walk()
         # We need two copies of the system, each of which has the same number
         # of particles in the subsystem.  So for now we just initialize both

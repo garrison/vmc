@@ -3,12 +3,14 @@ from libcpp.list cimport list as stdlist
 from pyvmc.includes.libcpp.memory cimport auto_ptr
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
+import logging
 import collections
 
 from pyvmc.core.rng cimport RandomNumberGenerator, CppRandomNumberGenerator
 from pyvmc.core.lattice cimport Lattice, CppLattice
 from pyvmc.core.walk cimport Walk, CppWalk
 from pyvmc.core.measurement cimport BaseMeasurement, CppBaseMeasurement
+from pyvmc.utils.resource_logging import log_rusage
 
 cdef extern from "MetropolisSimulation.hpp":
     cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
@@ -18,6 +20,8 @@ cdef extern from "MetropolisSimulation.hpp":
         unsigned int steps_accepted()
         unsigned int steps_fully_rejected()
         void reset_measurement_estimates()
+
+logger = logging.getLogger(__name__)
 
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
@@ -39,12 +43,16 @@ cdef class MetropolisSimulation(object):
         rng = RandomNumberGenerator()
         cdef auto_ptr[CppRandomNumberGenerator] rng_autoptr = rng.autoptr
 
-        with nogil:
-            self.autoptr.reset(new CppMetropolisSimulation(walk_autoptr, measurement_list, equilibrium_steps, rng_autoptr))
+        with log_rusage(logger, "Equilibrated walk using {} steps.".format(equilibrium_steps)):
+            with nogil:
+                self.autoptr.reset(new CppMetropolisSimulation(walk_autoptr, measurement_list, equilibrium_steps, rng_autoptr))
+
+        logger.info("Now prepared to consider %d different measurements.", len(measurements))
 
     def iterate(self, unsigned int sweeps):
-        with nogil:
-            self.autoptr.get().iterate(sweeps)
+        with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):
+            with nogil:
+                self.autoptr.get().iterate(sweeps)
 
     def reset_measurement_estimates(self):
         self.autoptr.get().reset_measurement_estimates()

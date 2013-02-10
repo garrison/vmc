@@ -19,22 +19,6 @@ def test_dmetal_energy(tolerance=None):
         'd2_exponent': -0.4,
     })
 
-    # old method
-
-    import h5py
-    from pyvmc.library.dmetal import TJKEnergetics
-
-    e = TJKEnergetics(wf)
-    with h5py.File('/tmp/pyvmc_mc_test.hdf5', 'w', libver='latest') as f:
-        e.calculate(f)
-        e.load_results(f)
-        energy = e.get_energy(J=2, K=2)
-
-    logger.info("Energy (old method): %f", energy)
-    assert -0.8 < energy < -0.74
-
-    # new method
-
     from pyvmc.core.operator import TJKHamiltonian
     from pyvmc.core.measurement import BasicOperatorMeasurementPlan
     from pyvmc.tmp.scan import do_calculate_plans
@@ -45,7 +29,7 @@ def test_dmetal_energy(tolerance=None):
     context = {p.operator: average(result) for p, result in results.iteritems()}
     energy = hamiltonian.evaluate(context)(t=1, J=2, K=2) / len(wf.lattice)
 
-    logger.info("Energy (new method): %f", energy)
+    logger.info("Energy: %f", energy)
     assert -0.8 < energy < -0.74
 
 if __name__ == "__main__":

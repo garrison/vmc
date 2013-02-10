@@ -61,27 +61,3 @@ class DMetalWavefunction(Wavefunction):
             self.f_up_exponent, self.f_dn_exponent
         ))
         return rv
-
-from pyvmc.core.measurement import CompositeMeasurementPlan, BasicOperatorMeasurementPlan
-from pyvmc.core.operator import SiteHop, BasicOperator
-from pyvmc.core.lattice import LatticeSite
-from pyvmc.core.boundary_conditions import periodic # fixme: this is being assumed by these measurements ...
-
-class ElectronRingExchangeMeasurementPlan(CompositeMeasurementPlan):
-    __slots__ = ("wavefunction", "plans")
-    _immutable_slots = ("wavefunction",)
-
-    def init_validate(self, wavefunction):
-        object.__setattr__(self, "plans", (
-            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], (periodic, periodic))),
-            BasicOperatorMeasurementPlan(wavefunction, BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], (periodic, periodic))),
-        ))
-        return (wavefunction,)
-
-    def get_measurement_plans(self):
-        return set(self.plans)
-
-    def get_result(self, universe):
-        return .5 * sum([universe[p].get_result() for p in self.plans]) / len(self.wavefunction.lattice)

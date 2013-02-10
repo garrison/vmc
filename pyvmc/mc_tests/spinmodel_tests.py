@@ -23,7 +23,7 @@ def test_spinmodel(tolerance=None):
     from pyvmc.operators import SpinModelRingExchangeOperator
     from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
-    from pyvmc.tmp.scan import do_calculate_plans
+    from pyvmc.core.universe import do_calculate_plans
 
     spin_operator = SpinModelRingExchangeOperator(LatticeSite([0, 0]), LatticeSite([1, 0]),
                                                   LatticeSite([1, 1]), LatticeSite([0, 1]),

@@ -24,7 +24,7 @@ def test_ansatz(lattice, chi, eta, a0_3, expected_results, tolerance):
     from pyvmc.library.heisenberg_ring import HeisenbergPlusRingExchangeHamiltonian
     from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
-    from pyvmc.tmp.scan import do_calculate_plans
+    from pyvmc.core.universe import do_calculate_plans
 
     hamiltonian = HeisenbergPlusRingExchangeHamiltonian(parton_boundary_conditions, lattice)
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]

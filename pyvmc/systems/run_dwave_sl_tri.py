@@ -24,7 +24,7 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
     from pyvmc.library.heisenberg_ring import HeisenbergPlusRingExchangeHamiltonian
     from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
-    from pyvmc.tmp.scan import do_calculate_plans
+    from pyvmc.core.universe import do_calculate_plans
 
     boundary_conditions_string = [str(bc) for bc in boundary_conditions]
     fileroot = (prefix + '_' +

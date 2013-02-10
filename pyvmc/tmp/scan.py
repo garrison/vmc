@@ -38,6 +38,11 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
             # fixme: we should really save each measurement in a subgroup for that walk, and in there store information from the walk's completion... INCLUDING rusage, etc
             universe_results[p].append(m.get_estimate().recent_result)   # NOTE: this assumes that each measurement object returns precisely a single result
 
+    ri = sims[0].run_information
+    logger.info('compiled with "%s" (eigen %s, boost %s)', ri.compiler, ri.eigen_version, ri.boost_version)
+    logger.info("%d digits of precision, exponent range [%d, %d]", ri.precision.digits,
+                ri.precision.min_exponent, ri.precision.max_exponent)
+
     for sim, walk in zip(sims, by_walk):
         logger.info("%s had %.2f%% of steps accepted (with %.2f%% fully rejected)",
                     walk.__class__.__name__,

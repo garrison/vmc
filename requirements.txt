@@ -12,6 +12,5 @@ scipy
 h5py
 blist
 Cython>=0.18
-Twisted
 matplotlib
 pytest

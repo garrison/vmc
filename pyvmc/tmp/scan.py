@@ -79,30 +79,3 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
                     (100.0 * sim.steps_fully_rejected / sim.steps_completed))
 
     return {p: numpy.array(r) for p, r in results.iteritems()}
-
-def calculate_plans(plan_dict, h5group):
-    universe_results = do_calculate_plans(plan_dict.values())
-
-    # now save the results
-    for p, results in universe_results.iteritems():
-        dataset = h5group.create_dataset(json.dumps(p.to_json()), data=results)
-    h5group.file.flush()
-
-def load_results(plan_dict, h5group):
-    return {p: h5group[json.dumps(p.to_json())] for p in _create_basic_measurement_plan_set(plan_dict.values())}
-
-# OLD
-
-class ResultReturner(object):
-    def __init__(self, result):
-        self.result = result
-
-    def get_result(self):
-        return self.result
-
-def load_results(plan_dict, h5group):
-    universe_set = _create_basic_measurement_plan_set(plan_dict.values())
-    universe = {plan: ResultReturner(average(numpy.array(h5group[json.dumps(plan.to_json())]))) for plan in universe_set}
-    results = {k: plan.get_result(universe) for k, plan in plan_dict.iteritems()}
-
-    return results

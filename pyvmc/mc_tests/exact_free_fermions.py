@@ -5,6 +5,8 @@ import logging
 import numpy
 
 from pyvmc.core import Lattice, Bands, FreeFermionWavefunction, SimpleSubsystem, periodic
+from pyvmc.core.universe import SimulationUniverse
+from pyvmc.library.renyi import RenyiEntropyMeasurementPlan # RenyiLengthScalingMeasurementPlan
 from pyvmc.exact import free_fermions
 
 logger = logging.getLogger(__name__)
@@ -16,17 +18,22 @@ def test_1d_free_fermion_renyi(tolerance=0.02):
     lattice = Lattice([N])
     orbitals = Bands([F], [periodic])
 
-    free_fermion = FreeFermionWavefunction(lattice=lattice, orbitals=[orbitals])
+    wf = FreeFermionWavefunction(lattice=lattice, orbitals=[orbitals])
 
-    exact = [free_fermions.exact_renyi(SimpleSubsystem([i], lattice), orbitals, [periodic], 2)
+    exact_values = [free_fermions.exact_renyi(SimpleSubsystem([i], lattice), orbitals, [periodic], 2)
+                    for i in xrange(1, N // 2 + 1)]
+
+    plans = [RenyiEntropyMeasurementPlan(wf, SimpleSubsystem([i], lattice))
              for i in xrange(1, N // 2 + 1)]
+    calc = SimulationUniverse(plans, 500000)
+    results = calc.iterate(500000)
+    measured_values = [plan.calculate(lambda p, k=None: results[p].get_estimate(k).result)
+                       for plan in plans]
 
-    #plan = RenyiLengthScaling(free_fermion, independent=1)
-
-    #differences = [measured_value - exact_value
-    #               for measured_value, exact_value in zip(get_measured(plan), exact)]
-    #logger.info("differences from expected: %s", differences)
-    #assert all(numpy.abs(d) < tolerance for d in differences)
+    differences = [measured_value - exact_value
+                   for measured_value, exact_value in zip(measured_values, exact_values)]
+    logger.info("differences from expected: %s", differences)
+    assert all(numpy.abs(d) < tolerance for d in differences)
 
 def test_2d_free_fermion_renyi(tolerance=0.02):
     lattice = Lattice([8, 8])

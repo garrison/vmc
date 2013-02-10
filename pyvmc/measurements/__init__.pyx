@@ -122,6 +122,11 @@ class SubsystemOccupationProbabilityMeasurementPlan(BasicMeasurementPlan):
     def to_measurement(self):
         return SubsystemOccupationNumberProbabilityMeasurement(self.steps_per_measurement, self.subsystem)
 
+    def calculate(self, f, n):
+        """Returns the probability than n copies of the system will have the same subsystem filling simultaneously"""
+        bounds = [i + 1 for i in self.walk.wavefunction.N_filled]
+        return sum(f(self, occupation) ** n for occupation in numpy.ndindex(*bounds))
+
 cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
     def __init__(self, unsigned int steps_per_measurement, Subsystem subsystem not None):
         self.sharedptr.reset(new CppSubsystemOccupationNumberProbabilityMeasurement(steps_per_measurement, subsystem.sharedptr))

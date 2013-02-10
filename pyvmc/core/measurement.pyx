@@ -14,7 +14,10 @@ class MeasurementPlan(object):
         raise NotImplementedError
 
 class CompositeMeasurementPlan(MeasurementPlan):
-    pass
+    @abc.abstractmethod
+    def calculate(self, f, key=None):
+        # f is a function that takes a BasicMeasurementPlan (plus an optional key) to a value
+        raise NotImplementedError
 
 __basic_measurement_plan_registry = {}
 

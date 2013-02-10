@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from pyvmc.core.walk import WalkPlan
 from pyvmc.core.walk cimport Walk
-from pyvmc.core.measurement import BasicMeasurementPlan
+from pyvmc.core.measurement import BasicMeasurementPlan, CompositeMeasurementPlan
 from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_wfa
@@ -10,6 +10,7 @@ from pyvmc.core.estimate cimport Estimate_from_CppRealBinnedEstimate, Estimate_f
 from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.rng cimport RandomNumberGenerator
 from pyvmc.core cimport complex_t
+from pyvmc.measurements import SubsystemOccupationProbabilityMeasurementPlan
 
 class RenyiModPossibleWalkPlan(WalkPlan):
     __slots__ = ("wavefunction", "subsystem")
@@ -114,3 +115,26 @@ cdef class RenyiSignMeasurement(BaseMeasurement):
 
     def get_estimates(self):
         return {None: self.get_estimate()}
+
+class RenyiEntropyMeasurementPlan(CompositeMeasurementPlan):
+    def __init__(self, wavefunction, subsystem, steps_per_measurement=None):
+        # steps_per_measurement only applies to the
+        # SubsystemOccupationProbabilityMeasurementPlan, since the Renyi
+        # measurements must be done on every step
+        self.sign_plan = RenyiSignMeasurementPlan(wavefunction, subsystem)
+        self.modpossible_plan = RenyiModPossibleMeasurementPlan(wavefunction, subsystem)
+        extra_args = (steps_per_measurement,) if (steps_per_measurement is not None) else ()
+        self.sop_plan = SubsystemOccupationProbabilityMeasurementPlan(wavefunction, subsystem, *extra_args)
+
+    def get_measurement_plans(self):
+        return {self.sign_plan, self.modpossible_plan, self.sop_plan}
+
+    def calculate(self, f, key="s2"):
+        from math import log
+        return {
+            "s2_possible": lambda: -log(self.sop_plan.calculate(f, 2)),
+            "s2_mod/possible": lambda: -log(f(self.modpossible_plan)),
+            "s2_mod": lambda: -log(f(self.modpossible_plan) * self.sop_plan.calculate(f, 2)),
+            "s2_sign": lambda: -log(f(self.sign_plan).real),
+            "s2": lambda: -log(f(self.modpossible_plan) * f(self.sign_plan).real * self.sop_plan.calculate(f, 2)),
+        }[key]()

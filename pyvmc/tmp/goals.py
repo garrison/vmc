@@ -1,7 +1,7 @@
 from twisted.internet import defer
 
 from pyvmc.core import SimpleSubsystem
-from pyvmc.core.measurement import SubsystemOccupationProbabilityMeasurementPlan, BasicOperatorMeasurementPlan
+from pyvmc.measurements import SubsystemOccupationProbabilityMeasurementPlan, BasicOperatorMeasurementPlan
 from pyvmc.core.operator import BasicOperator, SiteHop
 from pyvmc.library.renyi import RenyiSignMeasurementPlan, RenyiModPossibleMeasurementPlan
 from pyvmc.tmp.universe import TmpMeasurementPlan, get_default_universe

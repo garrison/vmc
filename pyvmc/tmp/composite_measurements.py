@@ -1,5 +1,6 @@
 from pyvmc.core.operator import SiteHop, BasicOperator
 from pyvmc.core.measurement import CompositeMeasurementPlan, BasicOperatorMeasurementPlan
+from pyvmc.measurements import BasicOperatorMeasurementPlan
 from pyvmc.core.lattice import LatticeSite
 from pyvmc.core.boundary_conditions import periodic # fixme: this is being assumed by these measurements ...
 from pyvmc.core.wavefunction import Wavefunction

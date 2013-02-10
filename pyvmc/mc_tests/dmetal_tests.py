@@ -20,7 +20,7 @@ def test_dmetal_energy(tolerance=None):
     })
 
     from pyvmc.core.operator import TJKHamiltonian
-    from pyvmc.core.measurement import BasicOperatorMeasurementPlan
+    from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.tmp.scan import do_calculate_plans
 
     hamiltonian = TJKHamiltonian((periodic, periodic), wf.lattice)

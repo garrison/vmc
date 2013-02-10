@@ -22,7 +22,7 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
     from pyvmc.library.bcs import ProjectedBCSWavefunction
 
     from pyvmc.library.heisenberg_ring import HeisenbergPlusRingExchangeHamiltonian
-    from pyvmc.core.measurement import BasicOperatorMeasurementPlan
+    from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
     from pyvmc.tmp.scan import do_calculate_plans
 

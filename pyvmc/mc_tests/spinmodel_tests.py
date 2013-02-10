@@ -21,7 +21,7 @@ def test_spinmodel(tolerance=None):
     })
 
     from pyvmc.core.operator import SpinModelRingExchangeOperator
-    from pyvmc.core.measurement import BasicOperatorMeasurementPlan
+    from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
     from pyvmc.tmp.scan import do_calculate_plans
 

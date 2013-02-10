@@ -11,10 +11,13 @@ from Cython.Build import cythonize
 # Use parallel compilation on this number of cores.
 nthreads = int(os.environ.get('COMPILE_NTHREADS', 0))
 
-def make_extension(ext_name, ext_libraries=()):
+def make_extension(ext_name, ext_libraries=(), is_directory=False):
+    ext_path = ext_name
+    if is_directory:
+        ext_path += ".__init__"
     return Extension(
         ext_name,
-        [ext_name.replace(".", os.path.sep) + ".pyx"],
+        [ext_path.replace(".", os.path.sep) + ".pyx"],
         include_dirs=(["vmc-core", "."]),
         language="c++",
         libraries=ext_libraries,
@@ -32,6 +35,7 @@ extensions = [
     make_extension("pyvmc.core.walk", ["vmc-core"]),
     make_extension("pyvmc.core.rng", ["vmc-core"]),
     make_extension("pyvmc.core.simulation", ["vmc-core"]),
+    make_extension("pyvmc.measurements", ["vmc-core"], is_directory=True),
     make_extension("pyvmc.library.renyi", ["vmc-core"]),
     make_extension("pyvmc.library.dbl", ["vmc-core"]),
     make_extension("pyvmc.library.dmetal", ["vmc-core"]),

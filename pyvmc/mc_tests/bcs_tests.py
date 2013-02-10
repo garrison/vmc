@@ -22,7 +22,7 @@ def test_ansatz(lattice, chi, eta, a0_3, expected_results, tolerance):
     })
 
     from pyvmc.library.heisenberg_ring import HeisenbergPlusRingExchangeHamiltonian
-    from pyvmc.core.measurement import BasicOperatorMeasurementPlan
+    from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
     from pyvmc.tmp.scan import do_calculate_plans
 

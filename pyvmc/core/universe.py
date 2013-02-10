@@ -53,7 +53,7 @@ class SimulationUniverse(object):
             sim.iterate(sweeps)
 
         # fixme: should we return anything at all?
-        return {p: m.get_estimate() for p, m in self.measurement_dict.iteritems()}
+        return self.measurement_dict
 
 def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_sweeps_per_bin=10000):
     # prepare and equilibrate simulations
@@ -63,9 +63,9 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
     results = {}
     for i in xrange(bins):  # FIXME: this outer loop should be unnecessary.  the measurements should keep track of something like this themselves
         r = calc.iterate(measurement_sweeps_per_bin)
-        for p, estimate in r.iteritems():
+        for p, m in r.iteritems():
             # NOTE: this assumes that each measurement object returns precisely a single result
-            results.setdefault(p, []).append(estimate.recent_result)
+            results.setdefault(p, []).append(m.get_estimate().recent_result)
 
     ri = calc.simulations[0].run_information
     logger.info('compiled with "%s" (eigen %s, boost %s)', ri.compiler, ri.eigen_version, ri.boost_version)

@@ -62,12 +62,12 @@ class DMetalWavefunction(Wavefunction):
         ))
         return rv
 
-from pyvmc.core.measurement import BaseMeasurementPlan, BasicOperatorMeasurementPlan
+from pyvmc.core.measurement import CompositeMeasurementPlan, BasicOperatorMeasurementPlan
 from pyvmc.core.operator import SiteHop, BasicOperator
 from pyvmc.core.lattice import LatticeSite
 from pyvmc.core.boundary_conditions import periodic # fixme: this is being assumed by these measurements ...
 
-class ElectronRingExchangeMeasurementPlan(BaseMeasurementPlan):
+class ElectronRingExchangeMeasurementPlan(CompositeMeasurementPlan):
     __slots__ = ("wavefunction", "plans")
     _immutable_slots = ("wavefunction",)
 

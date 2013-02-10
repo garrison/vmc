@@ -17,37 +17,44 @@ from pyvmc.core.operator import SiteHop, BasicOperator, Operator
 from pyvmc.core.estimate cimport Estimate_from_CppIntegerBinnedEstimate, Estimate_from_CppComplexBinnedEstimate
 from pyvmc.utils.immutable import Immutable, ImmutableMetaclass
 
-class BaseMeasurementPlan(Immutable):
+class MeasurementPlan(Immutable):
     """base class, for both actual measurements and composite measurements"""
 
     __slots__ = ()
 
     @abc.abstractmethod
     def get_measurement_plans(self):
-        "should return a set of [fundamental] MeasurementPlan's"
+        "should return a set of BasicMeasurementPlan's"
         raise NotImplementedError
 
-__measurement_plan_registry = {}
+class CompositeMeasurementPlan(MeasurementPlan):
+    __slots__ = ()
 
-class MeasurementPlanMetaclass(ImmutableMetaclass):
+__basic_measurement_plan_registry = {}
+
+class BasicMeasurementPlanMetaclass(ImmutableMetaclass):
     def __init__(cls, name, bases, dct):
-        assert name not in __measurement_plan_registry
-        __measurement_plan_registry[name] = cls
-        super(MeasurementPlanMetaclass, cls).__init__(name, bases, dct)
+        assert name not in __basic_measurement_plan_registry
+        __basic_measurement_plan_registry[name] = cls
+        super(BasicMeasurementPlanMetaclass, cls).__init__(name, bases, dct)
 
-class MeasurementPlan(BaseMeasurementPlan):
+class BasicMeasurementPlan(MeasurementPlan):
     """base class for fundamental measurements implemented in VMC"""
 
     __slots__ = ("walk",)
 
-    __metaclass__ = MeasurementPlanMetaclass
+    __metaclass__ = BasicMeasurementPlanMetaclass
 
     def init_validate(self, walk, *args, **kwargs):
         assert isinstance(walk, WalkPlan)
-        return super(MeasurementPlan, self).init_validate(walk, *args, **kwargs)
+        return super(BasicMeasurementPlan, self).init_validate(walk, *args, **kwargs)
 
     @abc.abstractmethod
     def to_json(self):
+        raise NotImplementedError
+
+    #@abc.abstractmethod
+    def from_json(self, json_object):
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -62,7 +69,7 @@ class MeasurementPlan(BaseMeasurementPlan):
 
 # fixme: we could move everything below to pyvmc.measurements
 
-class BasicOperatorMeasurementPlan(MeasurementPlan):
+class BasicOperatorMeasurementPlan(BasicMeasurementPlan):
     __slots__ = ("walk", "operator", "steps_per_measurement")
 
     def __init__(self, wavefunction, operator, steps_per_measurement=1000):
@@ -113,7 +120,7 @@ cdef class BasicOperatorMeasurement(BaseMeasurement):
     def get_estimates(self):
         return {None: self.get_estimate()}
 
-class SubsystemOccupationProbabilityMeasurementPlan(MeasurementPlan):
+class SubsystemOccupationProbabilityMeasurementPlan(BasicMeasurementPlan):
     __slots__ = ("walk", "subsystem", "steps_per_measurement")
 
     def __init__(self, wavefunction, subsystem, steps_per_measurement=100):

@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from pyvmc.core.walk import WalkPlan
 from pyvmc.core.walk cimport Walk
-from pyvmc.core.measurement import MeasurementPlan
+from pyvmc.core.measurement import BasicMeasurementPlan
 from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_wfa
@@ -36,7 +36,7 @@ class RenyiModPossibleWalkPlan(WalkPlan):
         walk.autoptr.reset(new CppRenyiModPossibleWalk(wfa, wfa.get().clone(), subsystem.sharedptr))
         return walk
 
-class RenyiModPossibleMeasurementPlan(MeasurementPlan):
+class RenyiModPossibleMeasurementPlan(BasicMeasurementPlan):
     __slots__ = ("walk",)
 
     def __init__(self, wavefunction, subsystem):
@@ -88,7 +88,7 @@ class RenyiSignWalkPlan(WalkPlan):
         walk.autoptr.reset(new CppRenyiSignWalk(wfa, wfa.get().clone(), subsystem.sharedptr))
         return walk
 
-class RenyiSignMeasurementPlan(MeasurementPlan):
+class RenyiSignMeasurementPlan(BasicMeasurementPlan):
     __slots__ = ("walk",)
 
     def __init__(self, wavefunction, subsystem):

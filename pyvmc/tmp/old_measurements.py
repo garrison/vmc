@@ -1,11 +1,11 @@
 from pyvmc.core.operator import SiteHop, BasicOperator
-from pyvmc.core.measurement import BaseMeasurementPlan, BasicOperatorMeasurementPlan
+from pyvmc.core.measurement import CompositeMeasurementPlan, BasicOperatorMeasurementPlan
 from pyvmc.core.lattice import LatticeSite
 from pyvmc.core.boundary_conditions import periodic # fixme: this is being assumed by these measurements ...
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.utils import add_hc
 
-class GreenMeasurementPlan(BaseMeasurementPlan):
+class GreenMeasurementPlan(CompositeMeasurementPlan):
     __slots__ = ("wavefunction", "site1", "site2", "species")
 
     def init_validate(self, wavefunction, site1, site2, species):
@@ -21,7 +21,7 @@ class GreenMeasurementPlan(BaseMeasurementPlan):
     def get_result(self, universe):
         return universe[self.get_measurement_plans().pop()].get_result() / len(self.wavefunction.lattice)
 
-class DensityDensityMeasurementPlan(BaseMeasurementPlan):
+class DensityDensityMeasurementPlan(CompositeMeasurementPlan):
     __slots__ = ("wavefunction", "site1", "site2", "plans")
     _immutable_slots = ("wavefunction", "site1", "site2")
 
@@ -38,7 +38,7 @@ class DensityDensityMeasurementPlan(BaseMeasurementPlan):
     def get_result(self, universe):
         return sum([universe[m].get_result() for m in self.plans]) / len(self.wavefunction.lattice)
 
-class SpinSpinMeasurementPlan(BaseMeasurementPlan):
+class SpinSpinMeasurementPlan(CompositeMeasurementPlan):
     __slots__ = ("wavefunction", "site1", "site2", "plans")
     _immutable_slots = ("wavefunction", "site1", "site2")
 

@@ -14,6 +14,8 @@ def _create_universe_set(plans):
     return set(chain.from_iterable(p.get_measurement_plans() for p in plans))
 
 def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_sweeps_per_bin=10000):
+    # NOTE: this assumes none of the plans are composites
+
     # first get all the measurements that need to be performed
     universe = {p: p.to_measurement() for p in _create_universe_set(plans)}
 
@@ -25,7 +27,7 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
     # prepare and equilibriate simulations
     sims = []
     for walk, measurements in by_walk.iteritems():
-        sims.append(MetropolisSimulation(walk.create_walk(RandomNumberGenerator()), walk.wavefunction.lattice, measurements,  equilibrium_sweeps))
+        sims.append(MetropolisSimulation(walk.create_walk(RandomNumberGenerator()), walk.wavefunction.lattice, measurements, equilibrium_sweeps))
 
     # perform simulations
     universe_results = {p: [] for p in universe}

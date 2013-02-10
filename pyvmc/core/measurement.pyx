@@ -3,10 +3,10 @@ import abc
 from pyvmc.core.walk import WalkPlan
 from pyvmc.utils.immutable import Immutable, ImmutableMetaclass
 
-class MeasurementPlan(Immutable):
+class MeasurementPlan(object):
     """base class, for both actual measurements and composite measurements"""
 
-    __slots__ = ()
+    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def get_measurement_plans(self):
@@ -14,7 +14,7 @@ class MeasurementPlan(Immutable):
         raise NotImplementedError
 
 class CompositeMeasurementPlan(MeasurementPlan):
-    __slots__ = ()
+    pass
 
 __basic_measurement_plan_registry = {}
 
@@ -24,7 +24,7 @@ class BasicMeasurementPlanMetaclass(ImmutableMetaclass):
         __basic_measurement_plan_registry[name] = cls
         super(BasicMeasurementPlanMetaclass, cls).__init__(name, bases, dct)
 
-class BasicMeasurementPlan(MeasurementPlan):
+class BasicMeasurementPlan(Immutable):
     """base class for fundamental measurements implemented in VMC"""
 
     __slots__ = ("walk",)
@@ -49,3 +49,7 @@ class BasicMeasurementPlan(MeasurementPlan):
 
     def get_measurement_plans(self):
         return {self}
+
+# BasicMeasurementPlan derives from Immutable, so we explicitly register it as
+# implementing the MeasurementPlan interface
+MeasurementPlan.register(BasicMeasurementPlan)

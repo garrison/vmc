@@ -49,6 +49,3 @@ class BasicMeasurementPlan(MeasurementPlan):
 
     def get_measurement_plans(self):
         return {self}
-
-#    def get_result(self, universe):
-#        return universe[self].get_result()

@@ -20,7 +20,7 @@ def test_spinmodel(tolerance=None):
         'd2_exponent': -0.4,
     })
 
-    from pyvmc.core.operator import SpinModelRingExchangeOperator
+    from pyvmc.operators import SpinModelRingExchangeOperator
     from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
     from pyvmc.tmp.scan import do_calculate_plans

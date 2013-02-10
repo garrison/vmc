@@ -19,7 +19,7 @@ def test_dmetal_energy(tolerance=None):
         'd2_exponent': -0.4,
     })
 
-    from pyvmc.core.operator import TJKHamiltonian
+    from pyvmc.operators import TJKHamiltonian
     from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.tmp.scan import do_calculate_plans
 

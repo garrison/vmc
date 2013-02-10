@@ -1,7 +1,8 @@
 from itertools import chain
 
 from pyvmc.core.lattice import LatticeRealization, LatticeSite
-from pyvmc.core.operator import CompositeOperator, SpinSpinOperator, SpinModelRingExchangeOperator
+from pyvmc.core.operator import CompositeOperator
+from pyvmc.operators import SpinSpinOperator, SpinModelRingExchangeOperator
 
 class HeisenbergPlusRingExchangeHamiltonian(CompositeOperator):
     __slots__ = ("operators", "operators_J1", "operators_J2", "operators_J3", "operators_K")

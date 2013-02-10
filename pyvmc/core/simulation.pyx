@@ -41,6 +41,7 @@ cdef class MetropolisSimulation(object):
             measurement_list.push_back(measurement_.sharedptr)
 
         rng = RandomNumberGenerator()
+        assert rng.is_good()
         cdef auto_ptr[CppRandomNumberGenerator] rng_autoptr = rng.autoptr
 
         with log_rusage(logger, "Equilibrated walk using {} steps.".format(equilibrium_steps)):

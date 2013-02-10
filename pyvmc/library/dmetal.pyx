@@ -37,6 +37,10 @@ class DMetalWavefunction(Wavefunction):
     def N_species(self):
         return 2
 
+    @property
+    def N_filled(self):
+        return (len(self.f_up), len(self.f_dn))
+
     def to_json(self):
         return collections.OrderedDict([
             ('type', self.__class__.__name__),

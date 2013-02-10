@@ -29,6 +29,11 @@ class Wavefunction(Immutable):
     def N_species(self):
         raise NotImplementedError
 
+    @abc.abstractproperty
+    def N_filled(self):
+        """should return a tuple with the filling of each species"""
+        raise NotImplementedError
+
 cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf, RandomNumberGenerator rng) except *:
     assert rng.is_good()
     cdef Lattice lattice = wf.lattice
@@ -55,6 +60,10 @@ class FreeFermionWavefunction(Wavefunction):
     @property
     def N_species(self):
         return len(self.orbitals)
+
+    @property
+    def N_filled(self):
+        return tuple([len(orbs) for orbs in self.orbitals])
 
     def to_json(self):
         d = [

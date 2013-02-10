@@ -39,6 +39,10 @@ class ProjectedBCSWavefunction(Wavefunction):
     def N_species(self):
         return 2
 
+    @property
+    def N_filled(self):
+        return (self.N_up, self.N_dn)
+
     def to_json(self):
         assert False  # phi is a huge matrix now...
         return collections.OrderedDict([

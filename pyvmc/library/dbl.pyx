@@ -26,6 +26,10 @@ class DBLWavefunction(Wavefunction):
     def N_species(self):
         return 1
 
+    @property
+    def N_filled(self):
+        return (len(self.d1),)
+
     def to_json(self):
         return collections.OrderedDict([
             ('type', self.__class__.__name__),

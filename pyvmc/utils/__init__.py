@@ -36,3 +36,10 @@ def stddevmean(seq):
 
 def average_and_stddevmean(seq):
     return average(seq), stddevmean(seq)
+
+def is_square_matrix(mat, N=None):
+    assert isinstance(mat, numpy.ndarray)
+    if N is None:
+        return mat.ndim == 2 and mat.shape[0] == mat.shape[1]
+    else:
+        return mat.ndim == 2 and mat.shape[0] == mat.shape[1] == N

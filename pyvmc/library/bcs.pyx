@@ -7,6 +7,7 @@ from pyvmc.includes.libcpp.memory cimport auto_ptr
 import numpy
 
 from pyvmc.core.wavefunction import Wavefunction
+from pyvmc.utils import is_square_matrix
 
 class ProjectedBCSWavefunction(Wavefunction):
     """Projected BCS wavefunction"""
@@ -16,10 +17,7 @@ class ProjectedBCSWavefunction(Wavefunction):
     def init_validate(self, lattice, phi, N_up, N_dn=None):
         (lattice,) = super(ProjectedBCSWavefunction, self).init_validate(lattice)
 
-        assert isinstance(phi, numpy.ndarray)
-        assert len(phi.shape) == 2
-        assert phi.shape[0] == len(lattice)
-        assert phi.shape[1] == len(lattice)
+        assert is_square_matrix(phi, len(lattice))
 
         assert isinstance(N_up, numbers.Integral)
         assert N_up > 0

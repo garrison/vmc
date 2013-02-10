@@ -26,7 +26,8 @@ logger = logging.getLogger(__name__)
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
 
-    def __init__(self, Walk walk not None, Lattice lattice not None, measurements, unsigned int equilibrium_steps):
+    def __init__(self, Walk walk not None, Lattice lattice not None, measurements, unsigned int equilibrium_steps, RandomNumberGenerator rng not None):
+        """keep in mind that the rng passed can no longer be used for other things afterwards"""
         if walk.autoptr.get() is NULL:
             raise RuntimeError("Walk's auto_ptr is null.  It cannot be recycled.")
         cdef auto_ptr[CppWalk] walk_autoptr = walk.autoptr
@@ -40,7 +41,6 @@ cdef class MetropolisSimulation(object):
                 raise ValueError("invalid walk/measurement/wavefunction combination")
             measurement_list.push_back(measurement_.sharedptr)
 
-        rng = RandomNumberGenerator()
         assert rng.is_good()
         cdef auto_ptr[CppRandomNumberGenerator] rng_autoptr = rng.autoptr
 

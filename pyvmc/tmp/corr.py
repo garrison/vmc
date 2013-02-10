@@ -46,7 +46,8 @@ def calculate_correlators(wf, filename):
     all_measurements = list(itertools.chain.from_iterable(measurements)) + more_measurements
 
     walk = plans[0][0].walk
-    sim = MetropolisSimulation(walk.create_walk(RandomNumberGenerator()), wf.lattice, all_measurements, 500000)
+    rng = RandomNumberGenerator()
+    sim = MetropolisSimulation(walk.create_walk(rng), wf.lattice, all_measurements, 500000, rng)
 
     for zzz in xrange(500):
         sim.iterate(10000)

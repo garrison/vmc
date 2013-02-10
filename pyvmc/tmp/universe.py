@@ -87,7 +87,8 @@ class Walk(object):
                 self.sim = MetropolisSimulation(self.ww.create_walk(rng),
                                                 self.measurements_in_progress[0][0].measurement_plan.lattice,
                                                 [m[0].measurement for m in self.measurements_in_progress],
-                                                self.equilibrium_steps)
+                                                self.equilibrium_steps,
+                                                rng)
             # the following will always result in the number of steps completed
             # being a power of two
             steps = self.measurement_steps_completed or 512

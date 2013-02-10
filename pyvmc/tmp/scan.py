@@ -28,7 +28,7 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
     sims = []
     for walk, measurements in by_walk.iteritems():
         rng = RandomNumberGenerator()
-        sims.append(MetropolisSimulation(walk.create_walk(rng), walk.wavefunction.lattice, measurements, equilibrium_sweeps, rng))
+        sims.append(MetropolisSimulation(walk, walk.wavefunction.lattice, measurements, equilibrium_sweeps, rng))
 
     # perform simulations
     universe_results = {p: [] for p in universe}

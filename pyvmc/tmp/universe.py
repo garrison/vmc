@@ -84,7 +84,7 @@ class Walk(object):
                 # advances, this WILL NOT notice and will continue with the
                 # old measurements.
                 rng = RandomNumberGenerator()
-                self.sim = MetropolisSimulation(self.ww.create_walk(rng),
+                self.sim = MetropolisSimulation(self.ww,
                                                 self.measurements_in_progress[0][0].measurement_plan.lattice,
                                                 [m[0].measurement for m in self.measurements_in_progress],
                                                 self.equilibrium_steps,

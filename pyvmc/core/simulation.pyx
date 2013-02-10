@@ -9,6 +9,7 @@ import collections
 from pyvmc.core.rng cimport RandomNumberGenerator, CppRandomNumberGenerator
 from pyvmc.core.lattice cimport Lattice, CppLattice
 from pyvmc.core.walk cimport Walk, CppWalk
+from pyvmc.core.walk import WalkPlan
 from pyvmc.core.measurement cimport BaseMeasurement, CppBaseMeasurement
 from pyvmc.utils.resource_logging import log_rusage
 
@@ -25,11 +26,16 @@ logger = logging.getLogger(__name__)
 
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
+    cdef object _walk_plan
 
-    def __init__(self, Walk walk not None, Lattice lattice not None, measurements, unsigned int equilibrium_steps, RandomNumberGenerator rng not None):
+    def __init__(self, walk_plan not None, Lattice lattice not None, measurements, unsigned int equilibrium_steps, RandomNumberGenerator rng not None):
         """keep in mind that the rng passed can no longer be used for other things afterwards"""
-        if walk.autoptr.get() is NULL:
-            raise RuntimeError("Walk's auto_ptr is null.  It cannot be recycled.")
+        assert rng.is_good()
+
+        assert isinstance(walk_plan, WalkPlan)
+        self._walk_plan = walk_plan
+        cdef Walk walk = walk_plan.create_walk(rng)
+        assert walk.autoptr.get() is not NULL
         cdef auto_ptr[CppWalk] walk_autoptr = walk.autoptr
 
         cdef stdlist[shared_ptr[CppBaseMeasurement]] measurement_list
@@ -41,12 +47,9 @@ cdef class MetropolisSimulation(object):
                 raise ValueError("invalid walk/measurement/wavefunction combination")
             measurement_list.push_back(measurement_.sharedptr)
 
-        assert rng.is_good()
-        cdef auto_ptr[CppRandomNumberGenerator] rng_autoptr = rng.autoptr
-
         with log_rusage(logger, "Equilibrated walk using {} steps.".format(equilibrium_steps)):
             with nogil:
-                self.autoptr.reset(new CppMetropolisSimulation(walk_autoptr, measurement_list, equilibrium_steps, rng_autoptr))
+                self.autoptr.reset(new CppMetropolisSimulation(walk_autoptr, measurement_list, equilibrium_steps, rng.autoptr))
 
         logger.info("Now prepared to consider %d different measurements.", len(measurements))
 
@@ -57,6 +60,10 @@ cdef class MetropolisSimulation(object):
 
     def reset_measurement_estimates(self):
         self.autoptr.get().reset_measurement_estimates()
+
+    property walk_plan:
+        def __get__(self):
+            return self._walk_plan
 
     property steps_completed:
         def __get__(self):

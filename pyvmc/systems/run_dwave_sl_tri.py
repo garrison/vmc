@@ -51,10 +51,10 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
         'mu0',
         'fdagf',
         'Ttot',
-        'HeisNN',
-        'HeisNNN',
-        'HeisNNNN',
-        'ring4site',
+        'HeisNN', 'HeisNN_error',
+        'HeisNNN', 'HeisNNN_error',
+        'HeisNNNN', 'HeisNNNN_error',
+        'ring4site', 'ring4site_error',
     )
 
     if not os.path.exists(datapath):
@@ -105,6 +105,7 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
         for k, v in Hami_terms.items():
             logger.info('%s = %.6f (%.6f)', k, v[0], v[1])
 
+        # FIXME: also record acceptance rate in data file
         output = {
             't1': wf_params['t1'],
             'delta1': wf_params['delta1'],
@@ -116,10 +117,10 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
             'mu0': bcs_theory['chemical_potential'],
             'fdagf': bcs_theory['bcs_stats']['fdagf'],
             'Ttot': bcs_theory['bcs_stats']['Ttot'],
-            'HeisNN': Hami_terms['HeisNN'][0],
-            'HeisNNN': Hami_terms['HeisNNN'][0],
-            'HeisNNNN': Hami_terms['HeisNNNN'][0],
-            'ring4site': Hami_terms['ring4site'][0],
+            'HeisNN': Hami_terms['HeisNN'][0], 'HeisNN_error': Hami_terms['HeisNN'][1],
+            'HeisNNN': Hami_terms['HeisNNN'][0], 'HeisNNN_error': Hami_terms['HeisNNN'][1],
+            'HeisNNNN': Hami_terms['HeisNNNN'][0], 'HeisNNNN_error': Hami_terms['HeisNNNN'][1],
+            'ring4site': Hami_terms['ring4site'][0], 'ring4site_error': Hami_terms['ring4site'][1],
         }
 
         data2write = numpy.array( [ output[k] for k in info_keys ] )

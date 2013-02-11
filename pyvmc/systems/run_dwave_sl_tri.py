@@ -137,7 +137,7 @@ if __name__ == "__main__":
     from pyvmc.library.mft_utils import did_hf_bcs_theory, dx2minusy2_hf_bcs_theory
 
     logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s %(levelname)s: %(message)s"',
+                        format='%(asctime)s %(levelname)s: %(message)s',
                         )
     logging.getLogger().handlers[0].setLevel(logging.ERROR)
 #    logging.StreamHandler().setLevel(logging.ERROR)

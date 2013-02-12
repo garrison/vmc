@@ -51,7 +51,7 @@ cdef class MetropolisSimulation(object):
             with nogil:
                 self.autoptr.reset(new CppMetropolisSimulation(walk_autoptr, measurement_list, equilibrium_steps, rng.autoptr))
 
-        logger.info("Now prepared to consider %d different measurements.", len(measurements))
+        logger.info("Now prepared to consider %d different measurement(s).", len(measurements))
 
     def iterate(self, unsigned int sweeps):
         with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):

@@ -59,19 +59,21 @@ private:
     State current_state;
 
     // We like to recalculate the inverse just to be safe any time the
-    // determinant drops below the `ceperley_determinant_cutoff`.  In most
-    // cases, it is okay if this recalculation is done only if the move is
-    // accepted.  However, in some cases the determinant should be recalculated
-    // during the "update" step, before the new determinant is reported.  In
-    // particular, if a determinant has a negative exponent applied to it, then
-    // a very small determinant will result in a large probability weight.
-    // However, a very small determinant often implies that the matrix is
-    // singular, in which case there should be no probability at all for the
-    // state.  Recalculating the inverse will detect this singularity and get
-    // the probability weight correct before deciding to accept the move.  In
-    // short, any time a negative exponent is going to be applied to a
-    // determinant, then it is best to set this flag to be true.  In most other
-    // cases, setting it to false should be fine.
+    // determinant's "base" (in this case, the ratio of its current value
+    // compared with when it was last calculated from scratch) drops below the
+    // `ceperley_determinant_cutoff`.  In most cases, it is okay if this
+    // recalculation is done only if the move is accepted.  However, in some
+    // cases the determinant should be recalculated during the "update" step,
+    // before the new determinant is reported.  In particular, if a determinant
+    // has a negative exponent applied to it, then a very small determinant
+    // will result in a large probability weight.  However, a very small
+    // determinant often implies that the matrix is singular, in which case
+    // there should be no probability at all for the state.  Recalculating the
+    // inverse will detect this singularity and get the probability weight
+    // correct before deciding to accept the move.  In short, any time a
+    // negative exponent is going to be applied to a determinant, then it is
+    // best to set this flag to be true.  In most other cases, setting it to
+    // false should be fine.
     bool be_extra_careful;
 
     // old_det, new_invmat, old_data_m, and new_nullity_lower_bound all exist
@@ -95,10 +97,11 @@ private:
     lw_vector<unsigned int, MAX_MOVE_SIZE> pending_col_indices, pending_row_indices;
 
     /**
-     * As long as the determinant remains below this value, the O(N^2) update
-     * algorithm will be used.  However, if the determinant falls below this
-     * value we will recalculate the inverse from scratch to fight numerical
-     * error.  This also allows us to determine when the matrix is singular.
+     * As long as the magnitude of the "base" of the determinant remains above
+     * this value, the O(N^2) update algorithm will be used.  However, if the
+     * "base" falls below this value we will recalculate the inverse from
+     * scratch to fight numerical error.  This also allows us to determine when
+     * the matrix is singular.
      */
     static const T ceperley_determinant_cutoff;
 

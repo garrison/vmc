@@ -3,17 +3,21 @@
 
 #include <cmath>
 
+#include <boost/assert.hpp>
+
 #include "vmc-typedefs.hpp"
 #include "Big.hpp"
 
 // the modulus of a negative number is not consistently defined in C/C++, so
 // this function is defined to give the behavior one would logically expect
 
+// from http://stackoverflow.com/a/4003287/1558890
 static inline void do_safe_modulus (int &n, int d)
 {
-    while (n < d)
-        n += d;
+    BOOST_ASSERT(d > 0);
     n %= d;
+    if (n < 0)
+        n += d;
 }
 
 static inline int safe_modulus (int n, int d)

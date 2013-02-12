@@ -24,6 +24,27 @@ class CeperleyMatrix
 {
 private:
     /**
+     * Eigen's LU decomposition does not allow access to the sign of the
+     * permutation, which is necessary for us to get the sign of the
+     * determinant correctly.  Luckily, the sign of the permutation is given as
+     * a protected member, so we can access it by using this class to do our LU
+     * decomposition.
+     */
+    class MyFullPivLU : public Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >
+    {
+    public:
+        MyFullPivLU (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & matrix)
+            : Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >(matrix)
+            {
+            }
+
+        int get_det_pq (void) const
+            {
+                return Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> >::m_det_pq;
+            }
+    };
+
+    /**
      * An enum for storing the current state of the object
      */
     enum State {
@@ -813,7 +834,7 @@ private:
             std::cerr << "calculating an inverse: " << update_in_progress << std::endl;
 #endif
 
-            Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);
+            MyFullPivLU lu_decomposition(mat);
 
             // fixme (?)
             lu_decomposition.setThreshold(lu_decomposition.threshold() * 10);
@@ -825,7 +846,13 @@ private:
                 // explicitly.
                 det = Big<T>(); // set to zero
             } else {
-                det = Big<T>(lu_decomposition.determinant());
+                // store the determinant as a Big<T>
+                const Eigen::Array<T, Eigen::Dynamic, 1> diagonal(lu_decomposition.matrixLU().diagonal().array());
+                T phase(lu_decomposition.get_det_pq());
+                for (unsigned int i = 0; i < diagonal.rows(); ++i)
+                    phase *= diagonal(i) / std::abs(diagonal(i));
+                det = Big<T>(phase, diagonal.abs().log().sum());
+
                 (update_in_progress ? new_invmat : invmat) = lu_decomposition.inverse();
 
 #ifndef DISABLE_CEPERLEY_MATRIX_INVERSE_CHECK

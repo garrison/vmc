@@ -48,13 +48,13 @@ def test_ansatz(lattice, chi, eta, a0_3, expected_results, tolerance):
 def test_projected_bcs_states(tolerance=.01):
     # Z2A
     test_ansatz(HexagonalLattice([6, 6]), chi=0, eta=1, a0_3=0,
-                expected_results=(-.157, .028, .025, -.10), tolerance=2*tolerance)
+                expected_results=(-.1589, .0266, .0279, -.09), tolerance=tolerance)
     #test_ansatz(HexagonalLattice([18, 18]), chi=0, eta=1, a0_3=0,
     #            expected_results=(-.157, .028, .025, -.10), tolerance=tolerance)
 
     # ChSU2B
     test_ansatz(HexagonalLattice([6, 6]), chi=1, eta=sqrt(2), a0_3=0,
-                expected_results=(-.160, .029, .017, .102), tolerance=2*tolerance)
+                expected_results=(-.1604, .029, .017, .102), tolerance=tolerance)
     #test_ansatz(HexagonalLattice([18, 18]), chi=1, eta=sqrt(2), a0_3=0,
     #            expected_results=(-.160, .029, .017, .102), tolerance=tolerance)
 

@@ -8,6 +8,7 @@
 #include <Eigen/Dense>
 #include <boost/assert.hpp>
 
+#include "Big.hpp"
 #include "lw_vector.hpp"
 #include "vmc-typedefs.hpp"
 
@@ -56,7 +57,8 @@ private:
     // so we can cancel an update if we wish
 
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> mat, invmat, new_invmat;
-    T detrat, det, old_det;
+    T detrat;
+    Big<T> det, old_det;
     unsigned int pending_index; // refers to a row or column index
     int nullity_lower_bound; // in general, a lower bound on the nullity.  but
                              // it becomes zero only when the nullity is
@@ -121,7 +123,7 @@ public:
             if (nullity_lower_bound == 0)
                 invmat.col(r1).swap(invmat.col(r2));
 
-            det = -det;
+            det *= -1;
             // NOTE: we don't need to update detrat because it is only relevant
             // when an update is in progress
         }
@@ -144,7 +146,7 @@ public:
             if (nullity_lower_bound == 0)
                 invmat.row(c1).swap(invmat.row(c2));
 
-            det = -det;
+            det *= -1;
             // NOTE: we don't need to update detrat because it is only relevant
             // when an update is in progress
         }
@@ -192,11 +194,11 @@ public:
                 detrat = mat.row(pending_index) * invmat.col(pending_index);
                 det *= detrat;
 
-                if (det != T(0)) {
+                if (det.is_nonzero()) {
                     // If the determinant has become sufficiently small, the
                     // matrix might have become singular so we recompute its
                     // inverse from scratch.
-                    if (be_extra_careful && std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
                 } else {
                     // the matrix must have become singular
@@ -238,11 +240,11 @@ public:
                 detrat = invmat.row(pending_index) * mat.col(pending_index);
                 det *= detrat;
 
-                if (det != T(0)) {
+                if (det.is_nonzero()) {
                     // If the determinant has become sufficiently small, the
                     // matrix might have become singular so we recompute its
                     // inverse from scratch.
-                    if (be_extra_careful && std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
                 } else {
                     // the matrix must have become singular
@@ -337,14 +339,14 @@ public:
 
                 // handle cases in which the matrix has (possibly) become
                 // singular
-                if (det == T(0)) {
+                if (det.is_zero()) {
                     // mark that the matrix has become singular
                     new_nullity_lower_bound = 1;
                 } else {
                     // If the determinant has become sufficiently small, the matrix
                     // might have become singular so we recompute its inverse from
                     // scratch just to be safe.
-                    if (be_extra_careful && std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
                 }
             }
@@ -463,14 +465,14 @@ public:
 
                 // handle cases in which the matrix has (possibly) become
                 // singular
-                if (det == T(0)) {
+                if (det.is_zero()) {
                     // mark that the matrix has become singular
                     new_nullity_lower_bound = 1;
                 } else {
                     // If the determinant has become sufficiently small, the matrix
                     // might have become singular so we recompute its inverse from
                     // scratch just to be safe.
-                    if (be_extra_careful && std::abs(det) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff))
                         calculate_inverse(true);
                 }
             }
@@ -491,7 +493,7 @@ public:
             BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                if (!be_extra_careful && std::abs(detrat) < std::abs(ceperley_determinant_cutoff)) {
+                if (!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff)) {
                     calculate_inverse(true);
                 } else {
                     // implement equation (12) of Ceperley et al, correctly given
@@ -529,7 +531,7 @@ public:
             BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                if (!be_extra_careful && std::abs(detrat) < std::abs(ceperley_determinant_cutoff)) {
+                if (!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff)) {
                     calculate_inverse(true);
                 } else {
                     // same as above in finish_row_update(): update the inverse
@@ -561,7 +563,7 @@ public:
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                if (!be_extra_careful && std::abs(detrat) < std::abs(ceperley_determinant_cutoff)) {
+                if (!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff)) {
                     calculate_inverse(true);
                 } else {
                     // same as above in finish_row_update(): update the inverse
@@ -600,7 +602,7 @@ public:
             BOOST_ASSERT(current_state == ROWCOL_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                if (!be_extra_careful && std::abs(detrat) < std::abs(ceperley_determinant_cutoff)) {
+                if (!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff)) {
                     calculate_inverse(true);
                 } else {
                     // update the inverse matrix using Sherman-Morrison-Woodbury
@@ -730,10 +732,19 @@ public:
      *
      * The determinant is always pre-calculated, so this runs in O(1) time.
      */
-    T get_determinant (void) const
+    const Big<T> & get_determinant (void) const
         {
             BOOST_ASSERT(current_state != UNINITIALIZED);
             return det;
+        }
+
+    /**
+     * Returns true if the matrix is currently singular
+     */
+    bool is_singular (void) const
+        {
+            BOOST_ASSERT(current_state != UNINITIALIZED);
+            return det.is_zero();
         }
 
     /**
@@ -761,9 +772,9 @@ public:
             Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);
             if (lu_decomposition.isInvertible()) {
                 T d = lu_decomposition.determinant();
-                return std::abs((d - det) / d);
+                return std::abs((d - det.get_value()) / d);
             } else {
-                return std::abs(det);
+                return std::abs(det.get_value());
             }
         }
 
@@ -812,9 +823,9 @@ private:
                 // oddly enough, lu_decomposition.determinant() is not
                 // guaranteed to return zero, so we handle this case
                 // explicitly.
-                det = T(0);
+                det = Big<T>(); // set to zero
             } else {
-                det = lu_decomposition.determinant();
+                det = Big<T>(lu_decomposition.determinant());
                 (update_in_progress ? new_invmat : invmat) = lu_decomposition.inverse();
 
 #ifndef DISABLE_CEPERLEY_MATRIX_INVERSE_CHECK
@@ -836,7 +847,7 @@ private:
 #if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
             std::cerr << "DEBUG INFO: matrix was singular!" << std::endl;
 #endif
-            BOOST_ASSERT(det == T(0));
+            BOOST_ASSERT(det.is_zero());
             BOOST_ASSERT(new_nullity_lower_bound == nullity_lower_bound);
             BOOST_ASSERT(new_nullity_lower_bound > 0);
             new_nullity_lower_bound -= update_rank;
@@ -847,10 +858,10 @@ private:
 #ifdef VMC_CAREFUL
     void be_careful (void) const
         {
-            if (det != T(0) && compute_inverse_matrix_error(invmat) > 1)
+            if (det.is_nonzero() && compute_inverse_matrix_error(invmat) > 1)
                 std::cerr << "Large inverse matrix error of " << compute_inverse_matrix_error(invmat) << std::endl;
 
-            if (compute_relative_determinant_error() > .03)
+            if (!(compute_relative_determinant_error() < .03))
                 std::cerr << "large determinant error! " << compute_relative_determinant_error() << std::endl;
         }
 #endif

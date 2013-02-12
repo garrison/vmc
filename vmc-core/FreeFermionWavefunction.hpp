@@ -43,7 +43,7 @@ public:
         template <bool first_pass>
         void do_perform_move (const Move &move);
 
-        amplitude_t psi_ (void) const;
+        Big<amplitude_t> psi_ (void) const;
 
         void finish_move_ (void);
 

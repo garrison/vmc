@@ -76,7 +76,7 @@ void FreeFermionWavefunction::Amplitude::do_perform_move (const Move &move)
             }
             BOOST_ASSERT(cols.size() != 0);
             m_cmat[i].update_columns(cols, wf_->orbital_def[i]->get_orbitals());
-            if (first_pass && m_cmat[i].get_determinant() == amplitude_t(0)) {
+            if (first_pass && m_cmat[i].is_singular()) {
                 m_partial_update_step = get_N_species() - i - 1;
                 return;
             }
@@ -85,12 +85,12 @@ void FreeFermionWavefunction::Amplitude::do_perform_move (const Move &move)
     m_partial_update_step = 0;
 }
 
-amplitude_t FreeFermionWavefunction::Amplitude::psi_ (void) const
+Big<amplitude_t> FreeFermionWavefunction::Amplitude::psi_ (void) const
 {
     if (m_partial_update_step != 0)
-        return amplitude_t(0);
+        return Big<amplitude_t>();
 
-    amplitude_t rv = m_current_jastrow;
+    Big<amplitude_t> rv(m_current_jastrow);
     for (unsigned int i = 0; i < get_N_species(); ++i)
         rv *= m_cmat[i].get_determinant();
     return rv;

@@ -141,7 +141,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
     // move particles, determining phialpha probability ratios
     amplitude_t phialpha1_ratio(1), phialpha2_ratio(1);
     if (chosen_particle1) {
-        const amplitude_t old_phialpha1_psi = phialpha1->psi();
+        const Big<amplitude_t> old_phialpha1_psi(phialpha1->psi());
         if (!phialpha1.unique()) // copy-on-write
             phialpha1 = phialpha1->clone();
         Move move;
@@ -150,7 +150,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         phialpha1_ratio = phialpha1->psi() / old_phialpha1_psi;
     }
     if (chosen_particle2) {
-        const amplitude_t old_phialpha2_psi = phialpha2->psi();
+        const Big<amplitude_t> old_phialpha2_psi(phialpha2->psi());
         if (!phialpha2.unique()) // copy-on-write
             phialpha2 = phialpha2->clone();
         Move move;
@@ -163,8 +163,8 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
 
     if (update_swapped_system_before_accepting) {
         // remember old phibeta's
-        const amplitude_t old_phibeta1_psi = swapped_system->get_phibeta1().psi();
-        const amplitude_t old_phibeta2_psi = swapped_system->get_phibeta2().psi();
+        const Big<amplitude_t> old_phibeta1_psi(swapped_system->get_phibeta1().psi());
+        const Big<amplitude_t> old_phibeta2_psi(swapped_system->get_phibeta2().psi());
         // implement copy-on-write
         if (!swapped_system.unique())
             swapped_system = boost::make_shared<SwappedSystem>(*swapped_system);

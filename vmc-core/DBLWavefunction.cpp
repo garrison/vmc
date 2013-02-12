@@ -53,7 +53,7 @@ void DBLWavefunction::Amplitude::do_perform_move (const Move &move)
                 d2_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
             cmat2.update_columns(d2_cols, wf_->orbital_def2->get_orbitals());
         }
-        if (first_pass && cmat2.get_determinant() == amplitude_t(0)) {
+        if (first_pass && cmat2.is_singular()) {
             m_partial_update_step = 1;
             return;
         }
@@ -71,10 +71,10 @@ void DBLWavefunction::Amplitude::do_perform_move (const Move &move)
         m_partial_update_step = 0;
 }
 
-amplitude_t DBLWavefunction::Amplitude::psi_ (void) const
+Big<amplitude_t> DBLWavefunction::Amplitude::psi_ (void) const
 {
     if (m_partial_update_step != 0)
-        return amplitude_t(0);
+        return Big<amplitude_t>();
 
     // fixme: we could cache or precalculate this ... but i doubt it would make
     // much difference really

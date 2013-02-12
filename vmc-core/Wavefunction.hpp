@@ -7,6 +7,7 @@
 #include "PositionArguments.hpp"
 #include "Lattice.hpp"
 #include "Move.hpp"
+#include "Big.hpp"
 #include "vmc-typedefs.hpp"
 
 class RandomNumberGenerator;
@@ -54,18 +55,17 @@ public:
         void perform_move (const Move &move);
 
         /**
-         * Returns true if the wavefunction has zero amplitude in the current position
+         * Returns true if the wavefunction has nonzero amplitude in the current position
          */
-        // fixme: this should soon be virtual and not defined
         bool is_nonzero (void) const
             {
-                return psi() != amplitude_t(0);
+                return psi().is_nonzero();
             }
 
         /**
          * Returns the current amplitude of the wavefunction
          */
-        amplitude_t psi (void) const
+        Big<amplitude_t> psi (void) const
             {
                 return psi_();
             }
@@ -163,7 +163,7 @@ public:
          */
         virtual void perform_move_ (const Move &move) = 0;
 
-        virtual amplitude_t psi_ (void) const = 0;
+        virtual Big<amplitude_t> psi_ (void) const = 0;
 
         virtual void finish_move_ (void) = 0;
 

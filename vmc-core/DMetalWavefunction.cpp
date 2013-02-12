@@ -66,7 +66,7 @@ void DMetalWavefunction::Amplitude::do_perform_move (const Move &move)
             }
             m_cmat_d2.update_columns(d2_cols, wf_->orbital_d2->get_orbitals());
         }
-        if (first_pass && m_cmat_d2.get_determinant() == amplitude_t(0)) {
+        if (first_pass && m_cmat_d2.is_singular()) {
             m_partial_update_step = 3;
             return;
         }
@@ -81,7 +81,7 @@ void DMetalWavefunction::Amplitude::do_perform_move (const Move &move)
             }
             m_cmat_d1.update_columns(d1_cols, wf_->orbital_d1->get_orbitals());
         }
-        if (first_pass && m_cmat_d1.get_determinant() == amplitude_t(0)) {
+        if (first_pass && m_cmat_d1.is_singular()) {
             m_partial_update_step = 2;
             return;
         }
@@ -97,7 +97,7 @@ void DMetalWavefunction::Amplitude::do_perform_move (const Move &move)
             if (m_up_particles_in_progress)
                 m_cmat_f_up.update_columns(f_up_cols, wf_->orbital_f_up->get_orbitals());
         }
-        if (first_pass && m_cmat_f_up.get_determinant() == amplitude_t(0)) {
+        if (first_pass && m_cmat_f_up.is_singular()) {
             m_partial_update_step = 1;
             return;
         }
@@ -119,10 +119,10 @@ void DMetalWavefunction::Amplitude::do_perform_move (const Move &move)
     }
 }
 
-amplitude_t DMetalWavefunction::Amplitude::psi_ (void) const
+Big<amplitude_t> DMetalWavefunction::Amplitude::psi_ (void) const
 {
     if (m_partial_update_step != 0)
-        return amplitude_t(0);
+        return Big<amplitude_t>();
 
     const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(wf.get());
 

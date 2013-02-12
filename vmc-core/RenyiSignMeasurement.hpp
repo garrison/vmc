@@ -43,10 +43,10 @@ private:
             // because the determinants tend to be quite large, and multiplying
             // them can lead to overflow
             double a = 0;
-            a -= std::arg(walk.get_phialpha1().psi());
-            a -= std::arg(walk.get_phialpha2().psi());
-            a += std::arg(walk.get_phibeta1().psi());
-            a += std::arg(walk.get_phibeta2().psi());
+            a -= std::arg(walk.get_phialpha1().psi().get_base());
+            a -= std::arg(walk.get_phialpha2().psi().get_base());
+            a += std::arg(walk.get_phibeta1().psi().get_base());
+            a += std::arg(walk.get_phibeta2().psi().get_base());
             const std::complex<double> i(0, 1);
 #if 0
             std::cerr << std::real(std::exp(i * a)) << "   " << std::arg(walk.get_phialpha1().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phialpha2().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta1().psi())/boost::math::constants::pi<double>() << ' ' << std::arg(walk.get_phibeta2().psi())/boost::math::constants::pi<double>() << ' ' << std::endl;

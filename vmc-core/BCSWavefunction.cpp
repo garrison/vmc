@@ -96,12 +96,12 @@ void BCSWavefunction::Amplitude::do_perform_move (const Move &move)
     }
 }
 
-amplitude_t BCSWavefunction::Amplitude::psi_ (void) const
+Big<amplitude_t> BCSWavefunction::Amplitude::psi_ (void) const
 {
     if (m_partial_update_step != 0)
-        return amplitude_t(0);
+        return Big<amplitude_t>();
 
-    return m_current_jastrow * m_cmat.get_determinant();
+    return m_cmat.get_determinant() * m_current_jastrow;
 }
 
 void BCSWavefunction::Amplitude::finish_move_ (void)

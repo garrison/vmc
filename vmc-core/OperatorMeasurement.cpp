@@ -42,7 +42,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
 
     amplitude_t meas = 0;
 
-    const amplitude_t old_psi = wfa.psi();
+    const Big<amplitude_t> old_psi(wfa.psi());
 
     // we only iterate if doing a sum, and even then we only want to iterate
     // over BraivaisSite's

@@ -20,7 +20,7 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (Rand
 #endif
 
     // remember old amplitude so we can later compute a new:old ratio
-    amplitude_t old_amplitude = wfa->psi();
+    Big<amplitude_t> old_amplitude = wfa->psi();
 
     // choose a move and update things
     const Move move(wfa->propose_move(rng));

@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "vmc-typedefs.hpp"
+#include "Big.hpp"
 
 // the modulus of a negative number is not consistently defined in C/C++, so
 // this function is defined to give the behavior one would logically expect
@@ -41,6 +42,11 @@ static inline complex_t complex_pow (complex_t base, real_t exponent)
         rv *= safe_pow(std::abs(base), exponent - 1.0);
     }
     return rv;
+}
+
+static inline Big<complex_t> complex_pow (Big<complex_t> base, real_t exponent)
+{
+    return Big<complex_t>(complex_pow(base.get_base(), exponent), base.get_exponent() * exponent);
 }
 
 #endif

@@ -53,13 +53,19 @@ def bcs_soln(t, delta):
     evalsPos = evals[Nsites:2*Nsites]
     evecsPos = evecs[:, Nsites:2*Nsites]
 
-#    logger.debug(' positive eigenvalues = ...')
-#    logger.debug(evalsPos)
-#    logger.debug(' negative eigenvalues = ...')
+    logger.debug('positive eigenvalues = ...')
+    logger.debug(evalsPos)
+#    logger.debug('negative eigenvalues = ...')
 #    logger.debug(evalsNeg[::-1])
 
     # Check that positive eigenvalues are positive and that eigenvalues have come in plus-minus pairs:
-    assert numpy.min(evalsPos > 0)
+    # FIXME:  probably shouldn't be so strict, since this gets called when trying to tune the ansatz,
+    # and we could potentially run into degenerate mean field solutions (i.e., those with zero modes) in that process;
+    # if we don't assert evalsPos > 0, then we treat zero modes as positive and don't populate them in the the BCS solution,
+    # which I think is OK; for now, we'll just warn instead of assert
+#    assert numpy.min(evalsPos) > 1e-12
+    if not numpy.min(evalsPos) > 1e-12:
+        logger.warning('some of evalsPos are not greater than 1e-12')
     assert numpy.max(numpy.abs(evalsNeg[::-1] + evalsPos)) < 1e-12
 
     u = evecsPos[0:evecsPos.shape[0]:2, :]
@@ -108,20 +114,20 @@ def bcs_stats_average(u, v):
     stats = bcs_stats(u, v)
 
     if numpy.max(numpy.std(stats['Tvec'], 0)) > 1e-10:
-        logger.warning(' This BCS state is not translationally invariant!  standard deviation of Tvec = ...')
+        logger.warning('this BCS state is not translationally invariant!  standard deviation of Tvec = ...')
         logger.warning(numpy.std(stats['Tvec'], 0))
 
     return dict([( stats.items()[i][0], numpy.mean(stats.items()[i][1], 0) ) for i in xrange(0,len(stats))])
 
 
 def calculate_Tz(mu0_try, t_offsite, delta):
-    logger.debug(' mu0_try = %.9f', mu0_try)
+    logger.debug('mu0_try = %.9f', mu0_try)
 
     t = add_onsite_terms(t_offsite, mu0_try)
     soln = bcs_soln(t, delta)
     stats = bcs_stats_average(soln['u'], soln['v'])
 
-    logger.debug(' fdagf_try = %.9f', stats['fdagf'])
+    logger.debug('fdagf_try = %.9f', stats['fdagf'])
 
     return stats['Tvec'][2]
 
@@ -133,31 +139,32 @@ def calculate_pairing_matrix(u, v, norm):
 
     # Warn if u is singular, but don't abort cuz sometimes this is OK..
     (signdet, logdet) = numpy.linalg.slogdet(u)
-    if signdet * numpy.exp(logdet) == 0:
-        logger.warning(' |det(u)| = %g', numpy.abs(numpy.exp(logdet)))
+    logger.info('|det(u)| = %g', numpy.abs(numpy.exp(logdet)))  # just log it for now..
+#    if signdet * numpy.exp(logdet) == 0:
+#        logger.warning('|det(u)| = %g', numpy.abs(numpy.exp(logdet)))
 
     phiMat = numpy.dot( numpy.linalg.inv(u.conjugate().transpose()), v.conjugate().transpose() )
 
-#    logger.debug(' pairing matrix = ...')
+#    logger.debug('pairing matrix = ...')
 #    logger.debug(phiMat)
-    logger.debug(" pairing matrix's main diagonal = ...")
-    logger.debug(phiMat.diagonal())
+#    logger.debug("pairing matrix's main diagonal = ...")
+#    logger.debug(phiMat.diagonal())
 
     # Check that phiMat is symmetric:
     if numpy.max(numpy.abs(phiMat - phiMat.transpose())) > 1e-8:
-        logger.warning(' "symmetricness" of pairing matrix = %.9g', numpy.max(numpy.abs(phiMat - phiMat.transpose())))
+        logger.warning('"symmetricness" of pairing matrix = %.9g', numpy.max(numpy.abs(phiMat - phiMat.transpose())))
 
     # Check against TI code (must first run *_Fourier.py with same parameters):
 #    phiMat_TI = numpy.loadtxt('phiMat_TI.dat').view(complex)
-#    logger.debug(' max|phiMat - phiMat_TI| = %.9g ', numpy.max(numpy.abs(phiMat - phiMat_TI)))
+#    logger.debug('max|phiMat - phiMat_TI| = %.9g ', numpy.max(numpy.abs(phiMat - phiMat_TI)))
 
     phiNorm = norm_of_pairing_matrix(phiMat)
-    logger.info(' norm of pairing matrix before normalization = %f', phiNorm)
+    logger.info('norm of pairing matrix before normalization = %f', phiNorm)
 
     if norm is not None:
         phiMat = norm * (phiMat / phiNorm)
         phiNorm = norm_of_pairing_matrix(phiMat)
-        logger.info(' norm of pairing matrix after normalization = %f', phiNorm)
+        logger.info('norm of pairing matrix after normalization = %f', phiNorm)
 
     return phiMat
 
@@ -166,7 +173,7 @@ def norm_of_pairing_matrix(phiMat):
     return numpy.sqrt(numpy.sum(numpy.abs(phiMat)**2))
 
 
-def plot_pairing_matrix(phiMat):
+def plot_pairing_matrix(phiMat, callshow=True):
     assert_ismatrix(phiMat)
 
     from mpl_toolkits.mplot3d import Axes3D
@@ -185,7 +192,8 @@ def plot_pairing_matrix(phiMat):
 
     fig.colorbar(surf, shrink=0.5, aspect=5)
 
-    plt.show()
+    if callshow:
+        plt.show()
 
 
 def create_t_matrix_basic(lattice, boundary_conditions, t_value, neighbors_func):
@@ -260,7 +268,7 @@ def check_delta_matrix(delta, channel):
     elif channel == 'triplet':
         assert numpy.max(numpy.abs(delta + delta.transpose())) < 1e-12
     else:
-        logger.warning(' unable to check delta for appropriate pairing channel (singlet or triplet).')
+        logger.warning('unable to check delta for appropriate pairing channel (singlet or triplet).')
 
 
 def check_offsite_for_onsite(offsite):
@@ -288,6 +296,7 @@ def dx2minusy2_pairing_pattern(lattice, site1, site2):
     Rhat = R / numpy.linalg.norm(R)
 
     return Rhat[0]**2 - Rhat[1]**2
+#    return did_pairing_pattern(lattice, site1, site2).real
 
 
 # hf is for 'half-filling' since the function currently solves for the root of Tz: Tz=0 (fdagf=1)
@@ -309,7 +318,7 @@ def did_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0
 
     if mu0 is None:
         mu0_soln = optimize.fsolve(calculate_Tz, mu0_start, args=(t_offsite, delta_offsite), full_output=True, xtol=1e-06, epsfcn=0.1)
-        logger.info(' mu0_soln = %s', mu0_soln)
+        logger.info('mu0_soln = %s', mu0_soln)
         mu0 = mu0_soln[0][0]
     #        mu0 = optimize.newton(calculate_Tz, mu0_start, tol=1e-06)
 
@@ -319,9 +328,9 @@ def did_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0
     soln = bcs_soln(t, delta)
     stats = bcs_stats_average(soln['u'], soln['v'])
 
-    logger.info(' mu0 = %.9f', mu0)
-    logger.info(' fdagf = %.9f', stats['fdagf'])
-    logger.info(' Ttot = %.9f', stats['Ttot'])
+    logger.info('mu0 = %.9f', mu0)
+    logger.info('fdagf = %.9f', stats['fdagf'])
+    logger.info('Ttot = %.9f', stats['Ttot'])
 
     phi = calculate_pairing_matrix(soln['u'], soln['v'], norm)
 
@@ -347,7 +356,7 @@ def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start
 
     if mu0 is None:
         mu0_soln = optimize.fsolve(calculate_Tz, mu0_start, args=(t_offsite, delta_offsite), full_output=True, xtol=1e-06, epsfcn=0.1)
-        logger.info(' mu0_soln = %s', mu0_soln)
+        logger.info('mu0_soln = %s', mu0_soln)
         mu0 = mu0_soln[0][0]
     #        mu0 = optimize.newton(calculate_Tz, mu0_start, tol=1e-06)
 
@@ -357,9 +366,9 @@ def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start
     soln = bcs_soln(t, delta)
     stats = bcs_stats_average(soln['u'], soln['v'])
 
-    logger.info(' mu0 = %.9f', mu0)
-    logger.info(' fdagf = %.9f', stats['fdagf'])
-    logger.info(' Ttot = %.9f', stats['Ttot'])
+    logger.info('mu0 = %.9f', mu0)
+    logger.info('fdagf = %.9f', stats['fdagf'])
+    logger.info('Ttot = %.9f', stats['Ttot'])
 
     phi = calculate_pairing_matrix(soln['u'], soln['v'], norm)
 
@@ -367,13 +376,19 @@ def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s: %(message)s',
+                        )
 
-    lattice = HexagonalLattice([6, 6])
+    lattice = HexagonalLattice([12, 12])
     boundary_conditions = (periodic, antiperiodic)
 
-    theta = 0.816814
+    alpha = pi/100
 
-    bcs_theory = dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1=numpy.cos(theta), delta1=numpy.sin(theta))
+    bcs_theory = dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1=numpy.cos(alpha), delta1=numpy.sin(alpha), mu0_start=0)
+#    bcs_theory = dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1=1, delta1=5, mu0_start=0, mu0=None)
+
+#    bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, t1=numpy.cos(alpha), delta1=numpy.sin(alpha), mu0=0.1)
+#    bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, t1=1, delta1=5)
 
     plot_pairing_matrix(bcs_theory['pairing_matrix'])

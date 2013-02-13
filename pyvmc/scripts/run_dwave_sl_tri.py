@@ -16,7 +16,7 @@ import os
 from collections import OrderedDict
 
 
-def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, boundary_conditions, wf_params, use_prev=False):
+def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, boundary_conditions, wf_params, use_prev_mu=False):
     assert theory_func is did_hf_bcs_theory or theory_func is dx2minusy2_hf_bcs_theory
 
     from pyvmc.library.bcs import ProjectedBCSWavefunction
@@ -51,10 +51,10 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
         'mu0',
         'fdagf',
         'Ttot',
-        'HeisNN',
-        'HeisNNN',
-        'HeisNNNN',
-        'ring4site',
+        'HeisNN', 'HeisNN_error',
+        'HeisNNN', 'HeisNNN_error',
+        'HeisNNNN', 'HeisNNNN_error',
+        'ring4site', 'ring4site_error',
     )
 
     if not os.path.exists(datapath):
@@ -72,7 +72,8 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
     for wf_params_override in states_iterable:
         for k, v in wf_params_override.items():
             wf_params[k] = v
-        wf_params['norm'] = len(lattice) ** 0.7  # FIXME..
+        wf_params['norm'] = len(lattice) ** 1.0  # FIXME..
+#        wf_params['norm'] = None
 
         logger.info('starting a new state! wf_params = %s', wf_params)
         bcs_theory = theory_func(lattice, boundary_conditions, **wf_params)
@@ -86,7 +87,7 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
 
         hamiltonian = HeisenbergPlusRingExchangeHamiltonian((periodic, periodic), lattice)
         plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=100) for o in hamiltonian.get_basic_operators()]
-        results = do_calculate_plans(plans, equilibrium_sweeps=100000, bins=20, measurement_sweeps_per_bin=30000)
+        results = do_calculate_plans(plans, equilibrium_sweeps=100000, bins=30, measurement_sweeps_per_bin=30000)
         result_lengths = [len(result) for result in results.itervalues()]
         assert len(set(result_lengths)) == 1
         evaluators = []
@@ -105,6 +106,7 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
         for k, v in Hami_terms.items():
             logger.info('%s = %.6f (%.6f)', k, v[0], v[1])
 
+        # FIXME: also record acceptance rate in data file
         output = {
             't1': wf_params['t1'],
             'delta1': wf_params['delta1'],
@@ -116,10 +118,10 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
             'mu0': bcs_theory['chemical_potential'],
             'fdagf': bcs_theory['bcs_stats']['fdagf'],
             'Ttot': bcs_theory['bcs_stats']['Ttot'],
-            'HeisNN': Hami_terms['HeisNN'][0],
-            'HeisNNN': Hami_terms['HeisNNN'][0],
-            'HeisNNNN': Hami_terms['HeisNNNN'][0],
-            'ring4site': Hami_terms['ring4site'][0],
+            'HeisNN': Hami_terms['HeisNN'][0], 'HeisNN_error': Hami_terms['HeisNN'][1],
+            'HeisNNN': Hami_terms['HeisNNN'][0], 'HeisNNN_error': Hami_terms['HeisNNN'][1],
+            'HeisNNNN': Hami_terms['HeisNNNN'][0], 'HeisNNNN_error': Hami_terms['HeisNNNN'][1],
+            'ring4site': Hami_terms['ring4site'][0], 'ring4site_error': Hami_terms['ring4site'][1],
         }
 
         data2write = numpy.array( [ output[k] for k in info_keys ] )
@@ -127,7 +129,7 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
         datafile.write('\n')
         datafile.flush()
 
-        if use_prev:
+        if use_prev_mu:
             wf_params['mu0_start'] = bcs_theory['chemical_potential']
 
     datafile.close()
@@ -136,8 +138,8 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
 if __name__ == "__main__":
     from pyvmc.library.mft_utils import did_hf_bcs_theory, dx2minusy2_hf_bcs_theory
 
-    logging.basicConfig(level=logging.INFO,
-                        format='%(asctime)s %(levelname)s: %(message)s"',
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s: %(message)s',
                         )
     logging.getLogger().handlers[0].setLevel(logging.ERROR)
 #    logging.StreamHandler().setLevel(logging.ERROR)
@@ -154,8 +156,23 @@ if __name__ == "__main__":
                 'delta3': 0,
             }
 
+    def nn_Samuel_parameters():
+#        for delta1, mu0 in [(5, -0.1), (10, -0.3), (15, -0.5)]:
+#        for delta1, mu0 in [(2.5, 0.1)]:
+        for delta1 in [7.5]:
+            logger.info('starting new state, delta1 = %f', delta1)
+            yield {
+                't1': 1,
+                'delta1': delta1,
+                't2': 0,
+                'delta2': 0,
+                't3': 0,
+                'delta3': 0,
+                'mu0': None,
+            }
+
     def nnnCenke_beta_parameters():
-        for beta in numpy.linspace(pi/100, pi/2, 50):
+        for beta in numpy.linspace(0, pi/2, 51):
             logger.info('starting new state, beta = %f', beta)
             yield {
                 't1': 0,
@@ -167,18 +184,33 @@ if __name__ == "__main__":
             }
 
     parameter_scan(
-        theory_func = did_hf_bcs_theory,
-        states_iterable = nn_alpha_parameters(),
-        datadir = '.',
-        prefix = 'did_nn',
-        lattice = HexagonalLattice([12, 12]),
-        boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
-        wf_params = {
-            'delta0': 0,
-            'mu0_start': 0,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
-        },
-        use_prev = True,
+       theory_func = dx2minusy2_hf_bcs_theory,
+       states_iterable = nn_Samuel_parameters(),
+#       datadir = '/Users/mishmash/Documents/Research/UCSB/Cenke_SL/Data/nodald/2013-02-10',
+       datadir = '.',
+       prefix = 'nodald_nn_SamuelComp',
+       lattice = HexagonalLattice([18, 18]),
+       boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
+       wf_params = {
+       'delta0': 0,
+       'mu0_start': 0,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
+       },
+       use_prev_mu = False,
     )
+
+#    parameter_scan(
+#        theory_func = did_hf_bcs_theory,
+#        states_iterable = nnnCenke_beta_parameters(),
+#        datadir = '/Users/mishmash/Documents/Research/UCSB/Cenke_SL/Data/did/2012-02-10',
+#        prefix = 'did_nnnCenke',
+#        lattice = HexagonalLattice([18, 18]),
+#        boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
+#        wf_params = {
+#            'delta0': 0,
+#            'mu0_start': 0.0,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
+#        },
+#        use_prev_mu = False,
+#    )
 
 #    from pyvmc.utils.parameter_iteration import iterate_parameters
 #    parameter_scan([d for d in iterate_parameters(['t1', 'delta1']) if d['delta1'] != 0])

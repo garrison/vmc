@@ -27,7 +27,7 @@ def test_ansatz(lattice, chi, eta, a0_3, expected_results, tolerance):
     from pyvmc.core.universe import do_calculate_plans
 
     hamiltonian = HeisenbergPlusRingExchangeHamiltonian(parton_boundary_conditions, lattice)
-    plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]
+    plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=100) for o in hamiltonian.get_basic_operators()]
     results = do_calculate_plans(plans)
     context = {p.operator: average(result) for p, result in results.iteritems()}
     evaluator = hamiltonian.evaluate(context)
@@ -45,7 +45,7 @@ def test_ansatz(lattice, chi, eta, a0_3, expected_results, tolerance):
 
     assert all(abs(r1 - r2) < tolerance for r1, r2 in zip(final_results, expected_results))
 
-def test_projected_bcs_states(tolerance=.01):
+def test_projected_bcs_states(tolerance=.015):
     # Z2A
     test_ansatz(HexagonalLattice([6, 6]), chi=0, eta=1, a0_3=0,
                 expected_results=(-.1589, .0266, .0279, -.09), tolerance=tolerance)

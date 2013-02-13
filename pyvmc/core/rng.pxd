@@ -9,4 +9,5 @@ cdef extern from "RandomNumberGenerator.hpp":
 
 cdef class RandomNumberGenerator(object):
     cdef auto_ptr[CppRandomNumberGenerator] autoptr
+    cdef str name
     cdef unsigned long seed

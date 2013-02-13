@@ -1,13 +1,35 @@
-from functools import partial
+from functools import partial, wraps
+from sys import exc_info
 import logging
 import time
 import resource
 
+try:
+    from contextlib import ContextDecorator
+except ImportError:
+    # ContextDecorator is new in python 3.2
+    class ContextDecorator(object):
+        def __call__(self, func):
+            @wraps(func)
+            def new_func(*args, **kwargs):
+                self.__enter__()
+                try:
+                    rv = func(*args, **kwargs)
+                except:
+                    self.__exit__(*exc_info)
+                    raise
+                else:
+                    self.__exit__(None, None, None)
+                    return rv
+            return new_func
+
 # RUSAGE_THREAD is new in python 3.2
 getrusage = partial(resource.getrusage, getattr(resource, "RUSAGE_THREAD", resource.RUSAGE_SELF))
 
-class log_rusage(object):
-    """This is meant to be used as a context manager."""
+class log_rusage(ContextDecorator):
+    """This is meant to be used as a context manager.
+
+    It also works as a decorator."""
 
     def __init__(self, logger, message=""):
         self.logger = logger

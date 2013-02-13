@@ -15,32 +15,4 @@ typedef complex_t phase_t;
 static const unsigned int MAX_DIMENSION = 3;
 static const unsigned int MAX_MOVE_SIZE = 4;
 
-class accumulator_t
-{
-public:
-    accumulator_t (double x=0)
-        : accum(x)
-        {
-        }
-
-    operator double () const
-        {
-            return accum;
-        }
-
-    accumulator_t & operator+= (double x)
-        {
-            accum += x;
-            return *this;
-        }
-
-    accumulator_t & operator-= (double x)
-        {
-            return operator+=(-x);
-        }
-
-private:
-    long double accum;
-};
-
 #endif

@@ -2,8 +2,8 @@ cdef extern from "vmc-typedefs.hpp":
     cdef cppclass complex_t:
         complex_t()
         complex_t(double, double)
-        float real()
-        float imag()
+        double real()
+        double imag()
 
 cdef extern from "lw_vector.hpp":
     cdef cppclass lw_vector[T]:

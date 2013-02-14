@@ -2,14 +2,14 @@ from pyvmc.core cimport complex_t
 
 cdef extern from "RunningEstimate.hpp":
     cdef cppclass CppIntegerRunningEstimate "RunningEstimate<unsigned int>":
-        float get_recent_result()
-        float get_cumulative_result()
+        double get_recent_result()
+        double get_cumulative_result()
         unsigned int get_num_recent_values()
         unsigned int get_num_cumulative_values()
 
     cdef cppclass CppRealRunningEstimate "RunningEstimate<real_t>":
-        float get_recent_result()
-        float get_cumulative_result()
+        double get_recent_result()
+        double get_cumulative_result()
         unsigned int get_num_recent_values()
         unsigned int get_num_cumulative_values()
 

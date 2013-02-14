@@ -3,7 +3,12 @@
 
 #include <vector>
 
+#ifndef BOOST_NUMERIC_FUNCTIONAL_STD_COMPLEX_SUPPORT
+#define BOOST_NUMERIC_FUNCTIONAL_STD_COMPLEX_SUPPORT
+#endif
+
 #include <boost/assert.hpp>
+#include <boost/accumulators/statistics/moment.hpp>
 
 #include "RunningEstimate.hpp"
 
@@ -16,16 +21,32 @@ template <typename T>
 class BinnedEstimate : public RunningEstimate<T>
 {
 public:
-    struct BinnedSum
+    class BinnedSum
     {
-        T current_sum, cumulative_sum, cumulative_sum_squared;
+        typedef typename RunningEstimate<T>::result_t result_t;
 
         BinnedSum (T current_sum_)
-            : current_sum(current_sum_),
-              cumulative_sum(0),
-              cumulative_sum_squared(0)
+            : current_sum(current_sum_)
             {
             }
+
+        result_t get_mean (void) const
+            {
+                return boost::accumulators::mean(acc);
+            }
+
+        result_t get_variance (void) const
+            {
+                return boost::accumulators::moment<2>(acc);
+            }
+
+    private:
+        typedef boost::accumulators::accumulator_set<T, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::moment<2>, boost::accumulators::tag::count> > accumulator_t;
+
+        T current_sum;
+        accumulator_t acc;
+
+        friend class BinnedEstimate<T>;
     };
 
     void add_value (T value)
@@ -45,8 +66,7 @@ public:
 
             for (unsigned int i = 0; ; ++i) {
                 BOOST_ASSERT(i < binlevel_data.size());
-                binlevel_data[i].cumulative_sum += binlevel_data[i].current_sum;
-                binlevel_data[i].cumulative_sum_squared += binlevel_data[i].current_sum * binlevel_data[i].current_sum;
+                binlevel_data[i].acc(binlevel_data[i].current_sum);
                 binlevel_data[i].current_sum = 0;
                 if (this->get_num_cumulative_values() & (1 << i))
                     break;

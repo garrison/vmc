@@ -117,7 +117,7 @@ def bcs_stats_average(u, v):
         logger.warning('this BCS state is not translationally invariant!  standard deviation of Tvec = ...')
         logger.warning(numpy.std(stats['Tvec'], 0))
 
-    return dict([( stats.items()[i][0], numpy.mean(stats.items()[i][1], 0) ) for i in xrange(0,len(stats))])
+    return {k: numpy.mean(v, 0) for k, v in stats.items()}
 
 
 def calculate_Tz(mu0_try, t_offsite, delta):

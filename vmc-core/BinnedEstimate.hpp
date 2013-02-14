@@ -36,6 +36,11 @@ public:
                 return boost::accumulators::moment<2>(acc);
             }
 
+        unsigned int get_num_samples (void) const
+            {
+                return boost::accumulators::count(acc);
+            }
+
     private:
         BinnedSum (T current_sum_)
             : current_sum(current_sum_)

@@ -24,14 +24,17 @@ cdef extern from "BinnedEstimate.hpp":
     cdef cppclass CppIntegerBinnedSum "BinnedEstimate<unsigned int>::BinnedSum":
         double get_mean()
         double get_variance()
+        unsigned int get_num_samples()
 
     cdef cppclass CppRealBinnedSum "BinnedEstimate<real_t>::BinnedSum":
         double get_mean()
         double get_variance()
+        unsigned int get_num_samples()
 
     cdef cppclass CppComplexBinnedSum "BinnedEstimate<amplitude_t>::BinnedSum":
         complex_t get_mean()
         complex_t get_variance()
+        unsigned int get_num_samples()
 
     cdef cppclass CppIntegerBinnedEstimate "BinnedEstimate<unsigned int>" (CppIntegerRunningEstimate):
         const vector[CppIntegerBinnedSum] & get_binlevel_data()

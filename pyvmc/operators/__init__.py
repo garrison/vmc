@@ -11,7 +11,7 @@ class DensityDensityOperator(CompositeOperator):
         # least if we had a way of asserting it's correct in evaluate())...
         assert isinstance(site1, LatticeSite)
         assert isinstance(site2, LatticeSite)
-        operators = tuple([BasicOperator([SiteHop(site1, site1, i)] + ([SiteHop(site2, site2, j)] if site1 != site2 or i != j else []), boundary_conditions) for i in xrange(N_species) for j in xrange(N_species)])
+        operators = tuple([BasicOperator([SiteHop(site1, site1, i)] + ([SiteHop(site2, site2, j)] if site1 != site2 or i != j else []), boundary_conditions) for i in range(N_species) for j in range(N_species)])
         return (operators,)
 
     def evaluate(self, context):

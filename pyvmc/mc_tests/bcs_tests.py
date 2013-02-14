@@ -29,7 +29,7 @@ def test_ansatz(lattice, chi, eta, a0_3, expected_results, tolerance):
     hamiltonian = HeisenbergPlusRingExchangeHamiltonian(parton_boundary_conditions, lattice)
     plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=100) for o in hamiltonian.get_basic_operators()]
     results = do_calculate_plans(plans)
-    context = {p.operator: average(result) for p, result in results.iteritems()}
+    context = {p.operator: average(result) for p, result in results.items()}
     evaluator = hamiltonian.evaluate(context)
     final_results = (
         evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3,

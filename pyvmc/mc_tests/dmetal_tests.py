@@ -26,7 +26,7 @@ def test_dmetal_energy(tolerance=None):
     hamiltonian = TJKHamiltonian((periodic, periodic), wf.lattice)
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]
     results = do_calculate_plans(plans)
-    context = {p.operator: average(result) for p, result in results.iteritems()}
+    context = {p.operator: average(result) for p, result in results.items()}
     energy = hamiltonian.evaluate(context)(t=1, J=2, K=2) / len(wf.lattice)
 
     logger.info("Energy: %f", energy)

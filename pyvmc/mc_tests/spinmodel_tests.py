@@ -30,7 +30,7 @@ def test_spinmodel(tolerance=None):
                                                   (periodic, periodic))
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in spin_operator.get_basic_operators()]
     results = do_calculate_plans(plans)
-    context = {p.operator: average(result) for p, result in results.iteritems()}
+    context = {p.operator: average(result) for p, result in results.items()}
     logger.info("Spin model: %f", spin_operator.evaluate(context)())
 
 if __name__ == "__main__":

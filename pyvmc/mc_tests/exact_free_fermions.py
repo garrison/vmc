@@ -21,10 +21,10 @@ def test_1d_free_fermion_renyi(tolerance=0.02):
     wf = FreeFermionWavefunction(lattice=lattice, orbitals=[orbitals])
 
     exact_values = [free_fermions.exact_renyi(SimpleSubsystem([i], lattice), orbitals, [periodic], 2)
-                    for i in xrange(1, N // 2 + 1)]
+                    for i in range(1, N // 2 + 1)]
 
     plans = [RenyiEntropyMeasurementPlan(wf, SimpleSubsystem([i], lattice))
-             for i in xrange(1, N // 2 + 1)]
+             for i in range(1, N // 2 + 1)]
     calc = SimulationUniverse(plans, 500000)
     while True:
         results = calc.iterate(200000)

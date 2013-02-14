@@ -1,3 +1,5 @@
+import six
+
 from itertools import chain
 from collections import Sequence
 import logging
@@ -35,12 +37,12 @@ class SimulationUniverse(object):
 
         # now organize them by each walk which must be performed
         by_walk = {}
-        for p, m in self.measurement_dict.iteritems():
+        for p, m in six.iteritems(self.measurement_dict):
             by_walk.setdefault(p.walk, []).append(m)
 
         # prepare and equilibriate simulations
         self.simulations = []
-        for walk_plan, measurements in by_walk.iteritems():
+        for walk_plan, measurements in six.iteritems(by_walk):
             # the MetropolisSimulation constructor eats the RNG, so we need to
             # create a new one for each simulation
             rng = RandomNumberGenerator()
@@ -61,9 +63,9 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
 
     # perform simulations
     results = {}
-    for i in xrange(bins):  # FIXME: this outer loop should be unnecessary.  the measurements should keep track of something like this themselves
+    for i in six.moves.xrange(bins):  # FIXME: this outer loop should be unnecessary.  the measurements should keep track of something like this themselves
         r = calc.iterate(measurement_sweeps_per_bin)
-        for p, m in r.iteritems():
+        for p, m in six.iteritems(r):
             # NOTE: this assumes that each measurement object returns precisely a single result
             results.setdefault(p, []).append(m.get_estimate().recent_result)
 
@@ -78,4 +80,4 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
                     (100.0 * sim.steps_accepted / sim.steps_completed),
                     (100.0 * sim.steps_fully_rejected / sim.steps_completed))
 
-    return {p: numpy.array(r) for p, r in results.iteritems()}
+    return {p: numpy.array(r) for p, r in six.iteritems(results)}

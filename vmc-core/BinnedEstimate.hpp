@@ -23,12 +23,8 @@ class BinnedEstimate : public RunningEstimate<T>
 public:
     class BinnedSum
     {
+    public:
         typedef typename RunningEstimate<T>::result_t result_t;
-
-        BinnedSum (T current_sum_)
-            : current_sum(current_sum_)
-            {
-            }
 
         result_t get_mean (void) const
             {
@@ -41,6 +37,11 @@ public:
             }
 
     private:
+        BinnedSum (T current_sum_)
+            : current_sum(current_sum_)
+            {
+            }
+
         typedef boost::accumulators::accumulator_set<T, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::moment<2>, boost::accumulators::tag::count> > accumulator_t;
 
         T current_sum;
@@ -66,7 +67,7 @@ public:
 
             for (unsigned int i = 0; ; ++i) {
                 BOOST_ASSERT(i < binlevel_data.size());
-                binlevel_data[i].acc(binlevel_data[i].current_sum);
+                binlevel_data[i].acc(binlevel_data[i].current_sum / double(1 << i));
                 binlevel_data[i].current_sum = 0;
                 if (this->get_num_cumulative_values() & (1 << i))
                     break;

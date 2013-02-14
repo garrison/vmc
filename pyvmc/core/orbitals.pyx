@@ -1,3 +1,5 @@
+import six
+
 from cython.operator cimport dereference as deref
 
 import abc
@@ -49,9 +51,7 @@ cdef shared_ptr[const_CppOrbitalDefinitions] orbitals_to_orbitaldefinitions(orbi
     rv.reset(new CppOrbitalDefinitions(deref(mat), lattice.sharedptr))
     return rv
 
-class OrbitalsDescription(object):
-    __metaclass__ = abc.ABCMeta
-
+class OrbitalsDescription(six.with_metaclass(abc.ABCMeta)):
     @abc.abstractmethod
     def get_orbitals(self, lattice):
         raise NotImplementedError

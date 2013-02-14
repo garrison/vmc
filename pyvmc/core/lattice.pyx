@@ -3,6 +3,8 @@
 This wraps Lattice.hpp and provides abstractions on top of it, e.g. various LatticeRealization's.
 """
 
+import six
+
 import abc
 import numbers
 import collections
@@ -266,9 +268,7 @@ cdef class Lattice(object):
 collections.Hashable.register(Lattice)
 collections.Sequence.register(Lattice)
 
-class LatticeRealization(Lattice):
-    __metaclass__ = abc.ABCMeta
-
+class LatticeRealization(six.with_metaclass(abc.ABCMeta, Lattice)):
     def abstract_lattice(self):
         return Lattice(self.dimensions, self.basis_indices)
 

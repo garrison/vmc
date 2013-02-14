@@ -1,3 +1,5 @@
+import six
+
 import abc
 import numbers
 import collections
@@ -30,9 +32,7 @@ class SiteHop(Immutable):
             ("species", self.species),
         ])
 
-class Operator(object):
-    __metaclass__ = abc.ABCMeta
-
+class Operator(six.with_metaclass(abc.ABCMeta)):
     @abc.abstractmethod
     def get_basic_operators(self):
         raise NotImplementedError

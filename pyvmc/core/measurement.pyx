@@ -1,12 +1,12 @@
+import six
+
 import abc
 
 from pyvmc.core.walk import WalkPlan
 from pyvmc.utils.immutable import Immutable, ImmutableMetaclass
 
-class MeasurementPlan(object):
+class MeasurementPlan(six.with_metaclass(abc.ABCMeta)):
     """base class, for both actual measurements and composite measurements"""
-
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def get_measurement_plans(self):
@@ -27,12 +27,10 @@ class BasicMeasurementPlanMetaclass(ImmutableMetaclass):
         __basic_measurement_plan_registry[name] = cls
         super(BasicMeasurementPlanMetaclass, cls).__init__(name, bases, dct)
 
-class BasicMeasurementPlan(Immutable):
+class BasicMeasurementPlan(six.with_metaclass(BasicMeasurementPlanMetaclass, Immutable)):
     """base class for fundamental measurements implemented in VMC"""
 
     __slots__ = ("walk",)
-
-    __metaclass__ = BasicMeasurementPlanMetaclass
 
     def init_validate(self, walk, *args, **kwargs):
         assert isinstance(walk, WalkPlan)

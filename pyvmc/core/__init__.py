@@ -3,3 +3,19 @@ from pyvmc.core.subsystem import Subsystem, SimpleSubsystem
 from pyvmc.core.boundary_conditions import periodic, antiperiodic, periodic_bc, antiperiodic_bc, open_bc, valid_boundary_conditions, valid_closed_boundary_conditions
 from pyvmc.core.orbitals import Orbitals, OrbitalsDescription, MomentaOrbitals, Bands
 from pyvmc.core.wavefunction import Wavefunction, FreeFermionWavefunction
+
+import six
+if six.PY3:
+    import numpy
+    from collections import Hashable
+    from numbers import Integral
+
+    # FIXME: track down why we are passing around these int64's anyway
+    if not isinstance(numpy.int64, Integral):
+        Integral.register(numpy.int64)
+    if not isinstance(numpy.int64, Hashable):
+        Hashable.register(numpy.int64)
+
+    # FIXME: numpy.ndarray is Hashable in python2 but not python3.  Honestly, I
+    # don't think it should be in either...
+    Hashable.register(numpy.ndarray)

@@ -19,34 +19,9 @@
 template <typename T>
 class RunningEstimate
 {
-private:
-    // The point of the following section of code is to use C++ "partial
-    // template specialization" to determine the correct return type for
-    // get_*_result()
-    template <bool, class>
-    class ResultType;
-
-    // if we are estimating an integral type, get_*_result() should return a
-    // real_t
-    template <class T1>
-    class ResultType<true, T1>
-    {
-    public:
-        typedef real_t type;
-    };
-
-    // if we are estimating a non-integral type, get_*_result() should return
-    // that type
-    template <class T1>
-    class ResultType<false, T1>
-    {
-    public:
-        typedef T1 type;
-    };
-
 public:
     // define result_t, making use of the template specialization above
-    typedef typename ResultType<boost::is_integral<T>::value, T>::type result_t;
+    typedef typename boost::numeric::functional::average<T, std::size_t>::result_type result_t;
 
     virtual ~RunningEstimate (void)
         {

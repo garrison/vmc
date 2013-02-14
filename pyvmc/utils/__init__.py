@@ -1,5 +1,6 @@
 import operator
 from collections import Sequence
+from functools import reduce
 
 import numpy
 

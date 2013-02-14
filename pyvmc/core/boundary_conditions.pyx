@@ -5,6 +5,12 @@ import numbers
 from pyvmc.includes.boost.rational cimport rational as boost_rational
 from pyvmc.core.lattice cimport MAX_DIMENSION
 
+cdef complex_from_cpp(const complex_t& c):
+    if c.imag() == 0:
+        return c.real()
+    else:
+        return complex(c.real(), c.imag())
+
 cdef class BoundaryCondition(object):
     """represents a boundary condition in a single direction
 
@@ -29,7 +35,7 @@ cdef class BoundaryCondition(object):
 
     property phase:
         def __get__(self):
-            return complex(self.cpp.phase().real(), self.cpp.phase().imag())
+            return complex_from_cpp(self.cpp.phase())
 
     def __richcmp__(BoundaryCondition self not None, other, int op):
         if self.__class__ != other.__class__:

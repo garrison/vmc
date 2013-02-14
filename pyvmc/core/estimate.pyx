@@ -1,5 +1,8 @@
 cdef complex_from_cpp(const complex_t& c):
-    return complex(c.real(), c.imag())
+    if c.imag() == 0:
+        return c.real()
+    else:
+        return complex(c.real(), c.imag())
 
 class BinnedSum(object):
     def __init__(self, mean, variance):

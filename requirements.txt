@@ -14,3 +14,4 @@ blist
 Cython>=0.18
 matplotlib
 pytest
+six

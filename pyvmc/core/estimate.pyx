@@ -5,10 +5,10 @@ cdef complex_from_cpp(const complex_t& c):
         return complex(c.real(), c.imag())
 
 class BinnedSum(object):
-    def __init__(self, mean, variance, nsamples):
+    def __init__(self, mean, error, nbins):
         self.mean = mean
-        self.variance = variance
-        self.nsamples = nsamples
+        self.error = error
+        self.nbins = nbins
 
 class Estimate(object):
     result = None
@@ -48,8 +48,8 @@ cdef Estimate_from_CppIntegerBinnedEstimate(const CppIntegerBinnedEstimate& cpp)
     cdef unsigned int i
     rv = Estimate_from_CppIntegerRunningEstimate(cpp)
     rv.binlevel_data = [BinnedSum(cpp.get_binlevel_data()[i].get_mean(),
-                                  cpp.get_binlevel_data()[i].get_variance(),
-                                  cpp.get_binlevel_data()[i].get_num_samples())
+                                  cpp.get_binlevel_data()[i].get_error(),
+                                  cpp.get_binlevel_data()[i].get_num_bins())
                         for i in range(cpp.get_binlevel_data().size() - 1)]
     return rv
 
@@ -57,8 +57,8 @@ cdef Estimate_from_CppRealBinnedEstimate(const CppRealBinnedEstimate& cpp):
     cdef unsigned int i
     rv = Estimate_from_CppRealRunningEstimate(cpp)
     rv.binlevel_data = [BinnedSum(cpp.get_binlevel_data()[i].get_mean(),
-                                  cpp.get_binlevel_data()[i].get_variance(),
-                                  cpp.get_binlevel_data()[i].get_num_samples())
+                                  cpp.get_binlevel_data()[i].get_error(),
+                                  cpp.get_binlevel_data()[i].get_num_bins())
                         for i in range(cpp.get_binlevel_data().size() - 1)]
     return rv
 
@@ -66,7 +66,7 @@ cdef Estimate_from_CppComplexBinnedEstimate(const CppComplexBinnedEstimate& cpp)
     cdef unsigned int i
     rv = Estimate_from_CppComplexRunningEstimate(cpp)
     rv.binlevel_data = [BinnedSum(complex_from_cpp(cpp.get_binlevel_data()[i].get_mean()),
-                                  complex_from_cpp(cpp.get_binlevel_data()[i].get_variance()),
-                                  cpp.get_binlevel_data()[i].get_num_samples())
+                                  complex_from_cpp(cpp.get_binlevel_data()[i].get_error()),
+                                  cpp.get_binlevel_data()[i].get_num_bins())
                         for i in range(cpp.get_binlevel_data().size() - 1)]
     return rv

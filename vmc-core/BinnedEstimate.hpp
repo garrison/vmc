@@ -2,6 +2,7 @@
 #define _BINNED_ESTIMATE_HPP
 
 #include <vector>
+#include <cmath>
 
 #ifndef BOOST_NUMERIC_FUNCTIONAL_STD_COMPLEX_SUPPORT
 #define BOOST_NUMERIC_FUNCTIONAL_STD_COMPLEX_SUPPORT
@@ -26,17 +27,29 @@ public:
     public:
         typedef typename RunningEstimate<T>::result_t result_t;
 
+        /**
+         * Returns the mean of all measurements considered at this binning level.
+         */
         result_t get_mean (void) const
             {
                 return boost::accumulators::mean(acc);
             }
 
-        result_t get_variance (void) const
+        /**
+         * Returns the statistical error at this binning level
+         */
+        result_t get_error (void) const
             {
-                return boost::accumulators::moment<2>(acc);
+                BOOST_ASSERT(boost::accumulators::count(acc) >= 2);
+                const result_t mean = boost::accumulators::mean(acc);
+                const result_t variance = boost::accumulators::moment<2>(acc) - (mean * mean);
+                return std::sqrt(std::abs(variance) / result_t(boost::accumulators::count(acc) - 1));
             }
 
-        unsigned int get_num_samples (void) const
+        /**
+         * Returns the number of bins at this binning level
+         */
+        unsigned int get_num_bins (void) const
             {
                 return boost::accumulators::count(acc);
             }

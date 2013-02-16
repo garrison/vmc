@@ -119,38 +119,7 @@ public:
      * @param dimensions_ an array representing the number of sites in each dimension
      * @param basis_indices_ the number of sites per unit cell of the Bravais lattice
      */
-    Lattice (const lw_vector<int, MAX_DIMENSION> &dimensions_, int basis_indices_=1)
-        : dimensions(dimensions_),
-          basis_indices(basis_indices_),
-          m_total_sites(count_total_sites(dimensions_, basis_indices_)),
-          offset(dimensions_.size())
-        {
-            BOOST_ASSERT(dimensions.size() > 0);
-            BOOST_ASSERT(basis_indices > 0);
-
-            // set up offsets
-            unsigned int c = 1;
-            for (unsigned int i = 0; i < dimensions.size(); ++i) {
-                offset[i] = c;
-                c *= dimensions[i];
-            }
-            basis_offset = c;
-
-            // set up default move axes
-            for (unsigned int i = 0; i < dimensions.size(); ++i) {
-                MoveAxis m;
-                m.bravais_site.resize(dimensions.size(), 0);
-                m.bravais_site[i] = 1;
-                m.basis_index = 0;
-                move_axes.push_back(m);
-            }
-            if (basis_indices > 1) {
-                MoveAxis m;
-                m.bravais_site.resize(dimensions.size(), 0);
-                m.basis_index = 1;
-                move_axes.push_back(m);
-            }
-        }
+    Lattice (const lw_vector<int, MAX_DIMENSION> &dimensions_, int basis_indices_=1);
 
     /**
      * Returns the number of dimensions of the lattice

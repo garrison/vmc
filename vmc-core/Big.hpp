@@ -2,21 +2,10 @@
 #define _VMC_BIG_HPP
 
 #include <cmath>
-#include <complex> // needed only for RealPart specialization
 
 #include <boost/assert.hpp>
 
-template <typename T>
-struct RealPart
-{
-    typedef T type;
-};
-
-template <typename T>
-struct RealPart<std::complex<T> >
-{
-    typedef T type;
-};
+#include "vmc-real-part.hpp"
 
 /**
  * A very big (or small) number, represented as z = A exp(B), where A and B are

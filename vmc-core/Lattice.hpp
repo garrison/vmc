@@ -1,5 +1,5 @@
-#ifndef _LATTICE_HPP
-#define _LATTICE_HPP
+#ifndef _VMC_LATTICE_HPP
+#define _VMC_LATTICE_HPP
 
 #include <cstddef>
 #include <vector>

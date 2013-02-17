@@ -1,5 +1,5 @@
-#ifndef _RENYI_MOD_POSSIBLE_WALK_HPP
-#define _RENYI_MOD_POSSIBLE_WALK_HPP
+#ifndef _VMC_RENYI_MOD_POSSIBLE_WALK_HPP
+#define _VMC_RENYI_MOD_POSSIBLE_WALK_HPP
 
 #include "BaseSwapPossibleWalk.hpp"
 

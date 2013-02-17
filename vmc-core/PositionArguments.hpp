@@ -1,5 +1,5 @@
-#ifndef _POSITION_ARGUMENTS_HPP
-#define _POSITION_ARGUMENTS_HPP
+#ifndef _VMC_POSITION_ARGUMENTS_HPP
+#define _VMC_POSITION_ARGUMENTS_HPP
 
 #include <vector>
 #include <algorithm>

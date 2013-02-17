@@ -1,5 +1,5 @@
-#ifndef _BCS_WAVEFUNCTION_HPP
-#define _BCS_WAVEFUNCTION_HPP
+#ifndef _VMC_BCS_WAVEFUNCTION_HPP
+#define _VMC_BCS_WAVEFUNCTION_HPP
 
 #include <vector>
 

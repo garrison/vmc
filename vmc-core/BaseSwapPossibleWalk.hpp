@@ -1,5 +1,5 @@
-#ifndef _BASE_SWAP_POSSIBLE_WALK_HPP
-#define _BASE_SWAP_POSSIBLE_WALK_HPP
+#ifndef _VMC_BASE_SWAP_POSSIBLE_WALK_HPP
+#define _VMC_BASE_SWAP_POSSIBLE_WALK_HPP
 
 #include <boost/assert.hpp>
 #include <boost/shared_ptr.hpp>

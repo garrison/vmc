@@ -1,5 +1,5 @@
-#ifndef _RANDOM_MOVE_HPP
-#define _RANDOM_MOVE_HPP
+#ifndef _VMC_RANDOM_MOVE_HPP
+#define _VMC_RANDOM_MOVE_HPP
 
 #include "PositionArguments.hpp"
 #include "vmc-typedefs.hpp"

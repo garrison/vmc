@@ -1,5 +1,5 @@
-#ifndef _SUBSYSTEM_HPP
-#define _SUBSYSTEM_HPP
+#ifndef _VMC_SUBSYSTEM_HPP
+#define _VMC_SUBSYSTEM_HPP
 
 class Lattice;
 

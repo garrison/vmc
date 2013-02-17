@@ -1,5 +1,5 @@
-#ifndef _BIG_HPP
-#define _BIG_HPP
+#ifndef _VMC_BIG_HPP
+#define _VMC_BIG_HPP
 
 #include <cmath>
 

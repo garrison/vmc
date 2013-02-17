@@ -1,5 +1,5 @@
-#ifndef _ORBITAL_DEFINITIONS_HPP
-#define _ORBITAL_DEFINITIONS_HPP
+#ifndef _VMC_ORBITAL_DEFINITIONS_HPP
+#define _VMC_ORBITAL_DEFINITIONS_HPP
 
 #include <Eigen/Dense>
 #include <boost/assert.hpp>

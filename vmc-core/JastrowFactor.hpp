@@ -1,5 +1,5 @@
-#ifndef _JASTROW_FACTOR_HPP
-#define _JASTROW_FACTOR_HPP
+#ifndef _VMC_JASTROW_FACTOR_HPP
+#define _VMC_JASTROW_FACTOR_HPP
 
 #include "PositionArguments.hpp"
 #include "vmc-typedefs.hpp"

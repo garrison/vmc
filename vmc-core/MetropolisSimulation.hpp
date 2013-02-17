@@ -1,5 +1,5 @@
-#ifndef _METROPOLIS_SIMULATION_HPP
-#define _METROPOLIS_SIMULATION_HPP
+#ifndef _VMC_METROPOLIS_SIMULATION_HPP
+#define _VMC_METROPOLIS_SIMULATION_HPP
 
 #include <memory>
 #include <list>

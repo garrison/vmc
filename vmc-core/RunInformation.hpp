@@ -1,5 +1,5 @@
-#ifndef _RUN_INFORMATION_HPP
-#define _RUN_INFORMATION_HPP
+#ifndef _VMC_RUN_INFORMATION_HPP
+#define _VMC_RUN_INFORMATION_HPP
 
 namespace RunInformation
 {

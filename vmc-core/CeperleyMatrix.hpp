@@ -1,5 +1,5 @@
-#ifndef _CEPERLEY_MATRIX_HPP
-#define _CEPERLEY_MATRIX_HPP
+#ifndef _VMC_CEPERLEY_MATRIX_HPP
+#define _VMC_CEPERLEY_MATRIX_HPP
 
 #include <iostream>
 #include <cmath>

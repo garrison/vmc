@@ -1,5 +1,5 @@
-#ifndef _WALK_HPP
-#define _WALK_HPP
+#ifndef _VMC_WALK_HPP
+#define _VMC_WALK_HPP
 
 #include <boost/noncopyable.hpp>
 

@@ -1,5 +1,5 @@
-#ifndef _BINNED_ESTIMATE_HPP
-#define _BINNED_ESTIMATE_HPP
+#ifndef _VMC_BINNED_ESTIMATE_HPP
+#define _VMC_BINNED_ESTIMATE_HPP
 
 #include <vector>
 #include <cmath>

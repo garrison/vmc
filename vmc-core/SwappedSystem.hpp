@@ -1,5 +1,5 @@
-#ifndef _SWAPPED_SYSTEM_HPP
-#define _SWAPPED_SYSTEM_HPP
+#ifndef _VMC_SWAPPED_SYSTEM_HPP
+#define _VMC_SWAPPED_SYSTEM_HPP
 
 #include <vector>
 

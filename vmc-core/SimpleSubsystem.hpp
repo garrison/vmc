@@ -1,5 +1,5 @@
-#ifndef _SIMPLE_SUBSYSTEM_HPP
-#define _SIMPLE_SUBSYSTEM_HPP
+#ifndef _VMC_SIMPLE_SUBSYSTEM_HPP
+#define _VMC_SIMPLE_SUBSYSTEM_HPP
 
 #include "lw_vector.hpp"
 #include "Subsystem.hpp"

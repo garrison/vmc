@@ -1,5 +1,5 @@
-#ifndef _STANDARD_WALK_HPP
-#define _STANDARD_WALK_HPP
+#ifndef _VMC_STANDARD_WALK_HPP
+#define _VMC_STANDARD_WALK_HPP
 
 #include <boost/shared_ptr.hpp>
 

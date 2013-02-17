@@ -1,5 +1,5 @@
-#ifndef _D_METAL_WAVEFUNCTION_HPP
-#define _D_METAL_WAVEFUNCTION_HPP
+#ifndef _VMC_D_METAL_WAVEFUNCTION_HPP
+#define _VMC_D_METAL_WAVEFUNCTION_HPP
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>

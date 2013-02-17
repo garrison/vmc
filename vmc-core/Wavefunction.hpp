@@ -1,5 +1,5 @@
-#ifndef _WAVEFUNCTION_HPP
-#define _WAVEFUNCTION_HPP
+#ifndef _VMC_WAVEFUNCTION_HPP
+#define _VMC_WAVEFUNCTION_HPP
 
 #include <boost/assert.hpp>
 #include <boost/shared_ptr.hpp>

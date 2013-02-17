@@ -1,5 +1,5 @@
-#ifndef _MEASUREMENT_HPP
-#define _MEASUREMENT_HPP
+#ifndef _VMC_MEASUREMENT_HPP
+#define _VMC_MEASUREMENT_HPP
 
 #include <boost/cast.hpp>
 #include <boost/assert.hpp>

@@ -33,7 +33,7 @@ cdef extern from "BinnedEstimate.hpp":
 
     cdef cppclass CppComplexBinnedSum "BinnedEstimate<amplitude_t>::BinnedSum":
         complex_t get_mean()
-        complex_t get_error()
+        double get_error()
         unsigned int get_num_bins()
 
     cdef cppclass CppIntegerBinnedEstimate "BinnedEstimate<unsigned int>" (CppIntegerRunningEstimate):

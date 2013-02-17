@@ -12,6 +12,7 @@
 #include <boost/accumulators/statistics/moment.hpp>
 
 #include "RunningEstimate.hpp"
+#include "vmc-real-part.hpp"
 
 static inline bool is_just_below_a_power_of_two (unsigned int x)
 {
@@ -26,6 +27,7 @@ public:
     {
     public:
         typedef typename RunningEstimate<T>::result_t result_t;
+        typedef typename RealPart<result_t>::type error_t;
 
         /**
          * Returns the mean of all measurements considered at this binning level.
@@ -38,12 +40,12 @@ public:
         /**
          * Returns the statistical error at this binning level
          */
-        result_t get_error (void) const
+        error_t get_error (void) const
             {
                 BOOST_ASSERT(boost::accumulators::count(acc) >= 2);
                 const result_t mean = boost::accumulators::mean(acc);
                 const result_t variance = boost::accumulators::moment<2>(acc) - (mean * mean);
-                return std::sqrt(std::abs(variance) / result_t(boost::accumulators::count(acc) - 1));
+                return std::sqrt(std::abs(variance) / error_t(boost::accumulators::count(acc) - 1));
             }
 
         /**

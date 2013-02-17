@@ -66,7 +66,7 @@ cdef Estimate_from_CppComplexBinnedEstimate(const CppComplexBinnedEstimate& cpp)
     cdef unsigned int i
     rv = Estimate_from_CppComplexRunningEstimate(cpp)
     rv.binlevel_data = [BinnedSum(complex_from_cpp(cpp.get_binlevel_data()[i].get_mean()),
-                                  complex_from_cpp(cpp.get_binlevel_data()[i].get_error()),
+                                  cpp.get_binlevel_data()[i].get_error(),
                                   cpp.get_binlevel_data()[i].get_num_bins())
                         for i in range(cpp.get_binlevel_data().size() - 1)]
     return rv

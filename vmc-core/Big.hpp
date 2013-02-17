@@ -2,9 +2,21 @@
 #define _VMC_BIG_HPP
 
 #include <cmath>
+#include <complex> // needed only for RealPart specialization
 
 #include <boost/assert.hpp>
-#include <boost/type_traits/is_complex.hpp>
+
+template <typename T>
+struct RealPart
+{
+    typedef T type;
+};
+
+template <typename T>
+struct RealPart<std::complex<T> >
+{
+    typedef T type;
+};
 
 /**
  * A very big (or small) number, represented as z = A exp(B), where A and B are
@@ -19,31 +31,8 @@
 template <typename T>
 class Big
 {
-private:
-    // The point of the following section of code is to use C++ "partial
-    // template specialization" to determine the correct type for the exponent
-    template <bool, class>
-    class ExponentType;
-
-    // complex type - > real exponent
-    template <class T1>
-    class ExponentType<true, T1>
-    {
-    public:
-        typedef typename T1::value_type type;
-    };
-
-    // real type -> real exponent
-    template <class T1>
-    class ExponentType<false, T1>
-    {
-    public:
-        typedef T1 type;
-    };
-
 public:
-    // define result_t, making use of the template specialization above
-    typedef typename ExponentType<boost::is_complex<T>::value, T>::type exponent_t;
+    typedef typename RealPart<T>::type exponent_t;
 
     /**
      * Explicit creation from a base and exponent

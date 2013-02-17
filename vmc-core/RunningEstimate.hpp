@@ -20,7 +20,6 @@ template <typename T>
 class RunningEstimate
 {
 public:
-    // define result_t, making use of the template specialization above
     typedef typename boost::numeric::functional::average<T, std::size_t>::result_type result_t;
 
     virtual ~RunningEstimate (void)

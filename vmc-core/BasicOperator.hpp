@@ -39,18 +39,16 @@ private:
 };
 
 /**
- * An operator that conserves particle number
+ * A "basic" operator
  *
- * The operator must conserve particle number
+ * The operator must conserve the particle number of each species and be
+ * written as a product of (creation * annihilation) factors (i.e. a series of
+ * hops, each of which acts on a single species).
  *
- * and be written like creation * annihilation * creation * annihilation (...)
- *
- * (i.e. a series of hops)
- *
- * A given site can only be mentioned once.  The only exception is to mark the
- * same site as source and destination, in which case it evaluates to 1 or 0
- * based on whether a particle is present on the site (just like the ordinary
- * number counting operator).
+ * A given site + species combination can only be mentioned once in the string.
+ * The only exception is to mark the same site as source and destination, in
+ * which case it evaluates to 1 or 0 based on whether a particle is present on
+ * the site (just like the ordinary number counting operator).
  *
  * Be careful putting a large operator on a small lattice, as it might wrap
  * over the boundary and no longer make sense in the way intended (or might not

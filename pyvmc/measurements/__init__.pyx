@@ -18,18 +18,18 @@ cdef extern from "SubsystemOccupationNumberProbabilityMeasurement.hpp":
         CppIntegerBinnedEstimate& get_estimate(CppOccupationBounds&)
         CppOccupationBounds& get_bounds()
 
-cdef extern from "ParticleOperator.hpp":
+cdef extern from "BasicOperator.hpp":
     cdef cppclass CppSiteHop "SiteHop":
         CppSiteHop(CppLatticeSite& source, CppLatticeSite& destination, unsigned int species)
 
-    bint is_valid_ParticleOperator "ParticleOperator::is_valid" (vector[CppSiteHop]&, CppLattice&, unsigned int N_species)
+    bint is_valid_BasicOperator "BasicOperator::is_valid" (vector[CppSiteHop]&, CppLattice&, unsigned int N_species)
 
-    cdef cppclass CppParticleOperator "ParticleOperator":
-        CppParticleOperator(vector[CppSiteHop]&, shared_ptr[CppLattice]&)
+    cdef cppclass CppBasicOperator "BasicOperator":
+        CppBasicOperator(vector[CppSiteHop]&, shared_ptr[CppLattice]&)
 
 cdef extern from "OperatorMeasurement.hpp":
     cdef cppclass CppOperatorMeasurement "OperatorMeasurement" (CppBaseMeasurement):
-        CppOperatorMeasurement(unsigned int, CppParticleOperator&, CppBoundaryConditions&)
+        CppOperatorMeasurement(unsigned int, CppBasicOperator&, CppBoundaryConditions&)
         CppComplexBinnedEstimate& get_estimate()
 
 
@@ -90,8 +90,8 @@ cdef class BasicOperatorMeasurement(BaseMeasurement):
             src = hop.source
             dest = hop.destination
             hopv.push_back(CppSiteHop(src.cpp, dest.cpp, hop.species))
-        cdef auto_ptr[CppParticleOperator] operator
-        operator.reset(new CppParticleOperator(hopv, lattice.sharedptr))
+        cdef auto_ptr[CppBasicOperator] operator
+        operator.reset(new CppBasicOperator(hopv, lattice.sharedptr))
         if operator_.boundary_conditions is not None:
             for bc in operator_.boundary_conditions:
                 cppbcs.push_back((<BoundaryCondition>bc).cpp)

@@ -9,7 +9,7 @@
 #include "StandardWalk.hpp"
 #include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
-#include "ParticleOperator.hpp"
+#include "BasicOperator.hpp"
 #include "BinnedEstimate.hpp"
 
 /**
@@ -28,7 +28,7 @@ class OperatorMeasurement : public Measurement<StandardWalk>
 {
 public:
     OperatorMeasurement (unsigned int steps_per_measurement,
-                         const ParticleOperator &operator_,
+                         const BasicOperator &operator_,
                          const BoundaryConditions &bcs_)
         : Measurement<StandardWalk>(steps_per_measurement),
           m_operator(operator_),
@@ -62,9 +62,9 @@ private:
 
     bool is_valid_walk_ (const StandardWalk &walk)
         {
-            return ParticleOperator::is_valid(m_operator.hopv,
-                                              walk.get_wavefunctionamplitude().get_lattice(),
-                                              walk.get_wavefunctionamplitude().get_positions().get_N_species());
+            return BasicOperator::is_valid(m_operator.hopv,
+                                           walk.get_wavefunctionamplitude().get_lattice(),
+                                           walk.get_wavefunctionamplitude().get_positions().get_N_species());
         }
 
     void reset (void)
@@ -77,7 +77,7 @@ private:
             return bcs.size() != 0;
         }
 
-    const ParticleOperator m_operator;
+    const BasicOperator m_operator;
     const BoundaryConditions bcs;
 
     BinnedEstimate<amplitude_t> estimate;

@@ -1,5 +1,5 @@
-#ifndef _VMC_PARTICLE_OPERATOR_HPP
-#define _VMC_PARTICLE_OPERATOR_HPP
+#ifndef _VMC_BASIC_OPERATOR_HPP
+#define _VMC_BASIC_OPERATOR_HPP
 
 #include <vector>
 
@@ -56,10 +56,10 @@ private:
  * over the boundary and no longer make sense in the way intended (or might not
  * even be valid, for that matter)
  */
-class ParticleOperator
+class BasicOperator
 {
 public:
-    ParticleOperator (const std::vector<SiteHop> &hopv_, const boost::shared_ptr<const Lattice> &lattice_);
+    BasicOperator (const std::vector<SiteHop> &hopv_, const boost::shared_ptr<const Lattice> &lattice_);
 
     static bool is_valid (const std::vector<SiteHop> &hopv, const Lattice &lattice, unsigned int N_species);
 

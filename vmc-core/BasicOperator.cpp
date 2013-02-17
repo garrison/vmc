@@ -3,9 +3,9 @@
 
 #include <boost/assert.hpp>
 
-#include "ParticleOperator.hpp"
+#include "BasicOperator.hpp"
 
-ParticleOperator::ParticleOperator (const std::vector<SiteHop> &hopv_, const boost::shared_ptr<const Lattice> &lattice_)
+BasicOperator::BasicOperator (const std::vector<SiteHop> &hopv_, const boost::shared_ptr<const Lattice> &lattice_)
     : hopv(hopv_),
       lattice(lattice_)
 {
@@ -21,7 +21,7 @@ static inline LatticeSite inline_enforce_boundary (const LatticeSite &site, cons
     return rv;
 }
 
-bool ParticleOperator::is_valid (const std::vector<SiteHop> &hopv, const Lattice &lattice, unsigned int N_species)
+bool BasicOperator::is_valid (const std::vector<SiteHop> &hopv, const Lattice &lattice, unsigned int N_species)
 {
     const unsigned int n_dimensions = lattice.n_dimensions();
 

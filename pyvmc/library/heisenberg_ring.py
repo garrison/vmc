@@ -3,6 +3,7 @@ from itertools import chain
 from pyvmc.core.lattice import LatticeRealization, LatticeSite
 from pyvmc.core.operator import CompositeOperator
 from pyvmc.operators import SpinSpinOperator, SpinModelRingExchangeOperator
+from pyvmc.utils import ensure_real
 
 class HeisenbergPlusRingExchangeHamiltonian(CompositeOperator):
     __slots__ = ("operators", "operators_J1", "operators_J2", "operators_J3", "operators_K")
@@ -32,7 +33,7 @@ class HeisenbergPlusRingExchangeHamiltonian(CompositeOperator):
 
     def evaluate(self, context):
         def _evaluate(J1, J2, J3, K):
-            return (
+            return ensure_real(
                 J1 * sum(o.evaluate(context)() for o in self.operators_J1) +
                 J2 * sum(o.evaluate(context)() for o in self.operators_J2) +
                 J3 * sum(o.evaluate(context)() for o in self.operators_J3) +

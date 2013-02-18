@@ -72,6 +72,13 @@ class BasicOperatorMeasurementPlan(BasicMeasurementPlan):
             ("steps-per-measurement", self.steps_per_measurement),
         ])
 
+    @staticmethod
+    def _from_json(json_object, wavefunction):
+        assert json_object["type"] == "BasicOperatorMeasurementPlan"
+        return BasicOperatorMeasurementPlan(wavefunction,
+                                            Operator.from_json(json_object["operator"]),
+                                            json_object["steps_per_measurement"])
+
     def to_measurement(self):
         return BasicOperatorMeasurement(self.steps_per_measurement, self.operator, self.walk_plan.wavefunction.lattice)
 
@@ -118,6 +125,13 @@ class SubsystemOccupationProbabilityMeasurementPlan(BasicMeasurementPlan):
             ("subsystem", self.subsystem.to_json()),
             ("steps-per-measurement", self.steps_per_measurement),
         ])
+
+    @staticmethod
+    def _from_json(json_object, wavefunction):
+        assert json_object["type"] == "SubsystemOccupationProbabilityMeasurementPlan"
+        return SubsystemOccupationProbabilityMeasurementPlan(wavefunction,
+                                                             Subsystem.from_json(json_object["subsystem"], wavefunction.lattice),
+                                                             json_object["steps-per-measurement"])
 
     def to_measurement(self):
         return SubsystemOccupationNumberProbabilityMeasurement(self.steps_per_measurement, self.subsystem)

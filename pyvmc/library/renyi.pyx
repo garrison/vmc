@@ -52,7 +52,13 @@ class RenyiModPossibleMeasurementPlan(BasicMeasurementPlan):
     def to_json(self):
         return OrderedDict([
             ("type", self.__class__.__name__),
+            ("subsystem", self.walk_plan.subsystem.to_json()),
         ])
+
+    @staticmethod
+    def _from_json(json_repr, wavefunction):
+        assert json_repr["type"] == "RenyiModPossibleMeasurementPlan"
+        return RenyiModPossibleMeasurementPlan(wavefunction, Subsystem.from_json(json_repr["subsystem"], wavefunction.lattice))
 
     def to_measurement(self):
         return RenyiModPossibleMeasurement()
@@ -109,7 +115,13 @@ class RenyiSignMeasurementPlan(BasicMeasurementPlan):
     def to_json(self):
         return OrderedDict([
             ("type", self.__class__.__name__),
+            ("subsystem", self.walk_plan.subsystem.to_json()),
         ])
+
+    @staticmethod
+    def _from_json(json_repr, wavefunction):
+        assert json_repr["type"] == "RenyiSignMeasurementPlan"
+        return RenyiSignMeasurementPlan(wavefunction, Subsystem.from_json(json_repr["subsystem"], wavefunction.lattice))
 
     def to_measurement(self):
         return RenyiSignMeasurement()

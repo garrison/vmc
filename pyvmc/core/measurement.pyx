@@ -40,8 +40,14 @@ class BasicMeasurementPlan(six.with_metaclass(BasicMeasurementPlanMetaclass, Imm
     def to_json(self):
         raise NotImplementedError
 
-    #@abc.abstractmethod
-    def from_json(self, json_object):
+    @classmethod
+    def from_json(cls, json_object, wavefunction):
+        cls_ = __basic_measurement_plan_registry[json_object["type"]]
+        assert issubclass(cls_, cls)
+        return cls_._from_json(json_object, wavefunction)
+
+    @staticmethod
+    def _from_json(json_object, wavefunction):
         raise NotImplementedError
 
     @abc.abstractmethod

@@ -4,6 +4,20 @@ from pyvmc.core.boundary_conditions import periodic, antiperiodic, periodic_bc, 
 from pyvmc.core.orbitals import Orbitals, OrbitalsDescription, MomentaOrbitals, Bands
 from pyvmc.core.wavefunction import Wavefunction, FreeFermionWavefunction
 
+def get_vmc_version():
+    import os
+    from subprocess import check_output, CalledProcessError
+
+    original_directory = os.getcwd()
+    try:
+        os.chdir(os.path.dirname(__file__))
+        try:
+            return check_output(["git", "describe", "--always"])
+        except CalledProcessError:
+            return None
+    finally:
+        os.chdir(original_directory)
+
 import six
 if six.PY3:
     import numpy

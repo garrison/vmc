@@ -11,8 +11,21 @@ from pyvmc.utils import product
 from pyvmc.core.lattice import LatticeSite, Lattice
 from pyvmc.utils.immutable import Immutable
 
+__subsystem_registry = {}
+
+# commented out because metaclasses don't seem to work with cython.  for now we
+# explicitly register the subclasses.
+#
+#class SubsystemMetaclass(type):
+#    def __init__(cls, name, bases, dct):
+#        assert name not in __subsystem_registry
+#        __subsystem_registry[name] = cls
+#        super(SubsystemMetaclass, cls).__init__(name, bases, dct)
+
 cdef class Subsystem(object):
     """Abstract base class representing a spatial subset of a lattice"""
+
+    #__metaclass__ = SubsystemMetaclass
 
     #__metaclass__ = abc.ABCMeta
 
@@ -28,6 +41,12 @@ cdef class Subsystem(object):
     #@abc.abstractmethod
     def to_json(self):
         raise NotImplementedError
+
+    @classmethod
+    def from_json(cls, json_repr, lattice):
+        cls_ = __subsystem_registry[json_repr["type"]]
+        assert issubclass(cls_, cls)
+        return cls_._from_json(json_repr, lattice)
 
     def __len__(self):
         cdef int count = 0
@@ -139,3 +158,10 @@ cdef class SimpleSubsystem(Subsystem):
             ("type", self.__class__.__name__),
             ("dimensions", self.dimensions),
         ])
+
+    @staticmethod
+    def _from_json(json_repr, lattice):
+        assert json_repr["type"] == "SimpleSubsystem"
+        return SimpleSubsystem(json_repr["dimensions"], lattice)
+
+__subsystem_registry["SimpleSubsystem"] = SimpleSubsystem

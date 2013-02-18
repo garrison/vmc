@@ -43,11 +43,11 @@ class RenyiModPossibleWalkPlan(WalkPlan):
         return walk
 
 class RenyiModPossibleMeasurementPlan(BasicMeasurementPlan):
-    __slots__ = ("walk",)
+    __slots__ = ("walk_plan",)
 
     def __init__(self, wavefunction, subsystem):
-        walk = RenyiModPossibleWalkPlan(wavefunction, subsystem)
-        super(RenyiModPossibleMeasurementPlan, self).__init__(walk)
+        walk_plan = RenyiModPossibleWalkPlan(wavefunction, subsystem)
+        super(RenyiModPossibleMeasurementPlan, self).__init__(walk_plan)
 
     def to_json(self):
         return OrderedDict([
@@ -100,11 +100,11 @@ class RenyiSignWalkPlan(WalkPlan):
         return walk
 
 class RenyiSignMeasurementPlan(BasicMeasurementPlan):
-    __slots__ = ("walk",)
+    __slots__ = ("walk_plan",)
 
     def __init__(self, wavefunction, subsystem):
-        walk = RenyiSignWalkPlan(wavefunction, subsystem)
-        super(RenyiSignMeasurementPlan, self).__init__(walk)
+        walk_plan = RenyiSignWalkPlan(wavefunction, subsystem)
+        super(RenyiSignMeasurementPlan, self).__init__(walk_plan)
 
     def to_json(self):
         return OrderedDict([

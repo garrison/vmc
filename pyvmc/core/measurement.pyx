@@ -30,11 +30,11 @@ class BasicMeasurementPlanMetaclass(ImmutableMetaclass):
 class BasicMeasurementPlan(six.with_metaclass(BasicMeasurementPlanMetaclass, Immutable)):
     """base class for fundamental measurements implemented in VMC"""
 
-    __slots__ = ("walk",)
+    __slots__ = ("walk_plan",)
 
-    def init_validate(self, walk, *args, **kwargs):
-        assert isinstance(walk, WalkPlan)
-        return super(BasicMeasurementPlan, self).init_validate(walk, *args, **kwargs)
+    def init_validate(self, walk_plan, *args, **kwargs):
+        assert isinstance(walk_plan, WalkPlan)
+        return super(BasicMeasurementPlan, self).init_validate(walk_plan, *args, **kwargs)
 
     @abc.abstractmethod
     def to_json(self):

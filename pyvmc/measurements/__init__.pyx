@@ -55,15 +55,15 @@ from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.measurement import BasicMeasurementPlan
 
 class BasicOperatorMeasurementPlan(BasicMeasurementPlan):
-    __slots__ = ("walk", "operator", "steps_per_measurement")
+    __slots__ = ("walk_plan", "operator", "steps_per_measurement")
 
     def __init__(self, wavefunction, operator, steps_per_measurement=1000):
-        walk = StandardWalkPlan(wavefunction)
+        walk_plan = StandardWalkPlan(wavefunction)
         assert isinstance(operator, BasicOperator)
         assert all([hop.is_valid_for(wavefunction) for hop in operator.hops])
         if operator.boundary_conditions is not None:
             assert valid_boundary_conditions(operator.boundary_conditions, len(wavefunction.lattice.dimensions))
-        super(BasicOperatorMeasurementPlan, self).__init__(walk, operator, steps_per_measurement)
+        super(BasicOperatorMeasurementPlan, self).__init__(walk_plan, operator, steps_per_measurement)
 
     def to_json(self):
         return collections.OrderedDict([
@@ -73,7 +73,7 @@ class BasicOperatorMeasurementPlan(BasicMeasurementPlan):
         ])
 
     def to_measurement(self):
-        return BasicOperatorMeasurement(self.steps_per_measurement, self.operator, self.walk.wavefunction.lattice)
+        return BasicOperatorMeasurement(self.steps_per_measurement, self.operator, self.walk_plan.wavefunction.lattice)
 
 cdef class BasicOperatorMeasurement(BaseMeasurement):
     """A VMC measurement which works on BasicOperator's"""
@@ -106,11 +106,11 @@ cdef class BasicOperatorMeasurement(BaseMeasurement):
         return {None: self.get_estimate()}
 
 class SubsystemOccupationProbabilityMeasurementPlan(BasicMeasurementPlan):
-    __slots__ = ("walk", "subsystem", "steps_per_measurement")
+    __slots__ = ("walk_plan", "subsystem", "steps_per_measurement")
 
     def __init__(self, wavefunction, subsystem, steps_per_measurement=100):
-        walk = StandardWalkPlan(wavefunction)
-        super(SubsystemOccupationProbabilityMeasurementPlan, self).__init__(walk, subsystem, steps_per_measurement)
+        walk_plan = StandardWalkPlan(wavefunction)
+        super(SubsystemOccupationProbabilityMeasurementPlan, self).__init__(walk_plan, subsystem, steps_per_measurement)
 
     def to_json(self):
         return collections.OrderedDict([
@@ -124,7 +124,7 @@ class SubsystemOccupationProbabilityMeasurementPlan(BasicMeasurementPlan):
 
     def calculate(self, f, n):
         """Returns the probability than n copies of the system will have the same subsystem filling simultaneously"""
-        bounds = [i + 1 for i in self.walk.wavefunction.N_filled]
+        bounds = [i + 1 for i in self.walk_plan.wavefunction.N_filled]
         return sum(f(self, occupation) ** n for occupation in numpy.ndindex(*bounds))
 
 cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):

@@ -38,7 +38,7 @@ class SimulationUniverse(object):
         # now organize them by each walk which must be performed
         by_walk = {}
         for p, m in six.iteritems(self.measurement_dict):
-            by_walk.setdefault(p.walk, []).append(m)
+            by_walk.setdefault(p.walk_plan, []).append(m)
 
         # prepare and equilibriate simulations
         self.simulations = []

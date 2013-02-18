@@ -27,6 +27,11 @@ class RenyiModPossibleWalkPlan(WalkPlan):
             ("subsystem", self.subsystem.to_json()),
         ])
 
+    @staticmethod
+    def _from_json(json_repr, wavefunction):
+        assert json_repr["type"] == "RenyiModPossibleWalkPlan"
+        return RenyiModPossibleWalkPlan(wavefunction, Subsystem.from_json(json_repr["subsystem"], wavefunction.lattice))
+
     def create_walk(self, RandomNumberGenerator rng not None):
         cdef Subsystem subsystem = self.subsystem
         cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction, rng)
@@ -78,6 +83,11 @@ class RenyiSignWalkPlan(WalkPlan):
             ("type", self.__class__.__name__),
             ("subsystem", self.subsystem.to_json()),
         ])
+
+    @staticmethod
+    def _from_json(json_repr, wavefunction):
+        assert json_repr["type"] == "RenyiSignWalkPlan"
+        return RenyiSignWalkPlan(wavefunction, Subsystem.from_json(json_repr["subsystem"], wavefunction.lattice))
 
     def create_walk(self, RandomNumberGenerator rng not None):
         cdef Subsystem subsystem = self.subsystem

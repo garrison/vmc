@@ -21,6 +21,11 @@ class Wavefunction(Immutable):
     def to_json(self):
         return None
 
+    def to_json_extra(self):
+        # the values of this dict should be numpy arrays.  useful for saving
+        # big things (such as the BCS phi matrix) that shouldn't go in json
+        return {}
+
     @abc.abstractmethod
     def to_wavefunction(self):
         return None

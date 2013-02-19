@@ -48,13 +48,17 @@ class ProjectedBCSWavefunction(Wavefunction):
         return (self.N_up, self.N_dn)
 
     def to_json(self):
-        assert False  # phi is a huge matrix now...
         return collections.OrderedDict([
             ('type', self.__class__.__name__),
             ('lattice', self.lattice.to_json()),
-            ('phi', self.phi),
+            #('phi', self.phi),  # phi is a huge matrix, so we store it in json_extra
             ('N_up', self.N_up),
             ('N_dn', self.N_dn),
+        ])
+
+    def to_json_extra(self):
+        return collections.OrderedDict([
+            ("phi", self.phi),
         ])
 
     def to_wavefunction(self):

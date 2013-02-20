@@ -169,6 +169,7 @@ cdef class Lattice(object):
 
     def to_json(self):
         return collections.OrderedDict([
+            ("type", self.__class__.__name__),
             ("dimensions", list(self.dimensions)),
             ("basis_indices", self.basis_indices),
         ])

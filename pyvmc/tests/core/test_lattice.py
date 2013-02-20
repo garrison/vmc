@@ -89,7 +89,7 @@ def test_lattice_immutable():
 
 def test_lattice_json():
     lattice = Lattice([24, 2])
-    assert json.dumps(lattice.to_json()) == '{"dimensions": [24, 2], "basis_indices": 1}'
+    assert json.dumps(lattice.to_json()) == '{"type": "Lattice", "dimensions": [24, 2], "basis_indices": 1}'
     assert Lattice.from_json(lattice.to_json()) == lattice
 
 def test_lattice_equality():

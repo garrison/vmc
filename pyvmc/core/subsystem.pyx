@@ -1,4 +1,6 @@
-"""
+"""Classes representing a spatial subset of a lattice.
+
+Often used e.g. in Renyi entropy calculations.
 """
 
 import abc

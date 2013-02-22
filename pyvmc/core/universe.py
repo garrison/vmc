@@ -32,22 +32,22 @@ class SimulationUniverse(object):
         # first create all the basic measurements that need to be performed
         assert isinstance(measurement_plans, Sequence)
         assert all(isinstance(mp, MeasurementPlan) for mp in measurement_plans)
-        self.measurement_dict = {p: p.to_measurement() for p in _create_basic_measurement_plan_set(measurement_plans)}
-        assert all(isinstance(mp, BasicMeasurementPlan) for mp in self.measurement_dict)
+        basic_measurement_plans = list(_create_basic_measurement_plan_set(measurement_plans))
+        assert all(isinstance(mp, BasicMeasurementPlan) for mp in basic_measurement_plans)
 
         # now organize them by each walk which must be performed
-        by_walk = {}
-        for p, m in six.iteritems(self.measurement_dict):
-            by_walk.setdefault(p.walk_plan, []).append(m)
+        measurement_plans_by_walk = {}
+        for mp in basic_measurement_plans:
+            measurement_plans_by_walk.setdefault(mp.walk_plan, []).append(mp)
 
         # prepare and equilibriate simulations
         self.simulations = []
-        for walk_plan, measurements in six.iteritems(by_walk):
+        for walk_plan, current_measurement_plans in six.iteritems(measurement_plans_by_walk):
             # the MetropolisSimulation constructor eats the RNG, so we need to
             # create a new one for each simulation
             rng = RandomNumberGenerator()
             self.simulations.append(MetropolisSimulation(walk_plan, walk_plan.wavefunction.lattice,
-                                                         measurements, equilibrium_sweeps, rng))
+                                                         current_measurement_plans, equilibrium_sweeps, rng))
 
     def iterate(self, sweeps):
         for sim in self.simulations:
@@ -55,7 +55,8 @@ class SimulationUniverse(object):
             sim.iterate(sweeps)
 
         # fixme: should we return anything at all?
-        return self.measurement_dict
+        from itertools import chain
+        return dict(chain.from_iterable(six.iteritems(sim.measurement_dict) for sim in self.simulations))
 
 def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_sweeps_per_bin=10000):
     # prepare and equilibrate simulations

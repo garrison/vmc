@@ -70,6 +70,18 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
             # NOTE: this assumes that each measurement object returns precisely a single result
             results.setdefault(p, []).append(m.get_estimate().recent_result)
 
+    for i, m in enumerate(six.itervalues(r)):
+        binlevel_data = [x for x in m.get_estimate().binlevel_data if x.nbins >= 30]
+        max_error = max(x.error for x in binlevel_data)
+        error_normalization = 1 / max_error if max_error else 1
+        if binlevel_data[0].error:
+            tau = .5 * ((max_error / binlevel_data[0].error) ** 2 - 1)
+        else:
+            tau = 0
+        logger.info("Measurement %d relative bin errors (tau=%.2f):\t(%s)", i, tau,
+                    ', '.join("{:.3f}".format(d.error * error_normalization)
+                              for d in binlevel_data))
+
     ri = calc.simulations[0].run_information
     logger.info('compiled with "%s" (eigen %s, boost %s)', ri.compiler, ri.eigen_version, ri.boost_version)
     logger.info("%d digits of precision, exponent range [%d, %d]", ri.precision.digits,

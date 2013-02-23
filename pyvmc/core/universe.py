@@ -14,12 +14,6 @@ from pyvmc.utils import average
 
 logger = logging.getLogger(__name__)
 
-def _create_basic_measurement_plan_set(measurement_plans):
-    return set(chain.from_iterable(p.get_measurement_plans() for p in measurement_plans))
-
-# fixme: can we guarantee that p.to_json() doesn't have any forward slashes?
-# fixme: we should really save each measurement in a subgroup for that walk, and in there store information from the walk's completion... INCLUDING rusage, etc
-
 class SimulationUniverse(object):
     """
     """
@@ -32,7 +26,7 @@ class SimulationUniverse(object):
         # first create all the basic measurements that need to be performed
         assert isinstance(measurement_plans, Sequence)
         assert all(isinstance(mp, MeasurementPlan) for mp in measurement_plans)
-        basic_measurement_plans = _create_basic_measurement_plan_set(measurement_plans)
+        basic_measurement_plans = frozenset(chain.from_iterable(mp.get_measurement_plans() for mp in measurement_plans))
         assert all(isinstance(mp, BasicMeasurementPlan) for mp in basic_measurement_plans)
 
         # now organize them by each walk which must be performed

@@ -45,6 +45,19 @@ cdef extern from "BinnedEstimate.hpp":
     cdef cppclass CppComplexBinnedEstimate "BinnedEstimate<amplitude_t>" (CppComplexRunningEstimate):
         const vector[CppComplexBinnedSum] & get_binlevel_data()
 
+cdef extern from "BlockedEstimate.hpp":
+    cdef cppclass CppIntegerBlockedEstimate "BlockedEstimate<unsigned int>" (CppIntegerBinnedEstimate):
+        const vector[double] & get_block_averages()
+        unsigned int get_measurements_per_block()
+
+    cdef cppclass CppRealBlockedEstimate "BlockedEstimate<real_t>" (CppRealBinnedEstimate):
+        const vector[double] & get_block_averages()
+        unsigned int get_measurements_per_block()
+
+    cdef cppclass CppComplexBlockedEstimate "BlockedEstimate<amplitude_t>" (CppComplexBinnedEstimate):
+        const vector[complex_t] & get_block_averages()
+        unsigned int get_measurements_per_block()
+
 cdef Estimate_from_CppIntegerRunningEstimate(const CppIntegerRunningEstimate& cpp)
 cdef Estimate_from_CppRealRunningEstimate(const CppRealRunningEstimate& cpp)
 cdef Estimate_from_CppComplexRunningEstimate(const CppComplexRunningEstimate& cpp)
@@ -52,3 +65,7 @@ cdef Estimate_from_CppComplexRunningEstimate(const CppComplexRunningEstimate& cp
 cdef Estimate_from_CppIntegerBinnedEstimate(const CppIntegerBinnedEstimate& cpp)
 cdef Estimate_from_CppRealBinnedEstimate(const CppRealBinnedEstimate& cpp)
 cdef Estimate_from_CppComplexBinnedEstimate(const CppComplexBinnedEstimate& cpp)
+
+cdef Estimate_from_CppIntegerBlockedEstimate(const CppIntegerBlockedEstimate& cpp)
+cdef Estimate_from_CppRealBlockedEstimate(const CppRealBlockedEstimate& cpp)
+cdef Estimate_from_CppComplexBlockedEstimate(const CppComplexBlockedEstimate& cpp)

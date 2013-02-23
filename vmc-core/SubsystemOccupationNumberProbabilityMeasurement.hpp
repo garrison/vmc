@@ -7,7 +7,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "Measurement.hpp"
-#include "BinnedEstimate.hpp"
+#include "BlockedEstimate.hpp"
 #include "StandardWalk.hpp"
 #include "Wavefunction.hpp"
 #include "Subsystem.hpp"
@@ -40,7 +40,7 @@ public:
      * it's best to iterate through the first item of the vector, then the
      * second, etc.
      */
-    const BinnedEstimate<unsigned int> & get_estimate (const std::vector<unsigned int> &occupation) const
+    const BlockedEstimate<unsigned int> & get_estimate (const std::vector<unsigned int> &occupation) const
         {
             BOOST_ASSERT(occupation.size() == offsets.size());
 
@@ -130,7 +130,7 @@ private:
         }
 
     const boost::shared_ptr<const Subsystem> subsystem;
-    std::vector<BinnedEstimate<unsigned int> > estimate;
+    std::vector<BlockedEstimate<unsigned int> > estimate;
     std::vector<unsigned int> offsets, bounds;
     unsigned int last_offset; // saves us from recalculating the offset on repeat measurements
 };

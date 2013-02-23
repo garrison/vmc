@@ -2,7 +2,7 @@ from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
 from pyvmc.core.walk cimport CppWalk
 from pyvmc.core.measurement cimport CppBaseMeasurement
-from pyvmc.core.estimate cimport CppRealBinnedEstimate, CppComplexBinnedEstimate
+from pyvmc.core.estimate cimport CppRealBlockedEstimate, CppComplexBlockedEstimate
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude
 from pyvmc.core.subsystem cimport CppSubsystem
 
@@ -17,9 +17,9 @@ cdef extern from "RenyiSignWalk.hpp":
 cdef extern from "RenyiModPossibleMeasurement.hpp":
     cdef cppclass CppRenyiModPossibleMeasurement "RenyiModPossibleMeasurement" (CppBaseMeasurement):
         CppRenyiModPossibleMeasurement()
-        CppRealBinnedEstimate& get_estimate()
+        CppRealBlockedEstimate& get_estimate()
 
 cdef extern from "RenyiSignMeasurement.hpp":
     cdef cppclass CppRenyiSignMeasurement "RenyiSignMeasurement" (CppBaseMeasurement):
         CppRenyiSignMeasurement()
-        CppComplexBinnedEstimate& get_estimate()
+        CppComplexBlockedEstimate& get_estimate()

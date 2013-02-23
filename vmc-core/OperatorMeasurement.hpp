@@ -10,7 +10,7 @@
 #include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
 #include "BasicOperator.hpp"
-#include "BinnedEstimate.hpp"
+#include "BlockedEstimate.hpp"
 
 /**
  * Operator measurement
@@ -39,7 +39,7 @@ public:
     /**
      * Returns the operator measurement estimate for a given vector
      */
-    const BinnedEstimate<amplitude_t> & get_estimate (void) const
+    const BlockedEstimate<amplitude_t> & get_estimate (void) const
         {
             return estimate;
         }
@@ -80,7 +80,7 @@ private:
     const BasicOperator m_operator;
     const BoundaryConditions bcs;
 
-    BinnedEstimate<amplitude_t> estimate;
+    BlockedEstimate<amplitude_t> estimate;
     amplitude_t most_recent_value;
 };
 

@@ -6,7 +6,7 @@ from pyvmc.core.measurement import BasicMeasurementPlan, CompositeMeasurementPla
 from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.wavefunction import Wavefunction
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_wfa
-from pyvmc.core.estimate cimport Estimate_from_CppRealBinnedEstimate, Estimate_from_CppComplexBinnedEstimate
+from pyvmc.core.estimate cimport Estimate_from_CppRealBlockedEstimate, Estimate_from_CppComplexBlockedEstimate
 from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.rng cimport RandomNumberGenerator
 from pyvmc.core cimport complex_t
@@ -70,7 +70,7 @@ cdef class RenyiModPossibleMeasurement(BaseMeasurement):
     def get_estimate(self, key=None):
         if key is not None:
             raise KeyError
-        return Estimate_from_CppRealBinnedEstimate((<CppRenyiModPossibleMeasurement*>self.sharedptr.get()).get_estimate())
+        return Estimate_from_CppRealBlockedEstimate((<CppRenyiModPossibleMeasurement*>self.sharedptr.get()).get_estimate())
 
     def get_estimates(self):
         return {None: self.get_estimate()}
@@ -133,7 +133,7 @@ cdef class RenyiSignMeasurement(BaseMeasurement):
     def get_estimate(self, key=None):
         if key is not None:
             raise KeyError
-        return Estimate_from_CppComplexBinnedEstimate((<CppRenyiSignMeasurement*>self.sharedptr.get()).get_estimate())
+        return Estimate_from_CppComplexBlockedEstimate((<CppRenyiSignMeasurement*>self.sharedptr.get()).get_estimate())
 
     def get_estimates(self):
         return {None: self.get_estimate()}

@@ -7,7 +7,7 @@ from libcpp.vector cimport vector
 from pyvmc.core.lattice cimport CppLattice, CppLatticeSite
 from pyvmc.core.boundary_conditions cimport CppBoundaryCondition, CppBoundaryConditions
 from pyvmc.core.subsystem cimport CppSubsystem
-from pyvmc.core.estimate cimport CppIntegerBinnedEstimate, CppComplexBinnedEstimate
+from pyvmc.core.estimate cimport CppIntegerBlockedEstimate, CppComplexBlockedEstimate
 from pyvmc.core.measurement cimport CppBaseMeasurement
 
 cdef extern from "SubsystemOccupationNumberProbabilityMeasurement.hpp":
@@ -15,7 +15,7 @@ cdef extern from "SubsystemOccupationNumberProbabilityMeasurement.hpp":
 
     cdef cppclass CppSubsystemOccupationNumberProbabilityMeasurement "SubsystemOccupationNumberProbabilityMeasurement" (CppBaseMeasurement):
         CppSubsystemOccupationNumberProbabilityMeasurement(unsigned int, shared_ptr[CppSubsystem]&)
-        CppIntegerBinnedEstimate& get_estimate(CppOccupationBounds&)
+        CppIntegerBlockedEstimate& get_estimate(CppOccupationBounds&)
         CppOccupationBounds& get_bounds()
 
 cdef extern from "BasicOperator.hpp":
@@ -30,7 +30,7 @@ cdef extern from "BasicOperator.hpp":
 cdef extern from "OperatorMeasurement.hpp":
     cdef cppclass CppOperatorMeasurement "OperatorMeasurement" (CppBaseMeasurement):
         CppOperatorMeasurement(unsigned int, CppBasicOperator&, CppBoundaryConditions&)
-        CppComplexBinnedEstimate& get_estimate()
+        CppComplexBlockedEstimate& get_estimate()
 
 
 ### implementation
@@ -50,7 +50,7 @@ from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.walk import StandardWalkPlan
 from pyvmc.core.operator import SiteHop, BasicOperator, Operator
-from pyvmc.core.estimate cimport Estimate_from_CppIntegerBinnedEstimate, Estimate_from_CppComplexBinnedEstimate
+from pyvmc.core.estimate cimport Estimate_from_CppIntegerBlockedEstimate, Estimate_from_CppComplexBlockedEstimate
 from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.measurement import BasicMeasurementPlan
 
@@ -107,7 +107,7 @@ cdef class BasicOperatorMeasurement(BaseMeasurement):
     def get_estimate(self, key=None):
         if key is not None:
             raise KeyError
-        return Estimate_from_CppComplexBinnedEstimate((<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate())
+        return Estimate_from_CppComplexBlockedEstimate((<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate())
 
     def get_estimates(self):
         return {None: self.get_estimate()}
@@ -159,7 +159,7 @@ cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
         for occupation in numpy.ndindex(*bounds):
             for i in xrange(len(bounds)):
                 occ[i] = occupation[i]
-            rv[tuple(occupation)] = Estimate_from_CppIntegerBinnedEstimate((<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ))
+            rv[tuple(occupation)] = Estimate_from_CppIntegerBlockedEstimate((<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ))
         return rv
 
     def get_estimate(self, key):

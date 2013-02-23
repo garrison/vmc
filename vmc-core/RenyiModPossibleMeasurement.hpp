@@ -5,7 +5,7 @@
 
 #include "Measurement.hpp"
 #include "RenyiModPossibleWalk.hpp"
-#include "BinnedEstimate.hpp"
+#include "BlockedEstimate.hpp"
 
 /**
  * Renyi "mod/possible" measurement
@@ -25,7 +25,7 @@ public:
     /**
      * Returns the current estimate of the measurement
      */
-    const BinnedEstimate<real_t> & get_estimate (void) const
+    const BlockedEstimate<real_t> & get_estimate (void) const
         {
             return estimate;
         }
@@ -44,7 +44,7 @@ private:
             estimate.reset();
         }
 
-    BinnedEstimate<real_t> estimate;
+    BlockedEstimate<real_t> estimate;
 };
 
 #endif

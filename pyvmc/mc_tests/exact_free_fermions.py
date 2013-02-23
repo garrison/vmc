@@ -27,7 +27,8 @@ def test_1d_free_fermion_renyi(tolerance=0.02):
              for i in range(1, N // 2 + 1)]
     calc = SimulationUniverse(plans, 500000)
     while True:
-        results = calc.iterate(200000)
+        calc.iterate(200000)
+        results = calc.get_overall_measurement_dict()
         measured_values = [plan.calculate(lambda p, k=None: results[p].get_estimate(k).result)
                            for plan in plans]
 

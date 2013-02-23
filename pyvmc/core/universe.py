@@ -32,7 +32,7 @@ class SimulationUniverse(object):
         # first create all the basic measurements that need to be performed
         assert isinstance(measurement_plans, Sequence)
         assert all(isinstance(mp, MeasurementPlan) for mp in measurement_plans)
-        basic_measurement_plans = list(_create_basic_measurement_plan_set(measurement_plans))
+        basic_measurement_plans = _create_basic_measurement_plan_set(measurement_plans)
         assert all(isinstance(mp, BasicMeasurementPlan) for mp in basic_measurement_plans)
 
         # now organize them by each walk which must be performed
@@ -54,23 +54,31 @@ class SimulationUniverse(object):
             sim.reset_measurement_estimates()
             sim.iterate(sweeps)
 
-        # fixme: should we return anything at all?
-        from itertools import chain
+    def get_overall_measurement_dict(self):
         return dict(chain.from_iterable(six.iteritems(sim.measurement_dict) for sim in self.simulations))
 
 def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_sweeps_per_bin=10000):
+    # this is deprecated because it only works with measurements that have one
+    # estimate.  (for instance, it does not work with
+    # SubsystemOccupationProbabilityMeasurement.)
+    #
+    # NOTE: the bins parameter is taken into account for the number of total
+    # measurement sweeps, but is currently ignored
+
+    import warnings
+    warnings.warn("do_calculate_plans() is deprecated. use SimulationUniverse directly.", DeprecationWarning, stacklevel=2)
+
+    measurement_sweeps = bins * measurement_sweeps_per_bin
+
     # prepare and equilibrate simulations
     calc = SimulationUniverse(plans, equilibrium_sweeps)
 
     # perform simulations
-    results = {}
-    for i in six.moves.xrange(bins):  # FIXME: this outer loop should be unnecessary.  the measurements should keep track of something like this themselves
-        r = calc.iterate(measurement_sweeps_per_bin)
-        for p, m in six.iteritems(r):
-            # NOTE: this assumes that each measurement object returns precisely a single result
-            results.setdefault(p, []).append(m.get_estimate().recent_result)
+    calc.iterate(measurement_sweeps)
 
-    for i, m in enumerate(six.itervalues(r)):
+    # log the error at each binning level
+    for i, m in enumerate(six.itervalues(calc.get_overall_measurement_dict())):
+        # NOTE: the following line assumes each measurement has just one estimate
         binlevel_data = [x for x in m.get_estimate().binlevel_data if x.nbins >= 30]
         max_error = max(x.error for x in binlevel_data)
         error_normalization = 1 / max_error if max_error else 1
@@ -82,15 +90,17 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
                     ', '.join("{:.3f}".format(d.error * error_normalization)
                               for d in binlevel_data))
 
+    # log the run information
     ri = calc.simulations[0].run_information
     logger.info('compiled with "%s" (eigen %s, boost %s)', ri.compiler, ri.eigen_version, ri.boost_version)
     logger.info("%d digits of precision, exponent range [%d, %d]", ri.precision.digits,
                 ri.precision.min_exponent, ri.precision.max_exponent)
 
+    # log the acceptance rate of each simulation
     for sim in calc.simulations:
         logger.info("%s had %.2f%% of steps accepted (with %.2f%% fully rejected)",
                     sim.walk_plan.__class__.__name__,
                     (100.0 * sim.steps_accepted / sim.steps_completed),
                     (100.0 * sim.steps_fully_rejected / sim.steps_completed))
 
-    return {p: numpy.array(r) for p, r in six.iteritems(results)}
+    return {mp: numpy.array(m.get_estimate().block_averages) for mp, m in six.iteritems(calc.get_overall_measurement_dict())}

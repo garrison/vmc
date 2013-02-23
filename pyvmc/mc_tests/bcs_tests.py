@@ -4,7 +4,6 @@ import logging
 from math import sqrt
 
 from pyvmc.core import HexagonalLattice, Bands, periodic, antiperiodic
-from pyvmc.utils import average
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +23,13 @@ def test_ansatz(lattice, t1, delta1, mu0, expected_results, tolerance):
     from pyvmc.library.heisenberg_ring import HeisenbergPlusRingExchangeHamiltonian
     from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
-    from pyvmc.core.universe import do_calculate_plans
+    from pyvmc.core.universe import SimulationUniverse
 
     hamiltonian = HeisenbergPlusRingExchangeHamiltonian(parton_boundary_conditions, lattice)
     plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=100) for o in hamiltonian.get_basic_operators()]
-    results = do_calculate_plans(plans)
-    context = {p.operator: average(result) for p, result in results.items()}
+    universe = SimulationUniverse(plans)
+    universe.iterate(1000000)
+    context = {mp.operator: m.get_estimate().result for mp, m in universe.get_overall_measurement_dict().items()}
     evaluator = hamiltonian.evaluate(context)
     final_results = (
         evaluator(J1=1, J2=0, J3=0, K=0) / len(lattice) / 3,

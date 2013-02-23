@@ -3,7 +3,6 @@
 import logging
 
 from pyvmc.core import Lattice, Bands, periodic, antiperiodic
-from pyvmc.utils import average
 
 logger = logging.getLogger(__name__)
 
@@ -23,14 +22,15 @@ def test_spinmodel(tolerance=None):
     from pyvmc.operators import SpinModelRingExchangeOperator
     from pyvmc.measurements import BasicOperatorMeasurementPlan
     from pyvmc.core import LatticeSite
-    from pyvmc.core.universe import do_calculate_plans
+    from pyvmc.core.universe import SimulationUniverse
 
     spin_operator = SpinModelRingExchangeOperator(LatticeSite([0, 0]), LatticeSite([1, 0]),
                                                   LatticeSite([1, 1]), LatticeSite([0, 1]),
                                                   (periodic, periodic))
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in spin_operator.get_basic_operators()]
-    results = do_calculate_plans(plans)
-    context = {p.operator: average(result) for p, result in results.items()}
+    universe = SimulationUniverse(plans)
+    universe.iterate(1000000)
+    context = {mp.operator: m.get_estimate().result for mp, m in universe.get_overall_measurement_dict().items()}
     logger.info("Spin model: %f", spin_operator.evaluate(context)())
 
 if __name__ == "__main__":

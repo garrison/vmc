@@ -10,7 +10,6 @@ from pyvmc.utils import custom_json as json
 from pyvmc.core.simulation import MetropolisSimulation
 from pyvmc.core.measurement import MeasurementPlan, BasicMeasurementPlan
 from pyvmc.core.rng import RandomNumberGenerator
-from pyvmc.utils import average
 
 logger = logging.getLogger(__name__)
 

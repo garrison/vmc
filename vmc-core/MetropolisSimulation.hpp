@@ -114,13 +114,6 @@ public:
             return measurements;
         }
 
-    /**
-     * Resets each measurement estimate
-     *
-     * @see RunningEstimate
-     */
-    void reset_measurement_estimates (void);
-
 protected:
     unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
 

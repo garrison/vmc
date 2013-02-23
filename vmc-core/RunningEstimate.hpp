@@ -28,35 +28,16 @@ public:
 
     virtual void add_value (T value)
         {
-            m_recent_acc(value);
             m_cumulative_acc(value);
         }
 
     /**
-     * Returns the average of all measurements since the most recent reset
-     */
-    result_t get_recent_result (void) const
-        {
-            BOOST_ASSERT(boost::accumulators::count(m_recent_acc) > 0);
-            return boost::accumulators::mean(m_recent_acc);
-        }
-
-    /**
-     * Returns the average of all measurements, regardless of whether the
-     * simulation has been reset
+     * Returns the average of all measurements
      */
     result_t get_cumulative_result (void) const
         {
             BOOST_ASSERT(boost::accumulators::count(m_cumulative_acc) > 0);
             return boost::accumulators::mean(m_cumulative_acc);
-        }
-
-    /**
-     * Returns the number of samples since the last reset
-     */
-    unsigned int get_num_recent_values (void) const
-        {
-            return boost::accumulators::count(m_recent_acc);
         }
 
     /**
@@ -68,14 +49,6 @@ public:
             return boost::accumulators::count(m_cumulative_acc);
         }
 
-    /**
-     * Resets the estimator
-     */
-    void reset (void)
-        {
-            m_recent_acc = accumulator_t();
-        }
-
 protected:
     T get_cumulative_total_value (void) const
         {
@@ -85,7 +58,7 @@ protected:
 private:
     typedef boost::accumulators::accumulator_set<T, boost::accumulators::stats<boost::accumulators::tag::mean, boost::accumulators::tag::sum, boost::accumulators::tag::count> > accumulator_t;
 
-    accumulator_t m_recent_acc, m_cumulative_acc;
+    accumulator_t m_cumulative_acc;
 };
 
 #endif

@@ -21,7 +21,6 @@ cdef extern from "MetropolisSimulation.hpp":
         unsigned int steps_completed()
         unsigned int steps_accepted()
         unsigned int steps_fully_rejected()
-        void reset_measurement_estimates()
 
 logger = logging.getLogger(__name__)
 
@@ -64,9 +63,6 @@ cdef class MetropolisSimulation(object):
         with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):
             with nogil:
                 self.autoptr.get().iterate(sweeps)
-
-    def reset_measurement_estimates(self):
-        self.autoptr.get().reset_measurement_estimates()
 
     property walk_plan:
         def __get__(self):

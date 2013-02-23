@@ -39,11 +39,6 @@ private:
                                            / walk.get_phialpha2().psi())));
         }
 
-    void reset (void)
-        {
-            estimate.reset();
-        }
-
     BlockedEstimate<real_t> estimate;
 };
 

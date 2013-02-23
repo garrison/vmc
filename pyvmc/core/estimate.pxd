@@ -3,21 +3,15 @@ from pyvmc.core cimport complex_t
 
 cdef extern from "RunningEstimate.hpp":
     cdef cppclass CppIntegerRunningEstimate "RunningEstimate<unsigned int>":
-        double get_recent_result()
         double get_cumulative_result()
-        unsigned int get_num_recent_values()
         unsigned int get_num_cumulative_values()
 
     cdef cppclass CppRealRunningEstimate "RunningEstimate<real_t>":
-        double get_recent_result()
         double get_cumulative_result()
-        unsigned int get_num_recent_values()
         unsigned int get_num_cumulative_values()
 
     cdef cppclass CppComplexRunningEstimate "RunningEstimate<amplitude_t>":
-        complex_t get_recent_result()
         complex_t get_cumulative_result()
-        unsigned int get_num_recent_values()
         unsigned int get_num_cumulative_values()
 
 cdef extern from "BinnedEstimate.hpp":

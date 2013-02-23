@@ -54,11 +54,6 @@ private:
             estimate.add_value(std::exp(i * a));
         }
 
-    void reset (void)
-        {
-            estimate.reset();
-        }
-
     BlockedEstimate<amplitude_t> estimate;
 };
 

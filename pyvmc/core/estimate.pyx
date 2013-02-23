@@ -14,8 +14,6 @@ class Estimate(object):
     # from RunningEstimate
     result = None
     num_values = None
-    recent_result = None
-    num_recent_values = None
 
     # from BinnedEstimate
     binlevel_data = None
@@ -31,24 +29,18 @@ cdef Estimate_from_CppIntegerRunningEstimate(const CppIntegerRunningEstimate& cp
     rv = Estimate()
     rv.result = cpp.get_cumulative_result()
     rv.num_values = cpp.get_num_cumulative_values()
-    rv.recent_result = cpp.get_recent_result()
-    rv.num_recent_values = cpp.get_num_recent_values()
     return rv
 
 cdef Estimate_from_CppRealRunningEstimate(const CppRealRunningEstimate& cpp):
     rv = Estimate()
     rv.result = cpp.get_cumulative_result()
     rv.num_values = cpp.get_num_cumulative_values()
-    rv.recent_result = cpp.get_recent_result()
-    rv.num_recent_values = cpp.get_num_recent_values()
     return rv
 
 cdef Estimate_from_CppComplexRunningEstimate(const CppComplexRunningEstimate& cpp):
     rv = Estimate()
     rv.result = complex_from_cpp(cpp.get_cumulative_result())
     rv.num_values = cpp.get_num_cumulative_values()
-    rv.recent_result = complex_from_cpp(cpp.get_recent_result())
-    rv.num_recent_values = cpp.get_num_recent_values()
     return rv
 
 cdef Estimate_from_CppIntegerBinnedEstimate(const CppIntegerBinnedEstimate& cpp):

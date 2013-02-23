@@ -45,7 +45,6 @@ class SimulationUniverse(object):
 
     def iterate(self, sweeps):
         for sim in self.simulations:
-            sim.reset_measurement_estimates()
             sim.iterate(sweeps)
 
     def get_overall_measurement_dict(self):

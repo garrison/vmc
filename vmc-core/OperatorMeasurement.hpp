@@ -67,11 +67,6 @@ private:
                                            walk.get_wavefunctionamplitude().get_positions().get_N_species());
         }
 
-    void reset (void)
-        {
-            estimate.reset();
-        }
-
     bool is_sum_over_sites (void) const
         {
             return bcs.size() != 0;

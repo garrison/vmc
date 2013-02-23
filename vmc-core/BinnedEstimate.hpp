@@ -19,16 +19,21 @@ static inline bool is_just_below_a_power_of_two (unsigned int x)
     return !(x & (x + 1));
 }
 
+/**
+ * This estimate allows us to easily calculate the error at any given binlevel
+ * that is a power of two.  It achieves this by keeping a rolling estimate of
+ * the mean and standard deviation at each bin level.
+ */
 template <typename T>
 class BinnedEstimate : public RunningEstimate<T>
 {
 public:
+    typedef typename RunningEstimate<T>::result_t result_t;
+    typedef typename RealPart<result_t>::type error_t;
+
     class BinnedSum
     {
     public:
-        typedef typename RunningEstimate<T>::result_t result_t;
-        typedef typename RealPart<result_t>::type error_t;
-
         /**
          * Returns the mean of all measurements considered at this binning level.
          */

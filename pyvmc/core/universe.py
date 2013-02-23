@@ -15,7 +15,7 @@ from pyvmc.utils import average
 logger = logging.getLogger(__name__)
 
 class SimulationUniverse(object):
-    """
+    """Given a collection of measurement plans, this class will manage simulating them.
     """
 
     def __init__(self, measurement_plans, equilibrium_sweeps=500000):

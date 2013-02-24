@@ -28,10 +28,13 @@ cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
     cdef object _walk_plan
     cdef object _measurement_dict
+    cdef unsigned int _equilibrium_steps
 
     def __init__(self, walk_plan not None, Lattice lattice not None, measurement_plans, unsigned int equilibrium_steps, RandomNumberGenerator rng not None):
         """keep in mind that the rng passed can no longer be used for other things afterwards"""
         assert rng.is_good()
+
+        self._equilibrium_steps = equilibrium_steps
 
         assert isinstance(walk_plan, WalkPlan)
         self._walk_plan = walk_plan
@@ -71,6 +74,10 @@ cdef class MetropolisSimulation(object):
     property measurement_dict:
         def __get__(self):
             return self._measurement_dict
+
+    property equilibrium_steps:
+        def __get__(self):
+            return self._equilibrium_steps
 
     property steps_completed:
         def __get__(self):

@@ -10,6 +10,7 @@ from pyvmc.utils import custom_json as json
 from pyvmc.core.simulation import MetropolisSimulation
 from pyvmc.core.measurement import MeasurementPlan, BasicMeasurementPlan
 from pyvmc.core.rng import RandomNumberGenerator
+from pyvmc.core import get_vmc_version
 
 logger = logging.getLogger(__name__)
 
@@ -96,3 +97,72 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
                     (100.0 * sim.steps_fully_rejected / sim.steps_completed))
 
     return {mp: numpy.array(m.get_estimate().block_averages) for mp, m in six.iteritems(calc.get_overall_measurement_dict())}
+
+def save_universe_to_hdf5(universe, h5group):
+    assert isinstance(universe, SimulationUniverse)
+
+    from pyvmc.utils import custom_json as json
+
+    # make sure we've provided an empty h5group
+    if h5group.attrs or h5group.keys():
+        raise Exception("h5group is not empty")
+
+    # fixme: for now, assume there is only one wavefunction represented in all
+    # the plans
+    wf_set = {sim.walk_plan.wavefunction for sim in universe.simulations}
+    assert len(wf_set) == 1
+    wf = wf_set.pop()
+
+    # remember info about the wavefunction
+    h5group.attrs["wavefunction_json"] = json.dumps(wf.to_json())
+    for k, v in six.iteritems(wf.to_json_extra()):
+        h5group.create_dataset("wf_{}".format(k), data=v)
+
+    # save each walk to an hdf5 subgroup
+    for i, sim in enumerate(universe.simulations):
+        walk_group = h5group.create_group("{0}_{1}".format(i, sim.walk_plan.__class__.__name__))
+
+        # save the current date/time
+        from datetime import datetime
+        walk_group.attrs["datetime"] = str(datetime.now())
+
+        # save information about the compilation/version
+        walk_group.attrs["vmc_version"] = str(get_vmc_version())
+        ri = sim.run_information
+        walk_group.attrs["eigen_version"] = ri.eigen_version
+        walk_group.attrs["boost_version"] = ri.boost_version
+        walk_group.attrs["compiler"] = ri.compiler
+        walk_group.attrs["precision_digits"] = ri.precision.digits
+        walk_group.attrs["precision_min_exponent"] = ri.precision.min_exponent
+        walk_group.attrs["precision_max_exponent"] = ri.precision.max_exponent
+
+        # save stats from the walk
+        walk_group.attrs["steps_accepted"] = sim.steps_accepted
+        walk_group.attrs["steps_completed"] = sim.steps_completed
+        walk_group.attrs["steps_fully_rejected"] = sim.steps_fully_rejected
+        walk_group.attrs["equilibrium_steps"] = sim.equilibrium_steps
+
+        # save a description of the walk that was performed
+        walk_group.attrs["walkplan_json"] = json.dumps(sim.walk_plan.to_json())
+
+        # save each measurement to an hdf5 subgroup
+        for j, measurement_plan in enumerate(sim.measurement_dict):
+            meas_group = walk_group.create_group("{0}_{1}".format(j, measurement_plan.__class__.__name__))
+
+            # save a description of the measurement
+            meas_group.attrs["measurement_repr"] = json.dumps(measurement_plan.to_json())
+
+            # save everything in the Estimate object
+            estimate = sim.measurement_dict[measurement_plan].get_estimate()
+            # from RunningEstimate
+            meas_group.create_dataset("result", data=estimate.result)
+            meas_group.attrs["num_measurements"] = estimate.num_values
+            # from BinnedEstimate
+            meas_group.create_dataset("binlevel_mean_data", data=[d.mean for d in estimate.binlevel_data])
+            meas_group.create_dataset("binlevel_error_data", data=[d.error for d in estimate.binlevel_data])
+            meas_group.create_dataset("binlevel_nbins_data", data=[d.nbins for d in estimate.binlevel_data])
+            # from BlockedEstimate
+            meas_group.create_dataset("block_averages", data=estimate.block_averages)
+            meas_group.attrs["measurements_per_block"] = estimate.measurements_per_block
+
+    h5group.file.flush()

@@ -20,7 +20,7 @@ def test_dmetal_energy(tolerance=None):
 
     from pyvmc.operators import TJKHamiltonian
     from pyvmc.measurements import BasicOperatorMeasurementPlan
-    from pyvmc.core.universe import SimulationUniverse
+    from pyvmc.core.universe import SimulationUniverse, save_universe_to_hdf5
 
     hamiltonian = TJKHamiltonian((periodic, periodic), wf.lattice)
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]
@@ -31,6 +31,13 @@ def test_dmetal_energy(tolerance=None):
 
     logger.info("Energy: %f", energy)
     assert -0.8 < energy < -0.74
+
+    # test hdf5
+    import h5py
+    filename = '/tmp/hdf5test.hdf5'
+    with h5py.File(filename, 'w') as f:
+        grp = f.create_group('testgroup')
+        save_universe_to_hdf5(universe, grp)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

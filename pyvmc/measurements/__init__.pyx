@@ -69,7 +69,7 @@ class BasicOperatorMeasurementPlan(BasicMeasurementPlan):
         return collections.OrderedDict([
             ("type", self.__class__.__name__),
             ("operator", self.operator.to_json()),
-            ("steps-per-measurement", self.steps_per_measurement),
+            ("steps_per_measurement", self.steps_per_measurement),
         ])
 
     @staticmethod
@@ -123,7 +123,7 @@ class SubsystemOccupationProbabilityMeasurementPlan(BasicMeasurementPlan):
         return collections.OrderedDict([
             ("type", self.__class__.__name__),
             ("subsystem", self.subsystem.to_json()),
-            ("steps-per-measurement", self.steps_per_measurement),
+            ("steps_per_measurement", self.steps_per_measurement),
         ])
 
     @staticmethod
@@ -131,7 +131,7 @@ class SubsystemOccupationProbabilityMeasurementPlan(BasicMeasurementPlan):
         assert json_object["type"] == "SubsystemOccupationProbabilityMeasurementPlan"
         return SubsystemOccupationProbabilityMeasurementPlan(wavefunction,
                                                              Subsystem.from_json(json_object["subsystem"], wavefunction.lattice),
-                                                             json_object["steps-per-measurement"])
+                                                             json_object["steps_per_measurement"])
 
     def to_measurement(self):
         return SubsystemOccupationNumberProbabilityMeasurement(self.steps_per_measurement, self.subsystem)

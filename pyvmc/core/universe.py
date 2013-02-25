@@ -150,7 +150,7 @@ def save_universe_to_hdf5(universe, h5group):
             meas_group = walk_group.create_group("{0}_{1}".format(j, measurement_plan.__class__.__name__))
 
             # save a description of the measurement
-            meas_group.attrs["measurement_repr"] = json.dumps(measurement_plan.to_json())
+            meas_group.attrs["measurementplan_json"] = json.dumps(measurement_plan.to_json())
 
             # save everything in the Estimate object
             estimate = sim.measurement_dict[measurement_plan].get_estimate()

@@ -1,3 +1,5 @@
+import six
+
 from cython.operator cimport dereference as deref
 from libcpp.list cimport list as stdlist
 from pyvmc.includes.libcpp.memory cimport auto_ptr
@@ -12,7 +14,10 @@ from pyvmc.core.walk cimport Walk, CppWalk
 from pyvmc.core.walk import WalkPlan
 from pyvmc.core.measurement cimport BaseMeasurement, CppBaseMeasurement
 from pyvmc.core.measurement import BasicMeasurementPlan
+from pyvmc.core.estimate import Estimate
 from pyvmc.utils.resource_logging import log_rusage
+from pyvmc.utils import custom_json as json
+from pyvmc.core import get_vmc_version
 
 cdef extern from "MetropolisSimulation.hpp":
     cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
@@ -66,6 +71,15 @@ cdef class MetropolisSimulation(object):
         with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):
             with nogil:
                 self.autoptr.get().iterate(sweeps)
+
+    def to_hdf5(self, *args, **kwargs):
+        return _save_simulation_to_hdf5(self, *args, **kwargs)
+
+    # XXX: Cython causes a segfault if I declare this a staticmethod
+    # (see http://trac.cython.org/cython_trac/ticket/804)
+    @classmethod
+    def from_hdf5(cls, *args, **kwargs):
+        return RestoredSimulation(*args, **kwargs)
 
     property walk_plan:
         def __get__(self):
@@ -133,3 +147,86 @@ cdef class PrecisionInformation(object):
     property max_exponent:
         def __get__(self):
             return precision_max_exponent
+
+def _save_simulation_to_hdf5(sim, h5group, wf, i):
+    walk_group = h5group.create_group("{0}_{1}".format(i, sim.walk_plan.__class__.__name__))
+
+    # save the current date/time
+    from datetime import datetime
+    walk_group.attrs["datetime"] = str(datetime.now())
+
+    # save information about the compilation/version
+    walk_group.attrs["vmc_version"] = str(get_vmc_version())
+    ri = sim.run_information
+    walk_group.attrs["eigen_version"] = ri.eigen_version
+    walk_group.attrs["boost_version"] = ri.boost_version
+    walk_group.attrs["compiler"] = ri.compiler
+    walk_group.attrs["precision_digits"] = ri.precision.digits
+    walk_group.attrs["precision_min_exponent"] = ri.precision.min_exponent
+    walk_group.attrs["precision_max_exponent"] = ri.precision.max_exponent
+
+    # save stats from the walk
+    walk_group.attrs["steps_accepted"] = sim.steps_accepted
+    walk_group.attrs["steps_completed"] = sim.steps_completed
+    walk_group.attrs["steps_fully_rejected"] = sim.steps_fully_rejected
+    walk_group.attrs["equilibrium_steps"] = sim.equilibrium_steps
+
+    # save a description of the walk that was performed
+    walk_group.attrs["walkplan_json"] = json.dumps(sim.walk_plan.to_json())
+
+    # save each measurement to an hdf5 subgroup
+    for j, measurement_plan in enumerate(sim.measurement_dict):
+        _save_measurement_to_hdf5(measurement_plan, walk_group, wf, sim, j)
+
+class RestoredSimulation(object):
+    def __init__(self, walk_group, wf):
+        # fixme: do we want to load the date/time?
+        # fixme: should we be saving the utime, stime, walltime, etc?
+        # fixme: load what we now call the "run information"
+
+        self.steps_accepted = walk_group.attrs["steps_accepted"]
+        self.steps_completed = walk_group.attrs["steps_completed"]
+        self.steps_fully_rejected = walk_group.attrs["steps_fully_rejected"]
+        self.equilibrium_steps = walk_group.attrs["equilibrium_steps"]
+
+        self.walk_plan = WalkPlan.from_json(json.loads(walk_group.attrs["walkplan_json"]), wf)
+
+        self.measurement_dict = {m._measurement_plan: m
+                                 for m in (RestoredMeasurement(meas_group, wf)
+                                           for k, meas_group in six.iteritems(walk_group)
+                                           if k.startswith("measurement:"))}
+
+def _save_measurement_to_hdf5(measurement_plan, walk_group, wf, sim, j):
+    meas_group = walk_group.create_group("measurement:{0}_{1}".format(j, measurement_plan.__class__.__name__))
+
+    # save a description of the measurement
+    meas_group.attrs["measurementplan_json"] = json.dumps(measurement_plan.to_json())
+
+    # save each estimate
+    for key, estimate in six.iteritems(sim.measurement_dict[measurement_plan].get_estimates()):
+        if key is None:
+            estimate_group = meas_group
+        else:
+            json_key = json.dumps(key)
+            if '/' in json_key:
+                raise Exception("keys currently cannot contain slashes, as they represent path delimiters in hdf5")
+            estimate_group = meas_group.create_group("estimate:{}".format(json_key))
+
+        estimate.to_hdf5(estimate_group)
+
+class RestoredMeasurement(object):
+    def __init__(self, meas_group, wf):
+        self._measurement_plan = BasicMeasurementPlan.from_json(json.loads(meas_group.attrs["measurementplan_json"]), wf)
+
+        self._estimate_dict = {json.tuplize(json.loads(key.partition(':')[2])): Estimate.from_hdf5(estimate_group)
+                               for key, estimate_group in six.iteritems(meas_group)
+                               if key.startswith("estimate:")}
+        if "result" in meas_group:
+            self._estimate_dict[None] = Estimate.from_hdf5(meas_group)
+
+    def get_estimate(self, key=None):
+        return self._estimate_dict[key]
+
+    def get_estimates(self):
+        # NOTE: the caller should not modify the returned dict!
+        return self._estimate_dict

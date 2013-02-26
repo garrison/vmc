@@ -34,13 +34,12 @@ def test_dmetal_energy(tolerance=None):
 
     # test hdf5
     import h5py
-    from pyvmc.core.universe import save_universe_to_hdf5, load_universe_from_hdf5
     filename = '/tmp/hdf5test_dmetal.hdf5'
     with h5py.File(filename, 'w') as f:
         grp = f.create_group('testgroup')
-        save_universe_to_hdf5(universe, grp)
+        universe.to_hdf5(grp)
     with h5py.File(filename, 'r') as f:
-        universe2 = load_universe_from_hdf5(f['testgroup'], wf)
+        universe2 = SimulationUniverse.from_hdf5(f['testgroup'], wf)
     context2 = {mp.operator: m.get_estimate().result for mp, m in universe2.get_overall_measurement_dict().items()}
     energy = hamiltonian.evaluate(context)(t=1, J=2, K=2) / len(wf.lattice)
     logger.info("Energy: %f", energy)

@@ -98,7 +98,7 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
 
     return {mp: numpy.array(m.get_estimate().block_averages) for mp, m in six.iteritems(calc.get_overall_measurement_dict())}
 
-def save_universe_to_hdf5(universe, h5group):
+def _save_universe_to_hdf5(universe, h5group):
     assert isinstance(universe, SimulationUniverse)
 
     from pyvmc.utils import custom_json as json
@@ -242,9 +242,12 @@ class RestoredUniverse(object):
     def get_overall_measurement_dict(self):
         return dict(chain.from_iterable(six.iteritems(sim.measurement_dict) for sim in self.simulations))
 
-def load_universe_from_hdf5(h5group, wf):
+def _load_universe_from_hdf5(h5group, wf):
     # assume the h5group we are passed represents a single wavefunction
 
     # FIXME: in the future, we would like to use: wf = Wavefunction.from_json()
 
     return RestoredUniverse(h5group, wf)
+
+SimulationUniverse.to_hdf5 = _save_universe_to_hdf5
+SimulationUniverse.from_hdf5 = staticmethod(_load_universe_from_hdf5)

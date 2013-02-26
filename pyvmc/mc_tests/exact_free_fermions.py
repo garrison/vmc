@@ -40,12 +40,11 @@ def test_1d_free_fermion_renyi(tolerance=0.02):
 
     # test hdf5
     import h5py
-    from pyvmc.core.universe import save_universe_to_hdf5, load_universe_from_hdf5
     filename = '/tmp/hdf5test_renyi.hdf5'
     with h5py.File(filename, 'w') as f:
-        save_universe_to_hdf5(calc, f)
+        calc.to_hdf5(f)
     with h5py.File(filename, 'r') as f:
-        universe2 = load_universe_from_hdf5(f, wf)
+        universe2 = SimulationUniverse.from_hdf5(f, wf)
     results2 = universe2.get_overall_measurement_dict()
     measured_values2 = [plan.calculate(lambda p, k=None: results2[p].get_estimate(k).result)
                         for plan in plans]

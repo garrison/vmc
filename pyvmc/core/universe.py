@@ -181,17 +181,17 @@ from pyvmc.core.estimate import Estimate, BinnedSum
 from pyvmc.core.measurement import BasicMeasurementPlan
 from pyvmc.core.walk import WalkPlan
 
-class FakeBinnedSum(BinnedSum):
+class RestoredBinnedSum(BinnedSum):
     pass
 
-class FakeEstimate(Estimate):
+class RestoredEstimate(Estimate):
     def __init__(self, estimate_group):
         # from RunningEstimate
         self.result = estimate_group["result"][...]
         self.num_values = estimate_group.attrs["num_measurements"]
 
         # from BinnedEstimate
-        self.binlevel_data = [FakeBinnedSum(*args)
+        self.binlevel_data = [RestoredBinnedSum(*args)
                               for args in zip(estimate_group["binlevel_mean_data"],
                                               estimate_group["binlevel_error_data"],
                                               estimate_group["binlevel_nbins_data"])]
@@ -200,15 +200,15 @@ class FakeEstimate(Estimate):
         self.block_averages = estimate_group["block_averages"][...]
         self.measurements_per_block = estimate_group.attrs["measurements_per_block"]
 
-class FakeMeasurement(object):
+class RestoredMeasurement(object):
     def __init__(self, meas_group, wf):
         self._measurement_plan = BasicMeasurementPlan.from_json(json.loads(meas_group.attrs["measurementplan_json"]), wf)
 
-        self._estimate_dict = {json.tuplize(json.loads(key.partition(':')[2])): FakeEstimate(estimate_group)
+        self._estimate_dict = {json.tuplize(json.loads(key.partition(':')[2])): RestoredEstimate(estimate_group)
                                for key, estimate_group in six.iteritems(meas_group)
                                if key.startswith("estimate:")}
         if "result" in meas_group:
-            self._estimate_dict[None] = FakeEstimate(meas_group)
+            self._estimate_dict[None] = RestoredEstimate(meas_group)
 
     def get_estimate(self, key=None):
         return self._estimate_dict[key]
@@ -217,7 +217,7 @@ class FakeMeasurement(object):
         # NOTE: the caller should not modify the returned dict!
         return self._estimate_dict
 
-class FakeSimulation(object):
+class RestoredSimulation(object):
     def __init__(self, walk_group, wf):
         # fixme: do we want to load the date/time?
         # fixme: should we be saving the utime, stime, walltime, etc?
@@ -231,13 +231,13 @@ class FakeSimulation(object):
         self.walk_plan = WalkPlan.from_json(json.loads(walk_group.attrs["walkplan_json"]), wf)
 
         self.measurement_dict = {m._measurement_plan: m
-                                 for m in (FakeMeasurement(meas_group, wf)
+                                 for m in (RestoredMeasurement(meas_group, wf)
                                            for k, meas_group in six.iteritems(walk_group)
                                            if k.startswith("measurement:"))}
 
-class FakeUniverse(object):
+class RestoredUniverse(object):
     def __init__(self, h5group, wf):
-        self.simulations = [FakeSimulation(walk_group, wf) for walk_group in six.itervalues(h5group)]
+        self.simulations = [RestoredSimulation(walk_group, wf) for walk_group in six.itervalues(h5group)]
 
     def get_overall_measurement_dict(self):
         return dict(chain.from_iterable(six.iteritems(sim.measurement_dict) for sim in self.simulations))
@@ -247,4 +247,4 @@ def load_universe_from_hdf5(h5group, wf):
 
     # FIXME: in the future, we would like to use: wf = Wavefunction.from_json()
 
-    return FakeUniverse(h5group, wf)
+    return RestoredUniverse(h5group, wf)

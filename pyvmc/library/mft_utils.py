@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from pyvmc.core import Lattice, LatticeSite, HexagonalLattice, periodic, antiperiodic
+from pyvmc.utils import is_square_matrix
 
 import numpy
 from numpy import pi
@@ -16,10 +17,66 @@ import matplotlib.pyplot as plt
 
 ##### General stuff #####
 
+def free_fermion_soln(t):
+    assert is_square_matrix(t)
+
+    Nsites = t.shape[0]
+
+    # t_{ij} = ttilde_{ij} = t_{ij} + mu_i * krondelta_{ij} from notes (FIXME: take t and mu as separate parameters?)
+    H = -t
+
+    assert numpy.max(numpy.abs(H - H.conjugate().transpose())) < 1e-12
+
+    eigsys = numpy.linalg.eigh(H)
+
+    idx = eigsys[0].argsort()
+    evals = eigsys[0][idx]
+    evecs = eigsys[1][:,idx]
+
+    logger.debug('Eigenvalues = ...')
+    logger.debug(evals)
+
+    return {'evecs':evecs, 'evals':evals}
+
+
+def calculate_free_fermion_pairing_matrix(evecs, evals, Nparticles, norm):
+    assert is_square_matrix(evecs)
+
+    Nsites = evecs.shape[0]
+    assert Nsites == len(evals)
+
+    M = Nparticles/2  # ( = N_up = N_down )
+    assert M <= Nsites
+
+    phiMat = numpy.zeros((Nsites, Nsites), dtype=complex)
+    for ind_r in range(0, Nsites):
+        for ind_rp in range(0, Nsites):
+            phiMat[ind_r, ind_rp] = numpy.dot( evecs[ind_r, 0:M], evecs[ind_rp, 0:M] )
+
+#    logger.debug('Pairing matrix = ...')
+#    logger.debug(phiMat)
+#    logger.debug("Pairing matrix's main diagonal = ...")
+#    logger.debug(phiMat.diagonal())
+
+    # Check that phiMat is symmetric:
+    if numpy.max(numpy.abs(phiMat - phiMat.transpose())) > 1e-8:
+        raise RuntimeError('"Symmetricness" of pairing matrix = %.9g', numpy.max(numpy.abs(phiMat - phiMat.transpose())))
+
+    phiNorm = norm_of_pairing_matrix(phiMat)
+    logger.info('Norm of pairing matrix before normalization = %f', phiNorm)
+
+    if norm is not None:
+        phiMat = norm * (phiMat / phiNorm)
+        phiNorm = norm_of_pairing_matrix(phiMat)
+        logger.info('Norm of pairing matrix after normalization = %f', phiNorm)
+
+    return phiMat
+
+
 def bcs_soln(t, delta):
     # both t and delta should include on-site terms, e.g., t_{ij} = ttilde_{ij} = t_{ij} + mu_i * krondelta_{ij} from notes
-    assert_ismatrix(t)
-    assert_ismatrix(delta)
+    assert is_square_matrix(t)
+    assert is_square_matrix(delta)
     assert t.shape[0] == delta.shape[0]
 
     Nsites = t.shape[0]
@@ -35,7 +92,6 @@ def bcs_soln(t, delta):
         for j in range(0, 2*Nsites):
             Hflat[i,j] = H[i//2, j//2, numpy.mod(i,2), numpy.mod(j,2)]
 
-    # Check that Hflat is Hermitian:
     assert numpy.max(numpy.abs(Hflat - Hflat.conjugate().transpose())) < 1e-12
 
     eigsys = numpy.linalg.eigh(Hflat)
@@ -53,9 +109,9 @@ def bcs_soln(t, delta):
     evalsPos = evals[Nsites:2*Nsites]
     evecsPos = evecs[:, Nsites:2*Nsites]
 
-    logger.debug('positive eigenvalues = ...')
+    logger.debug('Positive eigenvalues = ...')
     logger.debug(evalsPos)
-#    logger.debug('negative eigenvalues = ...')
+#    logger.debug('Negative eigenvalues = ...')
 #    logger.debug(evalsNeg[::-1])
 
     # Check that positive eigenvalues are positive and that eigenvalues have come in plus-minus pairs:
@@ -65,7 +121,7 @@ def bcs_soln(t, delta):
     # which I think is OK; for now, we'll just warn instead of assert
 #    assert numpy.min(evalsPos) > 1e-12
     if not numpy.min(evalsPos) > 1e-12:
-        logger.warning('some of evalsPos are not greater than 1e-12')
+        logger.warning('Some of evalsPos are not greater than 1e-12')
     assert numpy.max(numpy.abs(evalsNeg[::-1] + evalsPos)) < 1e-12
 
     u = evecsPos[0:evecsPos.shape[0]:2, :]
@@ -85,8 +141,8 @@ def bcs_soln(t, delta):
 
 
 def bcs_stats(u, v):
-    assert_ismatrix(u)
-    assert_ismatrix(v)
+    assert is_square_matrix(u)
+    assert is_square_matrix(v)
     assert u.shape[0] == v.shape[0]
 
     Nsites = u.shape[0]
@@ -114,7 +170,7 @@ def bcs_stats_average(u, v):
     stats = bcs_stats(u, v)
 
     if numpy.max(numpy.std(stats['Tvec'], 0)) > 1e-10:
-        logger.warning('this BCS state is not translationally invariant!  standard deviation of Tvec = ...')
+        logger.warning('This BCS state is not translationally invariant!  Standard deviation of Tvec = ...')
         logger.warning(numpy.std(stats['Tvec'], 0))
 
     return {k: numpy.mean(v, 0) for k, v in stats.items()}
@@ -133,38 +189,36 @@ def calculate_Tz(mu0_try, t_offsite, delta):
 
 
 def calculate_pairing_matrix(u, v, norm):
-    assert_ismatrix(u)
-    assert_ismatrix(v)
+    assert is_square_matrix(u)
+    assert is_square_matrix(v)
     assert u.shape[0] == v.shape[0]
 
     # Warn if u is singular, but don't abort cuz sometimes this is OK..
     (signdet, logdet) = numpy.linalg.slogdet(u)
-    logger.info('|det(u)| = %g', numpy.abs(numpy.exp(logdet)))  # just log it for now..
-#    if signdet * numpy.exp(logdet) == 0:
-#        logger.warning('|det(u)| = %g', numpy.abs(numpy.exp(logdet)))
+    logger.info('|det(u)| = %g', numpy.abs(numpy.exp(logdet)))  # actually, just log it for now..
 
     phiMat = numpy.dot( numpy.linalg.inv(u.conjugate().transpose()), v.conjugate().transpose() )
 
-#    logger.debug('pairing matrix = ...')
+#    logger.debug('Pairing matrix = ...')
 #    logger.debug(phiMat)
-#    logger.debug("pairing matrix's main diagonal = ...")
+#    logger.debug("Pairing matrix's main diagonal = ...")
 #    logger.debug(phiMat.diagonal())
 
     # Check that phiMat is symmetric:
     if numpy.max(numpy.abs(phiMat - phiMat.transpose())) > 1e-8:
-        logger.warning('"symmetricness" of pairing matrix = %.9g', numpy.max(numpy.abs(phiMat - phiMat.transpose())))
+        raise RuntimeError('"Symmetricness" of pairing matrix = %.9g', numpy.max(numpy.abs(phiMat - phiMat.transpose())))
 
     # Check against TI code (must first run *_Fourier.py with same parameters):
 #    phiMat_TI = numpy.loadtxt('phiMat_TI.dat').view(complex)
 #    logger.debug('max|phiMat - phiMat_TI| = %.9g ', numpy.max(numpy.abs(phiMat - phiMat_TI)))
 
     phiNorm = norm_of_pairing_matrix(phiMat)
-    logger.info('norm of pairing matrix before normalization = %f', phiNorm)
+    logger.info('Norm of pairing matrix before normalization = %f', phiNorm)
 
     if norm is not None:
         phiMat = norm * (phiMat / phiNorm)
         phiNorm = norm_of_pairing_matrix(phiMat)
-        logger.info('norm of pairing matrix after normalization = %f', phiNorm)
+        logger.info('Norm of pairing matrix after normalization = %f', phiNorm)
 
     return phiMat
 
@@ -174,7 +228,7 @@ def norm_of_pairing_matrix(phiMat):
 
 
 def plot_pairing_matrix(phiMat, callshow=True):
-    assert_ismatrix(phiMat)
+    assert is_square_matrix(phiMat)
 
     from mpl_toolkits.mplot3d import Axes3D
     from matplotlib import cm
@@ -231,7 +285,7 @@ def create_delta_matrix(lattice, boundary_conditions, delta_value, pairing_func,
 
 
 def add_onsite_terms(offsite, onsite):
-    assert_ismatrix(offsite)
+    assert is_square_matrix(offsite)
 
     check_offsite_for_onsite(offsite)  # since we're singling out the on-site terms with this function
 
@@ -251,13 +305,6 @@ def add_onsite_terms(offsite, onsite):
     return total
 
 
-# FIXME: this is pretty general; could be placed in a more general location..
-def assert_ismatrix(guy):
-    assert isinstance(guy, numpy.ndarray)
-    assert guy.ndim == 2
-    assert guy.shape[0] == guy.shape[1]
-
-
 def check_t_matrix(t):
     assert numpy.max(numpy.abs(t - t.conjugate().transpose())) < 1e-12
 
@@ -268,7 +315,7 @@ def check_delta_matrix(delta, channel):
     elif channel == 'triplet':
         assert numpy.max(numpy.abs(delta + delta.transpose())) < 1e-12
     else:
-        logger.warning('unable to check delta for appropriate pairing channel (singlet or triplet).')
+        logger.warning('Unable to check delta for appropriate pairing channel (singlet or triplet).')
 
 
 def check_offsite_for_onsite(offsite):
@@ -296,12 +343,11 @@ def dx2minusy2_pairing_pattern(lattice, site1, site2):
     Rhat = R / numpy.linalg.norm(R)
 
     return Rhat[0]**2 - Rhat[1]**2
-#    return did_pairing_pattern(lattice, site1, site2).real
 
 
 # hf is for 'half-filling' since the function currently solves for the root of Tz: Tz=0 (fdagf=1)
 # FIXME: have desired average fdagf or Tvec be a parameter
-def did_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0=None, delta0=0, norm=None, t2=0, delta2=0, t3=0, delta3=0):
+def did_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0=None, delta0=0, t2=0, delta2=0, t3=0, delta3=0):
 
     delta_offsite = \
         create_delta_matrix(lattice, boundary_conditions, delta1, did_pairing_pattern, lattice.nearest_neighbors, 'singlet') + \
@@ -320,7 +366,7 @@ def did_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0
         mu0_soln = optimize.fsolve(calculate_Tz, mu0_start, args=(t_offsite, delta_offsite), full_output=True, xtol=1e-06, epsfcn=0.1)
         logger.info('mu0_soln = %s', mu0_soln)
         mu0 = mu0_soln[0][0]
-    #        mu0 = optimize.newton(calculate_Tz, mu0_start, tol=1e-06)
+#        mu0 = optimize.newton(calculate_Tz, mu0_start, tol=1e-06)
 
     t = add_onsite_terms(t_offsite, mu0)
     check_t_matrix(t)  # this would only fail if mu0 were complex or something
@@ -332,14 +378,14 @@ def did_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0
     logger.info('fdagf = %.9f', stats['fdagf'])
     logger.info('Ttot = %.9f', stats['Ttot'])
 
-    phi = calculate_pairing_matrix(soln['u'], soln['v'], norm)
+    phi = calculate_pairing_matrix(soln['u'], soln['v'], norm=len(lattice))
 
     return {'pairing_matrix':phi, 'chemical_potential':mu0, 'bcs_stats':stats}
 
 
 # hf is for 'half-filling' since the function currently solves for the root of Tz: Tz=0 (fdagf=1)
 # FIXME: have desired average fdagf or Tvec be a parameter
-def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0=None, delta0=0, norm=None, t2=0, delta2=0, t3=0, delta3=0):
+def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0=None, delta0=0, t2=0, delta2=0, t3=0, delta3=0):
 
     delta_offsite = \
         create_delta_matrix(lattice, boundary_conditions, delta1, dx2minusy2_pairing_pattern, lattice.nearest_neighbors, 'singlet') + \
@@ -358,7 +404,7 @@ def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start
         mu0_soln = optimize.fsolve(calculate_Tz, mu0_start, args=(t_offsite, delta_offsite), full_output=True, xtol=1e-06, epsfcn=0.1)
         logger.info('mu0_soln = %s', mu0_soln)
         mu0 = mu0_soln[0][0]
-    #        mu0 = optimize.newton(calculate_Tz, mu0_start, tol=1e-06)
+#        mu0 = optimize.newton(calculate_Tz, mu0_start, tol=1e-06)
 
     t = add_onsite_terms(t_offsite, mu0)
     check_t_matrix(t)  # this would only fail if mu0 were complex or something
@@ -370,9 +416,45 @@ def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start
     logger.info('fdagf = %.9f', stats['fdagf'])
     logger.info('Ttot = %.9f', stats['Ttot'])
 
-    phi = calculate_pairing_matrix(soln['u'], soln['v'], norm)
+    phi = calculate_pairing_matrix(soln['u'], soln['v'], norm=len(lattice))
 
     return {'pairing_matrix':phi, 'chemical_potential':mu0, 'bcs_stats':stats}
+
+
+# FIXME: call signature should look like next line, but I guess could have it take a bunch of garbage arguments to fit into framework of traditional BCS states..
+#def sbm_bcs_theory(lattice, boundary_conditions, t1=1, t2=0, t3=0):
+def sbm_bcs_theory(lattice, boundary_conditions, t1=1, delta1=0, mu0_start=0, mu0=None, delta0=0, t2=0, delta2=0, t3=0, delta3=0):
+    assert len(lattice) % 2 == 0
+
+    t_offsite = \
+        create_t_matrix_basic(lattice, boundary_conditions, t1, lattice.nearest_neighbors) + \
+        create_t_matrix_basic(lattice, boundary_conditions, t2, lattice.second_nearest_neighbors) + \
+        create_t_matrix_basic(lattice, boundary_conditions, t3, lattice.third_nearest_neighbors)
+    check_offsite_for_onsite(t_offsite)
+
+    t = t_offsite
+    check_t_matrix(t)
+
+    soln = free_fermion_soln(t)
+    stats = {
+        'fdagf': 1.0,
+        'fdownfup': 0,
+        'Tvec': numpy.array([0, 0, 0]),
+        'Ttot': 0,
+    }
+
+    M = len(lattice)/2  # each species is at half-filling --> spin wave function
+    mu0 = soln['evals'][M-1]  # energies are returned sorted in increasing order
+#    print M, soln['evals'][(M-1)-1], soln['evals'][(M-1)+1]
+
+    logger.info('mu0 = %.9f', mu0)
+    logger.info('fdagf = %.9f', stats['fdagf'])
+    logger.info('Ttot = %.9f', stats['Ttot'])
+
+    phi = calculate_free_fermion_pairing_matrix(soln['evecs'], soln['evals'], Nparticles=len(lattice), norm=len(lattice))
+
+    return {'pairing_matrix':phi, 'chemical_potential':mu0, 'bcs_stats':stats}
+
 
 
 if __name__ == '__main__':
@@ -383,12 +465,16 @@ if __name__ == '__main__':
     lattice = HexagonalLattice([12, 12])
     boundary_conditions = (periodic, antiperiodic)
 
-    alpha = pi/100
+#    alpha = pi/4
 
-    bcs_theory = dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1=numpy.cos(alpha), delta1=numpy.sin(alpha), mu0_start=0)
+#    bcs_theory = dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1=numpy.cos(alpha), delta1=numpy.sin(alpha), mu0_start=0)
 #    bcs_theory = dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1=1, delta1=5, mu0_start=0, mu0=None)
 
 #    bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, t1=numpy.cos(alpha), delta1=numpy.sin(alpha), mu0=0.1)
 #    bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, t1=1, delta1=5)
+#    bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, t1=0, delta1=0.99, mu0=0, delta2=-1.01)
+
+#    bcs_theory = did_hf_bcs_theory(lattice, boundary_conditions, t1=1, delta1=0, mu0_start=0.8, mu0=None)
+    bcs_theory = sbm_bcs_theory(lattice, boundary_conditions, t1=1)
 
     plot_pairing_matrix(bcs_theory['pairing_matrix'])

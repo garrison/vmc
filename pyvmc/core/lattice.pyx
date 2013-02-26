@@ -131,6 +131,11 @@ cdef class LatticeSite(object):
     def to_json(self):
         return [self.bs, self.bi]
 
+    @staticmethod
+    def from_json(json_array):
+        bs, bi = json_array
+        return LatticeSite(bs, bi)
+
 cdef LatticeSite_from_cpp(CppLatticeSite cpp_lattice_site):
     cdef LatticeSite lattice_site = LatticeSite.__new__(LatticeSite)
     lattice_site.cpp = cpp_lattice_site

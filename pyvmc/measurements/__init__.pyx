@@ -76,7 +76,7 @@ class BasicOperatorMeasurementPlan(BasicMeasurementPlan):
     def _from_json(json_object, wavefunction):
         assert json_object["type"] == "BasicOperatorMeasurementPlan"
         return BasicOperatorMeasurementPlan(wavefunction,
-                                            Operator.from_json(json_object["operator"]),
+                                            BasicOperator.from_json(json_object["operator"]),
                                             json_object["steps_per_measurement"])
 
     def to_measurement(self):

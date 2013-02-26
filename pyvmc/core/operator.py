@@ -7,7 +7,7 @@ from itertools import chain
 
 from pyvmc.utils.immutable import Immutable
 from pyvmc.core.lattice import Lattice, LatticeSite
-from pyvmc.core.boundary_conditions import valid_boundary_conditions
+from pyvmc.core.boundary_conditions import valid_boundary_conditions, BoundaryCondition
 from pyvmc.core.wavefunction import Wavefunction
 
 class SiteHop(Immutable):
@@ -31,6 +31,12 @@ class SiteHop(Immutable):
             ("destination", self.destination.to_json()),
             ("species", self.species),
         ])
+
+    @staticmethod
+    def from_json(json_object):
+        return SiteHop(LatticeSite.from_json(json_object["source"]),
+                       LatticeSite.from_json(json_object["destination"]),
+                       json_object["species"])
 
 class Operator(six.with_metaclass(abc.ABCMeta)):
     @abc.abstractmethod
@@ -66,6 +72,15 @@ class BasicOperator(Immutable):
             ("hops", [hop.to_json() for hop in self.hops]),
             ("boundary_conditions", self.boundary_conditions),
         ])
+
+    @staticmethod
+    def from_json(json_object):
+        assert json_object["type"] == "BasicOperator"
+        hops = [SiteHop.from_json(hop) for hop in json_object["hops"]]
+        boundary_conditions = json_object["boundary_conditions"]
+        if boundary_conditions is not None:
+            boundary_conditions = [BoundaryCondition(bc) for bc in boundary_conditions]
+        return BasicOperator(hops, boundary_conditions)
 
     # these next two methods exist only so we can pass around Operator's
     # without caring whether they are BasicOperator's or CompositeOperator's

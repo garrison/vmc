@@ -147,22 +147,104 @@ def save_universe_to_hdf5(universe, h5group):
 
         # save each measurement to an hdf5 subgroup
         for j, measurement_plan in enumerate(sim.measurement_dict):
-            meas_group = walk_group.create_group("{0}_{1}".format(j, measurement_plan.__class__.__name__))
+            meas_group = walk_group.create_group("measurement:{0}_{1}".format(j, measurement_plan.__class__.__name__))
 
             # save a description of the measurement
             meas_group.attrs["measurementplan_json"] = json.dumps(measurement_plan.to_json())
 
-            # save everything in the Estimate object
-            estimate = sim.measurement_dict[measurement_plan].get_estimate()
-            # from RunningEstimate
-            meas_group.create_dataset("result", data=estimate.result)
-            meas_group.attrs["num_measurements"] = estimate.num_values
-            # from BinnedEstimate
-            meas_group.create_dataset("binlevel_mean_data", data=[d.mean for d in estimate.binlevel_data])
-            meas_group.create_dataset("binlevel_error_data", data=[d.error for d in estimate.binlevel_data])
-            meas_group.create_dataset("binlevel_nbins_data", data=[d.nbins for d in estimate.binlevel_data])
-            # from BlockedEstimate
-            meas_group.create_dataset("block_averages", data=estimate.block_averages)
-            meas_group.attrs["measurements_per_block"] = estimate.measurements_per_block
+            # save each estimate
+            for key, estimate in six.iteritems(sim.measurement_dict[measurement_plan].get_estimates()):
+                if key is None:
+                    estimate_group = meas_group
+                else:
+                    json_key = json.dumps(key)
+                    if '/' in json_key:
+                        raise Exception("keys currently cannot contain slashes, as they represent path delimiters in hdf5")
+                    estimate_group = meas_group.create_group("estimate:{}".format(json_key))
+
+                # from RunningEstimate
+                estimate_group.create_dataset("result", data=estimate.result)
+                estimate_group.attrs["num_measurements"] = estimate.num_values
+
+                # from BinnedEstimate
+                estimate_group.create_dataset("binlevel_mean_data", data=[d.mean for d in estimate.binlevel_data])
+                estimate_group.create_dataset("binlevel_error_data", data=[d.error for d in estimate.binlevel_data])
+                estimate_group.create_dataset("binlevel_nbins_data", data=[d.nbins for d in estimate.binlevel_data])
+
+                # from BlockedEstimate
+                estimate_group.create_dataset("block_averages", data=estimate.block_averages)
+                estimate_group.attrs["measurements_per_block"] = estimate.measurements_per_block
 
     h5group.file.flush()
+
+from pyvmc.core.estimate import Estimate, BinnedSum
+from pyvmc.core.measurement import BasicMeasurementPlan
+from pyvmc.core.walk import WalkPlan
+
+class FakeBinnedSum(BinnedSum):
+    pass
+
+class FakeEstimate(Estimate):
+    def __init__(self, estimate_group):
+        # from RunningEstimate
+        self.result = estimate_group["result"][...]
+        self.num_values = estimate_group.attrs["num_measurements"]
+
+        # from BinnedEstimate
+        self.binlevel_data = [FakeBinnedSum(*args)
+                              for args in zip(estimate_group["binlevel_mean_data"],
+                                              estimate_group["binlevel_error_data"],
+                                              estimate_group["binlevel_nbins_data"])]
+
+        # from BlockedEstimate
+        self.block_averages = estimate_group["block_averages"][...]
+        self.measurements_per_block = estimate_group.attrs["measurements_per_block"]
+
+class FakeMeasurement(object):
+    def __init__(self, meas_group, wf):
+        self._measurement_plan = BasicMeasurementPlan.from_json(json.loads(meas_group.attrs["measurementplan_json"]), wf)
+
+        self._estimate_dict = {json.tuplize(json.loads(key.partition(':')[2])): FakeEstimate(estimate_group)
+                               for key, estimate_group in six.iteritems(meas_group)
+                               if key.startswith("estimate:")}
+        if "result" in meas_group:
+            self._estimate_dict[None] = FakeEstimate(meas_group)
+
+    def get_estimate(self, key=None):
+        return self._estimate_dict[key]
+
+    def get_estimates(self):
+        # NOTE: the caller should not modify the returned dict!
+        return self._estimate_dict
+
+class FakeSimulation(object):
+    def __init__(self, walk_group, wf):
+        # fixme: do we want to load the date/time?
+        # fixme: should we be saving the utime, stime, walltime, etc?
+        # fixme: load what we now call the "run information"
+
+        self.steps_accepted = walk_group.attrs["steps_accepted"]
+        self.steps_completed = walk_group.attrs["steps_completed"]
+        self.steps_fully_rejected = walk_group.attrs["steps_fully_rejected"]
+        self.equilibrium_steps = walk_group.attrs["equilibrium_steps"]
+
+        self.walk_plan = WalkPlan.from_json(json.loads(walk_group.attrs["walkplan_json"]), wf)
+
+        self.measurement_dict = {m._measurement_plan: m
+                                 for m in (FakeMeasurement(meas_group, wf)
+                                           for k, meas_group in six.iteritems(walk_group)
+                                           if k.startswith("measurement:"))}
+
+class FakeUniverse(object):
+    def __init__(self, h5group, wf):
+        self.simulations = [FakeSimulation(walk_group, wf) for walk_group in six.itervalues(h5group)]
+
+    def get_overall_measurement_dict(self):
+        return dict(chain.from_iterable(six.iteritems(sim.measurement_dict) for sim in self.simulations))
+
+def load_universe_from_hdf5(h5group, wf):
+    # assume the h5group we are passed represents a single wavefunction
+
+    # FIXME: in the future, we would like to use: wf = Wavefunction.from_json()
+
+    return FakeUniverse(h5group, wf)

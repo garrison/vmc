@@ -98,21 +98,7 @@ def do_calculate_plans(plans, equilibrium_sweeps=500000, bins=100, measurement_s
 
     return {mp: numpy.array(m.get_estimate().block_averages) for mp, m in six.iteritems(calc.get_overall_measurement_dict())}
 
-def _save_estimate_to_hdf5(estimate_group, estimate):
-    # from RunningEstimate
-    estimate_group.create_dataset("result", data=estimate.result)
-    estimate_group.attrs["num_measurements"] = estimate.num_values
-
-    # from BinnedEstimate
-    estimate_group.create_dataset("binlevel_mean_data", data=[d.mean for d in estimate.binlevel_data])
-    estimate_group.create_dataset("binlevel_error_data", data=[d.error for d in estimate.binlevel_data])
-    estimate_group.create_dataset("binlevel_nbins_data", data=[d.nbins for d in estimate.binlevel_data])
-
-    # from BlockedEstimate
-    estimate_group.create_dataset("block_averages", data=estimate.block_averages)
-    estimate_group.attrs["measurements_per_block"] = estimate.measurements_per_block
-
-def _save_measurement_to_hdf5(walk_group, measurement_plan, wf, sim, j):
+def _save_measurement_to_hdf5(measurement_plan, walk_group, wf, sim, j):
     meas_group = walk_group.create_group("measurement:{0}_{1}".format(j, measurement_plan.__class__.__name__))
 
     # save a description of the measurement
@@ -128,9 +114,9 @@ def _save_measurement_to_hdf5(walk_group, measurement_plan, wf, sim, j):
                 raise Exception("keys currently cannot contain slashes, as they represent path delimiters in hdf5")
             estimate_group = meas_group.create_group("estimate:{}".format(json_key))
 
-        _save_estimate_to_hdf5(estimate_group, estimate)
+        estimate.to_hdf5(estimate_group)
 
-def _save_simulation_to_hdf5(h5group, sim, wf, i):
+def _save_simulation_to_hdf5(sim, h5group, wf, i):
     walk_group = h5group.create_group("{0}_{1}".format(i, sim.walk_plan.__class__.__name__))
 
     # save the current date/time
@@ -158,7 +144,7 @@ def _save_simulation_to_hdf5(h5group, sim, wf, i):
 
     # save each measurement to an hdf5 subgroup
     for j, measurement_plan in enumerate(sim.measurement_dict):
-        _save_measurement_to_hdf5(walk_group, measurement_plan, wf, sim, j)
+        _save_measurement_to_hdf5(measurement_plan, walk_group, wf, sim, j)
 
 def _save_universe_to_hdf5(universe, h5group):
     assert isinstance(universe, SimulationUniverse)
@@ -182,42 +168,23 @@ def _save_universe_to_hdf5(universe, h5group):
 
     # save each walk to an hdf5 subgroup
     for i, sim in enumerate(universe.simulations):
-        _save_simulation_to_hdf5(h5group, sim, wf, i)
+        _save_simulation_to_hdf5(sim, h5group, wf, i)
 
     h5group.file.flush()
 
-from pyvmc.core.estimate import Estimate, BinnedSum
+from pyvmc.core.estimate import Estimate
 from pyvmc.core.measurement import BasicMeasurementPlan
 from pyvmc.core.walk import WalkPlan
-
-class RestoredBinnedSum(BinnedSum):
-    pass
-
-class RestoredEstimate(Estimate):
-    def __init__(self, estimate_group):
-        # from RunningEstimate
-        self.result = estimate_group["result"][...]
-        self.num_values = estimate_group.attrs["num_measurements"]
-
-        # from BinnedEstimate
-        self.binlevel_data = [RestoredBinnedSum(*args)
-                              for args in zip(estimate_group["binlevel_mean_data"],
-                                              estimate_group["binlevel_error_data"],
-                                              estimate_group["binlevel_nbins_data"])]
-
-        # from BlockedEstimate
-        self.block_averages = estimate_group["block_averages"][...]
-        self.measurements_per_block = estimate_group.attrs["measurements_per_block"]
 
 class RestoredMeasurement(object):
     def __init__(self, meas_group, wf):
         self._measurement_plan = BasicMeasurementPlan.from_json(json.loads(meas_group.attrs["measurementplan_json"]), wf)
 
-        self._estimate_dict = {json.tuplize(json.loads(key.partition(':')[2])): RestoredEstimate(estimate_group)
+        self._estimate_dict = {json.tuplize(json.loads(key.partition(':')[2])): Estimate.from_hdf5(estimate_group)
                                for key, estimate_group in six.iteritems(meas_group)
                                if key.startswith("estimate:")}
         if "result" in meas_group:
-            self._estimate_dict[None] = RestoredEstimate(meas_group)
+            self._estimate_dict[None] = Estimate.from_hdf5(meas_group)
 
     def get_estimate(self, key=None):
         return self._estimate_dict[key]

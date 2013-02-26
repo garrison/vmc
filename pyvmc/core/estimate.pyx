@@ -10,6 +10,9 @@ class BinnedSum(object):
         self.error = error
         self.nbins = nbins
 
+class RestoredBinnedSum(BinnedSum):
+    pass
+
 class Estimate(object):
     # from RunningEstimate
     result = None
@@ -24,6 +27,13 @@ class Estimate(object):
 
     def __str__(self):
         return "<Estimate: {}>".format(str(self.result))
+
+    def to_hdf5(self, *args, **kwargs):
+        return _save_estimate_to_hdf5(self, *args, **kwargs)
+
+    @staticmethod
+    def from_hdf5(*args, **kwargs):
+        return RestoredEstimate(*args, **kwargs)
 
 cdef Estimate_from_CppIntegerRunningEstimate(const CppIntegerRunningEstimate& cpp):
     rv = Estimate()
@@ -93,3 +103,33 @@ cdef Estimate_from_CppComplexBlockedEstimate(const CppComplexBlockedEstimate& cp
                          for i in range(cpp.get_block_averages().size())]
     rv.measurements_per_block = cpp.get_measurements_per_block()
     return rv
+
+class RestoredEstimate(Estimate):
+    def __init__(self, estimate_group):
+        # from RunningEstimate
+        self.result = estimate_group["result"][...]
+        self.num_values = estimate_group.attrs["num_measurements"]
+
+        # from BinnedEstimate
+        self.binlevel_data = [RestoredBinnedSum(*args)
+                              for args in zip(estimate_group["binlevel_mean_data"],
+                                              estimate_group["binlevel_error_data"],
+                                              estimate_group["binlevel_nbins_data"])]
+
+        # from BlockedEstimate
+        self.block_averages = estimate_group["block_averages"][...]
+        self.measurements_per_block = estimate_group.attrs["measurements_per_block"]
+
+def _save_estimate_to_hdf5(estimate, estimate_group):
+    # from RunningEstimate
+    estimate_group.create_dataset("result", data=estimate.result)
+    estimate_group.attrs["num_measurements"] = estimate.num_values
+
+    # from BinnedEstimate
+    estimate_group.create_dataset("binlevel_mean_data", data=[d.mean for d in estimate.binlevel_data])
+    estimate_group.create_dataset("binlevel_error_data", data=[d.error for d in estimate.binlevel_data])
+    estimate_group.create_dataset("binlevel_nbins_data", data=[d.nbins for d in estimate.binlevel_data])
+
+    # from BlockedEstimate
+    estimate_group.create_dataset("block_averages", data=estimate.block_averages)
+    estimate_group.attrs["measurements_per_block"] = estimate.measurements_per_block

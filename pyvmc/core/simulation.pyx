@@ -31,13 +31,19 @@ logger = logging.getLogger(__name__)
 
 cdef class MetropolisSimulation(object):
     cdef auto_ptr[CppMetropolisSimulation] autoptr
+
     cdef object _walk_plan
     cdef object _measurement_dict
     cdef unsigned int _equilibrium_steps
 
+    cdef str _rng_name
+    cdef unsigned long _rng_seed
+
     def __init__(self, walk_plan not None, Lattice lattice not None, measurement_plans, unsigned int equilibrium_steps, RandomNumberGenerator rng not None):
         """keep in mind that the rng passed can no longer be used for other things afterwards"""
         assert rng.is_good()
+        self._rng_name = rng.name
+        self._rng_seed = rng.seed
 
         self._equilibrium_steps = equilibrium_steps
 
@@ -109,6 +115,14 @@ cdef class MetropolisSimulation(object):
         def __get__(self):
             return RunInformation()
 
+    property rng_name:
+        def __get__(self):
+            return self._rng_name
+
+    property rng_seed:
+        def __get__(self):
+            return self._rng_seed
+
 cdef extern from "RunInformation.hpp" namespace "RunInformation":
     const char *compiler
     const char *boost_version
@@ -165,7 +179,9 @@ def _save_simulation_to_hdf5(sim, h5group, wf, i):
     walk_group.attrs["precision_min_exponent"] = ri.precision.min_exponent
     walk_group.attrs["precision_max_exponent"] = ri.precision.max_exponent
 
-    # save stats from the walk
+    # save rng seed and stats from the walk
+    walk_group.attrs["rng_name"] = sim.rng_name
+    walk_group.attrs["rng_seed"] = sim.rng_seed
     walk_group.attrs["steps_accepted"] = sim.steps_accepted
     walk_group.attrs["steps_completed"] = sim.steps_completed
     walk_group.attrs["steps_fully_rejected"] = sim.steps_fully_rejected
@@ -184,6 +200,8 @@ class RestoredSimulation(object):
         # fixme: should we be saving the utime, stime, walltime, etc?
         # fixme: load what we now call the "run information"
 
+        self.rng_name = walk_group.attrs["rng_name"]
+        self.rng_seed = walk_group.attrs["rng_seed"]
         self.steps_accepted = walk_group.attrs["steps_accepted"]
         self.steps_completed = walk_group.attrs["steps_completed"]
         self.steps_fully_rejected = walk_group.attrs["steps_fully_rejected"]

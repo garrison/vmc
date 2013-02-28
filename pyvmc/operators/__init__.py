@@ -66,17 +66,17 @@ class SpinSpinOperator(CompositeOperator):
 class SingletRingExchangeOperator(CompositeOperator):
     __slots__ = ("operators",)
 
-    def init_validate(self, boundary_conditions):
+    def init_validate(self, boundary_conditions, site1=LatticeSite((0, 0)), site2=LatticeSite((1, 0)), site3=LatticeSite((1, 1)), site4=LatticeSite((0, 1))):
         operators = (
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 1)], boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((1, 0)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((0, 1)), 0)], boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 0), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 1)], boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 0)), LatticeSite((0, 1)), 1), SiteHop(LatticeSite((1, 1)), LatticeSite((1, 0)), 0)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site2, 0), SiteHop(site3, site4, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site2, 1), SiteHop(site3, site4, 0)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site4, 0), SiteHop(site3, site2, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site1, site4, 1), SiteHop(site3, site2, 0)], boundary_conditions),
             # hc
-            BasicOperator([SiteHop(LatticeSite((1, 0)), LatticeSite((0, 0)), 0), SiteHop(LatticeSite((0, 1)), LatticeSite((1, 1)), 1)], boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((1, 0)), LatticeSite((0, 0)), 1), SiteHop(LatticeSite((0, 1)), LatticeSite((1, 1)), 0)], boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 1)), LatticeSite((0, 0)), 0), SiteHop(LatticeSite((1, 0)), LatticeSite((1, 1)), 1)], boundary_conditions),
-            BasicOperator([SiteHop(LatticeSite((0, 1)), LatticeSite((0, 0)), 1), SiteHop(LatticeSite((1, 0)), LatticeSite((1, 1)), 0)], boundary_conditions),
+            BasicOperator([SiteHop(site2, site1, 0), SiteHop(site4, site3, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site2, site1, 1), SiteHop(site4, site3, 0)], boundary_conditions),
+            BasicOperator([SiteHop(site4, site1, 0), SiteHop(site2, site3, 1)], boundary_conditions),
+            BasicOperator([SiteHop(site4, site1, 1), SiteHop(site2, site3, 0)], boundary_conditions),
         )
         return (operators,)
 

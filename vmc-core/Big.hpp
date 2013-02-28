@@ -74,7 +74,10 @@ public:
             return Big<T>(m_base * other.m_base, m_exponent + other.m_exponent);
         }
 
-    T operator/ (const Big &other) const
+    /**
+     * Take the ratio of two Big values and return a value of type T
+     */
+    T ratio (const Big &other) const
         {
             T rv = this->m_base / other.m_base;
             if (this->m_exponent != other.m_exponent)

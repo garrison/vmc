@@ -147,7 +147,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         Move move;
         move.push_back(SingleParticleMove(*chosen_particle1, (copy_A == 0) ? particle_A_destination : particle_B_destination));
         phialpha1->perform_move(move);
-        phialpha1_ratio = phialpha1->psi() / old_phialpha1_psi;
+        phialpha1_ratio = phialpha1->psi().ratio(old_phialpha1_psi);
     }
     if (chosen_particle2) {
         const Big<amplitude_t> old_phialpha2_psi(phialpha2->psi());
@@ -156,7 +156,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         Move move;
         move.push_back(SingleParticleMove(*chosen_particle2, (copy_A == 0) ? particle_B_destination : particle_A_destination));
         phialpha2->perform_move(move);
-        phialpha2_ratio = phialpha2->psi() / old_phialpha2_psi;
+        phialpha2_ratio = phialpha2->psi().ratio(old_phialpha2_psi);
     }
 
     amplitude_t phibeta1_ratio(0), phibeta2_ratio(0);
@@ -171,8 +171,8 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         // update phibeta's
         swapped_system->update(chosen_particle1, chosen_particle2, *phialpha1, *phialpha2);
         // determine probability ratios
-        phibeta1_ratio = swapped_system->get_phibeta1().psi() / old_phibeta1_psi;
-        phibeta2_ratio = swapped_system->get_phibeta2().psi() / old_phibeta2_psi;
+        phibeta1_ratio = swapped_system->get_phibeta1().psi().ratio(old_phibeta1_psi);
+        phibeta2_ratio = swapped_system->get_phibeta2().psi().ratio(old_phibeta2_psi);
     }
 
     // return a probability

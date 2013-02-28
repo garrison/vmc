@@ -33,10 +33,8 @@ public:
 private:
     void measure_ (const RenyiModPossibleWalk &walk)
         {
-            estimate.add_value(std::abs((walk.get_phibeta1().psi()
-                                         / walk.get_phialpha1().psi())
-                                        * (walk.get_phibeta2().psi()
-                                           / walk.get_phialpha2().psi())));
+            estimate.add_value(std::abs(walk.get_phibeta1().psi().ratio(walk.get_phialpha1().psi())
+                                        * walk.get_phibeta2().psi().ratio(walk.get_phialpha2().psi())));
         }
 
     BlockedEstimate<real_t> estimate;

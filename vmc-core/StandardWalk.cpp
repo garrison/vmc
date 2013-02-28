@@ -20,7 +20,7 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (Rand
 #endif
 
     // remember old amplitude so we can later compute a new:old ratio
-    Big<amplitude_t> old_amplitude = wfa->psi();
+    const Big<amplitude_t> old_amplitude(wfa->psi());
 
     // choose a move and update things
     const Move move(wfa->propose_move(rng));
@@ -35,7 +35,7 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (Rand
     wfa->perform_move(move);
 
     // calculate and return a probability
-    probability_t rv = std::norm(wfa->psi() / old_amplitude);
+    const probability_t rv = std::norm(wfa->psi().ratio(old_amplitude));
 #if defined(DEBUG_VMC_STANDARD_WALK) || defined(DEBUG_VMC_ALL)
     std::cerr << "ratio " << rv << std::endl;
 #endif

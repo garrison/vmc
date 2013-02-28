@@ -88,7 +88,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
             TemporaryMove temp_move(wfa, move);
             // fixme: check logic of multiplying by phase (c.f. above), as
             // well as logic of source and destination
-            meas += std::conj(wfa.psi() * phase / old_psi);
+            meas += std::conj(phase * wfa.psi().ratio(old_psi));
         } else {
             meas += 1;
         }

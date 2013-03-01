@@ -1,3 +1,5 @@
+from __future__ import division
+
 from pyvmc.core.lattice import Lattice, LatticeSite
 from pyvmc.core.boundary_conditions import valid_boundary_conditions
 from pyvmc.core.operator import SiteHop, BasicOperator, CompositeOperator

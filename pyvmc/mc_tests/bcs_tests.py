@@ -27,7 +27,7 @@ def test_ansatz(lattice, t1, delta1, mu0, expected_results, tolerance):
 
     hamiltonian = HeisenbergPlusRingExchangeHamiltonian(parton_boundary_conditions, lattice)
     plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=100) for o in hamiltonian.get_basic_operators()]
-    universe = SimulationUniverse(plans)
+    universe = SimulationUniverse(plans, equilibrium_sweeps=100000)
     universe.iterate(1000000)
     context = {mp.operator: m.get_estimate().result for mp, m in universe.get_overall_measurement_dict().items()}
     evaluator = hamiltonian.evaluate(context)

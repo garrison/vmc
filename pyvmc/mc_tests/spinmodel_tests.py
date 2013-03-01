@@ -28,7 +28,7 @@ def test_spinmodel(tolerance=None):
                                                   LatticeSite([1, 1]), LatticeSite([0, 1]),
                                                   (periodic, periodic))
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in spin_operator.get_basic_operators()]
-    universe = SimulationUniverse(plans)
+    universe = SimulationUniverse(plans, equilibrium_sweeps=500000)
     universe.iterate(1000000)
     context = {mp.operator: m.get_estimate().result for mp, m in universe.get_overall_measurement_dict().items()}
     logger.info("Spin model: %f", spin_operator.evaluate(context)())

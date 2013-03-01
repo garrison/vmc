@@ -17,7 +17,7 @@ class SimulationUniverse(object):
     """Given a collection of measurement plans, this class will manage simulating them.
     """
 
-    def __init__(self, measurement_plans, equilibrium_sweeps=500000):
+    def __init__(self, measurement_plans, equilibrium_sweeps):
         # NOTE: it may one day be useful to keep a list of all
         # measurement_plans originally passed, but at the moment this does not
         # seem to be useful.

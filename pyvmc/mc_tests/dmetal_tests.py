@@ -24,7 +24,7 @@ def test_dmetal_energy(tolerance=None):
 
     hamiltonian = TJKHamiltonian((periodic, periodic), wf.lattice)
     plans = [BasicOperatorMeasurementPlan(wf, o) for o in hamiltonian.get_basic_operators()]
-    universe = SimulationUniverse(plans)
+    universe = SimulationUniverse(plans, equilibrium_sweeps=500000)
     universe.iterate(1000000)
     context = {mp.operator: m.get_estimate().result for mp, m in universe.get_overall_measurement_dict().items()}
     energy = hamiltonian.evaluate(context)(t=1, J=2, K=2) / len(wf.lattice)

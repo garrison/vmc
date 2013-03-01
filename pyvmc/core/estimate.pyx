@@ -112,9 +112,9 @@ class RestoredEstimate(Estimate):
 
         # from BinnedEstimate
         self.binlevel_data = [RestoredBinnedSum(*args)
-                              for args in zip(estimate_group["binlevel_mean_data"],
-                                              estimate_group["binlevel_error_data"],
-                                              estimate_group["binlevel_nbins_data"])]
+                              for args in zip(estimate_group["binlevel_mean_data"][...],
+                                              estimate_group["binlevel_error_data"][...],
+                                              estimate_group["binlevel_nbins_data"][...])]
 
         # from BlockedEstimate
         self.block_averages = estimate_group["block_averages"][...]

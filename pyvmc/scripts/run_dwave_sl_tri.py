@@ -82,8 +82,8 @@ def parameter_scan(theory_func, states_iterable, datadir, prefix, lattice, bound
             })
 
             hamiltonian = HeisenbergPlusRingExchangeHamiltonian((periodic, periodic), lattice)
-            plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=200) for o in hamiltonian.get_basic_operators()]
-            results = do_calculate_plans(plans, equilibrium_sweeps=100000, bins=30, measurement_sweeps_per_bin=100000)
+            plans = [BasicOperatorMeasurementPlan(wf, o, steps_per_measurement=500) for o in hamiltonian.get_basic_operators()]
+            results = do_calculate_plans(plans, equilibrium_sweeps=100000, bins=50, measurement_sweeps_per_bin=100000)
             result_lengths = [len(result) for result in results.itervalues()]
             assert len(set(result_lengths)) == 1
             evaluators = []
@@ -146,21 +146,6 @@ def d_nn_alpha_parameters():
             'delta3': 0,
         }
 
-def Samuel_parameters():
-    #        for delta1, mu0 in [(5, -0.1), (10, -0.3), (15, -0.5)]:
-    #        for delta1, mu0 in [(2.5, 0.1)]:
-    for delta1 in [7.5]:
-        logger.info('Starting new state, delta1 = %f', delta1)
-        yield {
-            't1': 1,
-            'delta1': delta1,
-            't2': 0,
-            'delta2': 0,
-            't3': 0,
-            'delta3': 0,
-            'mu0': None,
-        }
-
 def Cenke_nnn_alpha_parameters():
     for alpha in numpy.linspace(-pi/2, pi/2, 101):
         logger.info('Starting new state, alpha = %f', alpha)
@@ -201,10 +186,10 @@ if __name__ == "__main__":
 #    parameter_scan(
 #       theory_func = did_hf_bcs_theory,
 #       states_iterable = d_nn_alpha_parameters(),
-##       datadir = '/Users/mishmash/Documents/Research/UCSB/Cenke_SL/Data/did/2013-02-18',
-#       datadir = '.',
+#       datadir = '/Users/mishmash/Documents/Research/UCSB/Cenke_SL/Data/did/2013-03-01',
+##       datadir = '.',
 #       prefix = 'did_nn',
-#       lattice = HexagonalLattice([6, 6]),
+#       lattice = HexagonalLattice([24, 24]),
 #       boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
 #       wf_params = {
 #           'delta0': 0,
@@ -213,21 +198,36 @@ if __name__ == "__main__":
 #       use_prev_mu = True,
 #    )
 
-#    # template for nodald
-#    parameter_scan(
-#        theory_func = dx2minusy2_hf_bcs_theory,
-#        states_iterable = d_nn_alpha_parameters(),
-##        datadir = '/Users/mishmash/Documents/Research/UCSB/Cenke_SL/Data/nodald/2013-02-18',
+    # template for nodald
+    parameter_scan(
+        theory_func = dx2minusy2_hf_bcs_theory,
+        states_iterable = d_nn_alpha_parameters(),
+        datadir = '/Users/mishmash/Documents/Research/UCSB/Cenke_SL/Data/nodald/2013-03-01',
 #        datadir = '.',
-#        prefix = 'nodald_nn',
-#        lattice = HexagonalLattice([6, 6]),
-#        boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
-#        wf_params = {
-#            'delta0': 0,
-#            'mu0_start': 0,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
-#        },
-#        use_prev_mu = True,
-#    )
+        prefix = 'nodald_nn',
+        lattice = HexagonalLattice([6, 6]),
+        boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
+        wf_params = {
+            'delta0': 0,
+            'mu0_start': 0,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
+        },
+        use_prev_mu = True,
+    )
+
+    parameter_scan(
+        theory_func = dx2minusy2_hf_bcs_theory,
+        states_iterable = d_nn_alpha_parameters(),
+        datadir = '/Users/mishmash/Documents/Research/UCSB/Cenke_SL/Data/nodald/2013-03-01',
+#        datadir = '.',
+        prefix = 'nodald_nn',
+        lattice = HexagonalLattice([11, 11]),
+        boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
+        wf_params = {
+            'delta0': 0,
+            'mu0_start': 0,  # FIXME: be careful with our root-finder at the moment; it's sensitive to mu0_start..
+        },
+        use_prev_mu = True,
+    )
 
 #    # template for Cenke QBT did state
 #    parameter_scan(
@@ -246,18 +246,18 @@ if __name__ == "__main__":
 #        use_prev_mu = False,
 #    )
 
-    # template for sbm
-    parameter_scan(
-        theory_func = sbm_bcs_theory,
-        states_iterable = sbm_nn_params(),
-        datadir = '/Users/mishmash/Documents/Research/UCSB/Cenke_SL/Data/sbm/2013-02-20',
-#        datadir = '.',
-        prefix = 'sbm_nn',
-        lattice = HexagonalLattice([14, 14]),
-        boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
-        wf_params = {},
-        use_prev_mu = False,
-    )
+#    # template for sbm
+#    parameter_scan(
+#        theory_func = sbm_bcs_theory,
+#        states_iterable = sbm_nn_params(),
+#        datadir = '/Users/mishmash/Documents/Research/UCSB/Cenke_SL/Data/sbm/2013-02-20',
+##        datadir = '.',
+#        prefix = 'sbm_nn',
+#        lattice = HexagonalLattice([12, 12]),
+#        boundary_conditions = (periodic, antiperiodic),  # for partons in mft (physical bound. conds. will always be fully periodic)
+#        wf_params = {},
+#        use_prev_mu = False,
+#    )
 
 #    from pyvmc.utils.parameter_iteration import iterate_parameters
 #    parameter_scan([d for d in iterate_parameters(['t1', 'delta1']) if d['delta1'] != 0])

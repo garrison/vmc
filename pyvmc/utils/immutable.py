@@ -19,20 +19,20 @@ class ImmutableMetaclass(ABCMeta):
             # do nothing special while constructing the Immutable base class
             return
         if "__slots__" not in attrs:
-            raise Exception("")
+            raise Exception("__slots__ must be defined for an Immutable class")
         if not isinstance(cls.__slots__, (list, tuple)):
-            raise TypeError("")
+            raise TypeError("__slots__ must be a list or tuple")
         slots_set = frozenset(cls.__slots__)
         if len(cls.__slots__) != len(slots_set):
             raise Exception
         if "_immutable_slots" in attrs:
             if not isinstance(cls._immutable_slots, (list, tuple)):
-                raise TypeError("")
+                raise TypeError("_immutable_slots must be a list or tuple")
             immutable_slots_set = frozenset(cls._immutable_slots)
             if len(cls._immutable_slots) != len(immutable_slots_set):
-                raise Exception("")
+                raise Exception("elements in _immutable_slots must be unique")
             if not slots_set.issuperset(immutable_slots_set):
-                raise Exception("")
+                raise Exception("_everything in _immutable_slots must also be given in __slots__")
         else:
             cls._immutable_slots = tuple(attrs["__slots__"])
             attrs["_immutable_slots"] = cls._immutable_slots

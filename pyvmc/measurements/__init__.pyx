@@ -154,7 +154,7 @@ cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
             # the +1 is because we want to range from 0 to N inclusive
             bounds.append(deref(cppbounds)[i] + 1)
         cdef vector[unsigned int] occ
-        occ.resize(len(bounds))
+        occ.resize(cppbounds.size())
         rv = {}
         for occupation in numpy.ndindex(*bounds):
             for i in xrange(len(bounds)):
@@ -163,5 +163,17 @@ cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
         return rv
 
     def get_estimate(self, key):
-        # fixme: not efficient
-        return self.get_estimates()[key]
+        if not isinstance(key, tuple):
+            raise KeyError
+        cdef unsigned int i
+        # fixme: in cython 0.17 we will be able to do this iteration directly
+        cdef CppOccupationBounds *cppbounds = &(<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_bounds()
+        if len(key) != cppbounds.size():
+            raise KeyError
+        cdef vector[unsigned int] occ
+        occ.resize(cppbounds.size())
+        for i in xrange(cppbounds.size()):
+            if not (0 <= key[i] <= deref(cppbounds)[i]):
+                raise KeyError
+            occ[i] = key[i]
+        return Estimate_from_CppIntegerBlockedEstimate((<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_estimate(occ))

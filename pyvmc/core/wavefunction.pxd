@@ -30,5 +30,15 @@ cdef extern from "NoDoubleOccupancyProjector.hpp":
     cdef cppclass CppNoDoubleOccupancyProjector "NoDoubleOccupancyProjector" (CppJastrowFactor):
         CppNoDoubleOccupancyProjector()
 
+cdef extern from "TwoBodyJastrowFactor.hpp":
+    cdef cppclass CppTwoBodyJastrowMatrix "Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic>":
+        CppTwoBodyJastrowMatrix(unsigned int, unsigned int)
+        CppTwoBodyJastrowMatrix(const CppTwoBodyJastrowMatrix&)
+
+    cdef cppclass CppTwoBodyJastrowFactor "TwoBodyJastrowFactor" (CppJastrowFactor):
+        CppTwoBodyJastrowFactor(const CppTwoBodyJastrowMatrix&)
+
+    cdef void set_matrix_coeff "TwoBodyJastrowFactor::set_matrix_coeff" (CppTwoBodyJastrowMatrix&, unsigned int, unsigned int, double)
+
 cdef class JastrowFactor(object):
     cdef shared_ptr[CppJastrowFactor] sharedptr

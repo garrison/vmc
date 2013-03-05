@@ -18,7 +18,15 @@ def test_1d_free_fermion_renyi(tolerance=0.02):
     lattice = Lattice([N])
     orbitals = Bands([F], [periodic])
 
-    wf = FreeFermionWavefunction(lattice=lattice, orbitals=[orbitals])
+    if False:
+        # a constant Jastrow factor shouldn't change anything
+        from pyvmc.core.wavefunction import TwoBodyJastrowFactor
+        jastrow_mat = numpy.empty((N, N))
+        jastrow_mat.fill(1)
+        jastrow = TwoBodyJastrowFactor(jastrow_mat)
+    else:
+        jastrow = None
+    wf = FreeFermionWavefunction(lattice=lattice, orbitals=[orbitals], jastrow=jastrow)
 
     exact_values = [free_fermions.exact_renyi(SimpleSubsystem([i], lattice), orbitals, [periodic], 2)
                     for i in range(1, N // 2 + 1)]

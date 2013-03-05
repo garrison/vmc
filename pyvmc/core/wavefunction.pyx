@@ -1,12 +1,16 @@
 from cython.operator cimport dereference as deref
+from pyvmc.includes.libcpp.memory cimport auto_ptr
 
 import abc
 import collections
+
+import numpy
 
 from pyvmc.core.lattice import Lattice
 from pyvmc.core.orbitals import Orbitals
 from pyvmc.core.orbitals cimport orbitals_to_orbitaldefinitions
 from pyvmc.utils.immutable import Immutable
+from pyvmc.utils import is_square_matrix, is_finite
 
 class Wavefunction(Immutable):
     """Base class for all wavefunctions"""
@@ -117,3 +121,52 @@ cdef class NoDoubleOccupancyProjector(JastrowFactor):
 
 # for compatibility with previous versions
 SingleOccupancyProjector = NoDoubleOccupancyProjector
+
+cdef class TwoBodyJastrowFactor(JastrowFactor):
+    """$\exp ( -\frac{1}{2} \sum_{ij} u_{ij} n_i n_j )$
+
+    where $n_i$ counts the number of particles of all species on a site
+    """
+
+    cdef object _correlation_matrix
+
+    def __init__(self, correlation_matrix):
+        assert is_square_matrix(correlation_matrix)
+        N_sites = correlation_matrix.shape[0]  # since we don't have access to the lattice here
+        if not all(is_finite(x) for x in numpy.nditer(correlation_matrix)):
+            raise RuntimeError("elements of correlation matrix must be finite")
+
+        self._correlation_matrix = correlation_matrix
+
+        # CYTHON-LIMITATION: we are forced to use an auto_ptr here because
+        # Cython doesn't allow us to pass arguments to the constructor
+        cdef auto_ptr[CppTwoBodyJastrowMatrix] corrmat
+        corrmat.reset(new CppTwoBodyJastrowMatrix(N_sites, N_sites))
+        cdef unsigned int i, j
+        for i in xrange(N_sites):
+            for j in xrange(N_sites):
+                set_matrix_coeff(deref(corrmat.get()), i, j, correlation_matrix[(i, j)])
+
+        self.sharedptr.reset(new CppTwoBodyJastrowFactor(deref(corrmat)))
+
+    def to_json(self):
+        return collections.OrderedDict([
+            ('type', self.__class__.__name__),
+            ('correlation_matrix', [list(row) for row in self._correlation_matrix]),
+        ])
+
+    def __richcmp__(self, other, int op):
+        if op == 2:  # ==
+            return (self.__class__ == other.__class__ and
+                    self._correlation_matrix == other._correlation_matrix)
+        elif op == 3:  # !=
+            return (self.__class__ != other.__class__ or
+                    self._correlation_matrix != other._correlation_matrix)
+        # we don't implement <, <=, >, >=
+        raise NotImplementedError
+
+    def __hash__(self):
+        # FIXME: this is not very effective... see
+        # http://stackoverflow.com/questions/5386694/fast-way-to-hash-numpy-objects-for-caching
+        # for a way to also hash on self._correlation_matrix
+        return hash(self.__class__.__name__)

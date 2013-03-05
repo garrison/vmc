@@ -116,7 +116,7 @@ public:
             BOOST_ASSERT(species < get_N_species());
             return bool(positions[species][position] != 0);
         }
-    
+
     /**
      * Returns the index of a given particle of type species located at position;
      * if no such particle is present, returns -1

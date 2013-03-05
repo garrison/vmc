@@ -7,11 +7,7 @@ from pyvmc.includes.libcpp.memory cimport auto_ptr
 import numpy
 
 from pyvmc.core.wavefunction import Wavefunction
-from pyvmc.utils import is_square_matrix
-
-cdef is_finite(z):
-    from math import isinf
-    return z == z and not (isinf(z.real) or isinf(z.imag))
+from pyvmc.utils import is_square_matrix, is_finite
 
 class ProjectedBCSWavefunction(Wavefunction):
     """Projected BCS wavefunction"""

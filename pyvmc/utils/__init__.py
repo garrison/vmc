@@ -1,6 +1,7 @@
 import operator
 from collections import Sequence
 from functools import reduce
+from math import isinf
 
 import numpy
 
@@ -33,6 +34,9 @@ def stddevmean(seq):
 
 def average_and_stddevmean(seq):
     return average(seq), stddevmean(seq)
+
+def is_finite(z):
+    return z == z and not (isinf(z.real) or isinf(z.imag))
 
 def is_square_matrix(mat, N=None):
     assert isinstance(mat, numpy.ndarray)

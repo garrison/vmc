@@ -70,6 +70,7 @@ class Orbitals(Immutable, collections.Sized):
 
     @abc.abstractmethod
     def get_orbitals_matrix(self):
+        """N_filled rows by len(lattice) columns"""
         return None
 
     @staticmethod

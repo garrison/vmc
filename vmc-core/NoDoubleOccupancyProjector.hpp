@@ -3,6 +3,8 @@
 
 #include "JastrowFactor.hpp"
 
+// FIXME: this should be implemented as a Projector, not a JastrowFactor.
+
 /**
  * Projects out doubly-occupied sites.
  *

@@ -2,6 +2,7 @@
 #define _VMC_JASTROW_FACTOR_HPP
 
 #include "PositionArguments.hpp"
+#include "Big.hpp"
 #include "vmc-typedefs.hpp"
 
 /**
@@ -14,7 +15,10 @@ public:
         {
         }
 
-    virtual real_t compute_jastrow (const PositionArguments &r) const = 0;
+    // this is always going to be real and positive, but we use amplitude_t so
+    // we can multiply it by other Big<amplitude_t>'s.  There is probably a
+    // better way to do this.
+    virtual Big<amplitude_t> compute_jastrow (const PositionArguments &r) const = 0;
 };
 
 #endif

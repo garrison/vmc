@@ -29,7 +29,7 @@ public:
     {
     private:
         std::vector<CeperleyMatrix<amplitude_t> > m_cmat;
-        real_t m_current_jastrow, m_old_jastrow;
+        Big<amplitude_t> m_current_jastrow, m_old_jastrow;
         unsigned int m_partial_update_step;
         std::vector<bool> m_species_move_in_progress;
         Move m_current_move;

@@ -14,7 +14,7 @@ BCSWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const BCSWavefunc
     : Wavefunction::Amplitude(wf_, r_),
       m_current_jastrow(1),
       m_partial_update_step(0)
-{    
+{
     reinitialize();
 }
 
@@ -56,12 +56,12 @@ void BCSWavefunction::Amplitude::do_perform_move (const Move &move)
     case 2:
         if (wf_->jastrow) {
             m_current_jastrow = wf_->jastrow->compute_jastrow(r);
-            if (m_current_jastrow == amplitude_t(0)) {
+            if (m_current_jastrow.is_zero()) {
                 m_partial_update_step = 1;
                 return;
             }
         } else {
-            BOOST_ASSERT(m_current_jastrow == 1);
+            BOOST_ASSERT(m_current_jastrow.get_base() == 1. && m_current_jastrow.get_exponent() == 0.);
         }
 
     case 1:

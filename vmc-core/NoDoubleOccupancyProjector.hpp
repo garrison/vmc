@@ -10,7 +10,7 @@
  */
 class NoDoubleOccupancyProjector : public JastrowFactor
 {
-    real_t compute_jastrow (const PositionArguments &r) const;
+    Big<amplitude_t> compute_jastrow (const PositionArguments &r) const;
 };
 
 #endif

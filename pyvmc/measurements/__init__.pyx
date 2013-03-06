@@ -168,7 +168,7 @@ cdef class SubsystemOccupationNumberProbabilityMeasurement(BaseMeasurement):
         cdef unsigned int i
         # fixme: in cython 0.17 we will be able to do this iteration directly
         cdef CppOccupationBounds *cppbounds = &(<CppSubsystemOccupationNumberProbabilityMeasurement*>self.sharedptr.get()).get_bounds()
-        if <unsigned int>len(key) != cppbounds.size():
+        if len(key) != <unsigned int>cppbounds.size():
             raise KeyError
         cdef vector[unsigned int] occ
         occ.resize(cppbounds.size())

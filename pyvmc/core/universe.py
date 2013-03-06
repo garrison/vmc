@@ -125,7 +125,9 @@ def _save_universe_to_hdf5(universe, h5group):
 
 class RestoredUniverse(object):
     def __init__(self, h5group, wf):
-        self.simulations = [MetropolisSimulation.from_hdf5(walk_group, wf) for walk_group in six.itervalues(h5group)]
+        self.simulations = [MetropolisSimulation.from_hdf5(walk_group, wf)
+                            for key, walk_group in six.iteritems(h5group)
+                            if not key.startswith("wf_")]
 
     def get_overall_measurement_dict(self):
         return dict(chain.from_iterable(six.iteritems(sim.measurement_dict) for sim in self.simulations))

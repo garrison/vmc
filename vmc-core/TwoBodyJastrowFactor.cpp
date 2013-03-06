@@ -31,6 +31,8 @@ Big<amplitude_t> TwoBodyJastrowFactor::compute_jastrow (const PositionArguments 
                 }
                 index2_start = 0;
             }
+            // same-particle term, necessary for getting the on-site term correct
+            corr += .5 * m_correlation_matrix(r[particle1], r[particle1]);
         }
     }
 

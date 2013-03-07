@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import six
+
+import random
+
 from pyvmc.core import Lattice, LatticeSite, HexagonalLattice, periodic, antiperiodic
 from pyvmc.utils import is_square_matrix
 
@@ -455,6 +459,19 @@ def sbm_bcs_theory(lattice, boundary_conditions, t1=1, delta1=0, mu0_start=0, mu
 
     return {'pairing_matrix':phi, 'chemical_potential':mu0, 'bcs_stats':stats}
 
+
+def add_noise_to_symmetric_matrix(mat, noiselevel=.01):
+    # currently does not add noise to the diagonal
+    assert 0 < noiselevel < 1
+    assert is_square_matrix(mat)
+    assert numpy.max(numpy.abs(mat - mat.transpose())) < 1e-12
+    mat = mat.copy()
+    for i in six.moves.xrange(mat.shape[0]):
+        for j in six.moves.xrange(i + 1, mat.shape[1]):
+            z = random.uniform(1 - noiselevel, 1 + noiselevel)
+            mat[(i, j)] *= z
+            mat[(j, i)] *= z
+    return mat
 
 
 if __name__ == '__main__':

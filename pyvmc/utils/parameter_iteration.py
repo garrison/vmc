@@ -3,7 +3,7 @@
 
 from __future__ import division
 
-from collections import namedtuple
+from collections import namedtuple, Sequence
 from itertools import product
 
 inf = float('inf')
@@ -35,6 +35,9 @@ def iterate_parameters(parameters, n_steps=4, exp_func=nroot_exp(2)):
     A dict is returned for each state.  The keys of this dictionary are taken
     from the list of `parameters` given.
 
+    n_steps can be a tuple of the same length of parameters.  In this case,
+    each value will have its own number of steps.
+
     >>> for parameters in iterate_parameters(['t', 'J'], n_steps=5):
     ...  print('t = {t:.3f} ; J = {J:.3f}'.format(**parameters._asdict()))
     ...
@@ -50,6 +53,12 @@ def iterate_parameters(parameters, n_steps=4, exp_func=nroot_exp(2)):
     """
     ParameterSet = namedtuple("ParameterSet", parameters)
 
+    if not isinstance(n_steps, Sequence):
+        n_steps = [n_steps] * len(parameters)
+    else:
+        if len(n_steps) != len(parameters):
+            raise ValueError("length of n_steps sequence must be same as length of parameters")
+
     return (ParameterSet._make(exp_func(b) for b in a)
-            for a in product([-inf] + range(n_steps - 1), repeat=len(parameters))
+            for a in product(*[[-inf] + range(ns - 1) for ns in n_steps])
             if 0 in a)

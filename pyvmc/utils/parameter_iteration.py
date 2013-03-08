@@ -36,7 +36,7 @@ def iterate_parameters(parameters, n_steps=4, exp_func=nroot_exp(2)):
     from the list of `parameters` given.
 
     >>> for parameters in iterate_parameters(['t', 'J'], n_steps=5):
-    ...  print('t = {t:.3f} ; J = {J:.3f}'.format(**parameters))
+    ...  print('t = {t:.3f} ; J = {J:.3f}'.format(**parameters._asdict()))
     ...
     t = 0.000 ; J = 1.000
     t = 1.000 ; J = 0.000
@@ -50,6 +50,6 @@ def iterate_parameters(parameters, n_steps=4, exp_func=nroot_exp(2)):
     """
     ParameterSet = namedtuple("ParameterSet", parameters, rename=True)
 
-    return (ParameterSet._make(exp_func(b) for b in a)._asdict()
+    return (ParameterSet._make(exp_func(b) for b in a)
             for a in product([-inf] + range(n_steps - 1), repeat=len(parameters))
             if 0 in a)

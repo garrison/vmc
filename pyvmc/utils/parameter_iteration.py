@@ -48,7 +48,7 @@ def iterate_parameters(parameters, n_steps=4, exp_func=nroot_exp(2)):
     t = 2.000 ; J = 1.000
     t = 2.828 ; J = 1.000
     """
-    ParameterSet = namedtuple("ParameterSet", parameters, rename=True)
+    ParameterSet = namedtuple("ParameterSet", parameters)
 
     return (ParameterSet._make(exp_func(b) for b in a)
             for a in product([-inf] + range(n_steps - 1), repeat=len(parameters))

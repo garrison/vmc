@@ -1,13 +1,13 @@
 import re
 
-def make_flag_property(pattern, post=lambda x: x):
+def make_flag_property(pattern, post=lambda x: x, default=None):
     r = re.compile(pattern)
     def property_func(self):
         for line in self.lines:
             m = r.match(line)
             if m is not None:
                 return post(m.group(1))
-        return None
+        return default
     return property(property_func)
 
 def get_array_ids(s):
@@ -32,8 +32,8 @@ class PBSFlags(object):
             self.lines = [line[4:].strip() for line in f.readlines() if line.startswith('#PBS')]
 
     walltime = make_flag_property(r'^-l walltime=(.*)$')
-    nodes = make_flag_property(r'^-l nodes=(\d+):ppn=\d+$', int)
-    ppn = make_flag_property(r'^-l nodes=\d+:ppn=(\d+)$', int)
+    nodes = make_flag_property(r'^-l nodes=(\d+):ppn=\d+$', int, default=1)
+    ppn = make_flag_property(r'^-l nodes=\d+:ppn=(\d+)$', int, default=1)
     array_ids = make_flag_property(r'^-t (.*)$', get_array_ids)
 
 if __name__ == "__main__":

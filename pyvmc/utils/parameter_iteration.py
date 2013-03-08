@@ -1,34 +1,29 @@
 """Tools for iterating over a set of parameters (e.g. relative energy scales)
 """
 
-from collections import OrderedDict
-from itertools import product
-from math import sqrt
+from __future__ import division
 
-sqrt2 = sqrt(2)
+from collections import namedtuple
+from itertools import product
+
 inf = float('inf')
 
-def sqrt2_exp(v):
-    """Raise the square root of 2 to a power
+def nroot_exp(n):
+    """Return a function taises the nth root of 2 to a power
 
     This function exists because if we do this the naive way we get additional
     roundoff error."""
-    # assume v is integer or negative infinity
-    if v == -inf:
-        return 0.0
-    return 2 ** (v // 2) * (sqrt2 ** (v % 2))
+    nroot = 2 ** (1 / n)
 
-def iterate_values(n_parameters, n_steps=None, exp_func=None):
-    if n_steps is None:
-        n_steps = 4
-    if exp_func is None:
-        exp_func = sqrt2_exp
+    def f(v):
+        # assume v is integer or negative infinity
+        if v == -inf:
+            return 0.0
+        return 2 ** (v // n) * (nroot ** (v % n))
 
-    return (tuple(exp_func(b) for b in a)
-            for a in product([-inf] + range(n_steps - 1), repeat=n_parameters)
-            if 0 in a)
+    return f
 
-def iterate_parameters(parameters, n_steps=None, exp_func=None):
+def iterate_parameters(parameters, n_steps=4, exp_func=nroot_exp(2)):
     """Iterate over some set of dimensionful parameters.
 
     This assumes that the states are equivalent if rescaled by a common factor.
@@ -53,5 +48,8 @@ def iterate_parameters(parameters, n_steps=None, exp_func=None):
     t = 2.000 ; J = 1.000
     t = 2.828 ; J = 1.000
     """
-    return (OrderedDict(zip(parameters, values))
-            for values in iterate_values(len(parameters), n_steps, exp_func))
+    ParameterSet = namedtuple("ParameterSet", parameters, rename=True)
+
+    return (ParameterSet._make(exp_func(b) for b in a)._asdict()
+            for a in product([-inf] + range(n_steps - 1), repeat=len(parameters))
+            if 0 in a)

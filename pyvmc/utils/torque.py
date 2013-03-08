@@ -31,10 +31,10 @@ class PBSFlags(object):
         with file(pbs_filename) as f:
             self.lines = [line[4:].strip() for line in f.readlines() if line.startswith('#PBS')]
 
-    walltime = make_flag_property(r'^-l walltime=(.*)$')
-    nodes = make_flag_property(r'^-l nodes=(\d+):ppn=\d+$', int, default=1)
-    ppn = make_flag_property(r'^-l nodes=\d+:ppn=(\d+)$', int, default=1)
-    array_ids = make_flag_property(r'^-t (.*)$', get_array_ids)
+    walltime = make_flag_property(r'^-l\s+walltime=(.*)$')
+    nodes = make_flag_property(r'^-l\s+nodes=(\d+):ppn=\d+$', int, default=1)
+    ppn = make_flag_property(r'^-l\s+nodes=\d+:ppn=(\d+)$', int, default=1)
+    array_ids = make_flag_property(r'^-t\s+(.*)$', get_array_ids)
 
 if __name__ == "__main__":
     flags = PBSFlags('/home/garrison/vmc-studies/electron-ring/2leg/rho-2_3/dmetal-rho-two-thirds-scan.py')

@@ -210,9 +210,8 @@ class RestoredSimulation(object):
         self.walk_plan = WalkPlan.from_json(json.loads(walk_group.attrs["walkplan_json"]), wf)
 
         self.measurement_dict = {m._measurement_plan: m
-                                 for m in (RestoredMeasurement(meas_group, wf)
-                                           for k, meas_group in six.iteritems(walk_group)
-                                           if k.startswith("measurement:"))}
+                                 for m in (RestoredMeasurement(walk_group[k], wf)
+                                           for k in walk_group if k.startswith("measurement:"))}
 
 def _save_measurement_to_hdf5(measurement_plan, walk_group, wf, sim, j):
     meas_group = walk_group.create_group("measurement:{0}_{1}".format(j, measurement_plan.__class__.__name__))
@@ -236,9 +235,8 @@ class RestoredMeasurement(object):
     def __init__(self, meas_group, wf):
         self._measurement_plan = BasicMeasurementPlan.from_json(json.loads(meas_group.attrs["measurementplan_json"]), wf)
 
-        self._estimate_dict = {json.tuplize(json.loads(key.partition(':')[2])): Estimate.from_hdf5(estimate_group)
-                               for key, estimate_group in six.iteritems(meas_group)
-                               if key.startswith("estimate:")}
+        self._estimate_dict = {json.tuplize(json.loads(key.partition(':')[2])): Estimate.from_hdf5(meas_group[key])
+                               for key in meas_group if key.startswith("estimate:")}
         if "result" in meas_group:
             self._estimate_dict[None] = Estimate.from_hdf5(meas_group)
 

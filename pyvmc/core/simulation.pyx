@@ -181,7 +181,7 @@ def _save_simulation_to_hdf5(sim, h5group, wf, i):
 
     # save rng seed and stats from the walk
     walk_group.attrs["rng_name"] = sim.rng_name
-    walk_group.attrs["rng_seed"] = sim.rng_seed
+    walk_group.attrs["rng_seed"] = str(sim.rng_seed)
     walk_group.attrs["steps_accepted"] = sim.steps_accepted
     walk_group.attrs["steps_completed"] = sim.steps_completed
     walk_group.attrs["steps_fully_rejected"] = sim.steps_fully_rejected
@@ -201,7 +201,7 @@ class RestoredSimulation(object):
         # fixme: load what we now call the "run information"
 
         self.rng_name = walk_group.attrs["rng_name"]
-        self.rng_seed = walk_group.attrs["rng_seed"]
+        self.rng_seed = int(walk_group.attrs["rng_seed"])
         self.steps_accepted = walk_group.attrs["steps_accepted"]
         self.steps_completed = walk_group.attrs["steps_completed"]
         self.steps_fully_rejected = walk_group.attrs["steps_fully_rejected"]

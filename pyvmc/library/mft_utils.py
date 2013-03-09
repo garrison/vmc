@@ -385,7 +385,7 @@ def did_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0
 
 # hf is for 'half-filling' since the function currently solves for the root of Tz: Tz=0 (fdagf=1)
 # FIXME: have desired average fdagf or Tvec be a parameter
-def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0=None, delta0=0, t2=0, delta2=0, t3=0, delta3=0):
+def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start=0, mu0=None, delta0=0, t2=0, delta2=0, t3=0, delta3=0, norm=None):
 
     delta_offsite = \
         create_delta_matrix(lattice, boundary_conditions, delta1, dx2minusy2_pairing_pattern, lattice.nearest_neighbors, 'singlet') + \
@@ -416,7 +416,7 @@ def dx2minusy2_hf_bcs_theory(lattice, boundary_conditions, t1, delta1, mu0_start
     logger.info('fdagf = %.9f', stats['fdagf'])
     logger.info('Ttot = %.9f', stats['Ttot'])
 
-    phi = calculate_pairing_matrix(soln['u'], soln['v'], norm=len(lattice))
+    phi = calculate_pairing_matrix(soln['u'], soln['v'], norm = len(lattice) if norm is None else norm)
 
     return {'pairing_matrix':phi, 'chemical_potential':mu0, 'bcs_stats':stats}
 

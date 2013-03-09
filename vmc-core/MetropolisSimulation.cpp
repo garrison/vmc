@@ -1,8 +1,33 @@
 #include <iostream>
 
+// these three things are included for the exception handling
+#include <stdexcept>
+#include <string>
+#include <boost/lexical_cast.hpp>
+
 #include "Measurement.hpp"
 #include "Walk.hpp"
 #include "MetropolisSimulation.hpp"
+
+class invalid_probability_error : public std::range_error
+{
+public:
+    invalid_probability_error (const probability_t &invalid_probability_);
+
+    static std::string construct_what_string (const probability_t &invalid_probability)
+        {
+            return std::string("Invalid probability ratio: ") + boost::lexical_cast<std::string>(invalid_probability);
+        }
+
+private:
+    const probability_t invalid_probability;
+};
+
+invalid_probability_error::invalid_probability_error (const probability_t &invalid_probability_)
+    : std::range_error(construct_what_string(invalid_probability_)),
+      invalid_probability(invalid_probability_)
+{
+}
 
 MetropolisSimulation::MetropolisSimulation (std::auto_ptr<Walk> &walk_, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements_,
                                             unsigned int initialization_sweeps, std::auto_ptr<RandomNumberGenerator> &rng_)
@@ -43,16 +68,14 @@ void MetropolisSimulation::iterate (unsigned int sweeps)
 
 bool MetropolisSimulation::perform_single_step (void)
 {
-    probability_t probability_ratio = walk->compute_probability_ratio_of_random_transition(*rng);
+    const probability_t probability_ratio = walk->compute_probability_ratio_of_random_transition(*rng);
     ++m_steps;
 #if defined(VMC_METROPOLIS_SIMULATION_LOGGING)
     if (m_steps % 200 == 0)
         std::cerr << m_steps << " steps complete" << std::endl;
 #endif
-#if 1
-    if (!(probability_ratio >= 0))
-        std::cerr << "invalid probability ratio: " << probability_ratio << std::endl;
-#endif
+    if (!(probability_ratio >= 0 && probability_ratio <= std::numeric_limits<probability_t>::max()))
+        throw invalid_probability_error(probability_ratio);
     if (probability_ratio >= 1
         || (probability_ratio > 0 && probability_ratio > rng->random_uniform01())) {
         // accept transition

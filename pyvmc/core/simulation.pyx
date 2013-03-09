@@ -21,8 +21,8 @@ from pyvmc.core import get_vmc_version
 
 cdef extern from "MetropolisSimulation.hpp":
     cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
-        CppMetropolisSimulation(auto_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, auto_ptr[CppRandomNumberGenerator]&) nogil
-        void iterate(unsigned int) nogil
+        CppMetropolisSimulation(auto_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, auto_ptr[CppRandomNumberGenerator]&) nogil except +
+        void iterate(unsigned int) nogil except +
         unsigned int steps_completed()
         unsigned int steps_accepted()
         unsigned int steps_fully_rejected()

@@ -70,7 +70,9 @@ bool MetropolisSimulation::perform_single_step (void)
 {
     const probability_t probability_ratio = walk->compute_probability_ratio_of_random_transition(*rng);
 
-    if (!(probability_ratio >= 0 && probability_ratio <= std::numeric_limits<probability_t>::max())) {
+    // phrasing the if statement this way also bails out if
+    // probability_ratio == nan
+    if (!(probability_ratio >= 0)) {
         // there's generally no good reason to continue once this occurs, but
         // we should at least restore things to a consistent state before
         // throwing an exception

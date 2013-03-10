@@ -14,3 +14,16 @@ cdef class RandomNumberGenerator(object):
 
     def is_good(self):
         return self.autoptr.get() is not NULL
+
+    def __repr__(self):
+        return "{}(name={name}, seed={seed})".format(self.__class__.__name__,
+                                                     name=self.name,
+                                                     seed=self.seed)
+
+    property name:
+        def __get__(self):
+            return self.name
+
+    property seed:
+        def __get__(self):
+            return self.seed

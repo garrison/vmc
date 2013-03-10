@@ -39,6 +39,7 @@ class SimulationUniverse(object):
             # the MetropolisSimulation constructor eats the RNG, so we need to
             # create a new one for each simulation
             rng = RandomNumberGenerator()
+            logger.info("RNG: %r", rng)
             self.simulations.append(MetropolisSimulation(walk_plan, walk_plan.wavefunction.lattice,
                                                          current_measurement_plans, equilibrium_sweeps, rng))
 

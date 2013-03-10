@@ -61,7 +61,7 @@ private:
     // We like to recalculate the inverse just to be safe any time the
     // determinant's "base" (in this case, the ratio of its current value
     // compared with when it was last calculated from scratch) drops below the
-    // `ceperley_determinant_cutoff`.  In most cases, it is okay if this
+    // `ceperley_determinant_lower_cutoff`.  In most cases, it is okay if this
     // recalculation is done only if the move is accepted.  However, in some
     // cases the determinant should be recalculated during the "update" step,
     // before the new determinant is reported.  In particular, if a determinant
@@ -97,13 +97,14 @@ private:
     lw_vector<unsigned int, MAX_MOVE_SIZE> pending_col_indices, pending_row_indices;
 
     /**
-     * As long as the magnitude of the "base" of the determinant remains above
-     * this value, the O(N^2) update algorithm will be used.  However, if the
-     * "base" falls below this value we will recalculate the inverse from
+     * As long as the magnitude of the "base" of the determinant remains between
+     * these values, the O(N^2) update algorithm will be used.  However, if the
+     * "base" falls outside these values we will recalculate the inverse from
      * scratch to fight numerical error.  This also allows us to determine when
      * the matrix is singular.
      */
-    static const T ceperley_determinant_cutoff;
+    static const T ceperley_determinant_lower_cutoff;
+    static const T ceperley_determinant_upper_cutoff;
 
 public:
     /**
@@ -222,7 +223,7 @@ public:
                     // If the determinant has become sufficiently small, the
                     // matrix might have become singular so we recompute its
                     // inverse from scratch.
-                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
                         calculate_inverse(true);
                 } else {
                     // the matrix must have become singular
@@ -268,7 +269,7 @@ public:
                     // If the determinant has become sufficiently small, the
                     // matrix might have become singular so we recompute its
                     // inverse from scratch.
-                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
                         calculate_inverse(true);
                 } else {
                     // the matrix must have become singular
@@ -370,7 +371,7 @@ public:
                     // If the determinant has become sufficiently small, the matrix
                     // might have become singular so we recompute its inverse from
                     // scratch just to be safe.
-                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
                         calculate_inverse(true);
                 }
             }
@@ -496,7 +497,7 @@ public:
                     // If the determinant has become sufficiently small, the matrix
                     // might have become singular so we recompute its inverse from
                     // scratch just to be safe.
-                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
                         calculate_inverse(true);
                 }
             }
@@ -517,7 +518,8 @@ public:
             BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                if (!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff)) {
+                if ((!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
+                    || std::abs(det.get_base()) > std::abs(ceperley_determinant_upper_cutoff)) {
                     calculate_inverse(true);
                 } else {
                     // implement equation (12) of Ceperley et al, correctly given
@@ -555,7 +557,8 @@ public:
             BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                if (!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff)) {
+                if ((!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
+                    || std::abs(det.get_base()) > std::abs(ceperley_determinant_upper_cutoff)) {
                     calculate_inverse(true);
                 } else {
                     // same as above in finish_row_update(): update the inverse
@@ -587,7 +590,8 @@ public:
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                if (!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff)) {
+                if ((!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
+                    || std::abs(det.get_base()) > std::abs(ceperley_determinant_upper_cutoff)) {
                     calculate_inverse(true);
                 } else {
                     // same as above in finish_row_update(): update the inverse
@@ -626,7 +630,8 @@ public:
             BOOST_ASSERT(current_state == ROWCOL_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
-                if (!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_cutoff)) {
+                if ((!be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
+                    || std::abs(det.get_base()) > std::abs(ceperley_determinant_upper_cutoff)) {
                     calculate_inverse(true);
                 } else {
                     // update the inverse matrix using Sherman-Morrison-Woodbury

@@ -69,13 +69,22 @@ void MetropolisSimulation::iterate (unsigned int sweeps)
 bool MetropolisSimulation::perform_single_step (void)
 {
     const probability_t probability_ratio = walk->compute_probability_ratio_of_random_transition(*rng);
+
+    if (!(probability_ratio >= 0 && probability_ratio <= std::numeric_limits<probability_t>::max())) {
+        // there's generally no good reason to continue once this occurs, but
+        // we should at least restore things to a consistent state before
+        // throwing an exception
+        walk->reject_transition();
+
+        throw invalid_probability_error(probability_ratio);
+    }
+
     ++m_steps;
 #if defined(VMC_METROPOLIS_SIMULATION_LOGGING)
     if (m_steps % 200 == 0)
         std::cerr << m_steps << " steps complete" << std::endl;
 #endif
-    if (!(probability_ratio >= 0 && probability_ratio <= std::numeric_limits<probability_t>::max()))
-        throw invalid_probability_error(probability_ratio);
+
     if (probability_ratio >= 1
         || (probability_ratio > 0 && probability_ratio > rng->random_uniform01())) {
         // accept transition

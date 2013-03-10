@@ -106,6 +106,14 @@ private:
     static const T ceperley_determinant_lower_cutoff;
     static const T ceperley_determinant_upper_cutoff;
 
+    /**
+     * This cutoff is used when be_extra_careful is true.  It is larger in
+     * magnitude because it is used as a threshold for checking whether the
+     * matrix might have become singular, if/when we need to pay special
+     * attention to that.
+     */
+    static const T ceperley_determinant_safe_lower_cutoff;
+
 public:
     /**
      * Constructor for initializing a CeperleyMatrix from a square Eigen::Matrix
@@ -223,7 +231,7 @@ public:
                     // If the determinant has become sufficiently small, the
                     // matrix might have become singular so we recompute its
                     // inverse from scratch.
-                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_safe_lower_cutoff))
                         calculate_inverse(true);
                 } else {
                     // the matrix must have become singular
@@ -269,7 +277,7 @@ public:
                     // If the determinant has become sufficiently small, the
                     // matrix might have become singular so we recompute its
                     // inverse from scratch.
-                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_safe_lower_cutoff))
                         calculate_inverse(true);
                 } else {
                     // the matrix must have become singular
@@ -371,7 +379,7 @@ public:
                     // If the determinant has become sufficiently small, the matrix
                     // might have become singular so we recompute its inverse from
                     // scratch just to be safe.
-                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_safe_lower_cutoff))
                         calculate_inverse(true);
                 }
             }
@@ -497,7 +505,7 @@ public:
                     // If the determinant has become sufficiently small, the matrix
                     // might have become singular so we recompute its inverse from
                     // scratch just to be safe.
-                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_lower_cutoff))
+                    if (be_extra_careful && std::abs(det.get_base()) < std::abs(ceperley_determinant_safe_lower_cutoff))
                         calculate_inverse(true);
                 }
             }

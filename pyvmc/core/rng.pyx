@@ -5,25 +5,25 @@ cdef class RandomNumberGenerator(object):
         namebytes = name.encode("ascii")
         if not rng_name_is_valid(namebytes):
             raise ValueError("invalid RNG: {}".format(name))
-        self.name = name
+        self._name = name
         if seed is None:
-            self.seed = randint(0, <unsigned long>(-1))
+            self._seed = randint(0, <unsigned long>(-1))
         else:
-            self.seed = seed
-        self.autoptr = create_rng(namebytes, self.seed)
+            self._seed = seed
+        self.autoptr = create_rng(namebytes, self._seed)
 
     def is_good(self):
         return self.autoptr.get() is not NULL
 
     def __repr__(self):
         return "{}(name={name}, seed={seed})".format(self.__class__.__name__,
-                                                     name=self.name,
-                                                     seed=self.seed)
+                                                     name=self._name,
+                                                     seed=self._seed)
 
     property name:
         def __get__(self):
-            return self.name
+            return self._name
 
     property seed:
         def __get__(self):
-            return self.seed
+            return self._seed

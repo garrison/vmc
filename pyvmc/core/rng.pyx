@@ -17,7 +17,7 @@ cdef class RandomNumberGenerator(object):
 
     def __repr__(self):
         return "{}(name={name}, seed={seed})".format(self.__class__.__name__,
-                                                     name=self._name,
+                                                     name=repr(self._name),
                                                      seed=self._seed)
 
     property name:

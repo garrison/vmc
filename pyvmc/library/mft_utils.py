@@ -474,6 +474,19 @@ def add_noise_to_symmetric_matrix(mat, noiselevel=.01):
     return mat
 
 
+def add_noise_to_matrix_diagonal(mat, noiselevel=.001):
+    # only adds noise to the diagonal
+    assert 0 <= noiselevel < 1
+    assert is_square_matrix(mat)
+    assert numpy.max(numpy.abs(mat - mat.transpose())) < 1e-12
+    mat = mat.copy()
+    if noiselevel == 0:
+        return mat
+    for i in six.moves.xrange(mat.shape[0]):
+        mat[i, i] *= 1 + random.uniform(-noiselevel, noiselevel)
+    return mat
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s',

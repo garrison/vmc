@@ -16,9 +16,9 @@ cdef class RandomNumberGenerator(object):
         return self.autoptr.get() is not NULL
 
     def __repr__(self):
-        return "{}(name={name}, seed={seed})".format(self.__class__.__name__,
-                                                     name=repr(self._name),
-                                                     seed=self._seed)
+        return "{}(name={name!r}, seed={seed})".format(self.__class__.__name__,
+                                                       name=self._name,
+                                                       seed=self._seed)
 
     property name:
         def __get__(self):

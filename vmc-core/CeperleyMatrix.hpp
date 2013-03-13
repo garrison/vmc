@@ -59,24 +59,6 @@ private:
 
     State current_state;
 
-    // We like to recalculate the inverse just to be safe any time the
-    // determinant's "base" (in this case, the ratio of its current value
-    // compared with when it was last calculated from scratch) drops below the
-    // `ceperley_determinant_lower_cutoff`.  In most cases, it is okay if this
-    // recalculation is done only if the move is accepted.  However, in some
-    // cases the determinant should be recalculated during the "update" step,
-    // before the new determinant is reported.  In particular, if a determinant
-    // has a negative exponent applied to it, then a very small determinant
-    // will result in a large probability weight.  However, a very small
-    // determinant often implies that the matrix is singular, in which case
-    // there should be no probability at all for the state.  Recalculating the
-    // inverse will detect this singularity and get the probability weight
-    // correct before deciding to accept the move.  In short, any time a
-    // negative exponent is going to be applied to a determinant, then it is
-    // best to set this flag to be true.  In most other cases, setting it to
-    // false should be fine.
-    bool be_extra_careful;
-
     // old_det, new_invmat, old_data_m, and new_nullity_lower_bound all exist
     // so we can cancel an update if we wish
 
@@ -98,22 +80,29 @@ private:
     lw_vector<unsigned int, MAX_MOVE_SIZE> pending_col_indices, pending_row_indices;
 
     /**
-     * As long as the magnitude of the "base" of the determinant remains between
-     * these values, the O(N^2) update algorithm will be used.  However, if the
-     * "base" falls outside these values we will recalculate the inverse from
-     * scratch to fight numerical error.  This also allows us to determine when
-     * the matrix is singular.
+     * As long as the magnitude of the "base" of the determinant remains
+     * between these values, the O(N^2) update algorithm will be used.
+     * However, if the "base" falls outside these values we will recalculate
+     * the inverse from scratch to fight numerical error, and to keep the
+     * "base" in a reasonable range, since it is used for a variety of
+     * calculations.
      */
-    static const typename RealPart<T>::type ceperley_determinant_lower_cutoff;
-    static const typename RealPart<T>::type ceperley_determinant_upper_cutoff;
+    static const typename RealPart<T>::type ceperley_determinant_base_lower_cutoff;
+    static const typename RealPart<T>::type ceperley_determinant_base_upper_cutoff;
+
+    /**
+     * If detrat is less than this, we have reason to believe that the matrix
+     * might be singular and therefore we recompute the inverse just to be
+     * safe.
+     */
+    static const typename RealPart<T>::type ceperley_detrat_lower_cutoff;
 
 public:
     /**
      * Constructor for initializing a CeperleyMatrix from a square Eigen::Matrix
      */
-    CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat, bool be_extra_careful_=false)
+    CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
         : current_state(READY_FOR_UPDATE),
-          be_extra_careful(be_extra_careful_),
           mat(initial_mat),
           inverse_recalculated_for_current_update(false)
         {
@@ -835,21 +824,13 @@ public:
 private:
     inline bool determinant_is_uncomfortable_during_update (void) const
         {
-            // if we're being careful, check that the determinant base or
-            // detrat isn't too small that the matrix might be singular
-            return (be_extra_careful && (std::abs(detrat) < ceperley_determinant_lower_cutoff
-                                         || std::abs(det.get_base()) < ceperley_determinant_lower_cutoff));
+            return (std::abs(detrat) < ceperley_detrat_lower_cutoff
+                    || std::abs(det.get_base()) < ceperley_determinant_base_lower_cutoff);
         }
 
     inline bool determinant_is_uncomfortable_while_finishing_update (void) const
         {
-            // check that the determinant base is not too large, and that (if
-            // we're not being careful and therefore haven't already checked)
-            // if the base or the detrat is not too small
-            const typename RealPart<T>::type abs_det_base = std::abs(det.get_base());
-            return (abs_det_base > ceperley_determinant_upper_cutoff
-                    || (!be_extra_careful && (std::abs(detrat) < ceperley_determinant_lower_cutoff
-                                              || abs_det_base < ceperley_determinant_lower_cutoff)));
+            return (std::abs(det.get_base()) > ceperley_determinant_base_upper_cutoff);
         }
 
     void calculate_inverse (bool update_in_progress)

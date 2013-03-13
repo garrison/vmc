@@ -219,10 +219,10 @@ void DMetalWavefunction::Amplitude::reinitialize (void)
         mat_f_dn.col(i) = wf_->orbital_f_dn->at_position(r[particle]);
     }
 
-    m_cmat_d1 = CeperleyMatrix<amplitude_t>(mat_d1, wf_->d1_exponent < 0);
-    m_cmat_d2 = CeperleyMatrix<amplitude_t>(mat_d2, wf_->d2_exponent < 0);
-    m_cmat_f_up = CeperleyMatrix<amplitude_t>(mat_f_up, wf_->f_up_exponent < 0);
-    m_cmat_f_dn = CeperleyMatrix<amplitude_t>(mat_f_dn, wf_->f_dn_exponent < 0);
+    m_cmat_d1 = CeperleyMatrix<amplitude_t>(mat_d1);
+    m_cmat_d2 = CeperleyMatrix<amplitude_t>(mat_d2);
+    m_cmat_f_up = CeperleyMatrix<amplitude_t>(mat_f_up);
+    m_cmat_f_dn = CeperleyMatrix<amplitude_t>(mat_f_dn);
 }
 
 boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction::Amplitude::clone_ (void) const

@@ -768,11 +768,12 @@ public:
      * This multiplies the matrix by its supposed inverse, and compares it to
      * the identity matrix.
      *
-     * @return a nonnegative number which is the sum of the absolute error.
+     * @return a nonnegative number which is the sum of the absolute error,
+     * divided by the number of rows/columns in the matrix.
      */
     double compute_inverse_matrix_error (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &target_invmat) const
         {
-            return (mat * target_invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(mat.rows(), mat.cols())).array().abs().sum();
+            return (mat * target_invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(mat.rows(), mat.cols())).array().abs().sum() / mat.rows();
         }
 
     /**
@@ -864,7 +865,7 @@ private:
                 // if there is significant inverse error it probably means our
                 // orbitals are not linearly independent!
                 const double inverse_error = compute_inverse_matrix_error(update_in_progress ? new_invmat : invmat);
-                if (inverse_error > .0001)
+                if (inverse_error > .005)
                     std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
 #endif
             }
@@ -890,7 +891,7 @@ private:
 #ifdef VMC_CAREFUL
     void be_careful (void) const
         {
-            if (det.is_nonzero() && compute_inverse_matrix_error(invmat) > 1)
+            if (det.is_nonzero() && compute_inverse_matrix_error(invmat) > .03)
                 std::cerr << "Large inverse matrix error of " << compute_inverse_matrix_error(invmat) << std::endl;
 
             if (!(compute_relative_determinant_error() < .03))

@@ -172,6 +172,10 @@ cdef class Lattice(object):
         def __get__(self):
             return self.sharedptr.get().basis_indices
 
+    property origin:
+        def __get__(self):
+            return LatticeSite((0,) * self.sharedptr.get().n_dimensions())
+
     def to_json(self):
         return collections.OrderedDict([
             ("type", self.__class__.__name__),

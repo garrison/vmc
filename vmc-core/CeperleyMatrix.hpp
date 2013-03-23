@@ -75,7 +75,7 @@ private:
     // this must be set during an update, unless new_nullity_lower_bound > 0
     // (or unless we are using update_row() or update_column())
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_inv_m;
-    // these must be set during a columns update
+    // these must be set during a rows and/or columns update
     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> old_cols_m, old_rows_m, cols_offset_m, rows_offset_m;
     lw_vector<unsigned int, MAX_MOVE_SIZE> pending_col_indices, pending_row_indices;
 

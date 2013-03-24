@@ -80,6 +80,12 @@ private:
     lw_vector<unsigned int, MAX_MOVE_SIZE> pending_col_indices, pending_row_indices;
 
     /**
+     * the number of Sherman-Morrison-Woodbury updates that have been performed
+     * since last recalculating the inverse matrix
+     */
+    unsigned int n_smw_updates;
+
+    /**
      * As long as the magnitude of the "base" of the determinant remains
      * between these values, the O(N^2) update algorithm will be used.
      * However, if the "base" falls outside these values we will recalculate
@@ -104,7 +110,8 @@ public:
     CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
         : current_state(READY_FOR_UPDATE),
           mat(initial_mat),
-          inverse_recalculated_for_current_update(false)
+          inverse_recalculated_for_current_update(false),
+          n_smw_updates(0)
         {
             BOOST_ASSERT(initial_mat.rows() == initial_mat.cols());
 
@@ -514,25 +521,14 @@ public:
                     // implement equation (12) of Ceperley et al, correctly given
                     // as eqn (4.22) of Kent's thesis
                     // http://www.ornl.gov/~pk7/thesis/thesis.ps.gz
+                    ++n_smw_updates;
                     Eigen::Matrix<T, Eigen::Dynamic, 1> oldcol(invmat.col(pending_index));
                     invmat -= ((invmat.col(pending_index) / detrat) * (mat.row(pending_index) * invmat)).eval();
                     invmat.col(pending_index) = oldcol / detrat;
                 }
             }
 
-            nullity_lower_bound = new_nullity_lower_bound;
-            if (inverse_recalculated_for_current_update)
-                // in theory, invmat.swap(new_invmat) would only swap the
-                // pointers (see Eigen/src/Core/Matrix.h), but the code runs
-                // slower if we do that instead of a matrix copy here.  it's
-                // not at all clear why.
-                invmat = new_invmat;
-            inverse_recalculated_for_current_update = false;
-            current_state = READY_FOR_UPDATE;
-
-#ifdef VMC_CAREFUL
-            be_careful();
-#endif
+            common_complete_finish_update();
         }
 
     /**
@@ -551,21 +547,14 @@ public:
                 } else {
                     // same as above in finish_row_update(): update the inverse
                     // matrix
+                    ++n_smw_updates;
                     Eigen::Matrix<T, Eigen::Dynamic, 1> oldrow(invmat.row(pending_index));
                     invmat -= ((invmat * mat.col(pending_index)) * (invmat.row(pending_index) / detrat)).eval();
                     invmat.row(pending_index) = oldrow / detrat;
                 }
             }
 
-            nullity_lower_bound = new_nullity_lower_bound;
-            if (inverse_recalculated_for_current_update)
-                invmat = new_invmat;
-            inverse_recalculated_for_current_update = false;
-            current_state = READY_FOR_UPDATE;
-
-#ifdef VMC_CAREFUL
-            be_careful();
-#endif
+            common_complete_finish_update();
         }
 
     /**
@@ -583,6 +572,7 @@ public:
                 } else {
                     // same as above in finish_row_update(): update the inverse
                     // matrix
+                    ++n_smw_updates;
                     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_offset(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(invmat.rows(), invmat.cols()));
                     for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
                         invmat_offset -= invmat * ((cols_offset_m * detrat_inv_m.col(i)) * invmat.row(pending_col_indices[i]));
@@ -593,16 +583,7 @@ public:
                 }
             }
 
-            nullity_lower_bound = new_nullity_lower_bound;
-            if (inverse_recalculated_for_current_update)
-                invmat = new_invmat;
-            inverse_recalculated_for_current_update = false;
-
-            current_state = READY_FOR_UPDATE;
-
-#ifdef VMC_CAREFUL
-            be_careful();
-#endif
+            common_complete_finish_update();
         }
 
     /**
@@ -621,6 +602,7 @@ public:
                     calculate_inverse(true);
                 } else {
                     // update the inverse matrix using Sherman-Morrison-Woodbury
+                    ++n_smw_updates;
                     Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> invmat_offset(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Zero(invmat.rows(), invmat.cols()));
                     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> cm(invmat * cols_offset_m), rm(rows_offset_m * invmat);
                     const unsigned int nr = pending_row_indices.size(), nc = pending_col_indices.size();
@@ -636,16 +618,7 @@ public:
                 }
             }
 
-            nullity_lower_bound = new_nullity_lower_bound;
-            if (inverse_recalculated_for_current_update)
-                invmat = new_invmat;
-            inverse_recalculated_for_current_update = false;
-
-            current_state = READY_FOR_UPDATE;
-
-#ifdef VMC_CAREFUL
-            be_careful();
-#endif
+            common_complete_finish_update();
         }
 
     void cancel_row_update (void)
@@ -832,6 +805,26 @@ private:
     inline bool determinant_is_uncomfortable_while_finishing_update (void) const
         {
             return (std::abs(det.get_base()) > ceperley_determinant_base_upper_cutoff);
+        }
+
+    void common_complete_finish_update (void)
+        {
+            nullity_lower_bound = new_nullity_lower_bound;
+            if (inverse_recalculated_for_current_update) {
+                n_smw_updates = 0;
+                // in theory, invmat.swap(new_invmat) would only swap the
+                // pointers (see Eigen/src/Core/Matrix.h), but the code runs
+                // slower if we do that instead of a matrix copy here.  it's
+                // not at all clear why.
+                invmat = new_invmat;
+            }
+            inverse_recalculated_for_current_update = false;
+
+            current_state = READY_FOR_UPDATE;
+
+#ifdef VMC_CAREFUL
+            be_careful();
+#endif
         }
 
     void calculate_inverse (bool update_in_progress)

@@ -225,6 +225,14 @@ void DMetalWavefunction::Amplitude::reinitialize (void)
     m_cmat_f_dn = CeperleyMatrix<amplitude_t>(mat_f_dn);
 }
 
+void DMetalWavefunction::Amplitude::check_for_numerical_error (void) const
+{
+    m_cmat_d1.check_for_numerical_error();
+    m_cmat_d2.check_for_numerical_error();
+    m_cmat_f_up.check_for_numerical_error();
+    m_cmat_f_dn.check_for_numerical_error();
+}
+
 boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction::Amplitude::clone_ (void) const
 {
     return boost::make_shared<DMetalWavefunction::Amplitude>(*this);

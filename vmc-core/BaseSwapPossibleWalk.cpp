@@ -255,3 +255,11 @@ void BaseSwapPossibleWalk::reject_transition (void)
         swapped_system->cancel_update(*phialpha1, *phialpha2);
     }
 }
+
+void BaseSwapPossibleWalk::check_for_numerical_error (void) const
+{
+    get_phialpha1().check_for_numerical_error();
+    get_phialpha2().check_for_numerical_error();
+    get_phibeta1().check_for_numerical_error();
+    get_phibeta2().check_for_numerical_error();
+}

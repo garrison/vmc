@@ -164,6 +164,11 @@ void BCSWavefunction::Amplitude::reinitialize (void)
     m_cmat = CeperleyMatrix<amplitude_t>(mat_phi);
 }
 
+void BCSWavefunction::Amplitude::check_for_numerical_error (void) const
+{
+    m_cmat.check_for_numerical_error();
+}
+
 boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction::Amplitude::clone_ (void) const
 {
     return boost::make_shared<BCSWavefunction::Amplitude>(*this);

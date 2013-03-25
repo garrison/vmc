@@ -698,7 +698,7 @@ public:
     void refresh_state (void)
         {
             BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-            check_inverse();
+            check_for_numerical_error();
             calculate_inverse(false);
             n_smw_updates = 0;
         }
@@ -789,7 +789,13 @@ public:
             return rows();
         }
 
-    void check_inverse (void) const
+    /**
+     * Checks whether the inverse matrix has significant numerical error, and
+     * raises an exception if it does.
+     *
+     * This should not be called while an update is in progress.
+     */
+    void check_for_numerical_error (void) const
         {
             BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             if (n_smw_updates > 0) {
@@ -860,7 +866,7 @@ private:
 
 #if 0
             if (n_smw_updates > 0 && n_smw_updates % 1000 == 0)
-                check_inverse();
+                check_for_numerical_error();
 #endif
 
 #ifdef VMC_CAREFUL

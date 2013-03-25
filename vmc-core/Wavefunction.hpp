@@ -147,6 +147,14 @@ public:
          */
         virtual Move propose_move (RandomNumberGenerator &rng) const;
 
+        /**
+         * Performs any possible checks to see whether the Amplitude currently
+         * has significant numerical error, and raises an exception if it does.
+         *
+         * This will never be called while an update is in progress.
+         */
+        virtual void check_for_numerical_error (void) const = 0;
+
     private:
         /**
          * This method is responsible for updating the state of the object such

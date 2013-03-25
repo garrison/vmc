@@ -48,6 +48,8 @@ private:
      */
     void reject_transition (void);
 
+    void check_for_numerical_error (void) const;
+
     boost::shared_ptr<Wavefunction::Amplitude> wfa; // treat this as copy on write
     bool autoreject_in_progress;
 

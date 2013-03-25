@@ -61,6 +61,8 @@ public:
         boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const;
 
         void reinitialize (void);
+
+        void check_for_numerical_error (void) const;
     };
 
     boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const

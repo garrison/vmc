@@ -137,6 +137,12 @@ void DBLWavefunction::Amplitude::reinitialize (void)
     cmat2 = CeperleyMatrix<amplitude_t>(mat2);
 }
 
+void DBLWavefunction::Amplitude::check_for_numerical_error (void) const
+{
+    cmat1.check_for_numerical_error();
+    cmat2.check_for_numerical_error();
+}
+
 boost::shared_ptr<Wavefunction::Amplitude> DBLWavefunction::Amplitude::clone_ (void) const
 {
     return boost::make_shared<DBLWavefunction::Amplitude>(*this);

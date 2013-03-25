@@ -156,6 +156,12 @@ void FreeFermionWavefunction::Amplitude::reinitialize (void)
     }
 }
 
+void FreeFermionWavefunction::Amplitude::check_for_numerical_error (void) const
+{
+    for (unsigned int i = 0; i < get_N_species(); ++i)
+        m_cmat[i].check_for_numerical_error();
+}
+
 boost::shared_ptr<Wavefunction::Amplitude> FreeFermionWavefunction::Amplitude::clone_ (void) const
 {
     return boost::make_shared<FreeFermionWavefunction::Amplitude>(*this);

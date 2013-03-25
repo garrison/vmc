@@ -114,6 +114,15 @@ public:
             return measurements;
         }
 
+    /**
+     * Performs any possible checks to see whether the simulation currently has
+     * significant numerical error, and raises an exception if it does.
+     */
+    void check_for_numerical_error (void) const
+        {
+            walk->check_for_numerical_error();
+        }
+
 protected:
     unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
 

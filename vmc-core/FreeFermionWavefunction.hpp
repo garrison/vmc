@@ -57,6 +57,8 @@ public:
 
         void reinitialize (void);
 
+        void check_for_numerical_error (void) const;
+
         unsigned int get_N_species (void) const
             {
                 return m_species_move_in_progress.size();

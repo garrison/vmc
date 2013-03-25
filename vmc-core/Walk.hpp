@@ -34,6 +34,14 @@ public:
      * new transitions can be attempted.
      */
     virtual void reject_transition (void) = 0;
+
+    /**
+     * Performs any possible checks to see whether the Walk currently has
+     * significant numerical error, and raises an exception if it does.
+     *
+     * This will never be called while a transition is in progress.
+     */
+    virtual void check_for_numerical_error (void) const = 0;
 };
 
 #endif

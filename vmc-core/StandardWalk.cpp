@@ -73,3 +73,8 @@ void StandardWalk::reject_transition (void)
     transition_in_progress = false;
 #endif
 }
+
+void StandardWalk::check_for_numerical_error (void) const
+{
+    wfa->check_for_numerical_error();
+}

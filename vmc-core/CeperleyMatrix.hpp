@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cmath>
 #include <utility>
+#include <stdexcept>
 
 #include <Eigen/Dense>
 #include <boost/assert.hpp>
@@ -12,6 +13,15 @@
 #include "lw_vector.hpp"
 #include "vmc-typedefs.hpp"
 #include "vmc-real-part.hpp"
+
+class unrecoverable_matrix_inverse_error : public std::runtime_error
+{
+public:
+    unrecoverable_matrix_inverse_error (real_t inverse_error_, unsigned int n_smw_updates_);
+
+    const real_t inverse_error;
+    const unsigned int n_smw_updates;
+};
 
 /**
  * O(N^2) method for keeping track of a determinant when only one or a few
@@ -528,7 +538,7 @@ public:
                 }
             }
 
-            common_complete_finish_update();
+            common_complete_finish_update(&CeperleyMatrix<T>::revert_mat_for_row_update);
         }
 
     /**
@@ -554,7 +564,7 @@ public:
                 }
             }
 
-            common_complete_finish_update();
+            common_complete_finish_update(&CeperleyMatrix<T>::revert_mat_for_column_update);
         }
 
     /**
@@ -583,7 +593,7 @@ public:
                 }
             }
 
-            common_complete_finish_update();
+            common_complete_finish_update(&CeperleyMatrix<T>::revert_mat_for_columns_update);
         }
 
     /**
@@ -618,14 +628,14 @@ public:
                 }
             }
 
-            common_complete_finish_update();
+            common_complete_finish_update(&CeperleyMatrix<T>::revert_mat_for_rows_and_columns_update);
         }
 
     void cancel_row_update (void)
         {
             BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
 
-            mat.row(pending_index) = old_cols_m.col(0);
+            revert_mat_for_row_update(mat);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 
@@ -640,7 +650,7 @@ public:
         {
             BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
-            mat.col(pending_index) = old_cols_m.col(0);
+            revert_mat_for_column_update(mat);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 
@@ -655,8 +665,7 @@ public:
         {
             BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
-            for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
-                mat.col(pending_col_indices[i]) = old_cols_m.col(i);
+            revert_mat_for_columns_update(mat);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 
@@ -671,12 +680,7 @@ public:
         {
             BOOST_ASSERT(current_state == ROWCOL_UPDATE_IN_PROGRESS);
 
-            // NOTE: we must cancel the rows after the columns since we saved
-            // the old columns after the rows had already been updated
-            for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
-                mat.col(pending_col_indices[i]) = old_cols_m.col(i);
-            for (unsigned int i = 0; i < pending_row_indices.size(); ++i)
-                mat.row(pending_row_indices[i]) = old_rows_m.row(i);
+            revert_mat_for_rows_and_columns_update(mat);
             det = old_det;
             inverse_recalculated_for_current_update = false;
 
@@ -687,14 +691,18 @@ public:
 #endif
         }
 
+#if 0
     /**
      * Recalculates the matrix inverse and determinant from scratch.
      */
     void refresh_state (void)
         {
             BOOST_ASSERT(current_state == READY_FOR_UPDATE);
+            check_inverse();
             calculate_inverse(false);
+            n_smw_updates = 0;
         }
+#endif
 
     /**
      * Returns the matrix.
@@ -736,26 +744,12 @@ public:
         }
 
     /**
-     * Computes and returns the inverse matrix error.
-     *
-     * This multiplies the matrix by its supposed inverse, and compares it to
-     * the identity matrix.
-     *
-     * @return a nonnegative number which is the sum of the absolute error,
-     * divided by the number of rows/columns in the matrix.
-     */
-    double compute_inverse_matrix_error (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &target_invmat) const
-        {
-            return (mat * target_invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(mat.rows(), mat.cols())).array().abs().sum() / mat.rows();
-        }
-
-    /**
      * Calculates and returns the determinant error.
      *
      * @return a ratio of the absolute error over the newly-calculated
      * determinant
      */
-    double compute_relative_determinant_error (void) const
+    typename RealPart<T>::type compute_relative_determinant_error (void) const
         {
             BOOST_ASSERT(current_state == READY_FOR_UPDATE);
             Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);
@@ -795,7 +789,42 @@ public:
             return rows();
         }
 
+    void check_inverse (void) const
+        {
+            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
+            if (n_smw_updates > 0) {
+                BOOST_ASSERT(!is_singular());
+                check_inverse_matrix_error(mat);
+            }
+        }
+
 private:
+    void revert_mat_for_row_update (Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &mat_)
+        {
+            mat_.row(pending_index) = old_cols_m.col(0);
+        }
+
+    void revert_mat_for_column_update (Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &mat_)
+        {
+            mat_.col(pending_index) = old_cols_m.col(0);
+        }
+
+    void revert_mat_for_columns_update (Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &mat_)
+        {
+            for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
+                mat_.col(pending_col_indices[i]) = old_cols_m.col(i);
+        }
+
+    void revert_mat_for_rows_and_columns_update (Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &mat_)
+        {
+            // NOTE: we must cancel the rows after the columns since we saved
+            // the old columns after the rows had already been updated
+            for (unsigned int i = 0; i < pending_col_indices.size(); ++i)
+                mat_.col(pending_col_indices[i]) = old_cols_m.col(i);
+            for (unsigned int i = 0; i < pending_row_indices.size(); ++i)
+                mat_.row(pending_row_indices[i]) = old_rows_m.row(i);
+        }
+
     inline bool determinant_is_uncomfortable_during_update (void) const
         {
             return (std::abs(detrat) < ceperley_detrat_lower_cutoff
@@ -807,10 +836,17 @@ private:
             return (std::abs(det.get_base()) > ceperley_determinant_base_upper_cutoff);
         }
 
-    void common_complete_finish_update (void)
+    void common_complete_finish_update (void (CeperleyMatrix<T>::*revert_mat)(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &))
         {
             nullity_lower_bound = new_nullity_lower_bound;
             if (inverse_recalculated_for_current_update) {
+                if (n_smw_updates > 0) {
+                    // check that our old inverse was actually correct
+                    Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> tmpmat(mat);
+                    (this->*revert_mat)(tmpmat);
+                    check_inverse_matrix_error(tmpmat);
+                }
+
                 n_smw_updates = 0;
                 // in theory, invmat.swap(new_invmat) would only swap the
                 // pointers (see Eigen/src/Core/Matrix.h), but the code runs
@@ -822,8 +858,37 @@ private:
 
             current_state = READY_FOR_UPDATE;
 
+#if 0
+            if (n_smw_updates > 0 && n_smw_updates % 1000 == 0)
+                check_inverse();
+#endif
+
 #ifdef VMC_CAREFUL
             be_careful();
+#endif
+        }
+
+    /**
+     * Computes and returns the inverse matrix error.
+     *
+     * This multiplies the matrix by its supposed inverse, and compares it to
+     * the identity matrix.
+     *
+     * @return a nonnegative number which is the sum of the absolute error,
+     * divided by the number of rows/columns in the matrix.
+     */
+    static typename RealPart<T>::type compute_inverse_matrix_error (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &target_mat, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &target_invmat)
+        {
+            return (target_mat * target_invmat - Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>::Identity(target_mat.rows(), target_mat.cols())).array().abs().sum() / target_mat.rows();
+        }
+
+    void check_inverse_matrix_error (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &mat_) const
+        {
+            const typename RealPart<T>::type inverse_error = compute_inverse_matrix_error(mat_, invmat);
+            if (!(inverse_error < .03))
+                throw unrecoverable_matrix_inverse_error(inverse_error, n_smw_updates);
+#if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
+            std::cerr << "inverse error = " << inverse_error << " after " << n_smw_updates << " updates." << std::endl;
 #endif
         }
 
@@ -857,9 +922,9 @@ private:
 #ifndef DISABLE_CEPERLEY_MATRIX_INVERSE_CHECK
                 // if there is significant inverse error it probably means our
                 // orbitals are not linearly independent!
-                const double inverse_error = compute_inverse_matrix_error(update_in_progress ? new_invmat : invmat);
-                if (inverse_error > .005)
-                    std::cerr << "Warning: inverse matrix error of " << inverse_error << std::endl;
+                const typename RealPart<T>::type inverse_error = compute_inverse_matrix_error(mat, update_in_progress ? new_invmat : invmat);
+                if (!(inverse_error < .03))
+                    throw unrecoverable_matrix_inverse_error(inverse_error, 0);
 #endif
             }
 
@@ -884,8 +949,8 @@ private:
 #ifdef VMC_CAREFUL
     void be_careful (void) const
         {
-            if (det.is_nonzero() && compute_inverse_matrix_error(invmat) > .03)
-                std::cerr << "Large inverse matrix error of " << compute_inverse_matrix_error(invmat) << std::endl;
+            if (det.is_nonzero() && !(compute_inverse_matrix_error(mat, invmat) < .03))
+                std::cerr << "Large inverse matrix error of " << compute_inverse_matrix_error(mat, invmat) << std::endl;
 
             if (!(compute_relative_determinant_error() < .03))
                 std::cerr << "large determinant error! " << compute_relative_determinant_error() << std::endl;

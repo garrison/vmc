@@ -1,4 +1,22 @@
+#include <string>
+#include <boost/lexical_cast.hpp>
+
 #include "CeperleyMatrix.hpp"
+
+static inline std::string construct_what_string (const real_t &inverse_error, unsigned int n_smw_updates)
+{
+    return (std::string("Unrecoverable large inverse error: ")
+            + boost::lexical_cast<std::string>(inverse_error)
+            + std::string(" after ")
+            + boost::lexical_cast<std::string>(n_smw_updates) + std::string(" updates."));
+}
+
+unrecoverable_matrix_inverse_error::unrecoverable_matrix_inverse_error (real_t inverse_error_, unsigned int n_smw_updates_)
+    : std::runtime_error(construct_what_string(inverse_error_, n_smw_updates_)),
+      inverse_error(inverse_error_),
+      n_smw_updates(n_smw_updates_)
+{
+}
 
 template<>
 const double CeperleyMatrix<std::complex<double> >::ceperley_determinant_base_upper_cutoff = 1e25;

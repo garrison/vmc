@@ -161,7 +161,7 @@ void BCSWavefunction::Amplitude::reinitialize (void)
         }
     }
 
-    m_cmat = mat_phi;
+    m_cmat = CeperleyMatrix<amplitude_t>(mat_phi);
 }
 
 boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction::Amplitude::clone_ (void) const

@@ -117,7 +117,7 @@ public:
     /**
      * Constructor for initializing a CeperleyMatrix from a square Eigen::Matrix
      */
-    CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
+    explicit CeperleyMatrix (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &initial_mat)
         : current_state(READY_FOR_UPDATE),
           mat(initial_mat),
           inverse_recalculated_for_current_update(false),

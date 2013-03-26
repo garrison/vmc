@@ -71,13 +71,18 @@ cdef class MetropolisSimulation(object):
         with log_rusage(logger, "Equilibrated walk using {} steps.".format(equilibrium_steps)):
             with nogil:
                 self.autoptr.reset(new CppMetropolisSimulation(walk_autoptr, measurement_list, equilibrium_steps, rng.autoptr))
+                # this is optional here, but we might as well before taking measurements
+                self.autoptr.get().check_for_numerical_error()
 
         logger.info("Now prepared to consider %d different measurement(s).", len(measurement_plans))
 
-    def iterate(self, unsigned int sweeps):
+    def iterate(self, unsigned int sweeps, check_for_numerical_error=True):
+        cdef bint check_for_numerical_error_ = bool(check_for_numerical_error)
         with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):
             with nogil:
                 self.autoptr.get().iterate(sweeps)
+                if check_for_numerical_error_:
+                    self.autoptr.get().check_for_numerical_error()
 
     def to_hdf5(self, *args, **kwargs):
         return _save_simulation_to_hdf5(self, *args, **kwargs)

@@ -40,6 +40,8 @@ cdef class MetropolisSimulation(object):
     cdef str _rng_name
     cdef unsigned long _rng_seed
 
+    cdef bint _unrecoverable_error_has_occurred
+
     def __init__(self, walk_plan not None, Lattice lattice not None, measurement_plans, unsigned int equilibrium_steps, RandomNumberGenerator rng not None):
         """keep in mind that the rng passed can no longer be used for other things afterwards"""
         assert rng.is_good()
@@ -74,17 +76,28 @@ cdef class MetropolisSimulation(object):
                 # this is optional here, but we might as well before taking measurements
                 self.autoptr.get().check_for_numerical_error()
 
+        self._unrecoverable_error_has_occurred = False
+
         logger.info("Now prepared to consider %d different measurement(s).", len(measurement_plans))
 
     def iterate(self, unsigned int sweeps, check_for_numerical_error=True):
+        if self._unrecoverable_error_has_occurred:
+            raise RuntimeError("Unrecoverable error occurred previously during this simulation.")
+
         cdef bint check_for_numerical_error_ = bool(check_for_numerical_error)
-        with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):
-            with nogil:
-                self.autoptr.get().iterate(sweeps)
-                if check_for_numerical_error_:
-                    self.autoptr.get().check_for_numerical_error()
+        try:
+            with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):
+                with nogil:
+                    self.autoptr.get().iterate(sweeps)
+                    if check_for_numerical_error_:
+                        self.autoptr.get().check_for_numerical_error()
+        except Exception:
+            self._unrecoverable_error_has_occurred = True
+            raise
 
     def to_hdf5(self, *args, **kwargs):
+        if self._unrecoverable_error_has_occurred:
+            raise RuntimeError("Unrecoverable error occurred previously during this simulation.")
         return _save_simulation_to_hdf5(self, *args, **kwargs)
 
     # XXX: Cython causes a segfault if I declare this a staticmethod
@@ -99,6 +112,8 @@ cdef class MetropolisSimulation(object):
 
     property measurement_dict:
         def __get__(self):
+            if self._unrecoverable_error_has_occurred:
+                raise RuntimeError("Unrecoverable error occurred previously during this simulation.")
             return self._measurement_dict
 
     property equilibrium_steps:

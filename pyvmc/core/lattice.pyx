@@ -13,7 +13,6 @@ import numpy
 from cython.operator cimport dereference as deref
 
 from pyvmc.core.boundary_conditions import valid_boundary_conditions, periodic_bc, antiperiodic_bc, open_bc
-from pyvmc.utils import product
 from pyvmc.constants import two_pi, sqrt_three_over_two, pi
 
 cdef class LatticeSite(object):
@@ -209,8 +208,8 @@ cdef class Lattice(object):
         if boundary_conditions is False:
             return new_site
         assert valid_boundary_conditions(boundary_conditions, len(lattice_dimensions))
-        phase = product(__phase_wrap(x // length, bc.phase) for x, length, bc
-                        in zip(bravais_site, lattice_dimensions, boundary_conditions))
+        phase = numpy.product([__phase_wrap(x // length, bc.phase) for x, length, bc
+                               in zip(bravais_site, lattice_dimensions, boundary_conditions)])
         return new_site, phase
 
     def __len__(self):

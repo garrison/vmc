@@ -9,7 +9,8 @@ import collections
 
 from cython.operator cimport dereference as deref
 
-from pyvmc.utils import product
+import numpy
+
 from pyvmc.core.lattice import LatticeSite, Lattice
 from pyvmc.utils.immutable import Immutable
 
@@ -83,7 +84,7 @@ cdef class SimpleSubsystem(Subsystem):
             return tuple([deref(v)[i] for i in xrange(v.size())])
 
     def __len__(self):
-        return product(self.dimensions) * self.lattice.basis_indices
+        return numpy.product(self.dimensions) * self.lattice.basis_indices
 
     def __iter__(self):
         dimensions = self.dimensions

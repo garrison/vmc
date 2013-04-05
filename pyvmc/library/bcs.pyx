@@ -7,7 +7,7 @@ from pyvmc.includes.libcpp.memory cimport auto_ptr
 import numpy
 
 from pyvmc.core.wavefunction import Wavefunction
-from pyvmc.utils import is_square_matrix, is_finite
+from pyvmc.utils import is_square_matrix
 
 class ProjectedBCSWavefunction(Wavefunction):
     """Projected BCS wavefunction"""
@@ -18,7 +18,7 @@ class ProjectedBCSWavefunction(Wavefunction):
         (lattice,) = super(ProjectedBCSWavefunction, self).init_validate(lattice)
 
         assert is_square_matrix(phi, len(lattice))
-        if not all(is_finite(x) for x in numpy.nditer(phi)):
+        if not all(numpy.isfinite(x) for x in numpy.nditer(phi)):
             raise RuntimeError("elements of phi matrix must be finite")
 
         assert isinstance(N_up, numbers.Integral)

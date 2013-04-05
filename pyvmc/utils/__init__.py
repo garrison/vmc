@@ -5,9 +5,6 @@ from math import isinf
 
 import numpy
 
-def product(iterable):
-    return reduce(operator.mul, iterable)
-
 def ensure_real(x):
     """Returns a real number as a real data type
 
@@ -17,26 +14,17 @@ def ensure_real(x):
     assert x.imag == 0
     return x.real
 
-def average(seq):
-    assert isinstance(seq, (Sequence, numpy.ndarray))
-    length = len(seq)
-    assert length > 0
-    return sum(seq) / float(length)
-
 def stddevmean(seq):
     assert isinstance(seq, (Sequence, numpy.ndarray))
     if len(seq) > 1:
-        x = average(seq)
+        x = numpy.average(seq)
         variance = sum(abs(x - b) ** 2 for b in seq) / (len(seq) - 1)
         return numpy.sqrt(variance / len(seq))
     else:
         return 0.0
 
 def average_and_stddevmean(seq):
-    return average(seq), stddevmean(seq)
-
-def is_finite(z):
-    return z == z and not (isinf(z.real) or isinf(z.imag))
+    return numpy.average(seq), stddevmean(seq)
 
 def is_square_matrix(mat, N=None):
     assert isinstance(mat, numpy.ndarray)
@@ -44,3 +32,8 @@ def is_square_matrix(mat, N=None):
         return mat.ndim == 2 and mat.shape[0] == mat.shape[1]
     else:
         return mat.ndim == 2 and mat.shape[0] == mat.shape[1] == N
+
+# these are deprecated, as they already exist in numpy
+product = numpy.product
+average = numpy.average
+is_finite = numpy.isfinite

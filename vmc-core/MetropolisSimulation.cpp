@@ -87,8 +87,7 @@ bool MetropolisSimulation::perform_single_step (void)
         std::cerr << m_steps << " steps complete" << std::endl;
 #endif
 
-    if (probability_ratio >= 1
-        || (probability_ratio > 0 && probability_ratio > rng->random_uniform01())) {
+    if (probability_ratio >= 1 || probability_ratio > rng->random_uniform01()) {
         // accept transition
 #if defined(DEBUG_VMC_METROPOLIS_SIMULATION) || defined(DEBUG_VMC_ALL)
         std::cerr << "A" << std::endl;

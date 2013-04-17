@@ -178,3 +178,29 @@ class Bands(OrbitalsDescription):
             repr(self.particles_by_band),
             repr(self.boundary_conditions)
         )
+
+class CustomOrbitals(Orbitals):
+    __slots__ = ("lattice", "orbitals_matrix")
+
+    def init_validate(self, lattice, t_matrix, num_orbitals):
+        from pyvmc.library.mft_utils import free_fermion_soln
+        orbitals_matrix = free_fermion_soln(t_matrix)["evecs"].transpose()[:num_orbitals]
+        return (lattice, orbitals_matrix)
+
+    def get_orbitals_matrix(self):
+        return self.orbitals_matrix
+
+    def to_json(self):
+        # fixme
+        return {"type": self.__class__.__name__}
+
+    def __len__(self):
+        return self.orbitals_matrix.shape[0]
+
+    def __hash__(self):
+        # fixme: we could instead use
+        # http://stackoverflow.com/questions/806151/how-to-hash-a-large-object-dataset-in-python/806342
+        try:
+            return hash(self.orbitals_matrix[0, 0])
+        except IndexError:  # orbitals_matrix is an empty array
+            return hash(None)

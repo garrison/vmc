@@ -5,6 +5,7 @@
 #include <cmath>
 #include <utility>
 #include <stdexcept>
+#include <limits>
 
 #include <Eigen/Dense>
 #include <boost/assert.hpp>
@@ -17,10 +18,11 @@
 class unrecoverable_matrix_inverse_error : public std::runtime_error
 {
 public:
-    unrecoverable_matrix_inverse_error (real_t inverse_error_, unsigned int n_smw_updates_);
+    unrecoverable_matrix_inverse_error (real_t inverse_error_, unsigned int n_smw_updates_, real_t smallest_detrat_);
 
     const real_t inverse_error;
     const unsigned int n_smw_updates;
+    const real_t smallest_detrat;
 };
 
 /**
@@ -113,6 +115,8 @@ private:
      */
     static const typename RealPart<T>::type ceperley_detrat_lower_cutoff;
 
+    typename RealPart<T>::type smallest_detrat;
+
 public:
     /**
      * Constructor for initializing a CeperleyMatrix from a square Eigen::Matrix
@@ -121,7 +125,8 @@ public:
         : current_state(READY_FOR_UPDATE),
           mat(initial_mat),
           inverse_recalculated_for_current_update(false),
-          n_smw_updates(0)
+          n_smw_updates(0),
+          smallest_detrat(std::numeric_limits<typename RealPart<T>::type>::infinity())
         {
             BOOST_ASSERT(initial_mat.rows() == initial_mat.cols());
 
@@ -701,6 +706,7 @@ public:
             check_for_numerical_error();
             calculate_inverse(false);
             n_smw_updates = 0;
+            smallest_detrat = std::numeric_limits<typename RealPart<T>::type>::infinity();
         }
 #endif
 
@@ -854,11 +860,15 @@ private:
                 }
 
                 n_smw_updates = 0;
+                smallest_detrat = std::numeric_limits<typename RealPart<T>::type>::infinity();
                 // in theory, invmat.swap(new_invmat) would only swap the
                 // pointers (see Eigen/src/Core/Matrix.h), but the code runs
                 // slower if we do that instead of a matrix copy here.  it's
                 // not at all clear why.
                 invmat = new_invmat;
+            } else {
+                if (std::abs(detrat) < smallest_detrat)
+                    smallest_detrat = std::abs(detrat);
             }
             inverse_recalculated_for_current_update = false;
 
@@ -892,7 +902,7 @@ private:
         {
             const typename RealPart<T>::type inverse_error = compute_inverse_matrix_error(mat_, invmat);
             if (!(inverse_error < .03))
-                throw unrecoverable_matrix_inverse_error(inverse_error, n_smw_updates);
+                throw unrecoverable_matrix_inverse_error(inverse_error, n_smw_updates, smallest_detrat);
 #if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
             std::cerr << "inverse error = " << inverse_error << " after " << n_smw_updates << " updates." << std::endl;
 #endif
@@ -930,7 +940,7 @@ private:
                 // orbitals are not linearly independent!
                 const typename RealPart<T>::type inverse_error = compute_inverse_matrix_error(mat, update_in_progress ? new_invmat : invmat);
                 if (!(inverse_error < .03))
-                    throw unrecoverable_matrix_inverse_error(inverse_error, 0);
+                    throw unrecoverable_matrix_inverse_error(inverse_error, 0, std::numeric_limits<typename RealPart<T>::type>::infinity());
 #endif
             }
 

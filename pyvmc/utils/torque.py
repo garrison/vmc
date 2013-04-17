@@ -77,6 +77,13 @@ def run_pbs_thread(do_work, iterable, src_filename):
         if pid:
             os.waitpid(pid, 0)
 
+def get_job_id():
+    """Returns a (somewhat) unique identifier based on the current job or process id"""
+    if "PBS_JOBID" in os.environ:
+        return "job{}".format(re.match(r"^(\d+)", os.environ["PBS_JOBID"]).group(1))
+    else:
+        return "pid{}".format(os.getpid())
+
 if __name__ == "__main__":
     flags = PBSFlags('/home/garrison/vmc-studies/electron-ring/2leg/rho-2_3/dmetal-rho-two-thirds-scan.py')
     print(flags.walltime)

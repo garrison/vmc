@@ -6,7 +6,7 @@ solution "vmc-core"
     kind "SharedLib"
     files { "*.hpp", "*.cpp" }
 
-    buildoptions { "-Wall", "-Wextra" }
+    buildoptions { "-Wall", "-Wextra", "-std=c++11" }
 
     -- see http://shorestreet.com/why-your-dso-is-slow
     configuration "linux"

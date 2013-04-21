@@ -21,6 +21,7 @@ def make_extension(ext_name, ext_libraries=(), is_directory=False):
         include_dirs=(["vmc-core", "."]),
         language="c++",
         libraries=ext_libraries,
+        extra_compile_args=['-std=c++11'],
         #depends=["vmc-core/libvmc-core.so"],
     )
 

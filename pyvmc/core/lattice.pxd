@@ -1,5 +1,5 @@
 from pyvmc.core cimport lw_vector
-from pyvmc.includes.libcpp.memory cimport auto_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
 cdef extern from "Lattice.hpp":

@@ -29,15 +29,15 @@ invalid_probability_error::invalid_probability_error (const probability_t &inval
 {
 }
 
-MetropolisSimulation::MetropolisSimulation (std::auto_ptr<Walk> &walk_, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements_,
-                                            unsigned int initialization_sweeps, std::auto_ptr<RandomNumberGenerator> &rng_)
+MetropolisSimulation::MetropolisSimulation (std::unique_ptr<Walk> &walk_, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements_,
+                                            unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> &rng_)
     : m_steps(0),
       m_steps_accepted(0),
       m_steps_fully_rejected(0),
-      walk(walk_),
+      walk(std::move(walk_)),
       measurements(measurements_),
       measurement_not_yet_updated(true),
-      rng(rng_)
+      rng(std::move(rng_))
 {
     BOOST_ASSERT(rng.get() != 0);
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)

@@ -39,7 +39,7 @@ cdef shared_ptr[const_CppOrbitalDefinitions] orbitals_to_orbitaldefinitions(orbi
     m = orbitals.get_orbitals_matrix()
     cdef unsigned int rows, cols
     rows, cols = m.shape
-    cdef auto_ptr[CppOrbitalMatrix] mat
+    cdef unique_ptr[CppOrbitalMatrix] mat
     mat.reset(new CppOrbitalMatrix(rows, cols))
     cdef unsigned int i, j
     cdef complex_t c

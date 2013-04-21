@@ -2,7 +2,7 @@ import numbers
 import collections
 
 from cython.operator cimport dereference as deref
-from pyvmc.includes.libcpp.memory cimport auto_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr
 
 import numpy
 
@@ -61,7 +61,7 @@ class ProjectedBCSWavefunction(Wavefunction):
         cdef unsigned int N_sites = len(self.lattice)
         phi = self.phi
 
-        cdef auto_ptr[CppPhiMatrix] phimat
+        cdef unique_ptr[CppPhiMatrix] phimat
         phimat.reset(new CppPhiMatrix(N_sites, N_sites))
         cdef unsigned int i, j
         for i in xrange(N_sites):

@@ -1,5 +1,5 @@
 from cython.operator cimport dereference as deref
-from pyvmc.includes.libcpp.memory cimport auto_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr
 
 import abc
 import collections
@@ -138,9 +138,9 @@ cdef class TwoBodyJastrowFactor(JastrowFactor):
 
         self._correlation_matrix = correlation_matrix
 
-        # CYTHON-LIMITATION: we are forced to use an auto_ptr here because
+        # CYTHON-LIMITATION: we are forced to use an unique_ptr here because
         # Cython doesn't allow us to pass arguments to the constructor
-        cdef auto_ptr[CppTwoBodyJastrowMatrix] corrmat
+        cdef unique_ptr[CppTwoBodyJastrowMatrix] corrmat
         corrmat.reset(new CppTwoBodyJastrowMatrix(N_sites, N_sites))
         cdef unsigned int i, j
         for i in xrange(N_sites):

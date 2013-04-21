@@ -36,7 +36,7 @@ cdef extern from "OperatorMeasurement.hpp":
 ### implementation
 
 from cython.operator cimport dereference as deref
-from pyvmc.includes.libcpp.memory cimport auto_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr
 
 import collections
 
@@ -97,7 +97,7 @@ cdef class BasicOperatorMeasurement(BaseMeasurement):
             src = hop.source
             dest = hop.destination
             hopv.push_back(CppSiteHop(src.cpp, dest.cpp, hop.species))
-        cdef auto_ptr[CppBasicOperator] operator
+        cdef unique_ptr[CppBasicOperator] operator
         operator.reset(new CppBasicOperator(hopv, lattice.sharedptr))
         if operator_.boundary_conditions is not None:
             for bc in operator_.boundary_conditions:

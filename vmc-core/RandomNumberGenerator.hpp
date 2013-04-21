@@ -44,7 +44,7 @@ public:
     /**
      * Creates a specific type of RandomNumberGenerator, given by name
      */
-    static std::auto_ptr<RandomNumberGenerator> create (const char *rng_name, rng_seed_t seed);
+    static std::unique_ptr<RandomNumberGenerator> create (const char *rng_name, rng_seed_t seed);
 };
 
 #endif

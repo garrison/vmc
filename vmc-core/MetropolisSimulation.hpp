@@ -31,7 +31,7 @@ public:
      * Note: the initialization sweeps are performed during object
      * construction.
      *
-     * @param walk_ walk in its initial state; since it's an auto_ptr, the new
+     * @param walk_ walk in its initial state; since it's a unique_ptr, the new
      * MetropolisSimulation object will be passed ownership of the Walk
      *
      * @param measurements_ a list of measurements to perform
@@ -39,13 +39,13 @@ public:
      * @param initialization_sweeps number of steps to take before beginning to
      * take measurements
      *
-     * @param rng random number generator; since it's an auto_ptr, ownership
+     * @param rng random number generator; since it's a unique_ptr, ownership
      * will be passed to the new MetropolisSimulation
      *
      * @see Walk
      */
-    MetropolisSimulation (std::auto_ptr<Walk> &walk_, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements_,
-                          unsigned int initialization_sweeps, std::auto_ptr<RandomNumberGenerator> &rng_);
+    MetropolisSimulation (std::unique_ptr<Walk> &walk_, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements_,
+                          unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> &rng_);
 
     /**
      * Perform some number of steps on the system, taking a measurement each
@@ -127,11 +127,11 @@ protected:
     unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
 
 private:
-    std::auto_ptr<Walk> walk;
+    std::unique_ptr<Walk> walk;
     std::list<boost::shared_ptr<BaseMeasurement> > measurements;
     bool measurement_not_yet_updated;
 
-    std::auto_ptr<RandomNumberGenerator> rng;
+    std::unique_ptr<RandomNumberGenerator> rng;
 
     bool perform_single_step (void);
 

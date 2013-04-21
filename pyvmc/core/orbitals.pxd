@@ -1,5 +1,5 @@
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
-from pyvmc.includes.libcpp.memory cimport auto_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr
 from pyvmc.core cimport complex_t
 
 from pyvmc.core.lattice cimport Lattice, CppLattice

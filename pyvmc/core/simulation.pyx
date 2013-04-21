@@ -2,7 +2,7 @@ import six
 
 from cython.operator cimport dereference as deref
 from libcpp.list cimport list as stdlist
-from pyvmc.includes.libcpp.memory cimport auto_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr
 from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 
 import logging
@@ -21,7 +21,7 @@ from pyvmc.core import get_vmc_version
 
 cdef extern from "MetropolisSimulation.hpp":
     cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
-        CppMetropolisSimulation(auto_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, auto_ptr[CppRandomNumberGenerator]&) nogil except +
+        CppMetropolisSimulation(unique_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, unique_ptr[CppRandomNumberGenerator]&) nogil except +
         void iterate(unsigned int) nogil except +
         void check_for_numerical_error() nogil except +
         unsigned int steps_completed()
@@ -31,7 +31,7 @@ cdef extern from "MetropolisSimulation.hpp":
 logger = logging.getLogger(__name__)
 
 cdef class MetropolisSimulation(object):
-    cdef auto_ptr[CppMetropolisSimulation] autoptr
+    cdef unique_ptr[CppMetropolisSimulation] autoptr
 
     cdef object _walk_plan
     cdef object _measurement_dict
@@ -54,7 +54,6 @@ cdef class MetropolisSimulation(object):
         self._walk_plan = walk_plan
         cdef Walk walk = walk_plan.create_walk(rng)
         assert walk.autoptr.get() is not NULL
-        cdef auto_ptr[CppWalk] walk_autoptr = walk.autoptr
 
         assert isinstance(measurement_plans, collections.Sequence)
         assert all(isinstance(mp, BasicMeasurementPlan) for mp in measurement_plans)
@@ -66,13 +65,13 @@ cdef class MetropolisSimulation(object):
         cdef BaseMeasurement measurement_
         for measurement in self._measurement_dict.values():
             measurement_ = measurement
-            if not measurement_.sharedptr.get().is_valid_walk(deref(walk_autoptr)):
+            if not measurement_.sharedptr.get().is_valid_walk(deref(walk.autoptr)):
                 raise ValueError("invalid walk/measurement/wavefunction combination")
             measurement_list.push_back(measurement_.sharedptr)
 
         with log_rusage(logger, "Equilibrated walk using {} steps.".format(equilibrium_steps)):
             with nogil:
-                self.autoptr.reset(new CppMetropolisSimulation(walk_autoptr, measurement_list, equilibrium_steps, rng.autoptr))
+                self.autoptr.reset(new CppMetropolisSimulation(walk.autoptr, measurement_list, equilibrium_steps, rng.autoptr))
                 # this is optional here, but we might as well before taking measurements
                 self.autoptr.get().check_for_numerical_error()
 

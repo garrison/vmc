@@ -58,14 +58,14 @@ bool RandomNumberGenerator::name_is_valid (const char *rng_name)
     return false;
 }
 
-std::auto_ptr<RandomNumberGenerator> RandomNumberGenerator::create (const char *rng_name, RandomNumberGenerator::rng_seed_t seed)
+std::unique_ptr<RandomNumberGenerator> RandomNumberGenerator::create (const char *rng_name, RandomNumberGenerator::rng_seed_t seed)
 {
     BOOST_ASSERT(name_is_valid(rng_name));
     if (std::strcmp(rng_name, "boost::mt19937") == 0)
-        return std::auto_ptr<RandomNumberGenerator>(new RandomNumberGeneratorBoostImpl<boost::mt19937>(seed));
+        return std::unique_ptr<RandomNumberGenerator>(new RandomNumberGeneratorBoostImpl<boost::mt19937>(seed));
     if (std::strcmp(rng_name, "boost::lagged_fibonacci607") == 0)
-        return std::auto_ptr<RandomNumberGenerator>(new RandomNumberGeneratorBoostImpl<boost::lagged_fibonacci607>(seed));
+        return std::unique_ptr<RandomNumberGenerator>(new RandomNumberGeneratorBoostImpl<boost::lagged_fibonacci607>(seed));
 
     BOOST_ASSERT(false); // invalid rng specified
-    return std::auto_ptr<RandomNumberGenerator>(); // suppress non-void return warning
+    return std::unique_ptr<RandomNumberGenerator>(); // suppress non-void return warning
 }

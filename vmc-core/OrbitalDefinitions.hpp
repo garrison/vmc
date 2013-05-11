@@ -10,11 +10,7 @@
 class Lattice;
 
 /**
- * "Abstract base class" for defining the orbitals in a determinantal
- * wavefunction
- *
- * (It's not strictly an abstract base class, as it has no undefined virtual
- * functions, but we should treat it as such.)
+ * Class for defining the orbitals in a determinantal wavefunction
  */
 class OrbitalDefinitions
 {
@@ -26,9 +22,11 @@ public:
             BOOST_ASSERT(orbitals.cols() == lattice_->total_sites());
         }
 
+#if 0
     virtual ~OrbitalDefinitions (void)
         {
         }
+#endif
 
     /**
      * Returns the set of orbitals at the given position

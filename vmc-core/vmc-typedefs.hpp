@@ -3,7 +3,12 @@
 
 #include <complex>
 
+#ifdef VMC_REAL_T
+typedef VMC_REAL_T real_t;
+#else
 typedef double real_t;
+#endif
+
 typedef std::complex<real_t> complex_t;
 
 typedef real_t probability_t;

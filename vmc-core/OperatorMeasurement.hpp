@@ -48,19 +48,19 @@ private:
     /**
      * Prepare the object for taking measurements
      */
-    void initialize_ (const StandardWalk &walk);
+    virtual void initialize_ (const StandardWalk &walk) override;
 
     /**
      * Calculate and tally a measurement
      */
-    void measure_ (const StandardWalk &walk);
+    virtual void measure_ (const StandardWalk &walk) override;
 
     /**
      * Tally again the most recent measurement
      */
-    void repeat_measurement_ (const StandardWalk &walk);
+    virtual void repeat_measurement_ (const StandardWalk &walk) override;
 
-    bool is_valid_walk_ (const StandardWalk &walk)
+    virtual bool is_valid_walk_ (const StandardWalk &walk) override
         {
             return BasicOperator::is_valid(m_operator.hopv,
                                            walk.get_wavefunctionamplitude().get_lattice(),

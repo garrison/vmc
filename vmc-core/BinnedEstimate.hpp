@@ -75,7 +75,7 @@ public:
         friend class BinnedEstimate<T>;
     };
 
-    void add_value (T value)
+    virtual void add_value (T value) override
         {
             // create a new bin-level if necessary
             if (is_just_below_a_power_of_two(this->get_num_cumulative_values()))

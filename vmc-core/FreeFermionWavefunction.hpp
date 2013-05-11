@@ -38,26 +38,26 @@ public:
         Amplitude (const boost::shared_ptr<const FreeFermionWavefunction> &wf_, const PositionArguments &r_);
 
     private:
-        void perform_move_ (const Move &move);
+        virtual void perform_move_ (const Move &move) override;
 
         template <bool first_pass>
         void do_perform_move (const Move &move);
 
-        Big<amplitude_t> psi_ (void) const;
+        virtual Big<amplitude_t> psi_ (void) const override;
 
-        void finish_move_ (void);
+        virtual void finish_move_ (void) override;
 
-        void cancel_move_ (void);
+        virtual void cancel_move_ (void) override;
 
-        void swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species);
+        virtual void swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species) override;
 
-        void reset_ (const PositionArguments &r_);
+        virtual void reset_ (const PositionArguments &r_) override;
 
-        boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const;
+        virtual boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const override;
 
         void reinitialize (void);
 
-        void check_for_numerical_error (void) const;
+        virtual void check_for_numerical_error (void) const override;
 
         unsigned int get_N_species (void) const
             {
@@ -65,18 +65,18 @@ public:
             }
     };
 
-    boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const
+    virtual boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const override
         {
             BOOST_ASSERT(this == this_ptr.get());
             return boost::make_shared<Amplitude>(boost::dynamic_pointer_cast<const FreeFermionWavefunction>(this_ptr), r);
         }
 
-    unsigned int get_N_species (void) const
+    virtual unsigned int get_N_species (void) const override
         {
             return orbital_def.size();
         }
 
-    unsigned int get_N_filled (unsigned int species) const
+    virtual unsigned int get_N_filled (unsigned int species) const override
         {
             BOOST_ASSERT(species < get_N_species());
             return orbital_def[species]->get_N_filled();

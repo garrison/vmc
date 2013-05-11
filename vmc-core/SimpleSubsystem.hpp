@@ -17,9 +17,9 @@ public:
         {
         }
 
-    bool position_is_within (unsigned int site_index, const Lattice &lattice) const;
+    virtual bool position_is_within (unsigned int site_index, const Lattice &lattice) const override;
 
-    bool lattice_makes_sense (const Lattice &lattice) const;
+    virtual bool lattice_makes_sense (const Lattice &lattice) const override;
 
     const lw_vector<unsigned int, MAX_DIMENSION> subsystem_length;
 };

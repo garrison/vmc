@@ -36,7 +36,7 @@ public:
      * called, either measure() or repeat_measurement() should be called after
      * every step.
      */
-    void initialize (const Walk &walk)
+    virtual void initialize (const Walk &walk) override final
         {
             BOOST_ASSERT(!initialized);
             BOOST_ASSERT(this->is_valid_walk(walk));
@@ -49,7 +49,7 @@ public:
      * time a step is taken that results in an actual move in Monte Carlo
      * space.
      */
-    void step_advanced (const Walk &walk)
+    virtual void step_advanced (const Walk &walk) override final
         {
             first_step_has_been_completed = true;
             m_state_changed_since_last_measurement = true;
@@ -61,13 +61,13 @@ public:
      * time a step is taken in which the current state of the walk is identical
      * to the previous state.
      */
-    void step_repeated (const Walk &walk)
+    virtual void step_repeated (const Walk &walk) override final
         {
             BOOST_ASSERT(first_step_has_been_completed);
             step_completed(walk);
         }
 
-    bool is_valid_walk (const Walk &walk)
+    virtual bool is_valid_walk (const Walk &walk) override final
         {
             const Walk_T *walkptr = dynamic_cast<const Walk_T *>(&walk);
             return walkptr && is_valid_walk_(*walkptr);

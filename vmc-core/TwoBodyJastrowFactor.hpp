@@ -18,7 +18,7 @@ public:
     TwoBodyJastrowFactor (const Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> &correlation_matrix);
 
 private:
-    Big<amplitude_t> compute_jastrow (const PositionArguments &r) const;
+    virtual Big<amplitude_t> compute_jastrow (const PositionArguments &r) const override;
 
     Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> m_correlation_matrix;
 

@@ -20,7 +20,7 @@ public:
         }
 
 protected:
-    unsigned int random_small_uint (unsigned int lower_bound, unsigned int upper_cutoff)
+    virtual unsigned int random_small_uint (unsigned int lower_bound, unsigned int upper_cutoff) override
         {
             BOOST_ASSERT(lower_bound < upper_cutoff);
             if (lower_bound == upper_cutoff - 1)
@@ -30,7 +30,7 @@ protected:
             return generator();
         }
 
-    double random_uniform01 (void)
+    virtual double random_uniform01 (void) override
         {
             return uniform01_distribution();
         }

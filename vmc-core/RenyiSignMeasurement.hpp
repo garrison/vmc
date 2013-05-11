@@ -36,7 +36,7 @@ public:
         }
 
 private:
-    void measure_ (const RenyiSignWalk &walk)
+    virtual void measure_ (const RenyiSignWalk &walk) override
         {
             // we take the argument of each determinant separately instead of
             // multiplying the determinants together first.  this is necessary

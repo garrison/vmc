@@ -32,7 +32,7 @@ public:
             BOOST_ASSERT(max_blocks >= 2);
         }
 
-    void add_value (T value)
+    virtual void add_value (T value) override
         {
             BinnedEstimate<T>::add_value(value);
 

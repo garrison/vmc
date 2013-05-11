@@ -65,7 +65,7 @@ public:
         }
 
 private:
-    void initialize_ (const StandardWalk &walk)
+    virtual void initialize_ (const StandardWalk &walk) override
         {
             BOOST_ASSERT(estimate.size() == 0);
 
@@ -85,7 +85,7 @@ private:
             estimate.resize(n);
         }
 
-    void measure_ (const StandardWalk &walk)
+    virtual void measure_ (const StandardWalk &walk) override
         {
             const Wavefunction::Amplitude &wfa = walk.get_wavefunctionamplitude();
 
@@ -99,7 +99,7 @@ private:
             repeat_measurement_(walk);
         }
 
-    void repeat_measurement_ (const StandardWalk &walk)
+    virtual void repeat_measurement_ (const StandardWalk &walk) override
         {
             (void) walk;
             // tally the value 1 for the current occupation, and 0 for each

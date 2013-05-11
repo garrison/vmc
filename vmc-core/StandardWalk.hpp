@@ -34,21 +34,21 @@ private:
     /**
      * Attempt a transition and return its probability ratio
      */
-    probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng);
+    virtual probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng) override;
 
     /**
      * Accept the transition, and get the walk object into a state such that
      * new transitions can be attempted.
      */
-    void accept_transition (void);
+    virtual void accept_transition (void) override;
 
     /**
      * Reject the transition, and get the walk object into a state such that
      * new transitions can be attempted.
      */
-    void reject_transition (void);
+    virtual void reject_transition (void) override;
 
-    void check_for_numerical_error (void) const;
+    virtual void check_for_numerical_error (void) const override;
 
     boost::shared_ptr<Wavefunction::Amplitude> wfa; // treat this as copy on write
     bool autoreject_in_progress;

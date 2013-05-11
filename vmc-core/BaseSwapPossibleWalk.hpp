@@ -53,10 +53,10 @@ public:
         }
 
 private:
-    probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng);
-    void accept_transition (void);
-    void reject_transition (void);
-    void check_for_numerical_error (void) const;
+    virtual probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng) override final;
+    virtual void accept_transition (void) override;
+    virtual void reject_transition (void) override;
+    virtual void check_for_numerical_error (void) const override;
 
     virtual probability_t probability_ratio (amplitude_t phialpha1_ratio, amplitude_t phialpha2_ratio, amplitude_t phibeta1_ratio, amplitude_t phibeta2_ratio) const = 0;
 

@@ -228,7 +228,7 @@ public:
             if (nullity_lower_bound == 0) {
                 // The matrix is not singular, so we calculate the new
                 // determinant using the Sherman-Morrison-Woodbury formula.
-                detrat = mat.row(pending_index) * invmat.col(pending_index);
+                detrat = (mat.row(pending_index) * invmat.col(pending_index))[0];
                 det *= detrat;
 
                 if (det.is_nonzero()) {
@@ -274,7 +274,7 @@ public:
             if (nullity_lower_bound == 0) {
                 // The matrix is not singular, so we calculate the new
                 // determinant using the Sherman-Morrison-Woodbury formula.
-                detrat = invmat.row(pending_index) * mat.col(pending_index);
+                detrat = (invmat.row(pending_index) * mat.col(pending_index))[0];
                 det *= detrat;
 
                 if (det.is_nonzero()) {

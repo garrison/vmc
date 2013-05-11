@@ -10,6 +10,8 @@
 numpy
 scipy
 h5py
+numexpr  # dependency of pytables
+tables
 blist
 Cython>=0.18
 matplotlib

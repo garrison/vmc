@@ -50,7 +50,7 @@ Lattice::Lattice (const lw_vector<int, MAX_DIMENSION> &dimensions_, int basis_in
     }
 }
 
-LatticeSite Lattice::site_from_index (unsigned int n) const
+LatticeSite Lattice::operator[] (unsigned int n) const
 {
     BOOST_ASSERT(n < total_sites());
     LatticeSite rv(this->n_dimensions());
@@ -65,7 +65,7 @@ LatticeSite Lattice::site_from_index (unsigned int n) const
     return rv;
 }
 
-unsigned int Lattice::site_to_index (const LatticeSite &site) const
+unsigned int Lattice::index (const LatticeSite &site) const
 {
     BOOST_ASSERT(site_is_valid(site));
 
@@ -75,7 +75,7 @@ unsigned int Lattice::site_to_index (const LatticeSite &site) const
     }
     n += site.basis_index * basis_offset;
 #ifdef VMC_CAREFUL
-    BOOST_ASSERT(site == site_from_index(n));
+    BOOST_ASSERT(site == this->index(n));
 #endif
     return n;
 }

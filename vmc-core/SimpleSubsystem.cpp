@@ -6,7 +6,7 @@ bool SimpleSubsystem::position_is_within (unsigned int site_index, const Lattice
 {
     BOOST_ASSERT(lattice_makes_sense(lattice));
 
-    const LatticeSite site(lattice.site_from_index(site_index));
+    const LatticeSite site(lattice[site_index]);
     for (unsigned int i = 0; i < lattice.n_dimensions(); ++i) {
         BOOST_ASSERT(site[i] >= 0);
         if (site[i] >= (int) subsystem_length[i])

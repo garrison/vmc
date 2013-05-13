@@ -52,11 +52,11 @@ unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const P
     const int step_direction = rng.random_small_uint(2) * 2 - 1;
 
     const unsigned int original_site_index = r[particle];
-    LatticeSite site(lattice.site_from_index(original_site_index));
+    LatticeSite site(lattice[original_site_index]);
     unsigned int site_index;
     do {
         lattice.move_site(site, move_axis, step_direction);
-        site_index = lattice.site_to_index(site);
+        site_index = lattice.index(site);
     } while (r.is_occupied(site_index, particle.species) && site_index != original_site_index);
 
     return site_index;

@@ -148,16 +148,16 @@ public:
     /**
      * Maps a lattice index (0..N-1) to a LatticeSite (i.e. its coordinates)
      *
-     * @see site_to_index()
+     * @see index()
      */
-    LatticeSite site_from_index (unsigned int n) const;
+    LatticeSite operator[] (unsigned int n) const;
 
     /**
      * Maps a LatticeSite to its corresponding lattice index (0..N-1)
      *
-     * @see site_from_index()
+     * @see operator[]()
      */
-    unsigned int site_to_index (const LatticeSite &site) const;
+    unsigned int index (const LatticeSite &site) const;
 
     /**
      * Returns true if the given site is on the lattice

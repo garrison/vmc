@@ -240,12 +240,12 @@ cdef class Lattice(object):
     def __getitem__(self, unsigned int index):
         if index >= len(self):
             raise ValueError
-        return LatticeSite_from_cpp(self.sharedptr.get().site_from_index(index))
+        return LatticeSite_from_cpp(deref(self.sharedptr)[index])
 
     def index(self, LatticeSite site not None):
         if site not in self:
             raise ValueError
-        return <int>self.sharedptr.get().site_to_index(site.cpp)
+        return <int>self.sharedptr.get().index(site.cpp)
 
     def __contains__(self, LatticeSite site not None):
         return bool(site.cpp.n_dimensions() == self.sharedptr.get().n_dimensions() and

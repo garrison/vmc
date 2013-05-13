@@ -30,8 +30,8 @@ cdef extern from "Lattice.hpp":
         unsigned int total_sites()
         unsigned int total_bravais_sites()
         unsigned int n_dimensions()
-        CppLatticeSite site_from_index(unsigned int)
-        unsigned int site_to_index(const CppLatticeSite&)
+        CppLatticeSite operator[](unsigned int)
+        unsigned int index(const CppLatticeSite&)
         bint site_is_valid(const CppLatticeSite&)
 
         const DimensionVector dimensions

@@ -40,7 +40,7 @@ std::vector<unsigned int> some_random_configuration (unsigned int N_filled, cons
                             proposed_site[j] = rng.random_small_uint(lattice.dimensions[j]);
                     }
                     proposed_site.basis_index = rng.random_small_uint(lattice.basis_indices);
-                    proposed_site_index = lattice.site_to_index(proposed_site);
+                    proposed_site_index = lattice.index(proposed_site);
                 } while (!vs.insert(proposed_site_index).second); // try again until successful
                 v.push_back(proposed_site_index);
             }

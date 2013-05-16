@@ -15,14 +15,36 @@
 #include "vmc-typedefs.hpp"
 #include "vmc-real-part.hpp"
 
+// for exception handling
+#include <string>
+#include <boost/lexical_cast.hpp>
+
+template <typename T>
 class unrecoverable_matrix_inverse_error : public std::runtime_error
 {
-public:
-    unrecoverable_matrix_inverse_error (real_t inverse_error_, unsigned int n_smw_updates_, real_t smallest_detrat_);
+private:
+    static inline std::string construct_what_string (const T &inverse_error, unsigned int n_smw_updates, const T &smallest_detrat)
+        {
+            return (std::string("Unrecoverable large inverse error: ")
+                    + boost::lexical_cast<std::string>(inverse_error)
+                    + std::string(" after ")
+                    + boost::lexical_cast<std::string>(n_smw_updates) + std::string(" updates.")
+                    + std::string("  smallest detrat: ")
+                    + boost::lexical_cast<std::string>(smallest_detrat));
+        }
 
-    const real_t inverse_error;
+public:
+    unrecoverable_matrix_inverse_error (const T &inverse_error_, unsigned int n_smw_updates_, const T &smallest_detrat_)
+        : std::runtime_error(construct_what_string(inverse_error_, n_smw_updates_, smallest_detrat_)),
+          inverse_error(inverse_error_),
+          n_smw_updates(n_smw_updates_),
+          smallest_detrat(smallest_detrat_)
+        {
+        }
+
+    const T inverse_error;
     const unsigned int n_smw_updates;
-    const real_t smallest_detrat;
+    const T smallest_detrat;
 };
 
 template <typename T>
@@ -925,7 +947,7 @@ private:
         {
             const typename RealPart<T>::type inverse_error = compute_inverse_matrix_error(mat_, invmat);
             if (!(inverse_error < .03))
-                throw unrecoverable_matrix_inverse_error(inverse_error, n_smw_updates, smallest_detrat);
+                throw unrecoverable_matrix_inverse_error<T>(inverse_error, n_smw_updates, smallest_detrat);
 #if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
             std::cerr << "inverse error = " << inverse_error << " after " << n_smw_updates << " updates." << std::endl;
 #endif
@@ -963,7 +985,7 @@ private:
                 // orbitals are not linearly independent!
                 const typename RealPart<T>::type inverse_error = compute_inverse_matrix_error(mat, update_in_progress ? new_invmat : invmat);
                 if (!(inverse_error < .03))
-                    throw unrecoverable_matrix_inverse_error(inverse_error, 0, std::numeric_limits<typename RealPart<T>::type>::infinity());
+                    throw unrecoverable_matrix_inverse_error<T>(inverse_error, 0, std::numeric_limits<typename RealPart<T>::type>::infinity());
 #endif
             }
 

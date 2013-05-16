@@ -25,6 +25,47 @@ public:
     const real_t smallest_detrat;
 };
 
+template <typename T>
+struct CeperleyMatrixGenericTraits
+{
+    /**
+     * As long as the magnitude of the "base" of the determinant remains
+     * between these values, the O(N^2) update algorithm will be used.
+     * However, if the "base" falls outside these values we will recalculate
+     * the inverse from scratch to fight numerical error, and to keep the
+     * "base" in a reasonable range, since it is used for a variety of
+     * calculations.
+     */
+    static inline typename RealPart<T>::type ceperley_determinant_base_lower_cutoff (void)
+        {
+            return 1e-25;
+        }
+
+    static inline typename RealPart<T>::type ceperley_determinant_base_upper_cutoff (void)
+        {
+            return 1e25;
+        }
+
+    /**
+     * If detrat is less than this, we have reason to believe that the matrix
+     * might be singular and therefore we recompute the inverse just to be
+     * safe.
+     */
+    static inline typename RealPart<T>::type ceperley_detrat_lower_cutoff (void)
+        {
+            // if this is set too low, we may not be able to reliably recognize
+            // singular matrices.  In particular, an abs(detrat) as high as
+            // 1.27765e-05 has been known to cause problems on the DMetal 48x2
+            // "presentation point"
+            return 1e-4;
+        }
+};
+
+template <typename T>
+struct CeperleyMatrixTraits : public CeperleyMatrixGenericTraits<T>
+{
+};
+
 /**
  * O(N^2) method for keeping track of a determinant when only one or a few
  * row(s) or column(s) change in a given step.  Also known as the
@@ -96,24 +137,6 @@ private:
      * since last recalculating the inverse matrix
      */
     unsigned int n_smw_updates;
-
-    /**
-     * As long as the magnitude of the "base" of the determinant remains
-     * between these values, the O(N^2) update algorithm will be used.
-     * However, if the "base" falls outside these values we will recalculate
-     * the inverse from scratch to fight numerical error, and to keep the
-     * "base" in a reasonable range, since it is used for a variety of
-     * calculations.
-     */
-    static const typename RealPart<T>::type ceperley_determinant_base_lower_cutoff;
-    static const typename RealPart<T>::type ceperley_determinant_base_upper_cutoff;
-
-    /**
-     * If detrat is less than this, we have reason to believe that the matrix
-     * might be singular and therefore we recompute the inverse just to be
-     * safe.
-     */
-    static const typename RealPart<T>::type ceperley_detrat_lower_cutoff;
 
     typename RealPart<T>::type smallest_detrat;
 
@@ -839,13 +862,13 @@ private:
 
     inline bool determinant_is_uncomfortable_during_update (void) const
         {
-            return (std::abs(detrat) < ceperley_detrat_lower_cutoff
-                    || std::abs(det.get_base()) < ceperley_determinant_base_lower_cutoff);
+            return (std::abs(detrat) < CeperleyMatrixTraits<T>::ceperley_detrat_lower_cutoff()
+                    || std::abs(det.get_base()) < CeperleyMatrixTraits<T>::ceperley_determinant_base_lower_cutoff());
         }
 
     inline bool determinant_is_uncomfortable_while_finishing_update (void) const
         {
-            return (std::abs(det.get_base()) > ceperley_determinant_base_upper_cutoff);
+            return (std::abs(det.get_base()) > CeperleyMatrixTraits<T>::ceperley_determinant_base_upper_cutoff());
         }
 
     void common_complete_finish_update (void (CeperleyMatrix<T>::*revert_mat)(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &))

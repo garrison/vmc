@@ -57,13 +57,13 @@ public:
             // in case new_size <= n
             n = new_size;
         }
-    
+
     T & operator[] (std::size_t index)
         {
             BOOST_ASSERT(index < n);
             return v[index];
         }
-    
+
     const T & operator[] (std::size_t index) const
         {
             BOOST_ASSERT(index < n);

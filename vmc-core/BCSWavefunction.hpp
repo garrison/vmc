@@ -19,11 +19,11 @@
 class BCSWavefunction : public Wavefunction
 {
 public:
-    const Eigen::Matrix<complex_t, Eigen::Dynamic, Eigen::Dynamic> phi;
+    const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> phi;
     const unsigned int M; // number of particles of each species
     const boost::shared_ptr<const JastrowFactor> jastrow;
 
-    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const Eigen::Matrix<complex_t, Eigen::Dynamic, Eigen::Dynamic> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>())
+    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>())
         : Wavefunction(lattice_),
           phi(phi_),
           M(M_),
@@ -92,7 +92,7 @@ public:
         }
 
     // CYTHON-LIMITATION: http://docs.cython.org/src/userguide/wrapping_CPlusPlus.html#c-left-values
-    static inline void set_matrix_coeff (Eigen::Matrix<complex_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int row, unsigned int col, amplitude_t value)
+    static inline void set_matrix_coeff (Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int row, unsigned int col, amplitude_t value)
         {
             mat(row, col) = value;
         }

@@ -1,11 +1,12 @@
 #ifndef _VMC_ORBITAL_DEFINITIONS_HPP
 #define _VMC_ORBITAL_DEFINITIONS_HPP
 
-#include <Eigen/Dense>
 #include <boost/assert.hpp>
 #include <boost/shared_ptr.hpp>
 
+// we always want to include vmc-typedefs.hpp before including Eigen
 #include "vmc-typedefs.hpp"
+#include <Eigen/Dense>
 
 class Lattice;
 

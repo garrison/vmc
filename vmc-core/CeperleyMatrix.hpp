@@ -7,12 +7,14 @@
 #include <stdexcept>
 #include <limits>
 
-#include <Eigen/Dense>
 #include <boost/assert.hpp>
+
+// we always want to include vmc-typedefs.hpp before including Eigen
+#include "vmc-typedefs.hpp"
+#include <Eigen/Dense>
 
 #include "Big.hpp"
 #include "lw_vector.hpp"
-#include "vmc-typedefs.hpp"
 #include "vmc-real-part.hpp"
 
 // for exception handling

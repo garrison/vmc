@@ -1,6 +1,8 @@
 #ifndef _VMC_TWO_BODY_JASTROW_FACTOR_HPP
 #define _VMC_TWO_BODY_JASTROW_FACTOR_HPP
 
+// we always want to include vmc-typedefs.hpp before including Eigen
+#include "vmc-typedefs.hpp"
 #include <Eigen/Dense>
 
 #include "JastrowFactor.hpp"

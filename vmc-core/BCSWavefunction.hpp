@@ -3,9 +3,12 @@
 
 #include <vector>
 
-#include <Eigen/Dense>
 #include <boost/make_shared.hpp>
 #include <boost/assert.hpp>
+
+// we always want to include vmc-typedefs.hpp before including Eigen
+#include "vmc-typedefs.hpp"
+#include <Eigen/Dense>
 
 #include "Wavefunction.hpp"
 #include "CeperleyMatrix.hpp"

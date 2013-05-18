@@ -1,10 +1,12 @@
 #include <limits>
 
 #include <boost/version.hpp>
+
+// we always want to include vmc-typedefs.hpp before including Eigen
+#include "vmc-typedefs.hpp"
 #include <Eigen/Core>
 
 #include "RunInformation.hpp"
-#include "vmc-typedefs.hpp"
 
 #define STRINGIFY_(x) #x
 #define STRINGIFY(x) STRINGIFY_(x)

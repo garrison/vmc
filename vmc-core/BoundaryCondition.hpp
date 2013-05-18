@@ -6,11 +6,11 @@
 #include <boost/assert.hpp>
 #include <boost/rational.hpp>
 #include <boost/math/constants/constants.hpp>
+#include <boost/utility/enable_if.hpp>
+#include <boost/type_traits/is_complex.hpp>
 
 #include "lw_vector.hpp"
 #include "vmc-typedefs.hpp"
-
-// fixme: make this class not be inline?
 
 /**
  * Represents a boundary condition in one dimension for a system that exists on
@@ -32,7 +32,7 @@ public:
      */
     explicit BoundaryCondition (const boost::rational<int> &p_)
         : m_p(p_),
-          m_phase(calculate_phase(p_))
+          m_phase(calculate_phase<phase_t>(p_))
         {
             BOOST_ASSERT(p_ >= 0 && p_ <= 1);
         }
@@ -84,9 +84,12 @@ public:
 private:
     /**
      * This function is called to initialize the data member m_phase during
-     * object construction
+     * object construction.  We are unsure whether phase_t is real or complex,
+     * so we implement both and the compiler chooses the correct one using
+     * template specialization.
      */
-    static phase_t calculate_phase (const boost::rational<int> &p)
+    template<typename PHASE_T>
+    static typename boost::enable_if<boost::is_complex<PHASE_T>, phase_t>::type calculate_phase (const boost::rational<int> &p)
         {
             // consider open boundary conditions as a special case
             if (p == 0)
@@ -94,16 +97,28 @@ private:
 
             // if we can return an exact value, do so
             if (p == boost::rational<int>(1))
-                return phase_t(1, 0);
+                return phase_t(1);
             else if (p == boost::rational<int>(1, 2))
-                return phase_t(-1, 0);
+                return phase_t(-1);
             else if (p == boost::rational<int>(1, 4))
-                return phase_t(0, 1);
+                return PHASE_T(0, 1);
             else if (p == boost::rational<int>(3, 4))
-                return phase_t(0, -1);
+                return PHASE_T(0, -1);
             else
-                // if not, fall back using the exponential function
+                // cannot return an exact value, so fall back using the exponential function
                 return std::exp(complex_t(0, 1) * complex_t(2 * boost::math::constants::pi<real_t>() * boost::rational_cast<real_t>(p)));
+        }
+
+    template<typename PHASE_T>
+    static typename boost::disable_if<boost::is_complex<PHASE_T>, phase_t>::type calculate_phase (const boost::rational<int> &p)
+        {
+            if (p == boost::rational<int>(1))
+                return phase_t(1);
+            else if (p == boost::rational<int>(1, 2))
+                return phase_t(-1);
+
+            BOOST_ASSERT(false); // this phase cannot be represented using a real number type
+            return phase_t(0);
         }
 
     boost::rational<int> m_p;

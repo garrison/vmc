@@ -24,7 +24,7 @@ public:
     virtual bool is_valid_walk (const Walk &walk) = 0;
 };
 
-template <class Walk_T>
+template <class WalkType>
 class Measurement : public BaseMeasurement
 // abstract base class
 {
@@ -40,7 +40,7 @@ public:
         {
             BOOST_ASSERT(!initialized);
             BOOST_ASSERT(this->is_valid_walk(walk));
-            initialize_(*boost::polymorphic_downcast<const Walk_T *>(&walk));
+            initialize_(*boost::polymorphic_downcast<const WalkType *>(&walk));
             initialized = true;
         }
 
@@ -69,7 +69,7 @@ public:
 
     virtual bool is_valid_walk (const Walk &walk) override final
         {
-            const Walk_T *walkptr = dynamic_cast<const Walk_T *>(&walk);
+            const WalkType *walkptr = dynamic_cast<const WalkType *>(&walk);
             return walkptr && is_valid_walk_(*walkptr);
         }
 
@@ -122,7 +122,7 @@ private:
         {
             BOOST_ASSERT(initialized);
             BOOST_ASSERT(!measurement_in_progress);
-            const Walk_T &walk = *boost::polymorphic_downcast<const Walk_T *>(&walk_);
+            const WalkType &walk = *boost::polymorphic_downcast<const WalkType *>(&walk_);
             ++m_steps_since_last_measurement;
             if (m_steps_since_last_measurement % m_steps_per_measurement == 0) {
                 measurement_in_progress = true;
@@ -137,7 +137,7 @@ private:
             }
         }
 
-    virtual void initialize_ (const Walk_T &walk)
+    virtual void initialize_ (const WalkType &walk)
         {
             // by default, do nothing.
             (void) walk;
@@ -152,7 +152,7 @@ private:
      *
      * @see repeat_measurement_()
      */
-    virtual void measure_ (const Walk_T &walk) = 0;
+    virtual void measure_ (const WalkType &walk) = 0;
 
     /**
      * This gets called any time we actually want to tally a measurement
@@ -163,13 +163,13 @@ private:
      *
      * @see measure_()
      */
-    virtual void repeat_measurement_ (const Walk_T &walk)
+    virtual void repeat_measurement_ (const WalkType &walk)
         {
             // by default, simply call measure_()
             measure_(walk);
         }
 
-    virtual bool is_valid_walk_ (const Walk_T &walk)
+    virtual bool is_valid_walk_ (const WalkType &walk)
         {
             // no additional constraints by default
             (void) walk;

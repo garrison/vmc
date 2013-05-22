@@ -6,7 +6,7 @@ from pyvmc.core.wavefunction cimport CppWavefunction, WavefunctionWrapper
 from pyvmc.core.lattice cimport CppLattice, Lattice
 
 cdef extern from "BCSWavefunction.hpp":
-    cdef cppclass CppPhiMatrix "Eigen::Matrix<complex_t, Eigen::Dynamic, Eigen::Dynamic>":
+    cdef cppclass CppPhiMatrix "Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic>":
         CppPhiMatrix(unsigned int, unsigned int)
         CppPhiMatrix(CppPhiMatrix&)
 

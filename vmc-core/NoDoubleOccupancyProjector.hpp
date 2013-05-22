@@ -10,9 +10,14 @@
  *
  * Currently, should only be used when get_N_species == 2.
  */
-class NoDoubleOccupancyProjector : public JastrowFactor
+template <typename AmplitudeType>
+class NoDoubleOccupancyProjector : public JastrowFactor<AmplitudeType>
 {
-    virtual Big<amplitude_t> compute_jastrow (const PositionArguments &r) const override;
+    virtual Big<AmplitudeType> compute_jastrow (const PositionArguments &r) const override;
 };
+
+#define VMC_SUPPORTED_TYPE(type) extern template class NoDoubleOccupancyProjector<type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

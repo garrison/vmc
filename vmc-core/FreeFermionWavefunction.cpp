@@ -5,7 +5,7 @@
 #include "FreeFermionWavefunction.hpp"
 
 template <typename AmplitudeType>
-FreeFermionWavefunction<AmplitudeType>::FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_)
+FreeFermionWavefunction<AmplitudeType>::FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > > &orbital_def_, const boost::shared_ptr<const JastrowFactor<AmplitudeType> > &jastrow_)
     : Wavefunction<AmplitudeType>(orbital_def_[0]->get_lattice_ptr()),
       orbital_def(orbital_def_),
       jastrow(jastrow_)

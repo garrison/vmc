@@ -23,11 +23,11 @@ cdef class WavefunctionWrapper(object):
     cdef shared_ptr[CppWavefunction] sharedptr
 
 cdef extern from "JastrowFactor.hpp":
-    cdef cppclass CppJastrowFactor "JastrowFactor":
+    cdef cppclass CppJastrowFactor "JastrowFactor<amplitude_t>":
         pass
 
 cdef extern from "NoDoubleOccupancyProjector.hpp":
-    cdef cppclass CppNoDoubleOccupancyProjector "NoDoubleOccupancyProjector" (CppJastrowFactor):
+    cdef cppclass CppNoDoubleOccupancyProjector "NoDoubleOccupancyProjector<amplitude_t>" (CppJastrowFactor):
         CppNoDoubleOccupancyProjector()
 
 cdef extern from "TwoBodyJastrowFactor.hpp":
@@ -35,10 +35,10 @@ cdef extern from "TwoBodyJastrowFactor.hpp":
         CppTwoBodyJastrowMatrix(unsigned int, unsigned int)
         CppTwoBodyJastrowMatrix(const CppTwoBodyJastrowMatrix&)
 
-    cdef cppclass CppTwoBodyJastrowFactor "TwoBodyJastrowFactor" (CppJastrowFactor):
+    cdef cppclass CppTwoBodyJastrowFactor "TwoBodyJastrowFactor<amplitude_t>" (CppJastrowFactor):
         CppTwoBodyJastrowFactor(const CppTwoBodyJastrowMatrix&)
 
-    cdef void set_matrix_coeff "TwoBodyJastrowFactor::set_matrix_coeff" (CppTwoBodyJastrowMatrix&, unsigned int, unsigned int, double)
+    cdef void set_matrix_coeff "TwoBodyJastrowFactor<amplitude_t>::set_matrix_coeff" (CppTwoBodyJastrowMatrix&, unsigned int, unsigned int, double)
 
 cdef class JastrowFactor(object):
     cdef shared_ptr[CppJastrowFactor] sharedptr

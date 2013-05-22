@@ -25,9 +25,9 @@ class BCSWavefunction : public Wavefunction<AmplitudeType>
 public:
     const Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> phi;
     const unsigned int M; // number of particles of each species
-    const boost::shared_ptr<const JastrowFactor> jastrow;
+    const boost::shared_ptr<const JastrowFactor<AmplitudeType> > jastrow;
 
-    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>())
+    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor<AmplitudeType> > &jastrow_=boost::shared_ptr<const JastrowFactor<AmplitudeType> >())
         : Wavefunction<AmplitudeType>(lattice_),
           phi(phi_),
           M(M_),

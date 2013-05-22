@@ -6,7 +6,8 @@
 // do this in O(N*m) time instead of O(N^2) time, where m is the number of
 // particles moved.
 
-TwoBodyJastrowFactor::TwoBodyJastrowFactor (const Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> &correlation_matrix)
+template<typename AmplitudeType>
+TwoBodyJastrowFactor<AmplitudeType>::TwoBodyJastrowFactor (const Eigen::Matrix<typename RealPart<AmplitudeType>::type, Eigen::Dynamic, Eigen::Dynamic> &correlation_matrix)
     : m_correlation_matrix(correlation_matrix)
 {
     // ensure the matrix is square and symmetric
@@ -14,11 +15,12 @@ TwoBodyJastrowFactor::TwoBodyJastrowFactor (const Eigen::Matrix<real_t, Eigen::D
     BOOST_ASSERT(correlation_matrix == correlation_matrix.transpose());
 }
 
-Big<amplitude_t> TwoBodyJastrowFactor::compute_jastrow (const PositionArguments &r) const
+template<typename AmplitudeType>
+Big<AmplitudeType> TwoBodyJastrowFactor<AmplitudeType>::compute_jastrow (const PositionArguments &r) const
 {
     BOOST_ASSERT(r.get_N_sites() == m_correlation_matrix.cols());
 
-    real_t corr = 0;
+    typename RealPart<AmplitudeType>::type corr = 0;
 
     for (unsigned int species1 = 0; species1 < r.get_N_species(); ++species1) {
         for (unsigned int index1 = 0; index1 < r.get_N_filled(species1); ++index1) {
@@ -37,5 +39,8 @@ Big<amplitude_t> TwoBodyJastrowFactor::compute_jastrow (const PositionArguments 
     }
 
     // returns exp(-corr)
-    return Big<amplitude_t>(1, -corr);
+    return Big<AmplitudeType>(1, -corr);
 }
+
+#define VMC_SUPPORTED_TYPE(type) template class TwoBodyJastrowFactor<type>
+#include "vmc-supported-types.hpp"

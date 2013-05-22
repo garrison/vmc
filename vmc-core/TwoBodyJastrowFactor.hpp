@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 
 #include "JastrowFactor.hpp"
+#include "vmc-real-part.hpp"
 
 /**
  * Two body Jastrow factor
@@ -14,23 +15,28 @@
  *
  * $n_i$ counts the number of particles regardless of species
  */
-class TwoBodyJastrowFactor : public JastrowFactor
+template <typename AmplitudeType>
+class TwoBodyJastrowFactor : public JastrowFactor<AmplitudeType>
 {
 public:
-    TwoBodyJastrowFactor (const Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> &correlation_matrix);
+    TwoBodyJastrowFactor (const Eigen::Matrix<typename RealPart<AmplitudeType>::type, Eigen::Dynamic, Eigen::Dynamic> &correlation_matrix);
 
 private:
-    virtual Big<amplitude_t> compute_jastrow (const PositionArguments &r) const override;
+    virtual Big<AmplitudeType> compute_jastrow (const PositionArguments &r) const override;
 
-    Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> m_correlation_matrix;
+    Eigen::Matrix<typename RealPart<AmplitudeType>::type, Eigen::Dynamic, Eigen::Dynamic> m_correlation_matrix;
 
 public:
     // CYTHON-LIMITATION: http://docs.cython.org/src/userguide/wrapping_CPlusPlus.html#c-left-values
-    static inline void set_matrix_coeff (Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic> &mat,
-                                         unsigned int row, unsigned int col, real_t value)
+    static inline void set_matrix_coeff (Eigen::Matrix<typename RealPart<AmplitudeType>::type, Eigen::Dynamic, Eigen::Dynamic> &mat,
+                                         unsigned int row, unsigned int col, typename RealPart<AmplitudeType>::type value)
         {
             mat(row, col) = value;
         }
 };
+
+#define VMC_SUPPORTED_TYPE(type) extern template class TwoBodyJastrowFactor<type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

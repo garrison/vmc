@@ -8,6 +8,7 @@
 /**
  * Abstract base class for a projector or Jastrow factor
  */
+template <typename AmplitudeType>
 class JastrowFactor
 {
 public:
@@ -15,10 +16,10 @@ public:
         {
         }
 
-    // this is always going to be real and positive, but we use amplitude_t so
-    // we can multiply it by other Big<amplitude_t>'s.  There is probably a
+    // this is always going to be real and positive, but we use AmplitudeType so
+    // we can multiply it by other Big<AmplitudeType>'s.  There is probably a
     // better way to do this.
-    virtual Big<amplitude_t> compute_jastrow (const PositionArguments &r) const = 0;
+    virtual Big<AmplitudeType> compute_jastrow (const PositionArguments &r) const = 0;
 };
 
 #endif

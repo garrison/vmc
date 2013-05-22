@@ -22,9 +22,9 @@ class FreeFermionWavefunction : public Wavefunction<AmplitudeType>
 {
 public:
     const std::vector<boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > > orbital_def;
-    const boost::shared_ptr<const JastrowFactor> jastrow;
+    const boost::shared_ptr<const JastrowFactor<AmplitudeType> > jastrow;
 
-    FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>());
+    FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > > &orbital_def_, const boost::shared_ptr<const JastrowFactor<AmplitudeType> > &jastrow_=boost::shared_ptr<const JastrowFactor<AmplitudeType> >());
 
     class Amplitude : public Wavefunction<AmplitudeType>::Amplitude
     {

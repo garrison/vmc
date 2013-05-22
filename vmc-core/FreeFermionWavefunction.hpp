@@ -21,10 +21,10 @@ template <typename AmplitudeType>
 class FreeFermionWavefunction : public Wavefunction<AmplitudeType>
 {
 public:
-    const std::vector<boost::shared_ptr<const OrbitalDefinitions> > orbital_def;
+    const std::vector<boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > > orbital_def;
     const boost::shared_ptr<const JastrowFactor> jastrow;
 
-    FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>());
+    FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>());
 
     class Amplitude : public Wavefunction<AmplitudeType>::Amplitude
     {

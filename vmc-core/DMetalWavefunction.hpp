@@ -20,13 +20,13 @@ template <typename AmplitudeType>
 class DMetalWavefunction : public Wavefunction<AmplitudeType>
 {
 public:
-    const boost::shared_ptr<const OrbitalDefinitions> orbital_d1, orbital_d2, orbital_f_up, orbital_f_dn;
+    const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > orbital_d1, orbital_d2, orbital_f_up, orbital_f_dn;
     const real_t d1_exponent, d2_exponent, f_up_exponent, f_dn_exponent;
 
-    DMetalWavefunction (const boost::shared_ptr<const OrbitalDefinitions> &orbital_d1_,
-                        const boost::shared_ptr<const OrbitalDefinitions> &orbital_d2_,
-                        const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_up_,
-                        const boost::shared_ptr<const OrbitalDefinitions> &orbital_f_dn_,
+    DMetalWavefunction (const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_d1_,
+                        const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_d2_,
+                        const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_f_up_,
+                        const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_f_dn_,
                         real_t d1_exponent_,
                         real_t d2_exponent_,
                         real_t f_up_exponent_,

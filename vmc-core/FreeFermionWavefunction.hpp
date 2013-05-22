@@ -17,6 +17,7 @@
  *
  * (a single determinant for each species, with no Jastrow factor)
  */
+template <typename AmplitudeType>
 class FreeFermionWavefunction : public Wavefunction
 {
 public:
@@ -28,8 +29,8 @@ public:
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
-        std::vector<CeperleyMatrix<amplitude_t> > m_cmat;
-        Big<amplitude_t> m_current_jastrow, m_old_jastrow;
+        std::vector<CeperleyMatrix<AmplitudeType> > m_cmat;
+        Big<AmplitudeType> m_current_jastrow, m_old_jastrow;
         unsigned int m_partial_update_step;
         std::vector<bool> m_species_move_in_progress;
         Move m_current_move;
@@ -43,7 +44,7 @@ public:
         template <bool first_pass>
         void do_perform_move (const Move &move);
 
-        virtual Big<amplitude_t> psi_ (void) const override;
+        virtual Big<AmplitudeType> psi_ (void) const override;
 
         virtual void finish_move_ (void) override;
 
@@ -82,5 +83,9 @@ public:
             return orbital_def[species]->get_N_filled();
         }
 };
+
+#define VMC_SUPPORTED_TYPE(type) extern template class FreeFermionWavefunction<type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

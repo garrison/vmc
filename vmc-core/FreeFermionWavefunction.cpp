@@ -4,7 +4,8 @@
 
 #include "FreeFermionWavefunction.hpp"
 
-FreeFermionWavefunction::FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_)
+template <typename AmplitudeType>
+FreeFermionWavefunction<AmplitudeType>::FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_)
     : Wavefunction(orbital_def_[0]->get_lattice_ptr()),
       orbital_def(orbital_def_),
       jastrow(jastrow_)
@@ -17,7 +18,8 @@ FreeFermionWavefunction::FreeFermionWavefunction (const std::vector<boost::share
 #endif
 }
 
-FreeFermionWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const FreeFermionWavefunction> &wf_, const PositionArguments &r_)
+template <typename AmplitudeType>
+FreeFermionWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const FreeFermionWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction::Amplitude(wf_, r_),
       m_current_jastrow(1),
       m_partial_update_step(0),
@@ -26,7 +28,8 @@ FreeFermionWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const Fre
     reinitialize();
 }
 
-void FreeFermionWavefunction::Amplitude::perform_move_ (const Move &move)
+template <typename AmplitudeType>
+void FreeFermionWavefunction<AmplitudeType>::Amplitude::perform_move_ (const Move &move)
 {
     // we require that m_partial_update_step == 0 between moves; otherwise,
     // psi_() will return zero when it shouldn't.
@@ -50,8 +53,9 @@ void FreeFermionWavefunction::Amplitude::perform_move_ (const Move &move)
 // doing so means we must later make a second pass to finish all the
 // determinant updates if finish_update() is called.  This templated function
 // allows us to use the same code in both passes, with only minor differences.
+template <typename AmplitudeType>
 template <bool first_pass>
-void FreeFermionWavefunction::Amplitude::do_perform_move (const Move &move)
+void FreeFermionWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &move)
 {
     const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction *>(wf.get());
 
@@ -85,18 +89,20 @@ void FreeFermionWavefunction::Amplitude::do_perform_move (const Move &move)
     m_partial_update_step = 0;
 }
 
-Big<amplitude_t> FreeFermionWavefunction::Amplitude::psi_ (void) const
+template <typename AmplitudeType>
+Big<AmplitudeType> FreeFermionWavefunction<AmplitudeType>::Amplitude::psi_ (void) const
 {
     if (m_partial_update_step != 0)
-        return Big<amplitude_t>();
+        return Big<AmplitudeType>();
 
-    Big<amplitude_t> rv(m_current_jastrow);
+    Big<AmplitudeType> rv(m_current_jastrow);
     for (unsigned int i = 0; i < get_N_species(); ++i)
         rv *= m_cmat[i].get_determinant();
     return rv;
 }
 
-void FreeFermionWavefunction::Amplitude::finish_move_ (void)
+template <typename AmplitudeType>
+void FreeFermionWavefunction<AmplitudeType>::Amplitude::finish_move_ (void)
 {
     do_perform_move<false>(m_current_move);
 
@@ -106,7 +112,8 @@ void FreeFermionWavefunction::Amplitude::finish_move_ (void)
     }
 }
 
-void FreeFermionWavefunction::Amplitude::cancel_move_ (void)
+template <typename AmplitudeType>
+void FreeFermionWavefunction<AmplitudeType>::Amplitude::cancel_move_ (void)
 {
     // we use an int here because the condition (i >= 0) would always be true
     // if we used an unsigned int!
@@ -118,20 +125,23 @@ void FreeFermionWavefunction::Amplitude::cancel_move_ (void)
     m_partial_update_step = 0;
 }
 
-void FreeFermionWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+template <typename AmplitudeType>
+void FreeFermionWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     BOOST_ASSERT(species < m_cmat.size());
     m_cmat[species].swap_columns(particle1_index, particle2_index);
 }
 
-void FreeFermionWavefunction::Amplitude::reset_ (const PositionArguments &r_)
+template <typename AmplitudeType>
+void FreeFermionWavefunction<AmplitudeType>::Amplitude::reset_ (const PositionArguments &r_)
 {
     r = r_;
     m_cmat.resize(0);
     reinitialize();
 }
 
-void FreeFermionWavefunction::Amplitude::reinitialize (void)
+template <typename AmplitudeType>
+void FreeFermionWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
 {
     const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction *>(wf.get());
 
@@ -149,20 +159,25 @@ void FreeFermionWavefunction::Amplitude::reinitialize (void)
     BOOST_ASSERT(m_cmat.size() == 0);
     for (unsigned int j = 0; j < wf_->orbital_def.size(); ++j) {
         const unsigned int N = r.get_N_filled(j);
-        Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
+        Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
         for (unsigned int i = 0; i < N; ++i)
             mat.col(i) = wf_->orbital_def[j]->at_position(r[Particle(i, j)]);
-        m_cmat.push_back(CeperleyMatrix<amplitude_t>(mat));
+        m_cmat.push_back(CeperleyMatrix<AmplitudeType>(mat));
     }
 }
 
-void FreeFermionWavefunction::Amplitude::check_for_numerical_error (void) const
+template <typename AmplitudeType>
+void FreeFermionWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (void) const
 {
     for (unsigned int i = 0; i < get_N_species(); ++i)
         m_cmat[i].check_for_numerical_error();
 }
 
-boost::shared_ptr<Wavefunction::Amplitude> FreeFermionWavefunction::Amplitude::clone_ (void) const
+template <typename AmplitudeType>
+boost::shared_ptr<Wavefunction::Amplitude> FreeFermionWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<FreeFermionWavefunction::Amplitude>(*this);
+    return boost::make_shared<FreeFermionWavefunction<AmplitudeType>::Amplitude>(*this);
 }
+
+#define VMC_SUPPORTED_TYPE(type) template class FreeFermionWavefunction<type>
+#include "vmc-supported-types.hpp"

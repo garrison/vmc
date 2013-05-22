@@ -5,7 +5,8 @@
 #include "vmc-math-utils.hpp"
 #include "DBLWavefunction.hpp"
 
-DBLWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const DBLWavefunction> &wf_, const PositionArguments &r_)
+template <typename AmplitudeType>
+DBLWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const DBLWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction::Amplitude(wf_, r_),
       m_partial_update_step(0)
 {
@@ -19,7 +20,8 @@ DBLWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const DBLWavefunc
     reinitialize();
 }
 
-void DBLWavefunction::Amplitude::perform_move_ (const Move &move)
+template <typename AmplitudeType>
+void DBLWavefunction<AmplitudeType>::Amplitude::perform_move_ (const Move &move)
 {
     // we require that m_partial_update_step == 0 between moves; otherwise, psi_() will
     // return zero when it shouldn't.
@@ -36,8 +38,9 @@ void DBLWavefunction::Amplitude::perform_move_ (const Move &move)
 // remaining determinant update if finish_update() is called.  This templated
 // function allows us to use the same code in both passes, with only minor
 // differences.
+template <typename AmplitudeType>
 template <bool first_pass>
-void DBLWavefunction::Amplitude::do_perform_move (const Move &move)
+void DBLWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &move)
 {
     if (!first_pass && m_partial_update_step == 0)
         return;
@@ -71,10 +74,11 @@ void DBLWavefunction::Amplitude::do_perform_move (const Move &move)
         m_partial_update_step = 0;
 }
 
-Big<amplitude_t> DBLWavefunction::Amplitude::psi_ (void) const
+template <typename AmplitudeType>
+Big<AmplitudeType> DBLWavefunction<AmplitudeType>::Amplitude::psi_ (void) const
 {
     if (m_partial_update_step != 0)
-        return Big<amplitude_t>();
+        return Big<AmplitudeType>();
 
     // fixme: we could cache or precalculate this ... but i doubt it would make
     // much difference really
@@ -83,7 +87,8 @@ Big<amplitude_t> DBLWavefunction::Amplitude::psi_ (void) const
             * complex_pow(cmat2.get_determinant(), wf_->d2_exponent));
 }
 
-void DBLWavefunction::Amplitude::finish_move_ (void)
+template <typename AmplitudeType>
+void DBLWavefunction<AmplitudeType>::Amplitude::finish_move_ (void)
 {
     do_perform_move<false>(m_current_move);
 
@@ -91,7 +96,8 @@ void DBLWavefunction::Amplitude::finish_move_ (void)
     cmat2.finish_columns_update();
 }
 
-void DBLWavefunction::Amplitude::cancel_move_ (void)
+template <typename AmplitudeType>
+void DBLWavefunction<AmplitudeType>::Amplitude::cancel_move_ (void)
 {
     switch (m_partial_update_step) {
     case 0:
@@ -103,14 +109,16 @@ void DBLWavefunction::Amplitude::cancel_move_ (void)
     m_partial_update_step = 0;
 }
 
-void DBLWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+template <typename AmplitudeType>
+void DBLWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     (void) species; // will always be 0
     cmat1.swap_columns(particle1_index, particle2_index);
     cmat2.swap_columns(particle1_index, particle2_index);
 }
 
-void DBLWavefunction::Amplitude::reset_ (const PositionArguments &r_)
+template <typename AmplitudeType>
+void DBLWavefunction<AmplitudeType>::Amplitude::reset_ (const PositionArguments &r_)
 {
     const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
 
@@ -122,28 +130,34 @@ void DBLWavefunction::Amplitude::reset_ (const PositionArguments &r_)
     reinitialize();
 }
 
-void DBLWavefunction::Amplitude::reinitialize (void)
+template <typename AmplitudeType>
+void DBLWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
 {
     const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
 
     const unsigned int N = r.get_N_filled(0);
-    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
+    Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
     for (unsigned int i = 0; i < N; ++i) {
         const Particle particle(i, 0);
         mat1.col(i) = wf_->orbital_def1->at_position(r[particle]);
         mat2.col(i) = wf_->orbital_def2->at_position(r[particle]);
     }
-    cmat1 = CeperleyMatrix<amplitude_t>(mat1);
-    cmat2 = CeperleyMatrix<amplitude_t>(mat2);
+    cmat1 = CeperleyMatrix<AmplitudeType>(mat1);
+    cmat2 = CeperleyMatrix<AmplitudeType>(mat2);
 }
 
-void DBLWavefunction::Amplitude::check_for_numerical_error (void) const
+template <typename AmplitudeType>
+void DBLWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (void) const
 {
     cmat1.check_for_numerical_error();
     cmat2.check_for_numerical_error();
 }
 
-boost::shared_ptr<Wavefunction::Amplitude> DBLWavefunction::Amplitude::clone_ (void) const
+template <typename AmplitudeType>
+boost::shared_ptr<Wavefunction::Amplitude> DBLWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<DBLWavefunction::Amplitude>(*this);
+    return boost::make_shared<DBLWavefunction<AmplitudeType>::Amplitude>(*this);
 }
+
+#define VMC_SUPPORTED_TYPE(type) template class DBLWavefunction<type>
+#include "vmc-supported-types.hpp"

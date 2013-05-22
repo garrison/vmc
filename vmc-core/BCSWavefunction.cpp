@@ -10,7 +10,8 @@
 #include "random-configuration.hpp"
 #include "random-move.hpp"
 
-BCSWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const BCSWavefunction> &wf_, const PositionArguments &r_)
+template <typename AmplitudeType>
+BCSWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const BCSWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction::Amplitude(wf_, r_),
       m_current_jastrow(1),
       m_partial_update_step(0)
@@ -18,7 +19,8 @@ BCSWavefunction::Amplitude::Amplitude (const boost::shared_ptr<const BCSWavefunc
     reinitialize();
 }
 
-void BCSWavefunction::Amplitude::perform_move_ (const Move &move)
+template <typename AmplitudeType>
+void BCSWavefunction<AmplitudeType>::Amplitude::perform_move_ (const Move &move)
 {
     // we require that m_partial_update_step == 0 between moves; otherwise,
     // psi_() will return zero when it shouldn't.
@@ -36,8 +38,9 @@ void BCSWavefunction::Amplitude::perform_move_ (const Move &move)
 // doing so means we must later make a second pass to finish all the
 // determinant updates if finish_update() is called.  This templated function
 // allows us to use the same code in both passes, with only minor differences.
+template <typename AmplitudeType>
 template <bool first_pass>
-void BCSWavefunction::Amplitude::do_perform_move (const Move &move)
+void BCSWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &move)
 {
     const BCSWavefunction *wf_ = boost::polymorphic_downcast<const BCSWavefunction *>(wf.get());
     const unsigned int M = wf_->M;
@@ -66,7 +69,7 @@ void BCSWavefunction::Amplitude::do_perform_move (const Move &move)
 
     case 1:
         {
-            Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> srcmat(M, M);
+            Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> srcmat(M, M);
             lw_vector<unsigned int, MAX_MOVE_SIZE> rows, cols;
 
             for (unsigned int j = 0; j < move.size(); ++j) {
@@ -96,22 +99,25 @@ void BCSWavefunction::Amplitude::do_perform_move (const Move &move)
     }
 }
 
-Big<amplitude_t> BCSWavefunction::Amplitude::psi_ (void) const
+template <typename AmplitudeType>
+Big<AmplitudeType> BCSWavefunction<AmplitudeType>::Amplitude::psi_ (void) const
 {
     if (m_partial_update_step != 0)
-        return Big<amplitude_t>();
+        return Big<AmplitudeType>();
 
     return m_cmat.get_determinant() * m_current_jastrow;
 }
 
-void BCSWavefunction::Amplitude::finish_move_ (void)
+template <typename AmplitudeType>
+void BCSWavefunction<AmplitudeType>::Amplitude::finish_move_ (void)
 {
     do_perform_move<false>(m_current_move);
 
     m_cmat.finish_rows_and_columns_update();
 }
 
-void BCSWavefunction::Amplitude::cancel_move_ (void)
+template <typename AmplitudeType>
+void BCSWavefunction<AmplitudeType>::Amplitude::cancel_move_ (void)
 {
     if (m_partial_update_step == 0)
         m_cmat.cancel_rows_and_columns_update();
@@ -121,7 +127,8 @@ void BCSWavefunction::Amplitude::cancel_move_ (void)
     m_partial_update_step = 0;
 }
 
-void BCSWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
+template <typename AmplitudeType>
+void BCSWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
     if (species == 0) {
         m_cmat.swap_rows(particle1_index, particle2_index);
@@ -131,13 +138,15 @@ void BCSWavefunction::Amplitude::swap_particles_ (unsigned int particle1_index, 
     }
 }
 
-void BCSWavefunction::Amplitude::reset_ (const PositionArguments &r_)
+template <typename AmplitudeType>
+void BCSWavefunction<AmplitudeType>::Amplitude::reset_ (const PositionArguments &r_)
 {
     r = r_;
     reinitialize();
 }
 
-void BCSWavefunction::Amplitude::reinitialize (void)
+template <typename AmplitudeType>
+void BCSWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
 {
     const BCSWavefunction *wf_ = boost::polymorphic_downcast<const BCSWavefunction *>(wf.get());
     const boost::shared_ptr<const Lattice> &lattice = wf->lattice;
@@ -152,7 +161,7 @@ void BCSWavefunction::Amplitude::reinitialize (void)
         m_current_jastrow = wf_->jastrow->compute_jastrow(r);
     }
 
-    Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> mat_phi(M, M);
+    Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> mat_phi(M, M);
     const std::vector<unsigned int> & up_pos = r.r_vector(0);
     const std::vector<unsigned int> & dn_pos = r.r_vector(1);
     for (unsigned int i = 0; i < M; ++i) {
@@ -161,20 +170,23 @@ void BCSWavefunction::Amplitude::reinitialize (void)
         }
     }
 
-    m_cmat = CeperleyMatrix<amplitude_t>(mat_phi);
+    m_cmat = CeperleyMatrix<AmplitudeType>(mat_phi);
 }
 
-void BCSWavefunction::Amplitude::check_for_numerical_error (void) const
+template <typename AmplitudeType>
+void BCSWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (void) const
 {
     m_cmat.check_for_numerical_error();
 }
 
-boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction::Amplitude::clone_ (void) const
+template <typename AmplitudeType>
+boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<BCSWavefunction::Amplitude>(*this);
+    return boost::make_shared<BCSWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
-boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
+template <typename AmplitudeType>
+boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
     const unsigned int M = get_N_filled(0);
     const unsigned int N = lattice->total_sites();
@@ -213,7 +225,8 @@ boost::shared_ptr<Wavefunction::Amplitude> BCSWavefunction::create_nonzero_wavef
     return boost::shared_ptr<Wavefunction::Amplitude>();
 }
 
-Move BCSWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
+template <typename AmplitudeType>
+Move BCSWavefunction<AmplitudeType>::Amplitude::propose_move (RandomNumberGenerator &rng) const
 {
     Move move;
 
@@ -237,3 +250,6 @@ Move BCSWavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
 
     return move;
 }
+
+#define VMC_SUPPORTED_TYPE(type) template class BCSWavefunction<type>
+#include "vmc-supported-types.hpp"

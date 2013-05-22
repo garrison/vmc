@@ -16,7 +16,7 @@ cdef extern from "Wavefunction.hpp":
 cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf, RandomNumberGenerator rng) except *
 
 cdef extern from "FreeFermionWavefunction.hpp":
-    cdef cppclass CppFreeFermionWavefunction "FreeFermionWavefunction" (CppWavefunction):
+    cdef cppclass CppFreeFermionWavefunction "FreeFermionWavefunction<amplitude_t>" (CppWavefunction):
         CppFreeFermionWavefunction(vector[shared_ptr[const_CppOrbitalDefinitions]]&, shared_ptr[CppJastrowFactor]&)
 
 cdef class WavefunctionWrapper(object):

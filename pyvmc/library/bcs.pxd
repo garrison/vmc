@@ -10,7 +10,7 @@ cdef extern from "BCSWavefunction.hpp":
         CppPhiMatrix(unsigned int, unsigned int)
         CppPhiMatrix(CppPhiMatrix&)
 
-    cdef cppclass CppBCSWavefunction "BCSWavefunction" (CppWavefunction):
+    cdef cppclass CppBCSWavefunction "BCSWavefunction<amplitude_t>" (CppWavefunction):
         CppBCSWavefunction(shared_ptr[CppLattice]&, CppPhiMatrix&, unsigned int)
 
-    cdef void set_matrix_coeff "BCSWavefunction::set_matrix_coeff" (CppPhiMatrix&, unsigned int, unsigned int, complex_t)
+    cdef void set_matrix_coeff "BCSWavefunction<amplitude_t>::set_matrix_coeff" (CppPhiMatrix&, unsigned int, unsigned int, complex_t)

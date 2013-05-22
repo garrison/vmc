@@ -14,6 +14,7 @@
  *
  * (product of two determinants)
  */
+template <typename AmplitudeType>
 class DBLWavefunction : public Wavefunction
 {
 public:
@@ -32,7 +33,7 @@ public:
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
-        CeperleyMatrix<amplitude_t> cmat1, cmat2;
+        CeperleyMatrix<AmplitudeType> cmat1, cmat2;
 
         int m_partial_update_step;
 
@@ -48,7 +49,7 @@ public:
         template <bool first_pass>
         void do_perform_move (const Move &move);
 
-        virtual Big<amplitude_t> psi_ (void) const override;
+        virtual Big<AmplitudeType> psi_ (void) const override;
 
         virtual void finish_move_ (void) override;
 
@@ -82,5 +83,9 @@ public:
             return orbital_def1->get_N_filled();
         }
 };
+
+#define VMC_SUPPORTED_TYPE(type) extern template class DBLWavefunction<type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

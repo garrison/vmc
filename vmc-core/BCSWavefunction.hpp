@@ -19,14 +19,15 @@
  *
  * Assumes unpolarized state.
  */
+template <typename AmplitudeType>
 class BCSWavefunction : public Wavefunction
 {
 public:
-    const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> phi;
+    const Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> phi;
     const unsigned int M; // number of particles of each species
     const boost::shared_ptr<const JastrowFactor> jastrow;
 
-    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>())
+    BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>())
         : Wavefunction(lattice_),
           phi(phi_),
           M(M_),
@@ -41,8 +42,8 @@ public:
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
-        CeperleyMatrix<amplitude_t> m_cmat;
-        Big<amplitude_t> m_current_jastrow, m_old_jastrow;
+        CeperleyMatrix<AmplitudeType> m_cmat;
+        Big<AmplitudeType> m_current_jastrow, m_old_jastrow;
         unsigned int m_partial_update_step;
         Move m_current_move;
 
@@ -57,7 +58,7 @@ public:
         template <bool first_pass>
         void do_perform_move (const Move &move);
 
-        virtual Big<amplitude_t> psi_ (void) const override;
+        virtual Big<AmplitudeType> psi_ (void) const override;
 
         virtual void finish_move_ (void) override;
 
@@ -95,10 +96,14 @@ public:
         }
 
     // CYTHON-LIMITATION: http://docs.cython.org/src/userguide/wrapping_CPlusPlus.html#c-left-values
-    static inline void set_matrix_coeff (Eigen::Matrix<amplitude_t, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int row, unsigned int col, amplitude_t value)
+    static inline void set_matrix_coeff (Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> &mat, unsigned int row, unsigned int col, AmplitudeType value)
         {
             mat(row, col) = value;
         }
 };
+
+#define VMC_SUPPORTED_TYPE(type) extern template class BCSWavefunction<type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

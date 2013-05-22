@@ -18,7 +18,7 @@
  * (a single determinant for each species, with no Jastrow factor)
  */
 template <typename AmplitudeType>
-class FreeFermionWavefunction : public Wavefunction
+class FreeFermionWavefunction : public Wavefunction<AmplitudeType>
 {
 public:
     const std::vector<boost::shared_ptr<const OrbitalDefinitions> > orbital_def;
@@ -26,7 +26,7 @@ public:
 
     FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>());
 
-    class Amplitude : public Wavefunction::Amplitude
+    class Amplitude : public Wavefunction<AmplitudeType>::Amplitude
     {
     private:
         std::vector<CeperleyMatrix<AmplitudeType> > m_cmat;
@@ -54,7 +54,7 @@ public:
 
         virtual void reset_ (const PositionArguments &r_) override;
 
-        virtual boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const override;
+        virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> clone_ (void) const override;
 
         void reinitialize (void);
 
@@ -66,7 +66,7 @@ public:
             }
     };
 
-    virtual boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const override
+    virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
         {
             BOOST_ASSERT(this == this_ptr.get());
             return boost::make_shared<Amplitude>(boost::dynamic_pointer_cast<const FreeFermionWavefunction>(this_ptr), r);

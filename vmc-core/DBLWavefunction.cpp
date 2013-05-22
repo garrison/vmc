@@ -7,14 +7,14 @@
 
 template <typename AmplitudeType>
 DBLWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const DBLWavefunction> &wf_, const PositionArguments &r_)
-    : Wavefunction::Amplitude(wf_, r_),
+    : Wavefunction<AmplitudeType>::Amplitude(wf_, r_),
       m_partial_update_step(0)
 {
-    BOOST_ASSERT(r.get_N_species() == 1);
-    BOOST_ASSERT(r.get_N_sites() == wf_->orbital_def1->get_N_sites());
-    BOOST_ASSERT(r.get_N_sites() == wf_->orbital_def2->get_N_sites());
-    BOOST_ASSERT(r.get_N_filled(0) == wf_->orbital_def1->get_N_filled());
-    BOOST_ASSERT(r.get_N_filled(0) == wf_->orbital_def2->get_N_filled());
+    BOOST_ASSERT(this->r.get_N_species() == 1);
+    BOOST_ASSERT(this->r.get_N_sites() == wf_->orbital_def1->get_N_sites());
+    BOOST_ASSERT(this->r.get_N_sites() == wf_->orbital_def2->get_N_sites());
+    BOOST_ASSERT(this->r.get_N_filled(0) == wf_->orbital_def1->get_N_filled());
+    BOOST_ASSERT(this->r.get_N_filled(0) == wf_->orbital_def2->get_N_filled());
     BOOST_ASSERT(wf_->orbital_def1->get_lattice_ptr() == wf_->orbital_def2->get_lattice_ptr());
 
     reinitialize();
@@ -45,7 +45,7 @@ void DBLWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &mov
     if (!first_pass && m_partial_update_step == 0)
         return;
 
-    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
+    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(this->wf.get());
 
     switch (first_pass ? 2 : m_partial_update_step)
     {
@@ -82,7 +82,7 @@ Big<AmplitudeType> DBLWavefunction<AmplitudeType>::Amplitude::psi_ (void) const
 
     // fixme: we could cache or precalculate this ... but i doubt it would make
     // much difference really
-    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
+    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(this->wf.get());
     return (complex_pow(cmat1.get_determinant(), wf_->d1_exponent)
             * complex_pow(cmat2.get_determinant(), wf_->d2_exponent));
 }
@@ -120,27 +120,27 @@ void DBLWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigned int pa
 template <typename AmplitudeType>
 void DBLWavefunction<AmplitudeType>::Amplitude::reset_ (const PositionArguments &r_)
 {
-    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
+    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(this->wf.get());
 
     BOOST_ASSERT(r_.get_N_species() == 1);
     BOOST_ASSERT(r_.get_N_sites() == wf_->orbital_def1->get_N_sites());
     BOOST_ASSERT(r_.get_N_filled(0) == wf_->orbital_def1->get_N_filled());
 
-    r = r_;
+    this->r = r_;
     reinitialize();
 }
 
 template <typename AmplitudeType>
 void DBLWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
 {
-    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(wf.get());
+    const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(this->wf.get());
 
-    const unsigned int N = r.get_N_filled(0);
+    const unsigned int N = this->r.get_N_filled(0);
     Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> mat1(N, N), mat2(N, N);
     for (unsigned int i = 0; i < N; ++i) {
         const Particle particle(i, 0);
-        mat1.col(i) = wf_->orbital_def1->at_position(r[particle]);
-        mat2.col(i) = wf_->orbital_def2->at_position(r[particle]);
+        mat1.col(i) = wf_->orbital_def1->at_position(this->r[particle]);
+        mat2.col(i) = wf_->orbital_def2->at_position(this->r[particle]);
     }
     cmat1 = CeperleyMatrix<AmplitudeType>(mat1);
     cmat2 = CeperleyMatrix<AmplitudeType>(mat2);
@@ -154,7 +154,7 @@ void DBLWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (void)
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<Wavefunction::Amplitude> DBLWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
+boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DBLWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
     return boost::make_shared<DBLWavefunction<AmplitudeType>::Amplitude>(*this);
 }

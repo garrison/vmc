@@ -10,7 +10,7 @@
 
 template <typename AmplitudeType>
 DMetalWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const DMetalWavefunction> &wf_, const PositionArguments &r_)
-    : Wavefunction::Amplitude(wf_, r_),
+    : Wavefunction<AmplitudeType>::Amplitude(wf_, r_),
       m_partial_update_step(0)
 {
     reinitialize();
@@ -44,14 +44,14 @@ template <typename AmplitudeType>
 template <bool first_pass>
 void DMetalWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &move)
 {
-    const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(wf.get());
+    const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(this->wf.get());
 
     const unsigned int M = wf_->orbital_f_up->get_N_filled();
 
     if (first_pass) {
         // explicitly enforce Gutzwiller projection
         for (unsigned int i = 0; i < move.size(); ++i) {
-            if (r.is_occupied(move[i].destination, move[i].particle.species ^ 1)) {
+            if (this->r.is_occupied(move[i].destination, move[i].particle.species ^ 1)) {
                 m_partial_update_step = 4;
                 return;
             }
@@ -128,7 +128,7 @@ Big<AmplitudeType> DMetalWavefunction<AmplitudeType>::Amplitude::psi_ (void) con
     if (m_partial_update_step != 0)
         return Big<AmplitudeType>();
 
-    const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(wf.get());
+    const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(this->wf.get());
 
     return (complex_pow(m_cmat_d1.get_determinant(), wf_->d1_exponent)
             * complex_pow(m_cmat_d2.get_determinant(), wf_->d2_exponent)
@@ -173,7 +173,7 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::cancel_move_ (void)
 template <typename AmplitudeType>
 void DMetalWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
-    const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(wf.get());
+    const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(this->wf.get());
     const unsigned int M = wf_->orbital_f_up->get_N_filled();
     const unsigned int particle1_column_index = (species == 0) ? particle1_index : particle1_index + M;
     const unsigned int particle2_column_index = (species == 0) ? particle2_index : particle2_index + M;
@@ -185,26 +185,26 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigned int
 template <typename AmplitudeType>
 void DMetalWavefunction<AmplitudeType>::Amplitude::reset_ (const PositionArguments &r_)
 {
-    r = r_;
+    this->r = r_;
     reinitialize();
 }
 
 template <typename AmplitudeType>
 void DMetalWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
 {
-    const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(wf.get());
+    const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(this->wf.get());
 
-    BOOST_ASSERT(r.get_N_species() == 2);
+    BOOST_ASSERT(this->r.get_N_species() == 2);
 
-    BOOST_ASSERT(r.get_N_sites() == wf_->orbital_d1->get_N_sites());
+    BOOST_ASSERT(this->r.get_N_sites() == wf_->orbital_d1->get_N_sites());
     BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_d2->get_lattice_ptr());
     BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_f_up->get_lattice_ptr());
     BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_f_dn->get_lattice_ptr());
 
-    BOOST_ASSERT(r.get_N_filled(0) + r.get_N_filled(1) == wf_->orbital_d1->get_N_filled());
-    BOOST_ASSERT(r.get_N_filled(0) + r.get_N_filled(1) == wf_->orbital_d2->get_N_filled());
-    BOOST_ASSERT(r.get_N_filled(0) == wf_->orbital_f_up->get_N_filled());
-    BOOST_ASSERT(r.get_N_filled(1) == wf_->orbital_f_dn->get_N_filled());
+    BOOST_ASSERT(this->r.get_N_filled(0) + this->r.get_N_filled(1) == wf_->orbital_d1->get_N_filled());
+    BOOST_ASSERT(this->r.get_N_filled(0) + this->r.get_N_filled(1) == wf_->orbital_d2->get_N_filled());
+    BOOST_ASSERT(this->r.get_N_filled(0) == wf_->orbital_f_up->get_N_filled());
+    BOOST_ASSERT(this->r.get_N_filled(1) == wf_->orbital_f_dn->get_N_filled());
 
     const unsigned int N = wf_->orbital_d1->get_N_filled();
     const unsigned int M = wf_->orbital_f_up->get_N_filled();
@@ -214,18 +214,18 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
     Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> mat_f_up(M, M);
     Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> mat_f_dn(N - M, N - M);
 
-    for (unsigned int i = 0; i < r.get_N_filled(0); ++i) {
+    for (unsigned int i = 0; i < this->r.get_N_filled(0); ++i) {
         const Particle particle(i, 0);
-        mat_d1.col(i) = wf_->orbital_d1->at_position(r[particle]);
-        mat_d2.col(i) = wf_->orbital_d2->at_position(r[particle]);
-        mat_f_up.col(i) = wf_->orbital_f_up->at_position(r[particle]);
+        mat_d1.col(i) = wf_->orbital_d1->at_position(this->r[particle]);
+        mat_d2.col(i) = wf_->orbital_d2->at_position(this->r[particle]);
+        mat_f_up.col(i) = wf_->orbital_f_up->at_position(this->r[particle]);
     }
 
-    for (unsigned int i = 0; i < r.get_N_filled(1); ++i) {
+    for (unsigned int i = 0; i < this->r.get_N_filled(1); ++i) {
         const Particle particle(i, 1);
-        mat_d1.col(i + M) = wf_->orbital_d1->at_position(r[particle]);
-        mat_d2.col(i + M) = wf_->orbital_d2->at_position(r[particle]);
-        mat_f_dn.col(i) = wf_->orbital_f_dn->at_position(r[particle]);
+        mat_d1.col(i + M) = wf_->orbital_d1->at_position(this->r[particle]);
+        mat_d2.col(i + M) = wf_->orbital_d2->at_position(this->r[particle]);
+        mat_f_dn.col(i) = wf_->orbital_f_dn->at_position(this->r[particle]);
     }
 
     m_cmat_d1 = CeperleyMatrix<AmplitudeType>(mat_d1);
@@ -244,13 +244,13 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (vo
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
+boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
     return boost::make_shared<DMetalWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
+boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
     const unsigned int N = orbital_d1->get_N_filled();
     const unsigned int M = orbital_f_up->get_N_filled();
@@ -258,15 +258,15 @@ boost::shared_ptr<Wavefunction::Amplitude> DMetalWavefunction<AmplitudeType>::cr
     // take into account the Gutzwiller projection
     while (n_attempts--) {
         std::vector<std::vector<unsigned int> > vv(2);
-        vv[0] = some_random_configuration(N, *lattice, rng);
+        vv[0] = some_random_configuration(N, *this->lattice, rng);
         for (unsigned int i = M; i < N; ++i)
             vv[1].push_back(vv[0][i]);
         vv[0].resize(M);
-        boost::shared_ptr<Wavefunction::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
+        boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, this->lattice->total_sites())));
         if (wfa->is_nonzero())
             return wfa;
     }
-    return boost::shared_ptr<Wavefunction::Amplitude>();
+    return boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude>();
 }
 
 #define VMC_SUPPORTED_TYPE(type) template class DMetalWavefunction<type>

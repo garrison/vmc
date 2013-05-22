@@ -17,6 +17,7 @@ class RandomNumberGenerator;
  *
  * Each Wavefunction object should be invariant after instantiation.
  */
+template <typename AmplitudeType>
 class Wavefunction
 {
 public:
@@ -65,7 +66,7 @@ public:
         /**
          * Returns the current amplitude of the wavefunction
          */
-        Big<amplitude_t> psi (void) const
+        Big<AmplitudeType> psi (void) const
             {
                 return psi_();
             }
@@ -171,7 +172,7 @@ public:
          */
         virtual void perform_move_ (const Move &move) = 0;
 
-        virtual Big<amplitude_t> psi_ (void) const = 0;
+        virtual Big<AmplitudeType> psi_ (void) const = 0;
 
         virtual void finish_move_ (void) = 0;
 
@@ -233,5 +234,9 @@ public:
 
     virtual unsigned int get_N_filled (unsigned int species) const = 0;
 };
+
+#define VMC_SUPPORTED_TYPE(type) extern template class Wavefunction<type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

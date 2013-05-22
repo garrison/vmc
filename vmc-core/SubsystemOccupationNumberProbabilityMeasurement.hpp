@@ -87,7 +87,7 @@ private:
 
     virtual void measure_ (const StandardWalk &walk) override
         {
-            const Wavefunction::Amplitude &wfa = walk.get_wavefunctionamplitude();
+            const Wavefunction<amplitude_t>::Amplitude &wfa = walk.get_wavefunctionamplitude();
 
             // calculate the "offset" (see above)
             unsigned int offset = 0;
@@ -111,7 +111,7 @@ private:
             }
         }
 
-    unsigned int do_subsystem_particle_count (const Wavefunction::Amplitude &wfa, unsigned int species) const
+    unsigned int do_subsystem_particle_count (const Wavefunction<amplitude_t>::Amplitude &wfa, unsigned int species) const
         {
             const PositionArguments &r = wfa.get_positions();
             unsigned int rv = 0;

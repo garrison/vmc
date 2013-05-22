@@ -20,12 +20,12 @@ public:
      *
      * @param wfa_ initial wavefunction
      */
-    StandardWalk (boost::shared_ptr<Wavefunction::Amplitude> &wfa_);
+    StandardWalk (boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wfa_);
 
     /**
      * Returns the current wavefunction
      */
-    const Wavefunction::Amplitude & get_wavefunctionamplitude (void) const
+    const Wavefunction<amplitude_t>::Amplitude & get_wavefunctionamplitude (void) const
         {
             return *wfa;
         }
@@ -50,7 +50,7 @@ private:
 
     virtual void check_for_numerical_error (void) const override;
 
-    boost::shared_ptr<Wavefunction::Amplitude> wfa; // treat this as copy on write
+    boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> wfa; // treat this as copy on write
     bool autoreject_in_progress;
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)

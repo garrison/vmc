@@ -20,7 +20,7 @@
  * Assumes unpolarized state.
  */
 template <typename AmplitudeType>
-class BCSWavefunction : public Wavefunction
+class BCSWavefunction : public Wavefunction<AmplitudeType>
 {
 public:
     const Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> phi;
@@ -28,18 +28,18 @@ public:
     const boost::shared_ptr<const JastrowFactor> jastrow;
 
     BCSWavefunction (const boost::shared_ptr<const Lattice> &lattice_, const Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> &phi_, unsigned int M_, const boost::shared_ptr<const JastrowFactor> &jastrow_=boost::shared_ptr<const JastrowFactor>())
-        : Wavefunction(lattice_),
+        : Wavefunction<AmplitudeType>(lattice_),
           phi(phi_),
           M(M_),
           jastrow(jastrow_)
         {
             BOOST_ASSERT(M > 0);
-            BOOST_ASSERT(2 * M <= lattice->total_sites());
-            BOOST_ASSERT(lattice->total_sites() == phi.rows());
-            BOOST_ASSERT(lattice->total_sites() == phi.cols());
+            BOOST_ASSERT(2 * M <= this->lattice->total_sites());
+            BOOST_ASSERT(this->lattice->total_sites() == phi.rows());
+            BOOST_ASSERT(this->lattice->total_sites() == phi.cols());
         }
 
-    class Amplitude : public Wavefunction::Amplitude
+    class Amplitude : public Wavefunction<AmplitudeType>::Amplitude
     {
     private:
         CeperleyMatrix<AmplitudeType> m_cmat;
@@ -68,16 +68,16 @@ public:
 
         virtual void reset_ (const PositionArguments &r_) override;
 
-        virtual boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const override;
+        virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> clone_ (void) const override;
 
         void reinitialize (void);
 
         virtual void check_for_numerical_error (void) const override;
     };
 
-    virtual boost::shared_ptr<Wavefunction::Amplitude> create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const override;
+    virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const override;
 
-    virtual boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const override
+    virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
         {
             BOOST_ASSERT(this == this_ptr.get());
             return boost::make_shared<Amplitude>(boost::dynamic_pointer_cast<const BCSWavefunction>(this_ptr), r);

@@ -17,7 +17,7 @@
  * determinants for spin up and spin down)
  */
 template <typename AmplitudeType>
-class DMetalWavefunction : public Wavefunction
+class DMetalWavefunction : public Wavefunction<AmplitudeType>
 {
 public:
     const boost::shared_ptr<const OrbitalDefinitions> orbital_d1, orbital_d2, orbital_f_up, orbital_f_dn;
@@ -31,7 +31,7 @@ public:
                         real_t d2_exponent_,
                         real_t f_up_exponent_,
                         real_t f_dn_exponent_)
-        : Wavefunction(orbital_d1_->get_lattice_ptr()),
+        : Wavefunction<AmplitudeType>(orbital_d1_->get_lattice_ptr()),
           orbital_d1(orbital_d1_),
           orbital_d2(orbital_d2_),
           orbital_f_up(orbital_f_up_),
@@ -43,7 +43,7 @@ public:
         {
         }
 
-    class Amplitude : public Wavefunction::Amplitude
+    class Amplitude : public Wavefunction<AmplitudeType>::Amplitude
     {
     private:
         CeperleyMatrix<AmplitudeType> m_cmat_d1, m_cmat_d2, m_cmat_f_up, m_cmat_f_dn;
@@ -72,16 +72,16 @@ public:
 
         virtual void reset_ (const PositionArguments &r_) override;
 
-        virtual boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const override;
+        virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> clone_ (void) const override;
 
         void reinitialize (void);
 
         virtual void check_for_numerical_error (void) const override;
     };
 
-    virtual boost::shared_ptr<Wavefunction::Amplitude> create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const override;
+    virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const override;
 
-    virtual boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const override
+    virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
         {
             BOOST_ASSERT(this == this_ptr.get());
             return boost::make_shared<Amplitude>(boost::dynamic_pointer_cast<const DMetalWavefunction>(this_ptr), r);

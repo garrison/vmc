@@ -4,7 +4,8 @@
 #include "random-configuration.hpp"
 #include "random-move.hpp"
 
-void Wavefunction::Amplitude::perform_move (const Move &move)
+template <typename AmplitudeType>
+void Wavefunction<AmplitudeType>::Amplitude::perform_move (const Move &move)
 {
     BOOST_ASSERT(!move_in_progress);
 
@@ -33,7 +34,8 @@ void Wavefunction::Amplitude::perform_move (const Move &move)
 #endif
 }
 
-void Wavefunction::Amplitude::cancel_move (void)
+template <typename AmplitudeType>
+void Wavefunction<AmplitudeType>::Amplitude::cancel_move (void)
 {
     BOOST_ASSERT(move_in_progress);
 
@@ -51,20 +53,22 @@ void Wavefunction::Amplitude::cancel_move (void)
 #endif
 }
 
-boost::shared_ptr<Wavefunction::Amplitude> Wavefunction::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
+template <typename AmplitudeType>
+boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> Wavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
     while (n_attempts--) {
         std::vector<std::vector<unsigned int> > vv;
         for (unsigned int i = 0; i < get_N_species(); ++i)
             vv.push_back(some_random_configuration(get_N_filled(i), *lattice, rng));
-        boost::shared_ptr<Wavefunction::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
+        boost::shared_ptr<Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
         if (wfa->is_nonzero())
             return wfa;
     }
-    return boost::shared_ptr<Wavefunction::Amplitude>();
+    return boost::shared_ptr<Wavefunction<AmplitudeType>::Amplitude>();
 }
 
-Move Wavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
+template <typename AmplitudeType>
+Move Wavefunction<AmplitudeType>::Amplitude::propose_move (RandomNumberGenerator &rng) const
 {
     // by default we attempt to move a random particle to an empty
     // site. subclasses can feel free to override this behavior, but balance
@@ -76,3 +80,6 @@ Move Wavefunction::Amplitude::propose_move (RandomNumberGenerator &rng) const
         move.push_back(SingleParticleMove(particle, proposed_site_index));
     return move;
 }
+
+#define VMC_SUPPORTED_TYPE(type) template class Wavefunction<type>
+#include "vmc-supported-types.hpp"

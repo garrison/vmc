@@ -30,24 +30,24 @@ public:
      * It is essential that both wf and wf_copy have the same number of
      * particles in the subsystem.
      */
-    BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction::Amplitude> &wf, const boost::shared_ptr<Wavefunction::Amplitude> &wf_copy, const boost::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_=true);
+    BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf, const boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf_copy, const boost::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_=true);
 
-    const Wavefunction::Amplitude & get_phialpha1 (void) const
+    const Wavefunction<amplitude_t>::Amplitude & get_phialpha1 (void) const
         {
             return *phialpha1;
         }
 
-    const Wavefunction::Amplitude & get_phialpha2 (void) const
+    const Wavefunction<amplitude_t>::Amplitude & get_phialpha2 (void) const
         {
             return *phialpha2;
         }
 
-    const Wavefunction::Amplitude & get_phibeta1 (void) const
+    const Wavefunction<amplitude_t>::Amplitude & get_phibeta1 (void) const
         {
             return swapped_system->get_phibeta1();
         }
 
-    const Wavefunction::Amplitude & get_phibeta2 (void) const
+    const Wavefunction<amplitude_t>::Amplitude & get_phibeta2 (void) const
         {
             return swapped_system->get_phibeta2();
         }
@@ -62,7 +62,7 @@ private:
 
     static unsigned int count_subsystem_sites (const Subsystem &subsystem, const Lattice &lattice);
 
-    boost::shared_ptr<Wavefunction::Amplitude> phialpha1, phialpha2;
+    boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> phialpha1, phialpha2;
     boost::shared_ptr<SwappedSystem> swapped_system;
     Particle chosen_particle_A, chosen_particle_B;
     const Particle *chosen_particle1, *chosen_particle2;

@@ -6,7 +6,7 @@
 
 template <typename AmplitudeType>
 FreeFermionWavefunction<AmplitudeType>::FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions> > &orbital_def_, const boost::shared_ptr<const JastrowFactor> &jastrow_)
-    : Wavefunction(orbital_def_[0]->get_lattice_ptr()),
+    : Wavefunction<AmplitudeType>(orbital_def_[0]->get_lattice_ptr()),
       orbital_def(orbital_def_),
       jastrow(jastrow_)
 {
@@ -20,7 +20,7 @@ FreeFermionWavefunction<AmplitudeType>::FreeFermionWavefunction (const std::vect
 
 template <typename AmplitudeType>
 FreeFermionWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const FreeFermionWavefunction> &wf_, const PositionArguments &r_)
-    : Wavefunction::Amplitude(wf_, r_),
+    : Wavefunction<AmplitudeType>::Amplitude(wf_, r_),
       m_current_jastrow(1),
       m_partial_update_step(0),
       m_species_move_in_progress(wf_->get_N_species())
@@ -57,11 +57,11 @@ template <typename AmplitudeType>
 template <bool first_pass>
 void FreeFermionWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &move)
 {
-    const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction *>(wf.get());
+    const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction<AmplitudeType> *>(this->wf.get());
 
     if (first_pass) {
         if (wf_->jastrow) {
-            m_current_jastrow = wf_->jastrow->compute_jastrow(r);
+            m_current_jastrow = wf_->jastrow->compute_jastrow(this->r);
             if (m_current_jastrow.is_zero()) {
                 m_partial_update_step = get_N_species();
                 return;
@@ -135,7 +135,7 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigne
 template <typename AmplitudeType>
 void FreeFermionWavefunction<AmplitudeType>::Amplitude::reset_ (const PositionArguments &r_)
 {
-    r = r_;
+    this->r = r_;
     m_cmat.resize(0);
     reinitialize();
 }
@@ -143,25 +143,25 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::reset_ (const PositionAr
 template <typename AmplitudeType>
 void FreeFermionWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
 {
-    const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction *>(wf.get());
+    const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction *>(this->wf.get());
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-    BOOST_ASSERT(r.get_N_species() == get_N_species());
-    BOOST_ASSERT(r.get_N_sites() == wf_->orbital_def[0]->get_N_sites());
+    BOOST_ASSERT(this->r.get_N_species() == get_N_species());
+    BOOST_ASSERT(this->r.get_N_sites() == wf_->orbital_def[0]->get_N_sites());
     for (unsigned int i = 0; i < get_N_species(); ++i)
-        BOOST_ASSERT(r.get_N_filled(i) == wf_->orbital_def[i]->get_N_filled());
+        BOOST_ASSERT(this->r.get_N_filled(i) == wf_->orbital_def[i]->get_N_filled());
 #endif
 
     if (wf_->jastrow) {
-        m_current_jastrow = wf_->jastrow->compute_jastrow(r);
+        m_current_jastrow = wf_->jastrow->compute_jastrow(this->r);
     }
 
     BOOST_ASSERT(m_cmat.size() == 0);
     for (unsigned int j = 0; j < wf_->orbital_def.size(); ++j) {
-        const unsigned int N = r.get_N_filled(j);
+        const unsigned int N = this->r.get_N_filled(j);
         Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);
         for (unsigned int i = 0; i < N; ++i)
-            mat.col(i) = wf_->orbital_def[j]->at_position(r[Particle(i, j)]);
+            mat.col(i) = wf_->orbital_def[j]->at_position(this->r[Particle(i, j)]);
         m_cmat.push_back(CeperleyMatrix<AmplitudeType>(mat));
     }
 }
@@ -174,7 +174,7 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::check_for_numerical_erro
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<Wavefunction::Amplitude> FreeFermionWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
+boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> FreeFermionWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
     return boost::make_shared<FreeFermionWavefunction<AmplitudeType>::Amplitude>(*this);
 }

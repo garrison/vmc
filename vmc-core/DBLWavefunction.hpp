@@ -15,14 +15,14 @@
  * (product of two determinants)
  */
 template <typename AmplitudeType>
-class DBLWavefunction : public Wavefunction
+class DBLWavefunction : public Wavefunction<AmplitudeType>
 {
 public:
     const boost::shared_ptr<const OrbitalDefinitions> orbital_def1, orbital_def2;
     const real_t d1_exponent, d2_exponent;
 
     DBLWavefunction (const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions> &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_)
-        : Wavefunction(orbital_def_1->get_lattice_ptr()),
+        : Wavefunction<AmplitudeType>(orbital_def_1->get_lattice_ptr()),
           orbital_def1(orbital_def_1),
           orbital_def2(orbital_def_2),
           d1_exponent(d1_exponent_),
@@ -30,7 +30,7 @@ public:
         {
         }
 
-    class Amplitude : public Wavefunction::Amplitude
+    class Amplitude : public Wavefunction<AmplitudeType>::Amplitude
     {
     private:
         CeperleyMatrix<AmplitudeType> cmat1, cmat2;
@@ -59,14 +59,14 @@ public:
 
         virtual void reset_ (const PositionArguments &r_) override;
 
-        virtual boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const override;
+        virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> clone_ (void) const override;
 
         void reinitialize (void);
 
         virtual void check_for_numerical_error (void) const override;
     };
 
-    virtual boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const override
+    virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
         {
             BOOST_ASSERT(this == this_ptr.get());
             return boost::make_shared<Amplitude>(boost::dynamic_pointer_cast<const DBLWavefunction>(this_ptr), r);

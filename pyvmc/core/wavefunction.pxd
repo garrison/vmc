@@ -6,10 +6,10 @@ from pyvmc.core.lattice cimport Lattice, CppLattice
 from pyvmc.core.orbitals cimport CppOrbitalDefinitions, const_CppOrbitalDefinitions
 
 cdef extern from "Wavefunction.hpp":
-    cdef cppclass CppWavefunctionAmplitude "Wavefunction::Amplitude":
+    cdef cppclass CppWavefunctionAmplitude "Wavefunction<amplitude_t>::Amplitude":
         shared_ptr[CppWavefunctionAmplitude] clone()
 
-    cdef cppclass CppWavefunction "Wavefunction":
+    cdef cppclass CppWavefunction "Wavefunction<amplitude_t>":
         shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&)
         shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&, unsigned int)
 

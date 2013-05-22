@@ -32,8 +32,10 @@ Run ``premake4 --help`` for a list of options.  Note that it is possible
 for premake to hook into a different build system instead of using
 ``make``.
 
-The code should compile on recent versions of ``g++``, ``clang++``, and
-``icc``.
+The code should compile on recent versions of ``g++``, ``clang++``,
+and possibly even ``icc``.  Note that we are indeed making use of some
+C++11 features, including (but not necessarily limited to) explicit
+virtual overrides and extern templates.
 
 A sample build script, which compiles both ``vmc-core`` and ``pyvmc``,
 is located at ``./do-build.example``.

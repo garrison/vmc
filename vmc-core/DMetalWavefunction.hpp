@@ -16,6 +16,7 @@
  * (product of two determinants represents the charge sector with a DBL, then two more
  * determinants for spin up and spin down)
  */
+template <typename AmplitudeType>
 class DMetalWavefunction : public Wavefunction
 {
 public:
@@ -45,7 +46,7 @@ public:
     class Amplitude : public Wavefunction::Amplitude
     {
     private:
-        CeperleyMatrix<amplitude_t> m_cmat_d1, m_cmat_d2, m_cmat_f_up, m_cmat_f_dn;
+        CeperleyMatrix<AmplitudeType> m_cmat_d1, m_cmat_d2, m_cmat_f_up, m_cmat_f_dn;
         int m_partial_update_step;
 
         // the following variables only need be set when a move is in progress
@@ -61,7 +62,7 @@ public:
         template <bool first_pass>
         void do_perform_move (const Move &move);
 
-        virtual Big<amplitude_t> psi_ (void) const override;
+        virtual Big<AmplitudeType> psi_ (void) const override;
 
         virtual void finish_move_ (void) override;
 
@@ -97,5 +98,9 @@ public:
             return (species == 0 ? orbital_d1 : orbital_d2)->get_N_filled();
         }
 };
+
+#define VMC_SUPPORTED_TYPE(type) extern template class DMetalWavefunction<type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

@@ -42,5 +42,5 @@ Big<AmplitudeType> TwoBodyJastrowFactor<AmplitudeType>::compute_jastrow (const P
     return Big<AmplitudeType>(1, -corr);
 }
 
-#define VMC_SUPPORTED_TYPE(type) template class TwoBodyJastrowFactor<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class TwoBodyJastrowFactor<type>
 #include "vmc-supported-types.hpp"

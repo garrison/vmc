@@ -251,5 +251,5 @@ Move BCSWavefunction<AmplitudeType>::Amplitude::propose_move (RandomNumberGenera
     return move;
 }
 
-#define VMC_SUPPORTED_TYPE(type) template class BCSWavefunction<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class BCSWavefunction<type>
 #include "vmc-supported-types.hpp"

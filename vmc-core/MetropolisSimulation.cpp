@@ -123,5 +123,5 @@ void MetropolisSimulation<ProbabilityType>::perform_initialization (unsigned int
         (*m)->initialize(*walk);
 }
 
-#define VMC_SUPPORTED_TYPE(amplitude_type) template class MetropolisSimulation<typename RealPart<amplitude_type>::type>
+#define VMC_SUPPORTED_REAL_TYPE(type) template class MetropolisSimulation<type>
 #include "vmc-supported-types.hpp"

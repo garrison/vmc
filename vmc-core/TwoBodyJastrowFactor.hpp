@@ -35,8 +35,8 @@ public:
         }
 };
 
-#define VMC_SUPPORTED_TYPE(type) extern template class TwoBodyJastrowFactor<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) extern template class TwoBodyJastrowFactor<type>
 #include "vmc-supported-types.hpp"
-#undef VMC_SUPPORTED_TYPE
+#undef VMC_SUPPORTED_AMPLITUDE_TYPE
 
 #endif

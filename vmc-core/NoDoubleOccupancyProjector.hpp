@@ -16,8 +16,8 @@ class NoDoubleOccupancyProjector : public JastrowFactor<AmplitudeType>
     virtual Big<AmplitudeType> compute_jastrow (const PositionArguments &r) const override;
 };
 
-#define VMC_SUPPORTED_TYPE(type) extern template class NoDoubleOccupancyProjector<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) extern template class NoDoubleOccupancyProjector<type>
 #include "vmc-supported-types.hpp"
-#undef VMC_SUPPORTED_TYPE
+#undef VMC_SUPPORTED_AMPLITUDE_TYPE
 
 #endif

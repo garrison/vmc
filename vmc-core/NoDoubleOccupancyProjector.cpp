@@ -15,5 +15,5 @@ Big<AmplitudeType> NoDoubleOccupancyProjector<AmplitudeType>::compute_jastrow (c
     return Big<AmplitudeType>(1);
 }
 
-#define VMC_SUPPORTED_TYPE(type) template class NoDoubleOccupancyProjector<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class NoDoubleOccupancyProjector<type>
 #include "vmc-supported-types.hpp"

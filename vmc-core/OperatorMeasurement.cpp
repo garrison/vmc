@@ -110,5 +110,5 @@ void OperatorMeasurement<AmplitudeType>::repeat_measurement_ (const StandardWalk
     estimate.add_value(most_recent_value);
 }
 
-#define VMC_SUPPORTED_TYPE(type) template class OperatorMeasurement<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class OperatorMeasurement<type>
 #include "vmc-supported-types.hpp"

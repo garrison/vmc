@@ -269,5 +269,5 @@ boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefun
     return boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude>();
 }
 
-#define VMC_SUPPORTED_TYPE(type) template class DMetalWavefunction<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class DMetalWavefunction<type>
 #include "vmc-supported-types.hpp"

@@ -179,5 +179,5 @@ boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> FreeFermionWa
     return boost::make_shared<FreeFermionWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
-#define VMC_SUPPORTED_TYPE(type) template class FreeFermionWavefunction<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class FreeFermionWavefunction<type>
 #include "vmc-supported-types.hpp"

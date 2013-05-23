@@ -235,8 +235,8 @@ public:
     virtual unsigned int get_N_filled (unsigned int species) const = 0;
 };
 
-#define VMC_SUPPORTED_TYPE(type) extern template class Wavefunction<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) extern template class Wavefunction<type>
 #include "vmc-supported-types.hpp"
-#undef VMC_SUPPORTED_TYPE
+#undef VMC_SUPPORTED_AMPLITUDE_TYPE
 
 #endif

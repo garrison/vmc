@@ -85,8 +85,8 @@ private:
     AmplitudeType most_recent_value;
 };
 
-#define VMC_SUPPORTED_TYPE(type) extern template class OperatorMeasurement<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) extern template class OperatorMeasurement<type>
 #include "vmc-supported-types.hpp"
-#undef VMC_SUPPORTED_TYPE
+#undef VMC_SUPPORTED_AMPLITUDE_TYPE
 
 #endif

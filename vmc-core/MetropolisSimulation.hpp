@@ -146,9 +146,8 @@ private:
     void perform_initialization (unsigned int initialization_sweeps);
 };
 
-#include "vmc-real-part.hpp"
-#define VMC_SUPPORTED_TYPE(amplitude_type) extern template class MetropolisSimulation<typename RealPart<amplitude_type>::type>
+#define VMC_SUPPORTED_REAL_TYPE(type) extern template class MetropolisSimulation<type>
 #include "vmc-supported-types.hpp"
-#undef VMC_SUPPORTED_TYPE
+#undef VMC_SUPPORTED_REAL_TYPE
 
 #endif

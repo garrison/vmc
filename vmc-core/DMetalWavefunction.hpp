@@ -99,8 +99,8 @@ public:
         }
 };
 
-#define VMC_SUPPORTED_TYPE(type) extern template class DMetalWavefunction<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) extern template class DMetalWavefunction<type>
 #include "vmc-supported-types.hpp"
-#undef VMC_SUPPORTED_TYPE
+#undef VMC_SUPPORTED_AMPLITUDE_TYPE
 
 #endif

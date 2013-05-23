@@ -159,5 +159,5 @@ boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DBLWavefuncti
     return boost::make_shared<DBLWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
-#define VMC_SUPPORTED_TYPE(type) template class DBLWavefunction<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class DBLWavefunction<type>
 #include "vmc-supported-types.hpp"

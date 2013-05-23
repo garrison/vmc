@@ -81,5 +81,5 @@ Move Wavefunction<AmplitudeType>::Amplitude::propose_move (RandomNumberGenerator
     return move;
 }
 
-#define VMC_SUPPORTED_TYPE(type) template class Wavefunction<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class Wavefunction<type>
 #include "vmc-supported-types.hpp"

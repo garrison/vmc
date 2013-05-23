@@ -63,7 +63,7 @@ private:
 };
 
 #include "vmc-real-part.hpp"
-#define VMC_SUPPORTED_TYPE(amplitude_type) extern template class StandardWalk<typename RealPart<amplitude_type>::type>
+#define VMC_SUPPORTED_TYPE(type) extern template class StandardWalk<type>
 #include "vmc-supported-types.hpp"
 #undef VMC_SUPPORTED_TYPE
 

@@ -84,5 +84,5 @@ void StandardWalk<AmplitudeType>::check_for_numerical_error (void) const
     wfa->check_for_numerical_error();
 }
 
-#define VMC_SUPPORTED_TYPE(amplitude_type) template class StandardWalk<amplitude_type>
+#define VMC_SUPPORTED_TYPE(type) template class StandardWalk<type>
 #include "vmc-supported-types.hpp"

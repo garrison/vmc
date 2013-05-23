@@ -9,27 +9,30 @@
 #include "Walk.hpp"
 #include "MetropolisSimulation.hpp"
 
+template <typename ProbabilityType>
 class invalid_probability_error : public std::range_error
 {
 public:
-    invalid_probability_error (const probability_t &invalid_probability_);
+    invalid_probability_error (const ProbabilityType &invalid_probability_);
 
-    static inline std::string construct_what_string (const probability_t &invalid_probability)
+    static inline std::string construct_what_string (const ProbabilityType &invalid_probability)
         {
             return std::string("Invalid probability ratio: ") + boost::lexical_cast<std::string>(invalid_probability);
         }
 
 private:
-    const probability_t invalid_probability;
+    const ProbabilityType invalid_probability;
 };
 
-invalid_probability_error::invalid_probability_error (const probability_t &invalid_probability_)
+template <typename ProbabilityType>
+invalid_probability_error<ProbabilityType>::invalid_probability_error (const ProbabilityType &invalid_probability_)
     : std::range_error(construct_what_string(invalid_probability_)),
       invalid_probability(invalid_probability_)
 {
 }
 
-MetropolisSimulation::MetropolisSimulation (std::unique_ptr<Walk> &walk_, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements_,
+template <typename ProbabilityType>
+MetropolisSimulation<ProbabilityType>::MetropolisSimulation (std::unique_ptr<Walk<ProbabilityType> > &walk_, const std::list<boost::shared_ptr<BaseMeasurement<ProbabilityType> > > &measurements_,
                                             unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> &rng_)
     : m_steps(0),
       m_steps_accepted(0),
@@ -41,14 +44,15 @@ MetropolisSimulation::MetropolisSimulation (std::unique_ptr<Walk> &walk_, const 
 {
     BOOST_ASSERT(rng.get() != 0);
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-    for (std::list<boost::shared_ptr<BaseMeasurement> >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+    for (typename std::list<boost::shared_ptr<BaseMeasurement<ProbabilityType> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
         BOOST_ASSERT((*m)->is_valid_walk(*walk));
 #endif
 
     perform_initialization(initialization_sweeps);
 }
 
-void MetropolisSimulation::iterate (unsigned int sweeps)
+template <typename ProbabilityType>
+void MetropolisSimulation<ProbabilityType>::iterate (unsigned int sweeps)
 {
     for (unsigned int i = 0; i < sweeps; ++i) {
         // perform a single step
@@ -56,19 +60,20 @@ void MetropolisSimulation::iterate (unsigned int sweeps)
 
         // perform the measurement(s)
         if (accepted || measurement_not_yet_updated) {
-            for (std::list<boost::shared_ptr<BaseMeasurement> >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+            for (typename std::list<boost::shared_ptr<BaseMeasurement<ProbabilityType> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
                 (*m)->step_advanced(*walk);
             measurement_not_yet_updated = false;
         } else {
-            for (std::list<boost::shared_ptr<BaseMeasurement> >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+            for (typename std::list<boost::shared_ptr<BaseMeasurement<ProbabilityType> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
                 (*m)->step_repeated(*walk);
         }
     }
 }
 
-bool MetropolisSimulation::perform_single_step (void)
+template <typename ProbabilityType>
+bool MetropolisSimulation<ProbabilityType>::perform_single_step (void)
 {
-    const probability_t probability_ratio = walk->compute_probability_ratio_of_random_transition(*rng);
+    const ProbabilityType probability_ratio = walk->compute_probability_ratio_of_random_transition(*rng);
 
     // phrasing the if statement this way also bails out if
     // probability_ratio == nan
@@ -78,7 +83,7 @@ bool MetropolisSimulation::perform_single_step (void)
         // throwing an exception
         walk->reject_transition();
 
-        throw invalid_probability_error(probability_ratio);
+        throw invalid_probability_error<ProbabilityType>(probability_ratio);
     }
 
     ++m_steps;
@@ -107,12 +112,16 @@ bool MetropolisSimulation::perform_single_step (void)
     }
 }
 
-void MetropolisSimulation::perform_initialization (unsigned int initialization_sweeps)
+template <typename ProbabilityType>
+void MetropolisSimulation<ProbabilityType>::perform_initialization (unsigned int initialization_sweeps)
 {
     // do initialization sweeps
     for (unsigned int i = 0; i < initialization_sweeps; ++i)
         perform_single_step();
     // initialize the measurements
-    for (std::list<boost::shared_ptr<BaseMeasurement> >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+    for (typename std::list<boost::shared_ptr<BaseMeasurement<ProbabilityType> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
         (*m)->initialize(*walk);
 }
+
+#define VMC_SUPPORTED_TYPE(amplitude_type) template class MetropolisSimulation<typename RealPart<amplitude_type>::type>
+#include "vmc-supported-types.hpp"

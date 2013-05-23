@@ -7,6 +7,7 @@
 
 class RandomNumberGenerator;
 
+template <typename _ProbabilityType>
 class Walk : boost::noncopyable
 /** Abstract base class for a Monte Carlo walk
  *
@@ -14,6 +15,8 @@ class Walk : boost::noncopyable
  */
 {
 public:
+    typedef _ProbabilityType ProbabilityType;
+
     virtual ~Walk (void)
         {
         }
@@ -21,7 +24,7 @@ public:
     /**
      * Attempt a transition and return its probability ratio
      */
-    virtual probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng) = 0;
+    virtual ProbabilityType compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng) = 0;
 
     /**
      * Accept the transition, and get the walk object into a state such that

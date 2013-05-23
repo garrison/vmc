@@ -4,11 +4,11 @@ from pyvmc.includes.boost.shared_ptr cimport shared_ptr
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude
 
 cdef extern from "Walk.hpp":
-    cdef cppclass CppWalk "Walk":
+    cdef cppclass CppWalk "Walk<probability_t>":
         pass
 
 cdef extern from "StandardWalk.hpp":
-    cdef cppclass CppStandardWalk "StandardWalk" (CppWalk):
+    cdef cppclass CppStandardWalk "StandardWalk<amplitude_t>" (CppWalk):
         CppStandardWalk(shared_ptr[CppWavefunctionAmplitude]&)
 
 cdef class Walk(object):

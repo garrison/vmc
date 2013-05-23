@@ -4,6 +4,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include "vmc-typedefs.hpp"
+#include "vmc-real-part.hpp"
 #include "Wavefunction.hpp"
 #include "Walk.hpp"
 
@@ -12,20 +13,23 @@
  *
  * (proportional to the modulus squared of the wavefunction)
  */
-class StandardWalk : public Walk
+template <typename AmplitudeType>
+class StandardWalk : public Walk<typename RealPart<AmplitudeType>::type>
 {
 public:
+    typedef typename RealPart<AmplitudeType>::type ProbabilityType;
+
     /**
      * Constructor
      *
      * @param wfa_ initial wavefunction
      */
-    StandardWalk (boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wfa_);
+    StandardWalk (boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_);
 
     /**
      * Returns the current wavefunction
      */
-    const Wavefunction<amplitude_t>::Amplitude & get_wavefunctionamplitude (void) const
+    const typename Wavefunction<AmplitudeType>::Amplitude & get_wavefunctionamplitude (void) const
         {
             return *wfa;
         }
@@ -34,7 +38,7 @@ private:
     /**
      * Attempt a transition and return its probability ratio
      */
-    virtual probability_t compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng) override;
+    virtual ProbabilityType compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng) override;
 
     /**
      * Accept the transition, and get the walk object into a state such that
@@ -50,12 +54,17 @@ private:
 
     virtual void check_for_numerical_error (void) const override;
 
-    boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> wfa; // treat this as copy on write
+    boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa; // treat this as copy on write
     bool autoreject_in_progress;
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     bool transition_in_progress;
 #endif
 };
+
+#include "vmc-real-part.hpp"
+#define VMC_SUPPORTED_TYPE(amplitude_type) extern template class StandardWalk<typename RealPart<amplitude_type>::type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

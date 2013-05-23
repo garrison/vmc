@@ -11,38 +11,41 @@
  * wavefunction when it is in scope.  Keep it around for as little time as
  * possible.
  */
+template <typename AmplitudeType>
 class TemporaryMove : boost::noncopyable
 {
 public:
-    TemporaryMove (const Wavefunction<amplitude_t>::Amplitude &wfa_, const Move &move)
+    TemporaryMove (const typename Wavefunction<AmplitudeType>::Amplitude &wfa_, const Move &move)
         : wfa(wfa_)
         {
-            const_cast<Wavefunction<amplitude_t>::Amplitude &>(wfa).perform_move(move);
+            const_cast<typename Wavefunction<AmplitudeType>::Amplitude &>(wfa).perform_move(move);
         }
 
     ~TemporaryMove (void)
         {
-            const_cast<Wavefunction<amplitude_t>::Amplitude &>(wfa).cancel_move();
+            const_cast<typename Wavefunction<AmplitudeType>::Amplitude &>(wfa).cancel_move();
         }
 
-    const Wavefunction<amplitude_t>::Amplitude &wfa;
+    const typename Wavefunction<AmplitudeType>::Amplitude &wfa;
 };
 
-void OperatorMeasurement::initialize_ (const StandardWalk &walk)
+template <typename AmplitudeType>
+void OperatorMeasurement<AmplitudeType>::initialize_ (const StandardWalk<AmplitudeType> &walk)
 {
     (void) walk;
     BOOST_ASSERT(&walk.get_wavefunctionamplitude().get_lattice() == m_operator.lattice.get());
 }
 
-void OperatorMeasurement::measure_ (const StandardWalk &walk)
+template <typename AmplitudeType>
+void OperatorMeasurement<AmplitudeType>::measure_ (const StandardWalk<AmplitudeType> &walk)
 {
-    const Wavefunction<amplitude_t>::Amplitude &wfa = walk.get_wavefunctionamplitude();
+    const typename Wavefunction<AmplitudeType>::Amplitude &wfa = walk.get_wavefunctionamplitude();
     const PositionArguments &r = wfa.get_positions();
     const Lattice &lattice = wfa.get_lattice();
 
-    amplitude_t meas = 0;
+    AmplitudeType meas = 0;
 
-    const Big<amplitude_t> old_psi(wfa.psi());
+    const Big<AmplitudeType> old_psi(wfa.psi());
 
     // we only iterate if doing a sum, and even then we only want to iterate
     // over BraivaisSite's
@@ -54,17 +57,17 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
         // we only want to iterate over BravaisSite's
         BOOST_ASSERT(site_offset.basis_index == 0);
 
-        phase_t phase = 1;
+        PhaseType phase = 1;
 
         Move move;
         for (unsigned int j = 0; j < m_operator.hopv.size(); ++j) {
-            phase_t srcphase;
+            PhaseType srcphase;
             const unsigned int species = m_operator.hopv[j].get_species();
             LatticeSite src(m_operator.hopv[j].get_source());
             lattice.asm_add_site_vector(src, site_offset.bravais_site());
             BOOST_ASSERT(is_sum_over_sites() || lattice.site_is_valid(src));
             srcphase = lattice.enforce_boundary(src, bcs);
-            if (srcphase == phase_t(0))
+            if (srcphase == PhaseType(0))
                 goto current_measurement_is_zero;
             const int particle_index = r.particle_index_at_position(lattice.index(src), species);
             if (particle_index < 0)
@@ -74,7 +77,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
                 lattice.asm_add_site_vector(dest, site_offset.bravais_site());
                 BOOST_ASSERT(is_sum_over_sites() || lattice.site_is_valid(dest));
                 phase *= lattice.enforce_boundary(dest, bcs) / srcphase;
-                if (phase == phase_t(0))
+                if (phase == PhaseType(0))
                     goto current_measurement_is_zero;
                 const unsigned int dest_index = lattice.index(dest);
                 if (r.is_occupied(dest_index, species))
@@ -85,7 +88,7 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
 
         // now perform the move (if necessary)
         if (move.size() != 0) {
-            TemporaryMove temp_move(wfa, move);
+            TemporaryMove<AmplitudeType> temp_move(wfa, move);
             // fixme: check logic of multiplying by phase (c.f. above), as
             // well as logic of source and destination
             meas += std::conj(phase * wfa.psi().ratio(old_psi));
@@ -100,8 +103,12 @@ void OperatorMeasurement::measure_ (const StandardWalk &walk)
     estimate.add_value(most_recent_value);
 }
 
-void OperatorMeasurement::repeat_measurement_ (const StandardWalk &walk)
+template <typename AmplitudeType>
+void OperatorMeasurement<AmplitudeType>::repeat_measurement_ (const StandardWalk<AmplitudeType> &walk)
 {
     (void) walk;
     estimate.add_value(most_recent_value);
 }
+
+#define VMC_SUPPORTED_TYPE(type) template class OperatorMeasurement<type>
+#include "vmc-supported-types.hpp"

@@ -21,7 +21,7 @@ class RandomNumberGenerator;
  * @see RenyiSignWalk
  * @see RenyiModPossibleWalk
  */
-class BaseSwapPossibleWalk : public Walk
+class BaseSwapPossibleWalk : public Walk<probability_t>
 {
 public:
     /**

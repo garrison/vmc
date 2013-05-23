@@ -7,28 +7,35 @@
 
 #include "Walk.hpp"
 
+template <typename ProbabilityType>
 class BaseMeasurement : boost::noncopyable
 // common (non-templated) abstract base class
 {
 public:
+    typedef Walk<ProbabilityType> BaseWalkType;
+
     virtual ~BaseMeasurement (void)
         {
         }
 
-    virtual void initialize (const Walk &walk) = 0;
+    virtual void initialize (const BaseWalkType &walk) = 0;
 
-    virtual void step_advanced (const Walk &walk) = 0;
+    virtual void step_advanced (const BaseWalkType &walk) = 0;
 
-    virtual void step_repeated (const Walk &walk) = 0;
+    virtual void step_repeated (const BaseWalkType &walk) = 0;
 
-    virtual bool is_valid_walk (const Walk &walk) = 0;
+    virtual bool is_valid_walk (const BaseWalkType &walk) = 0;
 };
 
-template <class WalkType>
-class Measurement : public BaseMeasurement
+template <class _WalkType>
+class Measurement : public BaseMeasurement<typename _WalkType::ProbabilityType>
 // abstract base class
 {
 public:
+    typedef _WalkType WalkType;
+    typedef typename WalkType::ProbabilityType ProbabilityType;
+    typedef Walk<ProbabilityType> BaseWalkType;
+
     /**
      * Initializes the object for taking measurements.
      *
@@ -36,7 +43,7 @@ public:
      * called, either measure() or repeat_measurement() should be called after
      * every step.
      */
-    virtual void initialize (const Walk &walk) override final
+    virtual void initialize (const BaseWalkType &walk) override final
         {
             BOOST_ASSERT(!initialized);
             BOOST_ASSERT(this->is_valid_walk(walk));
@@ -49,7 +56,7 @@ public:
      * time a step is taken that results in an actual move in Monte Carlo
      * space.
      */
-    virtual void step_advanced (const Walk &walk) override final
+    virtual void step_advanced (const BaseWalkType &walk) override final
         {
             first_step_has_been_completed = true;
             m_state_changed_since_last_measurement = true;
@@ -61,13 +68,13 @@ public:
      * time a step is taken in which the current state of the walk is identical
      * to the previous state.
      */
-    virtual void step_repeated (const Walk &walk) override final
+    virtual void step_repeated (const BaseWalkType &walk) override final
         {
             BOOST_ASSERT(first_step_has_been_completed);
             step_completed(walk);
         }
 
-    virtual bool is_valid_walk (const Walk &walk) override final
+    virtual bool is_valid_walk (const BaseWalkType &walk) override final
         {
             const WalkType *walkptr = dynamic_cast<const WalkType *>(&walk);
             return walkptr && is_valid_walk_(*walkptr);
@@ -118,7 +125,7 @@ private:
      * This is called any time a step is made.  An actual measurement will be
      * performed here if one is due.
      */
-    void step_completed (const Walk &walk_)
+    void step_completed (const BaseWalkType &walk_)
         {
             BOOST_ASSERT(initialized);
             BOOST_ASSERT(!measurement_in_progress);

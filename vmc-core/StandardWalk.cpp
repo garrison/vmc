@@ -2,7 +2,8 @@
 #include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
 
-StandardWalk::StandardWalk (boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wfa_)
+template <typename AmplitudeType>
+StandardWalk<AmplitudeType>::StandardWalk (boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_)
     : wfa(wfa_),
       autoreject_in_progress(false)
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
@@ -11,7 +12,8 @@ StandardWalk::StandardWalk (boost::shared_ptr<Wavefunction<amplitude_t>::Amplitu
 {
 }
 
-probability_t StandardWalk::compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng)
+template <typename AmplitudeType>
+typename StandardWalk<AmplitudeType>::ProbabilityType StandardWalk<AmplitudeType>::compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng)
 {
     BOOST_ASSERT(!transition_in_progress);
 
@@ -20,7 +22,7 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (Rand
 #endif
 
     // remember old amplitude so we can later compute a new:old ratio
-    const Big<amplitude_t> old_amplitude(wfa->psi());
+    const Big<AmplitudeType> old_amplitude(wfa->psi());
 
     // choose a move and update things
     const Move move(wfa->propose_move(rng));
@@ -35,14 +37,15 @@ probability_t StandardWalk::compute_probability_ratio_of_random_transition (Rand
     wfa->perform_move(move);
 
     // calculate and return a probability
-    const probability_t rv = std::norm(wfa->psi().ratio(old_amplitude));
+    const typename StandardWalk<AmplitudeType>::ProbabilityType rv = std::norm(wfa->psi().ratio(old_amplitude));
 #if defined(DEBUG_VMC_STANDARD_WALK) || defined(DEBUG_VMC_ALL)
     std::cerr << "ratio " << rv << std::endl;
 #endif
     return rv;
 }
 
-void StandardWalk::accept_transition (void)
+template <typename AmplitudeType>
+void StandardWalk<AmplitudeType>::accept_transition (void)
 {
     BOOST_ASSERT(transition_in_progress);
     BOOST_ASSERT(!autoreject_in_progress);
@@ -59,7 +62,8 @@ void StandardWalk::accept_transition (void)
 #endif
 }
 
-void StandardWalk::reject_transition (void)
+template <typename AmplitudeType>
+void StandardWalk<AmplitudeType>::reject_transition (void)
 {
     BOOST_ASSERT(transition_in_progress);
 
@@ -74,7 +78,11 @@ void StandardWalk::reject_transition (void)
 #endif
 }
 
-void StandardWalk::check_for_numerical_error (void) const
+template <typename AmplitudeType>
+void StandardWalk<AmplitudeType>::check_for_numerical_error (void) const
 {
     wfa->check_for_numerical_error();
 }
+
+#define VMC_SUPPORTED_TYPE(amplitude_type) template class StandardWalk<amplitude_type>
+#include "vmc-supported-types.hpp"

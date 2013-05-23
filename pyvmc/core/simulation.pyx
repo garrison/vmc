@@ -20,7 +20,7 @@ from pyvmc.utils import custom_json as json
 from pyvmc.core import get_vmc_version
 
 cdef extern from "MetropolisSimulation.hpp":
-    cdef cppclass CppMetropolisSimulation "MetropolisSimulation":
+    cdef cppclass CppMetropolisSimulation "MetropolisSimulation<probability_t>":
         CppMetropolisSimulation(unique_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, unique_ptr[CppRandomNumberGenerator]&) nogil except +
         void iterate(unsigned int) nogil except +
         void check_for_numerical_error() nogil except +

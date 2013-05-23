@@ -19,11 +19,11 @@
  * (i.e. how often is a precise, given number of particles of each species
  * found within the subsystem?)
  */
-class SubsystemOccupationNumberProbabilityMeasurement : public Measurement<StandardWalk>
+class SubsystemOccupationNumberProbabilityMeasurement : public Measurement<StandardWalk<amplitude_t> >
 {
 public:
     SubsystemOccupationNumberProbabilityMeasurement (unsigned int steps_per_measurement, const boost::shared_ptr<const Subsystem> &subsystem_)
-        : Measurement<StandardWalk>(steps_per_measurement),
+        : Measurement<StandardWalk<amplitude_t> >(steps_per_measurement),
           subsystem(subsystem_)
         {
         }
@@ -65,7 +65,7 @@ public:
         }
 
 private:
-    virtual void initialize_ (const StandardWalk &walk) override
+    virtual void initialize_ (const StandardWalk<amplitude_t> &walk) override
         {
             BOOST_ASSERT(estimate.size() == 0);
 
@@ -85,7 +85,7 @@ private:
             estimate.resize(n);
         }
 
-    virtual void measure_ (const StandardWalk &walk) override
+    virtual void measure_ (const StandardWalk<amplitude_t> &walk) override
         {
             const Wavefunction<amplitude_t>::Amplitude &wfa = walk.get_wavefunctionamplitude();
 
@@ -99,7 +99,7 @@ private:
             repeat_measurement_(walk);
         }
 
-    virtual void repeat_measurement_ (const StandardWalk &walk) override
+    virtual void repeat_measurement_ (const StandardWalk<amplitude_t> &walk) override
         {
             (void) walk;
             // tally the value 1 for the current occupation, and 0 for each

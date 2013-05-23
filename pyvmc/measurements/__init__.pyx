@@ -28,7 +28,7 @@ cdef extern from "BasicOperator.hpp":
         CppBasicOperator(vector[CppSiteHop]&, shared_ptr[CppLattice]&)
 
 cdef extern from "OperatorMeasurement.hpp":
-    cdef cppclass CppOperatorMeasurement "OperatorMeasurement" (CppBaseMeasurement):
+    cdef cppclass CppOperatorMeasurement "OperatorMeasurement<amplitude_t>" (CppBaseMeasurement):
         CppOperatorMeasurement(unsigned int, CppBasicOperator&, CppBoundaryConditions&)
         CppComplexBlockedEstimate& get_estimate()
 

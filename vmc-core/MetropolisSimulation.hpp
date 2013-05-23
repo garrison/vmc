@@ -11,7 +11,10 @@
 #include "vmc-typedefs.hpp"
 #include "RandomNumberGenerator.hpp"
 
+template <typename ProbabilityType>
 class BaseMeasurement;
+
+template <typename ProbabilityType>
 class Walk;
 
 /**
@@ -22,9 +25,14 @@ class Walk;
  * "equilibrium," and after that it does some more steps, taking a measurement
  * after each move.
  */
+template <typename _ProbabilityType>
 class MetropolisSimulation : boost::noncopyable
 {
 public:
+    typedef _ProbabilityType ProbabilityType;
+    typedef Walk<ProbabilityType> WalkType;
+    typedef BaseMeasurement<ProbabilityType> BaseMeasurementType;
+
     /**
      * Constructor
      *
@@ -44,7 +52,7 @@ public:
      *
      * @see Walk
      */
-    MetropolisSimulation (std::unique_ptr<Walk> &walk_, const std::list<boost::shared_ptr<BaseMeasurement> > &measurements_,
+    MetropolisSimulation (std::unique_ptr<WalkType> &walk_, const std::list<boost::shared_ptr<BaseMeasurementType> > &measurements_,
                           unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> &rng_);
 
     /**
@@ -56,7 +64,7 @@ public:
     /**
      * Returns the walk object
      */
-    const Walk * get_walk_ptr (void) const
+    const WalkType * get_walk_ptr (void) const
         {
             return walk.get();
         }
@@ -104,7 +112,7 @@ public:
             return m_steps_accepted;
         }
 
-    const std::list<boost::shared_ptr<BaseMeasurement> > & get_measurements (void) const
+    const std::list<boost::shared_ptr<BaseMeasurementType> > & get_measurements (void) const
         {
             // fixme: in theory, somebody could do something evil and directly
             // modify the measurements returned here, since they aren't
@@ -127,8 +135,8 @@ protected:
     unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
 
 private:
-    std::unique_ptr<Walk> walk;
-    std::list<boost::shared_ptr<BaseMeasurement> > measurements;
+    std::unique_ptr<WalkType> walk;
+    std::list<boost::shared_ptr<BaseMeasurementType> > measurements;
     bool measurement_not_yet_updated;
 
     std::unique_ptr<RandomNumberGenerator> rng;
@@ -137,5 +145,10 @@ private:
 
     void perform_initialization (unsigned int initialization_sweeps);
 };
+
+#include "vmc-real-part.hpp"
+#define VMC_SUPPORTED_TYPE(amplitude_type) extern template class MetropolisSimulation<typename RealPart<amplitude_type>::type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

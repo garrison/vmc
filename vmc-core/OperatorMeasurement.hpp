@@ -24,13 +24,19 @@
  *
  * @see StandardWalk
  */
-class OperatorMeasurement : public Measurement<StandardWalk>
+template <typename _AmplitudeType>
+class OperatorMeasurement : public Measurement<StandardWalk<_AmplitudeType> >
 {
 public:
+    typedef _AmplitudeType AmplitudeType;
+    typedef AmplitudeType PhaseType;
+    typedef Walk<typename StandardWalk<AmplitudeType>::ProbabilityType> BaseWalkType;
+    typedef StandardWalk<AmplitudeType> WalkType;
+
     OperatorMeasurement (unsigned int steps_per_measurement,
                          const BasicOperator &operator_,
                          const BoundaryConditions &bcs_)
-        : Measurement<StandardWalk>(steps_per_measurement),
+        : Measurement<WalkType>(steps_per_measurement),
           m_operator(operator_),
           bcs(bcs_)
         {
@@ -39,7 +45,7 @@ public:
     /**
      * Returns the operator measurement estimate for a given vector
      */
-    const BlockedEstimate<amplitude_t> & get_estimate (void) const
+    const BlockedEstimate<AmplitudeType> & get_estimate (void) const
         {
             return estimate;
         }
@@ -48,19 +54,19 @@ private:
     /**
      * Prepare the object for taking measurements
      */
-    virtual void initialize_ (const StandardWalk &walk) override;
+    virtual void initialize_ (const WalkType &walk) override;
 
     /**
      * Calculate and tally a measurement
      */
-    virtual void measure_ (const StandardWalk &walk) override;
+    virtual void measure_ (const WalkType &walk) override;
 
     /**
      * Tally again the most recent measurement
      */
-    virtual void repeat_measurement_ (const StandardWalk &walk) override;
+    virtual void repeat_measurement_ (const WalkType &walk) override;
 
-    virtual bool is_valid_walk_ (const StandardWalk &walk) override
+    virtual bool is_valid_walk_ (const WalkType &walk) override
         {
             return BasicOperator::is_valid(m_operator.hopv,
                                            walk.get_wavefunctionamplitude().get_lattice(),
@@ -75,8 +81,12 @@ private:
     const BasicOperator m_operator;
     const BoundaryConditions bcs;
 
-    BlockedEstimate<amplitude_t> estimate;
-    amplitude_t most_recent_value;
+    BlockedEstimate<AmplitudeType> estimate;
+    AmplitudeType most_recent_value;
 };
+
+#define VMC_SUPPORTED_TYPE(type) extern template class OperatorMeasurement<type>
+#include "vmc-supported-types.hpp"
+#undef VMC_SUPPORTED_TYPE
 
 #endif

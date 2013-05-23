@@ -2,8 +2,8 @@
 #include <boost/make_shared.hpp>
 #include <boost/cast.hpp>
 
-#include "vmc-math-utils.hpp"
 #include "DBLWavefunction.hpp"
+#include "vmc-math-utils.hpp"
 
 template <typename AmplitudeType>
 DBLWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const DBLWavefunction> &wf_, const PositionArguments &r_)

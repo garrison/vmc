@@ -4,8 +4,8 @@
 #include <boost/make_shared.hpp>
 #include <boost/cast.hpp>
 
-#include "vmc-math-utils.hpp"
 #include "DMetalWavefunction.hpp"
+#include "vmc-math-utils.hpp"
 #include "random-configuration.hpp"
 
 template <typename AmplitudeType>

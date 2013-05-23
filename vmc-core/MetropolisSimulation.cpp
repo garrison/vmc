@@ -44,7 +44,7 @@ MetropolisSimulation<ProbabilityType>::MetropolisSimulation (std::unique_ptr<Wal
 {
     BOOST_ASSERT(rng.get() != 0);
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-    for (typename std::list<boost::shared_ptr<BaseMeasurement<ProbabilityType> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+    for (auto m = measurements.begin(); m != measurements.end(); ++m)
         BOOST_ASSERT((*m)->is_valid_walk(*walk));
 #endif
 
@@ -60,11 +60,11 @@ void MetropolisSimulation<ProbabilityType>::iterate (unsigned int sweeps)
 
         // perform the measurement(s)
         if (accepted || measurement_not_yet_updated) {
-            for (typename std::list<boost::shared_ptr<BaseMeasurement<ProbabilityType> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+            for (auto m = measurements.begin(); m != measurements.end(); ++m)
                 (*m)->step_advanced(*walk);
             measurement_not_yet_updated = false;
         } else {
-            for (typename std::list<boost::shared_ptr<BaseMeasurement<ProbabilityType> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+            for (auto m = measurements.begin(); m != measurements.end(); ++m)
                 (*m)->step_repeated(*walk);
         }
     }
@@ -119,7 +119,7 @@ void MetropolisSimulation<ProbabilityType>::perform_initialization (unsigned int
     for (unsigned int i = 0; i < initialization_sweeps; ++i)
         perform_single_step();
     // initialize the measurements
-    for (typename std::list<boost::shared_ptr<BaseMeasurement<ProbabilityType> > >::iterator m = measurements.begin(); m != measurements.end(); ++m)
+    for (auto m = measurements.begin(); m != measurements.end(); ++m)
         (*m)->initialize(*walk);
 }
 

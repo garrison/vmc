@@ -24,7 +24,7 @@ public:
      *
      * @param wfa_ initial wavefunction
      */
-    StandardWalk (boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_);
+    StandardWalk (const boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_);
 
     /**
      * Returns the current wavefunction

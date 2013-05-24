@@ -92,15 +92,13 @@ private:
     template <typename PHASE_T>
     static typename boost::enable_if<boost::is_complex<PHASE_T>, PhaseType>::type calculate_phase (const boost::rational<int> &p)
         {
-            // consider open boundary conditions as a special case
-            if (p == 0)
-                return PhaseType(0);
-
             // if we can return an exact value, do so
-            if (p == boost::rational<int>(1))
-                return PhaseType(1);
+            if (p == 0)
+                return PhaseType(0); // open
+            else if (p == boost::rational<int>(1))
+                return PhaseType(1); // periodic
             else if (p == boost::rational<int>(1, 2))
-                return PhaseType(-1);
+                return PhaseType(-1); // antiperiodic
             else if (p == boost::rational<int>(1, 4))
                 return PhaseType(0, 1);
             else if (p == boost::rational<int>(3, 4))
@@ -114,11 +112,13 @@ private:
     static typename boost::disable_if<boost::is_complex<PHASE_T>, PhaseType>::type calculate_phase (const boost::rational<int> &p)
         {
             if (p == boost::rational<int>(1))
-                return PhaseType(1);
+                return PhaseType(1); // periodic
             else if (p == boost::rational<int>(1, 2))
-                return PhaseType(-1);
+                return PhaseType(-1); // antiperiodic
 
-            BOOST_ASSERT(false); // this phase cannot be represented using a real number type
+            // the only remaining possibility for a real PhaseType is open boundary
+            // conditions
+            BOOST_ASSERT(p == 0);
             return PhaseType(0);
         }
 

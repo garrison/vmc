@@ -19,6 +19,7 @@
  * which the relevant complex quantity advances by some arbitrary phase (given
  * by a rational number) when one wraps around the system a single time.
  */
+template <typename PhaseType>
 class BoundaryCondition
 {
 public:
@@ -32,7 +33,7 @@ public:
      */
     explicit BoundaryCondition (const boost::rational<int> &p_)
         : m_p(p_),
-          m_phase(calculate_phase<phase_t>(p_))
+          m_phase(calculate_phase<PhaseType>(p_))
         {
             BOOST_ASSERT(p_ >= 0 && p_ <= 1);
         }
@@ -60,7 +61,7 @@ public:
      * direction.  This will be zero for open boundary conditions, or will be
      * along the unit circle for any type of periodic boundary conditions.
      */
-    phase_t phase (void) const
+    PhaseType phase (void) const
         {
             BOOST_ASSERT(m_p != -1); // otherwise it is uninitialized
             return m_phase;
@@ -84,53 +85,64 @@ public:
 private:
     /**
      * This function is called to initialize the data member m_phase during
-     * object construction.  We are unsure whether phase_t is real or complex,
+     * object construction.  We are unsure whether PhaseType is real or complex,
      * so we implement both and the compiler chooses the correct one using
      * template specialization.
      */
-    template<typename PHASE_T>
-    static typename boost::enable_if<boost::is_complex<PHASE_T>, phase_t>::type calculate_phase (const boost::rational<int> &p)
+    template <typename PHASE_T>
+    static typename boost::enable_if<boost::is_complex<PHASE_T>, PhaseType>::type calculate_phase (const boost::rational<int> &p)
         {
             // consider open boundary conditions as a special case
             if (p == 0)
-                return phase_t(0);
+                return PhaseType(0);
 
             // if we can return an exact value, do so
             if (p == boost::rational<int>(1))
-                return phase_t(1);
+                return PhaseType(1);
             else if (p == boost::rational<int>(1, 2))
-                return phase_t(-1);
+                return PhaseType(-1);
             else if (p == boost::rational<int>(1, 4))
-                return PHASE_T(0, 1);
+                return PhaseType(0, 1);
             else if (p == boost::rational<int>(3, 4))
-                return PHASE_T(0, -1);
+                return PhaseType(0, -1);
             else
                 // cannot return an exact value, so fall back using the exponential function
                 return std::exp(complex_t(0, 1) * complex_t(2 * boost::math::constants::pi<real_t>() * boost::rational_cast<real_t>(p)));
         }
 
-    template<typename PHASE_T>
-    static typename boost::disable_if<boost::is_complex<PHASE_T>, phase_t>::type calculate_phase (const boost::rational<int> &p)
+    template <typename PHASE_T>
+    static typename boost::disable_if<boost::is_complex<PHASE_T>, PhaseType>::type calculate_phase (const boost::rational<int> &p)
         {
             if (p == boost::rational<int>(1))
-                return phase_t(1);
+                return PhaseType(1);
             else if (p == boost::rational<int>(1, 2))
-                return phase_t(-1);
+                return PhaseType(-1);
 
             BOOST_ASSERT(false); // this phase cannot be represented using a real number type
-            return phase_t(0);
+            return PhaseType(0);
         }
 
     boost::rational<int> m_p;
-    phase_t m_phase;
+    PhaseType m_phase;
+
+public:
+    static const BoundaryCondition<PhaseType> open;
+    static const BoundaryCondition<PhaseType> periodic;
+    static const BoundaryCondition<PhaseType> antiperiodic;
 };
 
 /** boundary conditions in each direction */
-typedef lw_vector<BoundaryCondition, MAX_DIMENSION> BoundaryConditions;
+template <typename PhaseType>
+using BoundaryConditions = lw_vector<BoundaryCondition<PhaseType>, MAX_DIMENSION>;
 
-// fixme: initialize these once only?
-static const BoundaryCondition open_bc(boost::rational<int>(0));
-static const BoundaryCondition periodic_bc(boost::rational<int>(1, 1));
-static const BoundaryCondition antiperiodic_bc(boost::rational<int>(1, 2));
+// named boundary conditions
+template <typename PhaseType>
+const BoundaryCondition<PhaseType> BoundaryCondition<PhaseType>::open = BoundaryCondition<PhaseType>(boost::rational<int>(0));
+
+template <typename PhaseType>
+const BoundaryCondition<PhaseType> BoundaryCondition<PhaseType>::periodic = BoundaryCondition<PhaseType>(boost::rational<int>(1));
+
+template <typename PhaseType>
+const BoundaryCondition<PhaseType> BoundaryCondition<PhaseType>::antiperiodic = BoundaryCondition<PhaseType>(boost::rational<int>(1, 2));
 
 #endif

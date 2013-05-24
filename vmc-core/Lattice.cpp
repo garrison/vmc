@@ -110,22 +110,11 @@ void Lattice::asm_subtract_site_vector (LatticeSite &site, const BravaisSite &ot
         site[i] -= other[i];
 }
 
-phase_t Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions &bcs) const
+void Lattice::enforce_periodic_boundary (LatticeSite &site) const
 {
     BOOST_ASSERT(site.n_dimensions() == n_dimensions());
-    BOOST_ASSERT(bcs.size() == 0 || bcs.size() == n_dimensions());
-    phase_t phase_change = 1;
     for (unsigned int dim = 0; dim < n_dimensions(); ++dim) {
-        while (site[dim] >= dimensions[dim]) {
-            site[dim] -= dimensions[dim];
-            if (bcs.size() != 0)
-                phase_change *= bcs[dim].phase();
-        }
-        while (site[dim] < 0) {
-            site[dim] += dimensions[dim];
-            if (bcs.size() != 0)
-                phase_change *= std::conj(bcs[dim].phase());
-        }
+        do_safe_modulus(site[dim], dimensions[dim]);
     }
 
     // this is often unnecessary ... should it be in a separate
@@ -133,5 +122,4 @@ phase_t Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions &
     do_safe_modulus(site.basis_index, basis_indices);
 
     BOOST_ASSERT(site_is_valid(site));
-    return phase_change;
 }

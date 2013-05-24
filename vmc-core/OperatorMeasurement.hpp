@@ -35,7 +35,7 @@ public:
 
     OperatorMeasurement (unsigned int steps_per_measurement,
                          const BasicOperator &operator_,
-                         const BoundaryConditions &bcs_)
+                         const BoundaryConditions<PhaseType> &bcs_)
         : Measurement<WalkType>(steps_per_measurement),
           m_operator(operator_),
           bcs(bcs_)
@@ -79,7 +79,7 @@ private:
         }
 
     const BasicOperator m_operator;
-    const BoundaryConditions bcs;
+    const BoundaryConditions<PhaseType> bcs;
 
     BlockedEstimate<AmplitudeType> estimate;
     AmplitudeType most_recent_value;

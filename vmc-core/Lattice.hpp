@@ -209,7 +209,14 @@ public:
      * value 1 will be returned for the phase in this case, i.e. everything
      * will be treated as if it has periodic boundary conditions.
      */
-    phase_t enforce_boundary (LatticeSite &site, const BoundaryConditions &bcs) const;
+    template <typename PhaseType>
+    PhaseType enforce_boundary (LatticeSite &site, const BoundaryConditions<PhaseType> &bcs) const;
+
+    /**
+     * If the site is outside the lattice, move it to the corresponding site
+     * inside the lattice assuming periodic boundary conditions
+     */
+    void enforce_periodic_boundary (LatticeSite &site) const;
 
     /**
      * Returns the number of move axes
@@ -254,7 +261,7 @@ public:
             for (unsigned int i = 0; i < n_dimensions(); ++i)
                 site[i] += step_direction * m.bravais_site[i];
             site.basis_index += step_direction * m.basis_index;
-            enforce_boundary(site, BoundaryConditions());
+            enforce_periodic_boundary(site);
         }
 
 private:
@@ -286,5 +293,32 @@ protected:
     // after that it should not be changed
     std::vector<struct MoveAxis> move_axes;
 };
+
+template <typename PhaseType>
+PhaseType Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions<PhaseType> &bcs) const
+{
+    BOOST_ASSERT(site.n_dimensions() == n_dimensions());
+    BOOST_ASSERT(bcs.size() == 0 || bcs.size() == n_dimensions());
+    PhaseType phase_change = 1;
+    for (unsigned int dim = 0; dim < n_dimensions(); ++dim) {
+        while (site[dim] >= dimensions[dim]) {
+            site[dim] -= dimensions[dim];
+            if (bcs.size() != 0)
+                phase_change *= bcs[dim].phase();
+        }
+        while (site[dim] < 0) {
+            site[dim] += dimensions[dim];
+            if (bcs.size() != 0)
+                phase_change *= std::conj(bcs[dim].phase());
+        }
+    }
+
+    // this is often unnecessary ... should it be in a separate
+    // function to be called before this one when needed?
+    do_safe_modulus(site.basis_index, basis_indices);
+
+    BOOST_ASSERT(site_is_valid(site));
+    return phase_change;
+}
 
 #endif

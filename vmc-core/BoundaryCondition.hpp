@@ -89,37 +89,37 @@ private:
      * so we implement both and the compiler chooses the correct one using
      * template specialization.
      */
-    template <typename PHASE_T>
-    static typename boost::enable_if<boost::is_complex<PHASE_T>, PhaseType>::type calculate_phase (const boost::rational<int> &p)
+    template <typename ComplexPhaseType>
+    static typename boost::enable_if<boost::is_complex<ComplexPhaseType>, ComplexPhaseType>::type calculate_phase (const boost::rational<int> &p)
         {
             // if we can return an exact value, do so
             if (p == 0)
-                return PhaseType(0); // open
+                return ComplexPhaseType(0); // open
             else if (p == boost::rational<int>(1))
-                return PhaseType(1); // periodic
+                return ComplexPhaseType(1); // periodic
             else if (p == boost::rational<int>(1, 2))
-                return PhaseType(-1); // antiperiodic
+                return ComplexPhaseType(-1); // antiperiodic
             else if (p == boost::rational<int>(1, 4))
-                return PhaseType(0, 1);
+                return ComplexPhaseType(0, 1);
             else if (p == boost::rational<int>(3, 4))
-                return PhaseType(0, -1);
+                return ComplexPhaseType(0, -1);
             else
                 // cannot return an exact value, so fall back using the exponential function
-                return std::exp(complex_t(0, 1) * complex_t(2 * boost::math::constants::pi<real_t>() * boost::rational_cast<real_t>(p)));
+                return std::exp(ComplexPhaseType(0, 1) * ComplexPhaseType(2 * boost::math::constants::pi<real_t>() * boost::rational_cast<real_t>(p)));
         }
 
-    template <typename PHASE_T>
-    static typename boost::disable_if<boost::is_complex<PHASE_T>, PhaseType>::type calculate_phase (const boost::rational<int> &p)
+    template <typename RealPhaseType>
+    static typename boost::disable_if<boost::is_complex<RealPhaseType>, RealPhaseType>::type calculate_phase (const boost::rational<int> &p)
         {
             if (p == boost::rational<int>(1))
-                return PhaseType(1); // periodic
+                return RealPhaseType(1); // periodic
             else if (p == boost::rational<int>(1, 2))
-                return PhaseType(-1); // antiperiodic
+                return RealPhaseType(-1); // antiperiodic
 
             // the only remaining possibility for a real PhaseType is open boundary
             // conditions
             BOOST_ASSERT(p == 0);
-            return PhaseType(0);
+            return RealPhaseType(0);
         }
 
     boost::rational<int> m_p;

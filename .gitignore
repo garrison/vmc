@@ -9,6 +9,12 @@ __pycache__
 /vmc-core/Makefile
 /vmc-core/vmc-core.make
 
+/unittests/obj/
+/unittests/Makefile
+/unittests/gtest_main.make
+/unittests/vmc-core-tests.make
+/unittests/vmc-core-tests
+
 # Cython intermediate files
 /pyvmc/core/*.cpp
 /pyvmc/library/*.cpp

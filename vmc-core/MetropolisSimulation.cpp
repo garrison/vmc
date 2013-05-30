@@ -42,6 +42,7 @@ MetropolisSimulation<ProbabilityType>::MetropolisSimulation (std::unique_ptr<Wal
       measurement_not_yet_updated(true),
       rng(std::move(rng_))
 {
+    BOOST_ASSERT(walk.get() != 0);
     BOOST_ASSERT(rng.get() != 0);
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     for (auto m = measurements.begin(); m != measurements.end(); ++m)

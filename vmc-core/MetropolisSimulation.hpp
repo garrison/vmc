@@ -64,9 +64,9 @@ public:
     /**
      * Returns the walk object
      */
-    const WalkType * get_walk_ptr (void) const
+    const WalkType & get_walk (void) const
         {
-            return walk.get();
+            return *walk;
         }
 
     /**

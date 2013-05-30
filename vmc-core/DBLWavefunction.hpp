@@ -21,7 +21,7 @@ public:
     const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > orbital_def1, orbital_def2;
     const real_t d1_exponent, d2_exponent;
 
-    DBLWavefunction (const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_def_2, real_t d1_exponent_, real_t d2_exponent_)
+    DBLWavefunction (const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_def_2, real_t d1_exponent_=1, real_t d2_exponent_=1)
         : Wavefunction<AmplitudeType>(orbital_def_1->get_lattice_ptr()),
           orbital_def1(orbital_def_1),
           orbital_def2(orbital_def_2),

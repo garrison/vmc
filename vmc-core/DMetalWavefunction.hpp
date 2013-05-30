@@ -27,10 +27,10 @@ public:
                         const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_d2_,
                         const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_f_up_,
                         const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_f_dn_,
-                        real_t d1_exponent_,
-                        real_t d2_exponent_,
-                        real_t f_up_exponent_,
-                        real_t f_dn_exponent_)
+                        real_t d1_exponent_=1,
+                        real_t d2_exponent_=1,
+                        real_t f_up_exponent_=1,
+                        real_t f_dn_exponent_=1)
         : Wavefunction<AmplitudeType>(orbital_d1_->get_lattice_ptr()),
           orbital_d1(orbital_d1_),
           orbital_d2(orbital_d2_),

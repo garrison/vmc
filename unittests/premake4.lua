@@ -3,7 +3,7 @@ gtest_root = os.getenv("GTEST_DIR") or "/usr/src/gtest"
 solution "vmc-core-tests"
   configurations { "Local" }
 
-  buildoptions { "-Wall", "-Wextra", "-std=c++11" }
+  buildoptions { "-g", "-Wall", "-Wextra", "-std=c++11" }
   defines { "GTEST_HAS_PTHREAD=0" }
 
   configuration "Local"

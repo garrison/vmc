@@ -35,8 +35,8 @@ for premake to hook into a different build system instead of using
 The code should compile on recent versions of ``g++``, ``clang++``,
 and possibly even ``icc``.  Note that we are indeed making use of some
 C++11 features, including (but not necessarily limited to) explicit
-virtual overrides, auto-typed variables, template aliases, and extern
-templates.
+virtual overrides, auto-typed variables, template aliases, nullptr,
+and extern templates.
 
 A sample build script, which compiles both ``vmc-core`` and ``pyvmc``,
 is located at ``./do-build.example``.
@@ -60,20 +60,22 @@ vmc-core/docs/generated/latex/ and run ``make``.
 ``vmc-core`` tests
 ------------------
 
-There is no standalone test framework for ``vmc-core``, but we use
-assertions liberally.  There are some tests/assertions that slow the code
-significantly if enabled.  To run with these tests, compile with the flag
-``-DVMC_CAREFUL`` by running::
+We use assertions liberally within ``vmc-core``.  There are some
+tests/assertions that slow the code significantly if enabled.  To run
+with these tests, compile with the flag ``-DVMC_CAREFUL`` by running::
 
     $ make config=careful
 
 Be sure to pass all the appropriate environment variables, given above,
 to ``make``.
 
-If we build standalone tests for ``vmc-core`` in the future we will
-likely use ``googletest``.
+There are also some standalone unit tests, built upon the
+``googletest`` framework.  To build and run these tests::
 
-Another outstanding task is to write a fuzz test for ``CeperleyMatrix``.
+    $ cd unittests/
+    $ premake4 --os=linux gmake && INCLUDES="-I/path/to/eigen3/include -I/path/to/boost/include" make && ./vmc-core-tests
+
+Eventually we should also write a fuzz test for ``CeperleyMatrix``.
 
 ``pyvmc``
 ---------

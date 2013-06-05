@@ -805,12 +805,13 @@ public:
     typename RealPart<T>::type compute_relative_determinant_error (void) const
         {
             BOOST_ASSERT(current_state == READY_FOR_UPDATE);
+            using std::abs;
             Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);
             if (lu_decomposition.isInvertible()) {
                 T d = lu_decomposition.determinant();
-                return std::abs((d - det.get_value()) / d);
+                return abs((d - det.get_value()) / d);
             } else {
-                return std::abs(det.get_value());
+                return abs(det.get_value());
             }
         }
 
@@ -886,13 +887,15 @@ private:
 
     inline bool determinant_is_uncomfortable_during_update (void) const
         {
-            return (std::abs(detrat) < CeperleyMatrixTraits<T>::ceperley_detrat_lower_cutoff()
-                    || std::abs(det.get_base()) < CeperleyMatrixTraits<T>::ceperley_determinant_base_lower_cutoff());
+            using std::abs;
+            return (abs(detrat) < CeperleyMatrixTraits<T>::ceperley_detrat_lower_cutoff()
+                    || abs(det.get_base()) < CeperleyMatrixTraits<T>::ceperley_determinant_base_lower_cutoff());
         }
 
     inline bool determinant_is_uncomfortable_while_finishing_update (void) const
         {
-            return (std::abs(det.get_base()) > CeperleyMatrixTraits<T>::ceperley_determinant_base_upper_cutoff());
+            using std::abs;
+            return (abs(det.get_base()) > CeperleyMatrixTraits<T>::ceperley_determinant_base_upper_cutoff());
         }
 
     void common_complete_finish_update (void (CeperleyMatrix<T>::*revert_mat)(Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &))
@@ -914,8 +917,9 @@ private:
                 // not at all clear why.
                 invmat = new_invmat;
             } else {
-                if (std::abs(detrat) < smallest_detrat)
-                    smallest_detrat = std::abs(detrat);
+                using std::abs;
+                if (abs(detrat) < smallest_detrat)
+                    smallest_detrat = abs(detrat);
             }
             inverse_recalculated_for_current_update = false;
 
@@ -957,6 +961,8 @@ private:
 
     void calculate_inverse (bool update_in_progress)
         {
+            using std::abs;
+
 #if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
             std::cerr << "calculating an inverse: " << update_in_progress << std::endl;
 #endif
@@ -977,7 +983,7 @@ private:
                 const Eigen::Array<T, Eigen::Dynamic, 1> diagonal(lu_decomposition.matrixLU().diagonal().array());
                 T phase(lu_decomposition.get_det_pq());
                 for (unsigned int i = 0; i < diagonal.rows(); ++i)
-                    phase *= diagonal(i) / std::abs(diagonal(i));
+                    phase *= diagonal(i) / abs(diagonal(i));
                 det = Big<T>(phase, diagonal.abs().log().sum());
 
                 (update_in_progress ? new_invmat : invmat) = lu_decomposition.inverse();

@@ -79,9 +79,10 @@ public:
      */
     T ratio (const Big &other) const
         {
+            using std::exp;
             T rv = this->m_base / other.m_base;
             if (this->m_exponent != other.m_exponent)
-                rv *= std::exp(this->m_exponent - other.m_exponent);
+                rv *= exp(this->m_exponent - other.m_exponent);
             return rv;
         }
 

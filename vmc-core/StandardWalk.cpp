@@ -37,7 +37,8 @@ typename StandardWalk<AmplitudeType>::ProbabilityType StandardWalk<AmplitudeType
     wfa->perform_move(move);
 
     // calculate and return a probability
-    const typename StandardWalk<AmplitudeType>::ProbabilityType rv = std::norm(wfa->psi().ratio(old_amplitude));
+    using std::norm;
+    const typename StandardWalk<AmplitudeType>::ProbabilityType rv = norm(wfa->psi().ratio(old_amplitude));
 #if defined(DEBUG_VMC_STANDARD_WALK) || defined(DEBUG_VMC_ALL)
     std::cerr << "ratio " << rv << std::endl;
 #endif

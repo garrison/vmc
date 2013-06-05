@@ -299,6 +299,7 @@ PhaseType Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions
 {
     BOOST_ASSERT(site.n_dimensions() == n_dimensions());
     BOOST_ASSERT(bcs.size() == 0 || bcs.size() == n_dimensions());
+    using std::conj;
     PhaseType phase_change = 1;
     for (unsigned int dim = 0; dim < n_dimensions(); ++dim) {
         while (site[dim] >= dimensions[dim]) {
@@ -309,7 +310,7 @@ PhaseType Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions
         while (site[dim] < 0) {
             site[dim] += dimensions[dim];
             if (bcs.size() != 0)
-                phase_change *= std::conj(bcs[dim].phase());
+                phase_change *= conj(bcs[dim].phase());
         }
     }
 

@@ -38,7 +38,8 @@ safe_pow (const RealType &base, const RealType &exponent)
 {
     if (base == 0.0)
         return 0.0;
-    return std::pow(base, exponent);
+    using std::pow;
+    return pow(base, exponent);
 }
 
 /**
@@ -47,9 +48,10 @@ safe_pow (const RealType &base, const RealType &exponent)
 template <typename T>
 static inline T complex_pow (const T &base, const typename RealPart<T>::type &exponent)
 {
+    using std::abs;
     T rv(base);
     if (exponent != 1.0) {
-        rv *= safe_pow(std::abs(base), exponent - 1.0);
+        rv *= safe_pow(abs(base), exponent - 1.0);
     }
     return rv;
 }

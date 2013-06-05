@@ -39,6 +39,8 @@ void OperatorMeasurement<AmplitudeType>::initialize_ (const StandardWalk<Amplitu
 template <typename AmplitudeType>
 void OperatorMeasurement<AmplitudeType>::measure_ (const StandardWalk<AmplitudeType> &walk)
 {
+    using std::conj;
+
     const typename Wavefunction<AmplitudeType>::Amplitude &wfa = walk.get_wavefunctionamplitude();
     const PositionArguments &r = wfa.get_positions();
     const Lattice &lattice = wfa.get_lattice();
@@ -91,7 +93,7 @@ void OperatorMeasurement<AmplitudeType>::measure_ (const StandardWalk<AmplitudeT
             TemporaryMove<AmplitudeType> temp_move(wfa, move);
             // fixme: check logic of multiplying by phase (c.f. above), as
             // well as logic of source and destination
-            meas += std::conj(phase * wfa.psi().ratio(old_psi));
+            meas += conj(phase * wfa.psi().ratio(old_psi));
         } else {
             meas += 1;
         }

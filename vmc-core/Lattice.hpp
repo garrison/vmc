@@ -2,6 +2,7 @@
 #define _VMC_LATTICE_HPP
 
 #include <cstddef>
+#include <utility>
 #include <vector>
 
 #include <boost/assert.hpp>
@@ -120,6 +121,8 @@ public:
      * @param basis_indices_ the number of sites per unit cell of the Bravais lattice
      */
     Lattice (const lw_vector<int, MAX_DIMENSION> &dimensions_, int basis_indices_=1);
+
+    Lattice (const std::initializer_list<int> &dimensions_, int basis_indices_=1);
 
     /**
      * Returns the number of dimensions of the lattice

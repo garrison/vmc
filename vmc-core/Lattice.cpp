@@ -50,6 +50,11 @@ Lattice::Lattice (const lw_vector<int, MAX_DIMENSION> &dimensions_, int basis_in
     }
 }
 
+Lattice::Lattice (const std::initializer_list<int> &dimensions_, int basis_indices_)
+    : Lattice(lw_vector<int, MAX_DIMENSION>(dimensions_), basis_indices_)
+{
+}
+
 LatticeSite Lattice::operator[] (unsigned int n) const
 {
     BOOST_ASSERT(n < total_sites());

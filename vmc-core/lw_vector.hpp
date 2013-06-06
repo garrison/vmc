@@ -4,6 +4,7 @@
 #ifndef VMC_LW_VECTOR_IS_STD_VECTOR
 
 #include <cstddef>
+#include <utility>
 
 #include <boost/array.hpp>
 
@@ -18,7 +19,6 @@ class lw_vector
 {
 public:
     lw_vector (void)
-    : n(0)
         {
         }
 
@@ -33,6 +33,12 @@ public:
         {
             BOOST_ASSERT(n <= MAX_SIZE);
             v.assign(value);
+        }
+
+    lw_vector (const std::initializer_list<T> &l)
+        {
+            for (auto i = l.begin(); i != l.end(); ++i)
+                this->push_back(*i);
         }
 
     std::size_t size (void) const
@@ -107,7 +113,7 @@ public:
 
 private:
     boost::array<T, MAX_SIZE> v;
-    unsigned int n;
+    unsigned int n = 0;
 };
 
 #else // VMC_LW_VECTOR_IS_STD_VECTOR

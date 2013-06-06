@@ -5,8 +5,6 @@
 #define BOOST_NUMERIC_FUNCTIONAL_STD_COMPLEX_SUPPORT
 #endif
 
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_integral.hpp>
 #include <boost/assert.hpp>
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>

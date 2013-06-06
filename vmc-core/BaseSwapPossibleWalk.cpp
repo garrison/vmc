@@ -1,14 +1,13 @@
 #include <cmath>
 #include <vector>
 
-#include <boost/make_shared.hpp>
 #include <boost/assert.hpp>
 
 #include "RandomNumberGenerator.hpp"
 #include "BaseSwapPossibleWalk.hpp"
 #include "random-move.hpp"
 
-BaseSwapPossibleWalk::BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf, const boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf_copy, const boost::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_)
+BaseSwapPossibleWalk::BaseSwapPossibleWalk (const std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf, const std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf_copy, const std::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_)
     : phialpha1(wf),
       phialpha2(wf_copy),
       swapped_system(new SwappedSystem(subsystem)),
@@ -167,7 +166,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         const Big<amplitude_t> old_phibeta2_psi(swapped_system->get_phibeta2().psi());
         // implement copy-on-write
         if (!swapped_system.unique())
-            swapped_system = boost::make_shared<SwappedSystem>(*swapped_system);
+            swapped_system = std::make_shared<SwappedSystem>(*swapped_system);
         // update phibeta's
         swapped_system->update(chosen_particle1, chosen_particle2, *phialpha1, *phialpha2);
         // determine probability ratios
@@ -189,7 +188,7 @@ void BaseSwapPossibleWalk::accept_transition (void)
     if (!update_swapped_system_before_accepting) {
         // implement copy-on-write
         if (!swapped_system.unique())
-            swapped_system = boost::make_shared<SwappedSystem>(*swapped_system);
+            swapped_system = std::make_shared<SwappedSystem>(*swapped_system);
         // update phibeta's
         swapped_system->update(chosen_particle1, chosen_particle2, *phialpha1, *phialpha2);
     }

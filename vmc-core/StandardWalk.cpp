@@ -3,7 +3,7 @@
 #include "PositionArguments.hpp"
 
 template <typename AmplitudeType>
-StandardWalk<AmplitudeType>::StandardWalk (const boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_)
+StandardWalk<AmplitudeType>::StandardWalk (const std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_)
     : wfa(wfa_),
       autoreject_in_progress(false)
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)

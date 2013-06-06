@@ -2,8 +2,7 @@
 #define _VMC_SWAPPED_SYSTEM_HPP
 
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "PositionArguments.hpp"
 #include "Subsystem.hpp"
@@ -32,7 +31,7 @@ class Lattice;
 class SwappedSystem
 {
 public:
-    SwappedSystem (const boost::shared_ptr<const Subsystem> &subsystem_);
+    SwappedSystem (const std::shared_ptr<const Subsystem> &subsystem_);
 
     void initialize (const Wavefunction<amplitude_t>::Amplitude &phialpha1, const Wavefunction<amplitude_t>::Amplitude &phialpha2);
 
@@ -96,8 +95,8 @@ private:
     void verify_phibetas (const Wavefunction<amplitude_t>::Amplitude &phialpha1, const Wavefunction<amplitude_t>::Amplitude &phialpha2) const;
     void swap_positions (PositionArguments &r1, PositionArguments &r2) const;
 
-    boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> phibeta1, phibeta2; // copy on write
-    const boost::shared_ptr<const Subsystem> subsystem;
+    std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> phibeta1, phibeta2; // copy on write
+    const std::shared_ptr<const Subsystem> subsystem;
     std::vector<std::vector<unsigned int> > copy1_subsystem_indices, copy2_subsystem_indices;
     bool phibeta1_dirty, phibeta2_dirty;
 

@@ -1,7 +1,7 @@
 #ifndef _VMC_STANDARD_WALK_HPP
 #define _VMC_STANDARD_WALK_HPP
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "vmc-typedefs.hpp"
 #include "vmc-real-part.hpp"
@@ -24,7 +24,7 @@ public:
      *
      * @param wfa_ initial wavefunction
      */
-    StandardWalk (const boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_);
+    StandardWalk (const std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_);
 
     /**
      * Returns the current wavefunction
@@ -54,7 +54,7 @@ private:
 
     virtual void check_for_numerical_error (void) const override;
 
-    boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa; // treat this as copy on write
+    std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa; // treat this as copy on write
     bool autoreject_in_progress;
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)

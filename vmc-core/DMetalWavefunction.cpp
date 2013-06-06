@@ -1,7 +1,6 @@
 #include <vector>
 
 #include <boost/assert.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/cast.hpp>
 
 #include "DMetalWavefunction.hpp"
@@ -9,7 +8,7 @@
 #include "random-configuration.hpp"
 
 template <typename AmplitudeType>
-DMetalWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const DMetalWavefunction> &wf_, const PositionArguments &r_)
+DMetalWavefunction<AmplitudeType>::Amplitude::Amplitude (const std::shared_ptr<const DMetalWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction<AmplitudeType>::Amplitude(wf_, r_),
       m_partial_update_step(0)
 {
@@ -244,13 +243,13 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (vo
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
+std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<DMetalWavefunction<AmplitudeType>::Amplitude>(*this);
+    return std::make_shared<DMetalWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
+std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
     const unsigned int N = orbital_d1->get_N_filled();
     const unsigned int M = orbital_f_up->get_N_filled();
@@ -262,11 +261,11 @@ boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefun
         for (unsigned int i = M; i < N; ++i)
             vv[1].push_back(vv[0][i]);
         vv[0].resize(M);
-        boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, this->lattice->total_sites())));
+        std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, this->lattice->total_sites())));
         if (wfa->is_nonzero())
             return wfa;
     }
-    return boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude>();
+    return std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude>();
 }
 
 #define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class DMetalWavefunction<type>

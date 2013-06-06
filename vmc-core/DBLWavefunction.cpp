@@ -1,12 +1,11 @@
 #include <boost/assert.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/cast.hpp>
 
 #include "DBLWavefunction.hpp"
 #include "vmc-math-utils.hpp"
 
 template <typename AmplitudeType>
-DBLWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const DBLWavefunction> &wf_, const PositionArguments &r_)
+DBLWavefunction<AmplitudeType>::Amplitude::Amplitude (const std::shared_ptr<const DBLWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction<AmplitudeType>::Amplitude(wf_, r_),
       m_partial_update_step(0)
 {
@@ -154,9 +153,9 @@ void DBLWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (void)
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DBLWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
+std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DBLWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<DBLWavefunction<AmplitudeType>::Amplitude>(*this);
+    return std::make_shared<DBLWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
 #define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class DBLWavefunction<type>

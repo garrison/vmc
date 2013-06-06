@@ -1,5 +1,5 @@
 from libcpp.vector cimport vector
-from pyvmc.includes.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport shared_ptr
 
 from pyvmc.core.rng cimport RandomNumberGenerator, CppRandomNumberGenerator
 from pyvmc.core.lattice cimport Lattice, CppLattice

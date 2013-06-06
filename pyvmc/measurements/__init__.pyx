@@ -1,6 +1,6 @@
 ### declarations (everything here could be moved to a .pxd file if we needed)
 
-from pyvmc.includes.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport shared_ptr
 
 from libcpp.vector cimport vector
 

@@ -1,7 +1,6 @@
 #include <vector>
 #include <algorithm>
 
-#include <boost/make_shared.hpp>
 #include <boost/cast.hpp>
 
 #include "BCSWavefunction.hpp"
@@ -11,7 +10,7 @@
 #include "random-move.hpp"
 
 template <typename AmplitudeType>
-BCSWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const BCSWavefunction> &wf_, const PositionArguments &r_)
+BCSWavefunction<AmplitudeType>::Amplitude::Amplitude (const std::shared_ptr<const BCSWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction<AmplitudeType>::Amplitude(wf_, r_),
       m_current_jastrow(1),
       m_partial_update_step(0)
@@ -149,7 +148,7 @@ template <typename AmplitudeType>
 void BCSWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
 {
     const BCSWavefunction *wf_ = boost::polymorphic_downcast<const BCSWavefunction *>(this->wf.get());
-    const boost::shared_ptr<const Lattice> &lattice = this->wf->lattice;
+    const std::shared_ptr<const Lattice> &lattice = this->wf->lattice;
     const unsigned int M = wf_->M;
 
     BOOST_ASSERT(this->r.get_N_sites() == lattice->total_sites());
@@ -180,13 +179,13 @@ void BCSWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (void)
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
+std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<BCSWavefunction<AmplitudeType>::Amplitude>(*this);
+    return std::make_shared<BCSWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
+std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
     const unsigned int M = get_N_filled(0);
     const unsigned int N = this->lattice->total_sites();
@@ -218,11 +217,11 @@ boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefuncti
         BOOST_ASSERT(vv[0].size() == M);
         BOOST_ASSERT(vv[1].size() == M);
 
-        boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, this->lattice->total_sites())));
+        std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, this->lattice->total_sites())));
         if (wfa->is_nonzero())
             return wfa;
     }
-    return boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude>();
+    return std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude>();
 }
 
 template <typename AmplitudeType>

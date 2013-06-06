@@ -54,17 +54,17 @@ void Wavefunction<AmplitudeType>::Amplitude::cancel_move (void)
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> Wavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
+std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> Wavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
     while (n_attempts--) {
         std::vector<std::vector<unsigned int> > vv;
         for (unsigned int i = 0; i < get_N_species(); ++i)
             vv.push_back(some_random_configuration(get_N_filled(i), *lattice, rng));
-        boost::shared_ptr<Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
+        std::shared_ptr<Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
         if (wfa->is_nonzero())
             return wfa;
     }
-    return boost::shared_ptr<Wavefunction<AmplitudeType>::Amplitude>();
+    return std::shared_ptr<Wavefunction<AmplitudeType>::Amplitude>();
 }
 
 template <typename AmplitudeType>

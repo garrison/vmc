@@ -1,9 +1,6 @@
 #ifndef _VMC_D_B_L_WAVEFUNCTION_HPP
 #define _VMC_D_B_L_WAVEFUNCTION_HPP
 
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
-
 #include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
 #include "CeperleyMatrix.hpp"
@@ -18,10 +15,10 @@ template <typename AmplitudeType>
 class DBLWavefunction : public Wavefunction<AmplitudeType>
 {
 public:
-    const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > orbital_def1, orbital_def2;
+    const std::shared_ptr<const OrbitalDefinitions<AmplitudeType> > orbital_def1, orbital_def2;
     const real_t d1_exponent, d2_exponent;
 
-    DBLWavefunction (const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_def_1, const boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_def_2, real_t d1_exponent_=1, real_t d2_exponent_=1)
+    DBLWavefunction (const std::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_def_1, const std::shared_ptr<const OrbitalDefinitions<AmplitudeType> > &orbital_def_2, real_t d1_exponent_=1, real_t d2_exponent_=1)
         : Wavefunction<AmplitudeType>(orbital_def_1->get_lattice_ptr()),
           orbital_def1(orbital_def_1),
           orbital_def2(orbital_def_2),
@@ -41,7 +38,7 @@ public:
         Move m_current_move;
 
     public:
-        Amplitude (const boost::shared_ptr<const DBLWavefunction> &wf_, const PositionArguments &r_);
+        Amplitude (const std::shared_ptr<const DBLWavefunction> &wf_, const PositionArguments &r_);
 
     private:
         virtual void perform_move_ (const Move &move) override;
@@ -59,17 +56,17 @@ public:
 
         virtual void reset_ (const PositionArguments &r_) override;
 
-        virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> clone_ (void) const override;
+        virtual std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> clone_ (void) const override;
 
         void reinitialize (void);
 
         virtual void check_for_numerical_error (void) const override;
     };
 
-    virtual boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
+    virtual std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
         {
             BOOST_ASSERT(this == this_ptr.get());
-            return boost::make_shared<Amplitude>(boost::dynamic_pointer_cast<const DBLWavefunction>(this_ptr), r);
+            return std::make_shared<Amplitude>(std::dynamic_pointer_cast<const DBLWavefunction>(this_ptr), r);
         }
 
     virtual unsigned int get_N_species (void) const override

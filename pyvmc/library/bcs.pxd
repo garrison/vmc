@@ -1,5 +1,5 @@
 from libcpp.vector cimport vector
-from pyvmc.includes.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport shared_ptr
 from pyvmc.core cimport complex_t
 
 from pyvmc.core.wavefunction cimport CppWavefunction, WavefunctionWrapper

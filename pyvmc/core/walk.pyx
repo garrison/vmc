@@ -1,7 +1,5 @@
 import six
 
-from pyvmc.includes.boost.shared_ptr cimport shared_ptr
-
 import abc
 import collections
 

@@ -2,9 +2,9 @@
 #define _VMC_SUBSYSTEM_OCCUPATION_NUMBER_PROBABILITY_MEASUREMENT_HPP
 
 #include <vector>
+#include <memory>
 
 #include <boost/assert.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "Measurement.hpp"
 #include "BlockedEstimate.hpp"
@@ -22,7 +22,7 @@
 class SubsystemOccupationNumberProbabilityMeasurement : public Measurement<StandardWalk<amplitude_t> >
 {
 public:
-    SubsystemOccupationNumberProbabilityMeasurement (unsigned int steps_per_measurement, const boost::shared_ptr<const Subsystem> &subsystem_)
+    SubsystemOccupationNumberProbabilityMeasurement (unsigned int steps_per_measurement, const std::shared_ptr<const Subsystem> &subsystem_)
         : Measurement<StandardWalk<amplitude_t> >(steps_per_measurement),
           subsystem(subsystem_)
         {
@@ -123,7 +123,7 @@ private:
             return rv;
         }
 
-    const boost::shared_ptr<const Subsystem> subsystem;
+    const std::shared_ptr<const Subsystem> subsystem;
     std::vector<BlockedEstimate<unsigned int> > estimate;
     std::vector<unsigned int> offsets, bounds;
     unsigned int last_offset; // saves us from recalculating the offset on repeat measurements

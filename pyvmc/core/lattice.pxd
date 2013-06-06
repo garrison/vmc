@@ -1,6 +1,5 @@
 from pyvmc.core cimport lw_vector
-from pyvmc.includes.libcpp.memory cimport unique_ptr
-from pyvmc.includes.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr, shared_ptr
 
 cdef extern from "Lattice.hpp":
     cdef unsigned int MAX_DIMENSION

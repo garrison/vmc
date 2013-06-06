@@ -2,8 +2,7 @@ import six
 
 from cython.operator cimport dereference as deref
 from libcpp.list cimport list as stdlist
-from pyvmc.includes.libcpp.memory cimport unique_ptr
-from pyvmc.includes.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr, shared_ptr
 
 import logging
 import collections

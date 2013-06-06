@@ -1,8 +1,9 @@
 #ifndef _VMC_BASE_SWAP_POSSIBLE_WALK_HPP
 #define _VMC_BASE_SWAP_POSSIBLE_WALK_HPP
 
+#include <memory>
+
 #include <boost/assert.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "vmc-typedefs.hpp"
 #include "Subsystem.hpp"
@@ -30,7 +31,7 @@ public:
      * It is essential that both wf and wf_copy have the same number of
      * particles in the subsystem.
      */
-    BaseSwapPossibleWalk (const boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf, const boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf_copy, const boost::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_=true);
+    BaseSwapPossibleWalk (const std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf, const std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf_copy, const std::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_=true);
 
     const Wavefunction<amplitude_t>::Amplitude & get_phialpha1 (void) const
         {
@@ -62,8 +63,8 @@ private:
 
     static unsigned int count_subsystem_sites (const Subsystem &subsystem, const Lattice &lattice);
 
-    boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> phialpha1, phialpha2;
-    boost::shared_ptr<SwappedSystem> swapped_system;
+    std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> phialpha1, phialpha2;
+    std::shared_ptr<SwappedSystem> swapped_system;
     Particle chosen_particle_A, chosen_particle_B;
     const Particle *chosen_particle1, *chosen_particle2;
     unsigned int N_subsystem_sites; // remains constant after initialization

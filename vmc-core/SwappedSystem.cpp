@@ -15,7 +15,7 @@ static int vector_find (const std::vector<T> &vec, const T &val)
     return -1;
 }
 
-SwappedSystem::SwappedSystem (const boost::shared_ptr<const Subsystem> &subsystem_)
+SwappedSystem::SwappedSystem (const std::shared_ptr<const Subsystem> &subsystem_)
     : subsystem(subsystem_),
       phibeta1_dirty(false),
       phibeta2_dirty(false),
@@ -198,7 +198,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 
         // update the phibeta's, performing copy-on-write
         if (particle1) {
-            boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
+            std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
             bool &phibeta_dirty = particle1_now_in_subsystem ? phibeta2_dirty : phibeta1_dirty;
             const Particle phibeta_particle = particle1_now_in_subsystem ? Particle(copy2_subsystem_indices[particle1->species][pairing_index1], particle1->species) : *particle1;
             if (!phibeta.unique())
@@ -211,7 +211,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         }
 
         if (particle2) {
-            boost::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
+            std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
             bool &phibeta_dirty = particle2_now_in_subsystem ? phibeta1_dirty : phibeta2_dirty;
             const Particle phibeta_particle = particle2_now_in_subsystem ? Particle(copy1_subsystem_indices[particle2->species][pairing_index2], particle2->species) : *particle2;
             if (!phibeta.unique())

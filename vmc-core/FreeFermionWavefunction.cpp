@@ -1,11 +1,10 @@
 #include <boost/assert.hpp>
-#include <boost/make_shared.hpp>
 #include <boost/cast.hpp>
 
 #include "FreeFermionWavefunction.hpp"
 
 template <typename AmplitudeType>
-FreeFermionWavefunction<AmplitudeType>::FreeFermionWavefunction (const std::vector<boost::shared_ptr<const OrbitalDefinitions<AmplitudeType> > > &orbital_def_, const boost::shared_ptr<const JastrowFactor<AmplitudeType> > &jastrow_)
+FreeFermionWavefunction<AmplitudeType>::FreeFermionWavefunction (const std::vector<std::shared_ptr<const OrbitalDefinitions<AmplitudeType> > > &orbital_def_, const std::shared_ptr<const JastrowFactor<AmplitudeType> > &jastrow_)
     : Wavefunction<AmplitudeType>(orbital_def_[0]->get_lattice_ptr()),
       orbital_def(orbital_def_),
       jastrow(jastrow_)
@@ -19,7 +18,7 @@ FreeFermionWavefunction<AmplitudeType>::FreeFermionWavefunction (const std::vect
 }
 
 template <typename AmplitudeType>
-FreeFermionWavefunction<AmplitudeType>::Amplitude::Amplitude (const boost::shared_ptr<const FreeFermionWavefunction> &wf_, const PositionArguments &r_)
+FreeFermionWavefunction<AmplitudeType>::Amplitude::Amplitude (const std::shared_ptr<const FreeFermionWavefunction> &wf_, const PositionArguments &r_)
     : Wavefunction<AmplitudeType>::Amplitude(wf_, r_),
       m_current_jastrow(1),
       m_partial_update_step(0),
@@ -174,9 +173,9 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::check_for_numerical_erro
 }
 
 template <typename AmplitudeType>
-boost::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> FreeFermionWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
+std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> FreeFermionWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return boost::make_shared<FreeFermionWavefunction<AmplitudeType>::Amplitude>(*this);
+    return std::make_shared<FreeFermionWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
 #define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class FreeFermionWavefunction<type>

@@ -5,7 +5,6 @@
 #include <list>
 
 #include <boost/assert.hpp>
-#include <boost/shared_ptr.hpp>
 #include <boost/noncopyable.hpp>
 
 #include "vmc-typedefs.hpp"
@@ -52,7 +51,7 @@ public:
      *
      * @see Walk
      */
-    MetropolisSimulation (std::unique_ptr<WalkType> &walk_, const std::list<boost::shared_ptr<BaseMeasurementType> > &measurements_,
+    MetropolisSimulation (std::unique_ptr<WalkType> &walk_, const std::list<std::shared_ptr<BaseMeasurementType> > &measurements_,
                           unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> &rng_);
 
     /**
@@ -112,7 +111,7 @@ public:
             return m_steps_accepted;
         }
 
-    const std::list<boost::shared_ptr<BaseMeasurementType> > & get_measurements (void) const
+    const std::list<std::shared_ptr<BaseMeasurementType> > & get_measurements (void) const
         {
             // fixme: in theory, somebody could do something evil and directly
             // modify the measurements returned here, since they aren't
@@ -136,7 +135,7 @@ protected:
 
 private:
     std::unique_ptr<WalkType> walk;
-    std::list<boost::shared_ptr<BaseMeasurementType> > measurements;
+    std::list<std::shared_ptr<BaseMeasurementType> > measurements;
     bool measurement_not_yet_updated;
 
     std::unique_ptr<RandomNumberGenerator> rng;

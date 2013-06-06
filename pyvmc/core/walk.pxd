@@ -1,5 +1,4 @@
-from pyvmc.includes.libcpp.memory cimport unique_ptr
-from pyvmc.includes.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr, shared_ptr
 
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude
 

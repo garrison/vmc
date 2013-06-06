@@ -1,8 +1,9 @@
 #ifndef _VMC_ORBITAL_DEFINITIONS_HPP
 #define _VMC_ORBITAL_DEFINITIONS_HPP
 
+#include <memory>
+
 #include <boost/assert.hpp>
-#include <boost/shared_ptr.hpp>
 
 // we always want to include vmc-typedefs.hpp before including Eigen
 #include "vmc-typedefs.hpp"
@@ -17,7 +18,7 @@ template <typename AmplitudeType>
 class OrbitalDefinitions
 {
 public:
-    OrbitalDefinitions (const Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> &orbitals_, const boost::shared_ptr<const Lattice> &lattice_)
+    OrbitalDefinitions (const Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> &orbitals_, const std::shared_ptr<const Lattice> &lattice_)
         : orbitals(orbitals_),
           lattice(lattice_)
         {
@@ -60,7 +61,7 @@ public:
             return orbitals.cols();
         }
 
-    const boost::shared_ptr<const Lattice> & get_lattice_ptr (void) const
+    const std::shared_ptr<const Lattice> & get_lattice_ptr (void) const
         {
             return lattice;
         }
@@ -83,7 +84,7 @@ protected:
      */
     Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> orbitals;
 
-    const boost::shared_ptr<const Lattice> lattice;
+    const std::shared_ptr<const Lattice> lattice;
 };
 
 #endif

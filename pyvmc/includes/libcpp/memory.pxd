@@ -10,3 +10,11 @@ cdef extern from "<memory>" namespace "std":
         T* release() nogil
         void reset(T*) nogil
         void reset() nogil
+
+    cdef cppclass shared_ptr[T]:
+        shared_ptr() nogil
+        shared_ptr(T*) nogil
+        void reset() nogil
+        void reset(T*) nogil
+        T& operator*() nogil
+        T* get() nogil

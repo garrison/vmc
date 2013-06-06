@@ -1,8 +1,9 @@
 #ifndef _VMC_WAVEFUNCTION_HPP
 #define _VMC_WAVEFUNCTION_HPP
 
+#include <memory>
+
 #include <boost/assert.hpp>
-#include <boost/shared_ptr.hpp>
 
 #include "PositionArguments.hpp"
 #include "Lattice.hpp"
@@ -21,10 +22,10 @@ template <typename AmplitudeType>
 class Wavefunction
 {
 public:
-    const boost::shared_ptr<const Lattice> lattice;
+    const std::shared_ptr<const Lattice> lattice;
 
 protected:
-    Wavefunction (const boost::shared_ptr<const Lattice> &lattice_)
+    Wavefunction (const std::shared_ptr<const Lattice> &lattice_)
         : lattice(lattice_)
         {
         }
@@ -111,7 +112,7 @@ public:
         /**
          * Returns a clone of the current object
          */
-        boost::shared_ptr<Wavefunction::Amplitude> clone (void) const
+        std::shared_ptr<Wavefunction::Amplitude> clone (void) const
             {
                 return clone_();
             }
@@ -188,10 +189,10 @@ public:
 
         virtual void reset_ (const PositionArguments &r_) = 0;
 
-        virtual boost::shared_ptr<Wavefunction::Amplitude> clone_ (void) const = 0;
+        virtual std::shared_ptr<Wavefunction::Amplitude> clone_ (void) const = 0;
 
     protected:
-        Amplitude (const boost::shared_ptr<const Wavefunction> &wf_, const PositionArguments &r_)
+        Amplitude (const std::shared_ptr<const Wavefunction> &wf_, const PositionArguments &r_)
             : wf(wf_),
               r(r_)
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
@@ -206,7 +207,7 @@ public:
                 return reverse_move;
             }
 
-        const boost::shared_ptr<const Wavefunction> wf;
+        const std::shared_ptr<const Wavefunction> wf;
         PositionArguments r;
 
     private:
@@ -226,9 +227,9 @@ public:
      * projection properties, e.g., no spin-up and spin-down particle allowed
      * on the same site.
      */
-    virtual boost::shared_ptr<Wavefunction::Amplitude> create_nonzero_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts=1000000) const;
+    virtual std::shared_ptr<Wavefunction::Amplitude> create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts=1000000) const;
 
-    virtual boost::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const boost::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const = 0;
+    virtual std::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const = 0;
 
     virtual unsigned int get_N_species (void) const = 0;
 

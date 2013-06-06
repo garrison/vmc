@@ -2,8 +2,7 @@
 #define _VMC_BASIC_OPERATOR_HPP
 
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include "Lattice.hpp"
 
@@ -57,12 +56,12 @@ private:
 class BasicOperator
 {
 public:
-    BasicOperator (const std::vector<SiteHop> &hopv_, const boost::shared_ptr<const Lattice> &lattice_);
+    BasicOperator (const std::vector<SiteHop> &hopv_, const std::shared_ptr<const Lattice> &lattice_);
 
     static bool is_valid (const std::vector<SiteHop> &hopv, const Lattice &lattice, unsigned int N_species);
 
     const std::vector<SiteHop> hopv;
-    const boost::shared_ptr<const Lattice> lattice;
+    const std::shared_ptr<const Lattice> lattice;
 };
 
 #endif

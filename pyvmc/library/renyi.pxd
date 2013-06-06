@@ -1,4 +1,4 @@
-from pyvmc.includes.boost.shared_ptr cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport shared_ptr
 
 from pyvmc.core.walk cimport CppWalk
 from pyvmc.core.measurement cimport CppBaseMeasurement

@@ -5,7 +5,7 @@
 
 #include "BasicOperator.hpp"
 
-BasicOperator::BasicOperator (const std::vector<SiteHop> &hopv_, const boost::shared_ptr<const Lattice> &lattice_)
+BasicOperator::BasicOperator (const std::vector<SiteHop> &hopv_, const std::shared_ptr<const Lattice> &lattice_)
     : hopv(hopv_),
       lattice(lattice_)
 {

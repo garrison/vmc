@@ -36,14 +36,15 @@ struct LatticeSite
 private:
     BravaisSite bs;
 public:
+    int basis_index = 0;
+
+public:
     // CYTHON-LIMITATION: must have a default constructor, hence default
     // n_dimensions=0 and set_n_dimensions() below
     explicit LatticeSite (unsigned int n_dimensions=0)
         : bs(n_dimensions)
         {
         }
-
-    int basis_index;
 
     /**
      * returns the site of the underlying Bravais lattice

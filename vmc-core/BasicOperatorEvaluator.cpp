@@ -1,6 +1,6 @@
 #include <boost/noncopyable.hpp>
 
-#include "OperatorMeasurement.hpp"
+#include "BasicOperatorEvaluator.hpp"
 
 /**
  * Manages a temporary move on a wave function.
@@ -30,18 +30,22 @@ public:
 };
 
 template <typename AmplitudeType>
-void OperatorMeasurement<AmplitudeType>::initialize_ (const StandardWalk<AmplitudeType> &walk)
+BasicOperatorEvaluator<AmplitudeType>::BasicOperatorEvaluator (const BasicOperator &operator_, const BoundaryConditions<PhaseType> &bcs_)
+    : m_operator(operator_),
+      bcs(bcs_),
+      min_required_species(BasicOperator::min_required_species(operator_.hopv, *operator_.lattice))
 {
-    (void) walk;
-    BOOST_ASSERT(&walk.get_wavefunctionamplitude().get_lattice() == m_operator.lattice.get());
+    BOOST_ASSERT(min_required_species != 0); // otherwise the operator is not valid
 }
 
 template <typename AmplitudeType>
-void OperatorMeasurement<AmplitudeType>::measure_ (const StandardWalk<AmplitudeType> &walk)
+AmplitudeType BasicOperatorEvaluator<AmplitudeType>::evaluate (const typename Wavefunction<AmplitudeType>::Amplitude &wfa) const
 {
     using std::conj;
 
-    const typename Wavefunction<AmplitudeType>::Amplitude &wfa = walk.get_wavefunctionamplitude();
+    BOOST_ASSERT(&wfa.get_lattice() == m_operator.lattice.get());
+    BOOST_ASSERT(wfa.get_positions().get_N_species() >= min_required_species);
+
     const PositionArguments &r = wfa.get_positions();
     const Lattice &lattice = wfa.get_lattice();
 
@@ -101,16 +105,8 @@ void OperatorMeasurement<AmplitudeType>::measure_ (const StandardWalk<AmplitudeT
     current_measurement_is_zero: ;
     }
 
-    most_recent_value = meas;
-    estimate.add_value(most_recent_value);
+    return meas;
 }
 
-template <typename AmplitudeType>
-void OperatorMeasurement<AmplitudeType>::repeat_measurement_ (const StandardWalk<AmplitudeType> &walk)
-{
-    (void) walk;
-    estimate.add_value(most_recent_value);
-}
-
-#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class OperatorMeasurement<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class BasicOperatorEvaluator<type>
 #include "vmc-supported-types.hpp"

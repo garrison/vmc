@@ -10,6 +10,7 @@
 #include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
 #include "BasicOperator.hpp"
+#include "BasicOperatorEvaluator.hpp"
 #include "BlockedEstimate.hpp"
 
 /**
@@ -37,8 +38,7 @@ public:
                          const BasicOperator &operator_,
                          const BoundaryConditions<PhaseType> &bcs_)
         : Measurement<WalkType>(steps_per_measurement),
-          m_operator(operator_),
-          bcs(bcs_)
+          evaluator(operator_, bcs_)
         {
         }
 
@@ -52,41 +52,35 @@ public:
 
 private:
     /**
-     * Prepare the object for taking measurements
-     */
-    virtual void initialize_ (const WalkType &walk) override;
-
-    /**
      * Calculate and tally a measurement
      */
-    virtual void measure_ (const WalkType &walk) override;
+    virtual void measure_ (const WalkType &walk) override
+        {
+            const typename Wavefunction<AmplitudeType>::Amplitude &wfa = walk.get_wavefunctionamplitude();
+            most_recent_value = evaluator.evaluate(wfa);
+            estimate.add_value(most_recent_value);
+        }
 
     /**
      * Tally again the most recent measurement
      */
-    virtual void repeat_measurement_ (const WalkType &walk) override;
+    virtual void repeat_measurement_ (const WalkType &walk) override
+        {
+            (void) walk;
+            estimate.add_value(most_recent_value);
+        }
 
     virtual bool is_valid_walk_ (const WalkType &walk) override
         {
-            return BasicOperator::is_valid(m_operator.hopv,
+            return BasicOperator::is_valid(evaluator.m_operator.hopv,
                                            walk.get_wavefunctionamplitude().get_lattice(),
                                            walk.get_wavefunctionamplitude().get_positions().get_N_species());
         }
 
-    bool is_sum_over_sites (void) const
-        {
-            return bcs.size() != 0;
-        }
-
-    const BasicOperator m_operator;
-    const BoundaryConditions<PhaseType> bcs;
+    const BasicOperatorEvaluator<AmplitudeType> evaluator;
 
     BlockedEstimate<AmplitudeType> estimate;
     AmplitudeType most_recent_value;
 };
-
-#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) extern template class OperatorMeasurement<type>
-#include "vmc-supported-types.hpp"
-#undef VMC_SUPPORTED_AMPLITUDE_TYPE
 
 #endif

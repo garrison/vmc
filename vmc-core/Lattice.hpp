@@ -39,6 +39,12 @@ public:
     int basis_index = 0;
 
 public:
+    LatticeSite (const std::initializer_list<int> &bravais_site, int basis_index_=0)
+        : bs(bravais_site),
+          basis_index(basis_index_)
+        {
+        }
+
     // CYTHON-LIMITATION: must have a default constructor, hence default
     // n_dimensions=0 and set_n_dimensions() below
     explicit LatticeSite (unsigned int n_dimensions=0)

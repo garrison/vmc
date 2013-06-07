@@ -12,7 +12,9 @@
 class SimpleSubsystem : public Subsystem
 {
 public:
-    explicit SimpleSubsystem (const lw_vector<unsigned int, MAX_DIMENSION> &subsystem_length_)
+    typedef lw_vector<unsigned int, MAX_DIMENSION> DimensionVector;
+
+    explicit SimpleSubsystem (const DimensionVector &subsystem_length_)
         : subsystem_length(subsystem_length_)
         {
         }
@@ -21,7 +23,7 @@ public:
 
     virtual bool lattice_makes_sense (const Lattice &lattice) const override;
 
-    const lw_vector<unsigned int, MAX_DIMENSION> subsystem_length;
+    const DimensionVector subsystem_length;
 };
 
 #endif

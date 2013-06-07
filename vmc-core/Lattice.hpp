@@ -122,12 +122,14 @@ protected:
     };
 
 public:
+    typedef lw_vector<int, MAX_DIMENSION> DimensionVector;
+
     /** Lattice constructor
      *
      * @param dimensions_ an array representing the number of sites in each dimension
      * @param basis_indices_ the number of sites per unit cell of the Bravais lattice
      */
-    Lattice (const lw_vector<int, MAX_DIMENSION> &dimensions_, int basis_indices_=1);
+    Lattice (const DimensionVector &dimensions_, int basis_indices_=1);
 
     Lattice (const std::initializer_list<int> &dimensions_, int basis_indices_=1);
 
@@ -275,7 +277,7 @@ public:
         }
 
 private:
-    static inline unsigned int count_total_sites (const lw_vector<int, MAX_DIMENSION> &dimensions, int basis_indices)
+    static inline unsigned int count_total_sites (const DimensionVector &dimensions, int basis_indices)
         {
             BOOST_ASSERT(dimensions.size() > 0);
             unsigned int rv = 1;
@@ -289,13 +291,13 @@ private:
         }
 
 public:
-    const lw_vector<int, MAX_DIMENSION> dimensions;
+    const DimensionVector dimensions;
     const int basis_indices; /**< number of sites per Bravais unit cell */
 
 private:
     // these all remain constant after initialization as well
     const unsigned int m_total_sites;
-    lw_vector<int, MAX_DIMENSION> offset;
+    DimensionVector offset;
     int basis_offset;
 
 protected:

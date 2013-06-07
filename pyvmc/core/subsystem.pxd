@@ -1,19 +1,22 @@
 from pyvmc.includes.libcpp.memory cimport shared_ptr
 
-from pyvmc.core.lattice cimport CppLattice, UDimensionVector
+from pyvmc.core cimport lw_vector
+from pyvmc.core.lattice cimport CppLattice
 
 cdef extern from "Subsystem.hpp":
-    cdef unsigned int MAX_DIMENSION
-
     cdef cppclass CppSubsystem "Subsystem":
         bint position_is_within(unsigned int site_index, CppLattice &lattice)
         bint lattice_makes_sense(CppLattice &lattice)
 
 cdef extern from "SimpleSubsystem.hpp":
-    cdef cppclass CppSimpleSubsystem "SimpleSubsystem" (CppSubsystem):
-        CppSimpleSubsystem(UDimensionVector)
+    cdef unsigned int MAX_DIMENSION
 
-        UDimensionVector subsystem_length
+    ctypedef lw_vector[unsigned int] CppSimpleSubsystemDimensionVector "SimpleSubsystem::DimensionVector"
+
+    cdef cppclass CppSimpleSubsystem "SimpleSubsystem" (CppSubsystem):
+        CppSimpleSubsystem(CppSimpleSubsystemDimensionVector)
+
+        CppSimpleSubsystemDimensionVector subsystem_length
 
 cdef class Subsystem(object):
     cdef object lattice_

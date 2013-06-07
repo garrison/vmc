@@ -155,9 +155,11 @@ cdef class Lattice(object):
     def __init__(self, dimensions, basis_indices=1):
         assert isinstance(dimensions, collections.Sequence)
         assert len(dimensions) != 0
+        if len(dimensions) > MAX_DIMENSION:
+            raise ValueError("provided lattice has greater than {} dimensions".format(MAX_DIMENSION))
         assert all(isinstance(x, numbers.Integral) and x > 0 for x in dimensions)
         assert isinstance(basis_indices, numbers.Integral) and basis_indices > 0
-        cdef DimensionVector v
+        cdef CppLatticeDimensionVector v
         for i, x in enumerate(dimensions):
             v.push_back(x)
         self.sharedptr.reset(new CppLattice(v, basis_indices))

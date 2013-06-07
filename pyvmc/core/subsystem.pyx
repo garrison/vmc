@@ -69,17 +69,19 @@ cdef class SimpleSubsystem(Subsystem):
     def __init__(self, dimensions, lattice):
         super(SimpleSubsystem, self).__init__(lattice)
         assert isinstance(dimensions, collections.Sequence)
+        if len(dimensions) > MAX_DIMENSION:
+            raise ValueError("provided subsystem has greater than {} dimensions".format(MAX_DIMENSION))
         assert all(isinstance(d, numbers.Integral) and d > 0 for d in dimensions)
         if any(d1 > d2 for d1, d2 in zip(dimensions, lattice.dimensions)):
             raise Exception("subsystem cannot be larger than the system")
-        cdef UDimensionVector v
+        cdef CppSimpleSubsystemDimensionVector v
         for i, x in enumerate(dimensions):
             v.push_back(x)
         self.sharedptr.reset(new CppSimpleSubsystem(v))
 
     property dimensions:
         def __get__(self):
-            cdef const UDimensionVector *v = &(<CppSimpleSubsystem*>self.sharedptr.get()).subsystem_length
+            cdef const CppSimpleSubsystemDimensionVector *v = &(<CppSimpleSubsystem*>self.sharedptr.get()).subsystem_length
             cdef unsigned int i
             return tuple([deref(v)[i] for i in xrange(v.size())])
 

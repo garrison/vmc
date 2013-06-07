@@ -20,11 +20,10 @@ cdef extern from "Lattice.hpp":
         bint operator!=(const CppLatticeSite&)
         bint operator<(const CppLatticeSite&)
 
-    ctypedef lw_vector[int] DimensionVector "lw_vector<int, MAX_DIMENSION>"
-    ctypedef lw_vector[int] UDimensionVector "lw_vector<unsigned int, MAX_DIMENSION>"
+    ctypedef lw_vector[int] CppLatticeDimensionVector "Lattice::DimensionVector"
 
     cdef cppclass CppLattice "Lattice":
-        CppLattice(const DimensionVector&, int)
+        CppLattice(const CppLatticeDimensionVector&, int)
 
         unsigned int total_sites()
         unsigned int total_bravais_sites()
@@ -33,7 +32,7 @@ cdef extern from "Lattice.hpp":
         unsigned int index(const CppLatticeSite&)
         bint site_is_valid(const CppLatticeSite&)
 
-        const DimensionVector dimensions
+        const CppLatticeDimensionVector dimensions
         const int basis_indices
 
 cdef class LatticeSite(object):

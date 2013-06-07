@@ -3,7 +3,7 @@
 #include <gtest/gtest.h>
 
 TEST(Lattice, VectorConstructor) {
-    lw_vector<int, MAX_DIMENSION> dimensions;
+    Lattice::DimensionVector dimensions;
     dimensions.push_back(8);
     dimensions.push_back(4);
     Lattice lattice(dimensions);

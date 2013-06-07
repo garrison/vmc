@@ -17,7 +17,7 @@ bool LatticeSite::operator< (const LatticeSite &other) const
     }
 }
 
-Lattice::Lattice (const lw_vector<int, MAX_DIMENSION> &dimensions_, int basis_indices_)
+Lattice::Lattice (const Lattice::DimensionVector &dimensions_, int basis_indices_)
     : dimensions(dimensions_),
       basis_indices(basis_indices_),
       m_total_sites(count_total_sites(dimensions_, basis_indices_)),
@@ -51,7 +51,7 @@ Lattice::Lattice (const lw_vector<int, MAX_DIMENSION> &dimensions_, int basis_in
 }
 
 Lattice::Lattice (const std::initializer_list<int> &dimensions_, int basis_indices_)
-    : Lattice(lw_vector<int, MAX_DIMENSION>(dimensions_), basis_indices_)
+    : Lattice(Lattice::DimensionVector(dimensions_), basis_indices_)
 {
 }
 

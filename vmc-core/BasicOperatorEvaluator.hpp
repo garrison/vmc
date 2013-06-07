@@ -5,30 +5,29 @@
 #include "BasicOperator.hpp"
 #include "Wavefunction.hpp"
 
-template <typename _AmplitudeType>
 class BasicOperatorEvaluator
 {
 public:
-    typedef _AmplitudeType AmplitudeType;
-    typedef AmplitudeType PhaseType;
-
     const BasicOperator m_operator;
-    const BoundaryConditions<PhaseType> bcs;
 
-    BasicOperatorEvaluator (const BasicOperator &operator_, const BoundaryConditions<PhaseType> &bcs_);
+    BasicOperatorEvaluator (const BasicOperator &operator_);
 
-    AmplitudeType evaluate (const typename Wavefunction<AmplitudeType>::Amplitude &wfa) const;
+    /**
+     * Evaluate the operator
+     *
+     * If boundary conditions are given, this will loop over all sites, summing
+     * the expectation value of the operator as translated across the lattice
+     * (wrapping around any boundary conditions that are not open).  If
+     * `boundary_conditions` is the empty array, no sum is performed.
+     */
+    template <typename AmplitudeType>
+    AmplitudeType evaluate (const typename Wavefunction<AmplitudeType>::Amplitude &wfa, const BoundaryConditions<AmplitudeType> &boundary_conditions) const;
 
 private:
-    bool is_sum_over_sites (void) const
-        {
-            return bcs.size() != 0;
-        }
-
     const unsigned int min_required_species;
 };
 
-#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) extern template class BasicOperatorEvaluator<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) extern template type BasicOperatorEvaluator::evaluate(const typename Wavefunction<type>::Amplitude &wfa, const BoundaryConditions<type> &boundary_conditions) const;
 #include "vmc-supported-types.hpp"
 #undef VMC_SUPPORTED_AMPLITUDE_TYPE
 

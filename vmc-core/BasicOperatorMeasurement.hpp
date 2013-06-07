@@ -38,7 +38,8 @@ public:
                               const BasicOperator &operator_,
                               const BoundaryConditions<PhaseType> &bcs_)
         : Measurement<WalkType>(steps_per_measurement),
-          evaluator(operator_, bcs_)
+          evaluator(operator_),
+          bcs(bcs_)
         {
         }
 
@@ -57,7 +58,7 @@ private:
     virtual void measure_ (const WalkType &walk) override
         {
             const typename Wavefunction<AmplitudeType>::Amplitude &wfa = walk.get_wavefunctionamplitude();
-            most_recent_value = evaluator.evaluate(wfa);
+            most_recent_value = evaluator.evaluate(wfa, bcs);
             estimate.add_value(most_recent_value);
         }
 
@@ -77,7 +78,8 @@ private:
                                            walk.get_wavefunctionamplitude().get_positions().get_N_species());
         }
 
-    const BasicOperatorEvaluator<AmplitudeType> evaluator;
+    const BasicOperatorEvaluator evaluator;
+    const BoundaryConditions<PhaseType> bcs;
 
     BlockedEstimate<AmplitudeType> estimate;
     AmplitudeType most_recent_value;

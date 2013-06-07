@@ -29,25 +29,25 @@ public:
     const typename Wavefunction<AmplitudeType>::Amplitude &wfa;
 };
 
-template <typename AmplitudeType>
-BasicOperatorEvaluator<AmplitudeType>::BasicOperatorEvaluator (const BasicOperator &operator_, const BoundaryConditions<PhaseType> &bcs_)
+BasicOperatorEvaluator::BasicOperatorEvaluator (const BasicOperator &operator_)
     : m_operator(operator_),
-      bcs(bcs_),
       min_required_species(BasicOperator::min_required_species(operator_.hopv, *operator_.lattice))
 {
     BOOST_ASSERT(min_required_species != 0); // otherwise the operator is not valid
 }
 
 template <typename AmplitudeType>
-AmplitudeType BasicOperatorEvaluator<AmplitudeType>::evaluate (const typename Wavefunction<AmplitudeType>::Amplitude &wfa) const
+AmplitudeType BasicOperatorEvaluator::evaluate (const typename Wavefunction<AmplitudeType>::Amplitude &wfa, const BoundaryConditions<AmplitudeType> &bcs) const
 {
     using std::conj;
+    typedef AmplitudeType PhaseType;
 
     BOOST_ASSERT(&wfa.get_lattice() == m_operator.lattice.get());
     BOOST_ASSERT(wfa.get_positions().get_N_species() >= min_required_species);
 
     const PositionArguments &r = wfa.get_positions();
     const Lattice &lattice = wfa.get_lattice();
+    const bool is_sum_over_sites = (bcs.size() != 0);
 
     AmplitudeType meas = 0;
 
@@ -55,7 +55,7 @@ AmplitudeType BasicOperatorEvaluator<AmplitudeType>::evaluate (const typename Wa
 
     // we only iterate if doing a sum, and even then we only want to iterate
     // over BraivaisSite's
-    const unsigned int n_iterations = is_sum_over_sites() ? lattice.total_sites() / lattice.basis_indices : 1;
+    const unsigned int n_iterations = is_sum_over_sites ? lattice.total_sites() / lattice.basis_indices : 1;
 
     // FIXME: need a faster way of iterating the lattice
     for (unsigned int i = 0; i < n_iterations; ++i) {
@@ -71,7 +71,7 @@ AmplitudeType BasicOperatorEvaluator<AmplitudeType>::evaluate (const typename Wa
             const unsigned int species = m_operator.hopv[j].get_species();
             LatticeSite src(m_operator.hopv[j].get_source());
             lattice.asm_add_site_vector(src, site_offset.bravais_site());
-            BOOST_ASSERT(is_sum_over_sites() || lattice.site_is_valid(src));
+            BOOST_ASSERT(is_sum_over_sites || lattice.site_is_valid(src));
             srcphase = lattice.enforce_boundary(src, bcs);
             if (srcphase == PhaseType(0))
                 goto current_measurement_is_zero;
@@ -81,7 +81,7 @@ AmplitudeType BasicOperatorEvaluator<AmplitudeType>::evaluate (const typename Wa
             if (m_operator.hopv[j].get_source() != m_operator.hopv[j].get_destination()) {
                 LatticeSite dest(m_operator.hopv[j].get_destination());
                 lattice.asm_add_site_vector(dest, site_offset.bravais_site());
-                BOOST_ASSERT(is_sum_over_sites() || lattice.site_is_valid(dest));
+                BOOST_ASSERT(is_sum_over_sites || lattice.site_is_valid(dest));
                 phase *= lattice.enforce_boundary(dest, bcs) / srcphase;
                 if (phase == PhaseType(0))
                     goto current_measurement_is_zero;
@@ -108,5 +108,5 @@ AmplitudeType BasicOperatorEvaluator<AmplitudeType>::evaluate (const typename Wa
     return meas;
 }
 
-#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class BasicOperatorEvaluator<type>
+#define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template type BasicOperatorEvaluator::evaluate(const typename Wavefunction<type>::Amplitude &wfa, const BoundaryConditions<type> &boundary_conditions) const
 #include "vmc-supported-types.hpp"

@@ -27,9 +27,9 @@ cdef extern from "BasicOperator.hpp":
     cdef cppclass CppBasicOperator "BasicOperator":
         CppBasicOperator(vector[CppSiteHop]&, shared_ptr[CppLattice]&)
 
-cdef extern from "OperatorMeasurement.hpp":
-    cdef cppclass CppOperatorMeasurement "OperatorMeasurement<amplitude_t>" (CppBaseMeasurement):
-        CppOperatorMeasurement(unsigned int, CppBasicOperator&, CppBoundaryConditions&)
+cdef extern from "BasicOperatorMeasurement.hpp":
+    cdef cppclass CppBasicOperatorMeasurement "BasicOperatorMeasurement<amplitude_t>" (CppBaseMeasurement):
+        CppBasicOperatorMeasurement(unsigned int, CppBasicOperator&, CppBoundaryConditions&)
         CppComplexBlockedEstimate& get_estimate()
 
 
@@ -102,12 +102,12 @@ cdef class BasicOperatorMeasurement(BaseMeasurement):
         if operator_.boundary_conditions is not None:
             for bc in operator_.boundary_conditions:
                 cppbcs.push_back((<BoundaryCondition>bc).cpp)
-        self.sharedptr.reset(new CppOperatorMeasurement(steps_per_measurement, deref(operator), cppbcs))
+        self.sharedptr.reset(new CppBasicOperatorMeasurement(steps_per_measurement, deref(operator), cppbcs))
 
     def get_estimate(self, key=None):
         if key is not None:
             raise KeyError
-        return Estimate_from_CppComplexBlockedEstimate((<CppOperatorMeasurement*>self.sharedptr.get()).get_estimate())
+        return Estimate_from_CppComplexBlockedEstimate((<CppBasicOperatorMeasurement*>self.sharedptr.get()).get_estimate())
 
     def get_estimates(self):
         return {None: self.get_estimate()}

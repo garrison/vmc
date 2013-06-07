@@ -1,5 +1,5 @@
-#ifndef _VMC_OPERATOR_MEASUREMENT_HPP
-#define _VMC_OPERATOR_MEASUREMENT_HPP
+#ifndef _VMC_BASIC_OPERATOR_MEASUREMENT_HPP
+#define _VMC_BASIC_OPERATOR_MEASUREMENT_HPP
 
 #include <memory>
 
@@ -14,7 +14,7 @@
 #include "BlockedEstimate.hpp"
 
 /**
- * Operator measurement
+ * Basic operator measurement
  *
  * Measures the given operator on the lattice.
  *
@@ -26,7 +26,7 @@
  * @see StandardWalk
  */
 template <typename _AmplitudeType>
-class OperatorMeasurement : public Measurement<StandardWalk<_AmplitudeType> >
+class BasicOperatorMeasurement : public Measurement<StandardWalk<_AmplitudeType> >
 {
 public:
     typedef _AmplitudeType AmplitudeType;
@@ -34,9 +34,9 @@ public:
     typedef Walk<typename StandardWalk<AmplitudeType>::ProbabilityType> BaseWalkType;
     typedef StandardWalk<AmplitudeType> WalkType;
 
-    OperatorMeasurement (unsigned int steps_per_measurement,
-                         const BasicOperator &operator_,
-                         const BoundaryConditions<PhaseType> &bcs_)
+    BasicOperatorMeasurement (unsigned int steps_per_measurement,
+                              const BasicOperator &operator_,
+                              const BoundaryConditions<PhaseType> &bcs_)
         : Measurement<WalkType>(steps_per_measurement),
           evaluator(operator_, bcs_)
         {

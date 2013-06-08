@@ -223,6 +223,8 @@ public:
      * Create a corresponding Wavefunction::Amplitude object with nonzero
      * amplitude
      *
+     * If this fails after n_attempts, it will return a null pointer.
+     *
      * Subclasses may wish to override this method if they have special
      * projection properties, e.g., no spin-up and spin-down particle allowed
      * on the same site.

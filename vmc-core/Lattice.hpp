@@ -144,6 +144,14 @@ public:
     /**
      * Returns the total number of sites on the lattice
      */
+    unsigned int size (void) const
+        {
+            return m_total_sites;
+        }
+
+    /**
+     * Returns the total number of sites on the lattice
+     */
     unsigned int total_sites (void) const
         {
             return m_total_sites;

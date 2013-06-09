@@ -16,6 +16,7 @@ template <typename AmplitudeType>
 typename StandardWalk<AmplitudeType>::ProbabilityType StandardWalk<AmplitudeType>::compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng)
 {
     BOOST_ASSERT(!transition_in_progress);
+    BOOST_ASSERT(wfa != nullptr);
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     transition_in_progress = true;

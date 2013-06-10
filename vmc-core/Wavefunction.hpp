@@ -59,7 +59,7 @@ public:
         /**
          * Returns true if the wavefunction has nonzero amplitude in the current position
          */
-        bool is_nonzero (void) const
+        inline bool is_nonzero (void) const
             {
                 return psi().is_nonzero();
             }
@@ -67,7 +67,7 @@ public:
         /**
          * Returns the current amplitude of the wavefunction
          */
-        Big<AmplitudeType> psi (void) const
+        inline Big<AmplitudeType> psi (void) const
             {
                 return psi_();
             }
@@ -75,7 +75,7 @@ public:
         /**
          * Completes the current move, such that new moves are allowed
          */
-        void finish_move (void)
+        inline void finish_move (void)
             {
                 BOOST_ASSERT(move_in_progress);
                 finish_move_();
@@ -103,7 +103,7 @@ public:
         /**
          * Resets the wavefunction amplitude with a new set of positions
          */
-        void reset (const PositionArguments &r_)
+        inline void reset (const PositionArguments &r_)
             {
                 BOOST_ASSERT(!move_in_progress);
                 reset_(r_);
@@ -117,7 +117,7 @@ public:
                 return clone_();
             }
 
-        const Lattice & get_lattice (void) const
+        inline const Lattice & get_lattice (void) const
             {
                 return *wf->lattice;
             }
@@ -125,7 +125,7 @@ public:
         /**
          * Returns the current positions of the particles
          */
-        const PositionArguments & get_positions (void) const
+        inline const PositionArguments & get_positions (void) const
             {
                 return r;
             }
@@ -202,7 +202,7 @@ public:
                 BOOST_ASSERT(wf_); // check that it is not null
             }
 
-        const Move & get_reverse_move (void) const
+        inline const Move & get_reverse_move (void) const
             {
                 return reverse_move;
             }

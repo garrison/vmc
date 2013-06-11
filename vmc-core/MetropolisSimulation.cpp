@@ -15,18 +15,12 @@ class invalid_probability_error : public std::range_error
 public:
     invalid_probability_error (const ProbabilityType &invalid_probability_);
 
-    static inline std::string construct_what_string (const ProbabilityType &invalid_probability)
-        {
-            return std::string("Invalid probability ratio: ") + boost::lexical_cast<std::string>(invalid_probability);
-        }
-
-private:
     const ProbabilityType invalid_probability;
 };
 
 template <typename ProbabilityType>
 invalid_probability_error<ProbabilityType>::invalid_probability_error (const ProbabilityType &invalid_probability_)
-    : std::range_error(construct_what_string(invalid_probability_)),
+    : std::range_error(std::string("Invalid probability ratio: ") + boost::lexical_cast<std::string>(invalid_probability_)),
       invalid_probability(invalid_probability_)
 {
 }

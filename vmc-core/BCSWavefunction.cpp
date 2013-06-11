@@ -192,7 +192,7 @@ std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction
 
     BOOST_ASSERT(2 * M <= N);
 
-    while (n_attempts--) {
+    for (unsigned int j = 0; j < n_attempts; ++j) {
         // Take into account Gutzwiller projection [at most one spinon ("particle") per site]
         std::vector<std::vector<unsigned int> > vv(2);
         vv[0] = some_random_configuration(M, *this->lattice, rng);
@@ -221,7 +221,7 @@ std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction
         if (wfa->is_nonzero())
             return wfa;
     }
-    return std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude>();
+    throw could_not_find_nonzero_wavefunctionamplitude_error(n_attempts);
 }
 
 template <typename AmplitudeType>

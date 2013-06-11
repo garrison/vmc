@@ -2,6 +2,7 @@
 #define _VMC_WAVEFUNCTION_HPP
 
 #include <memory>
+#include <stdexcept>
 
 #include <boost/assert.hpp>
 
@@ -12,6 +13,14 @@
 #include "vmc-typedefs.hpp"
 
 class RandomNumberGenerator;
+
+class could_not_find_nonzero_wavefunctionamplitude_error : public std::runtime_error
+{
+public:
+    could_not_find_nonzero_wavefunctionamplitude_error (unsigned int n_attempts_);
+
+    const unsigned int n_attempts;
+};
 
 /**
  * Abstract base class representing a wavefunction
@@ -223,7 +232,8 @@ public:
      * Create a corresponding Wavefunction::Amplitude object with nonzero
      * amplitude
      *
-     * If this fails after n_attempts, it will return a null pointer.
+     * If this fails after n_attempts, it will throw
+     * could_not_find_nonzero_wavefunctionamplitude_error
      *
      * Subclasses may wish to override this method if they have special
      * projection properties, e.g., no spin-up and spin-down particle allowed
@@ -236,6 +246,7 @@ public:
     virtual unsigned int get_N_species (void) const = 0;
 
     virtual unsigned int get_N_filled (unsigned int species) const = 0;
+
 };
 
 #define VMC_SUPPORTED_AMPLITUDE_TYPE(type) extern template class Wavefunction<type>

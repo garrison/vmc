@@ -255,7 +255,7 @@ std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunct
     const unsigned int M = orbital_f_up->get_N_filled();
 
     // take into account the Gutzwiller projection
-    while (n_attempts--) {
+    for (unsigned int j = 0; j < n_attempts; ++j) {
         std::vector<std::vector<unsigned int> > vv(2);
         vv[0] = some_random_configuration(N, *this->lattice, rng);
         for (unsigned int i = M; i < N; ++i)
@@ -265,7 +265,7 @@ std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunct
         if (wfa->is_nonzero())
             return wfa;
     }
-    return std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude>();
+    throw could_not_find_nonzero_wavefunctionamplitude_error(n_attempts);
 }
 
 #define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class DMetalWavefunction<type>

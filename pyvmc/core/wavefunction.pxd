@@ -10,8 +10,8 @@ cdef extern from "Wavefunction.hpp":
         shared_ptr[CppWavefunctionAmplitude] clone()
 
     cdef cppclass CppWavefunction "Wavefunction<amplitude_t>":
-        shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&)
-        shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&, unsigned int)
+        shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&) except +
+        shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&, unsigned int) except +
 
 cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf, RandomNumberGenerator rng) except *
 

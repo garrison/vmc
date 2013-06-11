@@ -1,8 +1,17 @@
 #include <vector>
+#include <string>
+
+#include <boost/lexical_cast.hpp>
 
 #include "Wavefunction.hpp"
 #include "random-configuration.hpp"
 #include "random-move.hpp"
+
+could_not_find_nonzero_wavefunctionamplitude_error::could_not_find_nonzero_wavefunctionamplitude_error (unsigned int n_attempts_)
+    : std::runtime_error(std::string("Could not find nonzero wavefunction amplitude after ") + boost::lexical_cast<std::string>(n_attempts_) + std::string(" attempts")),
+      n_attempts(n_attempts_)
+{
+}
 
 template <typename AmplitudeType>
 void Wavefunction<AmplitudeType>::Amplitude::perform_move (const Move &move)
@@ -56,7 +65,7 @@ void Wavefunction<AmplitudeType>::Amplitude::cancel_move (void)
 template <typename AmplitudeType>
 std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> Wavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
-    while (n_attempts--) {
+    for (unsigned int j = 0; j < n_attempts; ++j) {
         std::vector<std::vector<unsigned int> > vv;
         for (unsigned int i = 0; i < get_N_species(); ++i)
             vv.push_back(some_random_configuration(get_N_filled(i), *lattice, rng));
@@ -64,7 +73,7 @@ std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> Wavefunction<Am
         if (wfa->is_nonzero())
             return wfa;
     }
-    return std::shared_ptr<Wavefunction<AmplitudeType>::Amplitude>();
+    throw could_not_find_nonzero_wavefunctionamplitude_error(n_attempts);
 }
 
 template <typename AmplitudeType>

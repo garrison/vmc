@@ -48,8 +48,7 @@ cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf, RandomNumberGenerator r
     cdef Lattice lattice = wf.lattice
     cdef WavefunctionWrapper ww = wf.to_wavefunction()
     cdef shared_ptr[CppWavefunctionAmplitude] wfa = ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.autoptr.get()))
-    if wfa.get() is NULL:
-        raise RuntimeError("could not find a nonzero wavefunction configuration")
+    assert wfa.get() is not NULL
     return wfa
 
 class FreeFermionWavefunction(Wavefunction):

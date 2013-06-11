@@ -5,7 +5,7 @@ from pyvmc.core.walk cimport Walk
 from pyvmc.core.measurement import BasicMeasurementPlan, CompositeMeasurementPlan
 from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.wavefunction import Wavefunction
-from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_wfa
+from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_nonzero_wfa
 from pyvmc.core.estimate cimport Estimate_from_CppRealBlockedEstimate, Estimate_from_CppComplexBlockedEstimate
 from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.rng cimport RandomNumberGenerator
@@ -34,7 +34,7 @@ class RenyiModPossibleWalkPlan(WalkPlan):
 
     def create_walk(self, RandomNumberGenerator rng not None):
         cdef Subsystem subsystem = self.subsystem
-        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction, rng)
+        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_nonzero_wfa(self.wavefunction, rng)
         cdef Walk walk = Walk()
         # We need two copies of the system, each of which has the same number
         # of particles in the subsystem.  So for now we just initialize both
@@ -97,7 +97,7 @@ class RenyiSignWalkPlan(WalkPlan):
 
     def create_walk(self, RandomNumberGenerator rng not None):
         cdef Subsystem subsystem = self.subsystem
-        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction, rng)
+        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_nonzero_wfa(self.wavefunction, rng)
         cdef Walk walk = Walk()
         # We need two copies of the system, each of which has the same number
         # of particles in the subsystem.  So for now we just initialize both

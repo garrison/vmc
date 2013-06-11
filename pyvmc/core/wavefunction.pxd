@@ -13,7 +13,7 @@ cdef extern from "Wavefunction.hpp":
         shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&) except +
         shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&, unsigned int) except +
 
-cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf, RandomNumberGenerator rng) except *
+cdef shared_ptr[CppWavefunctionAmplitude] create_nonzero_wfa(wf, RandomNumberGenerator rng) except *
 
 cdef extern from "FreeFermionWavefunction.hpp":
     cdef cppclass CppFreeFermionWavefunction "FreeFermionWavefunction<amplitude_t>" (CppWavefunction):

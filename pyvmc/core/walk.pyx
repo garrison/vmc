@@ -4,7 +4,7 @@ import abc
 import collections
 
 from pyvmc.core.wavefunction import Wavefunction
-from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_wfa
+from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_nonzero_wfa
 from pyvmc.core.rng cimport RandomNumberGenerator
 from pyvmc.utils.immutable import Immutable, ImmutableMetaclass
 
@@ -55,7 +55,7 @@ class StandardWalkPlan(WalkPlan):
         return StandardWalkPlan(wavefunction)
 
     def create_walk(self, RandomNumberGenerator rng not None):
-        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_wfa(self.wavefunction, rng)
+        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_nonzero_wfa(self.wavefunction, rng)
         cdef Walk walk = Walk()
         walk.autoptr.reset(new CppStandardWalk(wfa))
         return walk

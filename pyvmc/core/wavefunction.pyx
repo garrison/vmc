@@ -43,7 +43,7 @@ class Wavefunction(Immutable):
         """should return a tuple with the filling of each species"""
         raise NotImplementedError
 
-cdef shared_ptr[CppWavefunctionAmplitude] create_wfa(wf, RandomNumberGenerator rng) except *:
+cdef shared_ptr[CppWavefunctionAmplitude] create_nonzero_wfa(wf, RandomNumberGenerator rng) except *:
     assert rng.is_good()
     cdef Lattice lattice = wf.lattice
     cdef WavefunctionWrapper ww = wf.to_wavefunction()

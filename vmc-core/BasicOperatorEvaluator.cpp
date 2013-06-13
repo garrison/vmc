@@ -2,6 +2,8 @@
 
 #include "BasicOperatorEvaluator.hpp"
 
+namespace BasicOperatorEvaluatorLocal
+{
 /**
  * Manages a temporary move on a wave function.
  *
@@ -28,6 +30,8 @@ public:
 
     const typename Wavefunction<AmplitudeType>::Amplitude &wfa;
 };
+
+}
 
 BasicOperatorEvaluator::BasicOperatorEvaluator (const BasicOperator &operator_)
     : m_operator(operator_),
@@ -94,7 +98,7 @@ AmplitudeType BasicOperatorEvaluator::evaluate (const typename Wavefunction<Ampl
 
         // now perform the move (if necessary)
         if (move.size() != 0) {
-            TemporaryMove<AmplitudeType> temp_move(wfa, move);
+            BasicOperatorEvaluatorLocal::TemporaryMove<AmplitudeType> temp_move(wfa, move);
             // fixme: check logic of multiplying by phase (c.f. above), as
             // well as logic of source and destination
             meas += conj(phase * wfa.psi().ratio(old_psi));

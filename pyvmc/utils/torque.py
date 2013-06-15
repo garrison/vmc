@@ -33,7 +33,7 @@ def get_array_ids(s):
 
 class PBSFlags(object):
     def __init__(self, pbs_filename):
-        with file(pbs_filename) as f:
+        with open(pbs_filename) as f:
             self.lines = [line[4:].strip() for line in f.readlines() if line.startswith('#PBS')]
 
     walltime = make_flag_property(r'^-l\s+walltime=(.*)$')

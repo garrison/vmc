@@ -83,15 +83,3 @@ def get_job_id():
         return "job{}".format(re.match(r"^(\d+)", os.environ["PBS_JOBID"]).group(1))
     else:
         return "pid{}".format(os.getpid())
-
-if __name__ == "__main__":
-    flags = PBSFlags('/home/garrison/vmc-studies/electron-ring/2leg/rho-2_3/dmetal-rho-two-thirds-scan.py')
-    print(flags.walltime)
-    print(flags.nodes)
-    print(flags.ppn)
-    print(flags.array_ids)
-
-    print get_array_ids("5")
-    print get_array_ids("6")
-    print get_array_ids("10-13,50, 70-80")
-    print get_array_ids("20,40,60")

@@ -2,6 +2,7 @@
 #define _VMC_MATH_UTILS_HPP
 
 #include <cmath>
+#include <complex>
 
 #include <boost/assert.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -61,6 +62,25 @@ static inline typename boost::enable_if<boost::is_convertible<T2, typename RealP
 complex_pow (const Big<T> &base, const T2 &exponent)
 {
     return Big<T>(complex_pow(base.get_base(), exponent), base.get_exponent() * exponent);
+}
+
+// std::conj() always returns a complex type, but we want a function that
+// always returns the type it is given (e.g. returns real if given a real).
+// vmc_conj() is meant to fill in this gap.
+
+template <typename T>
+static inline T
+vmc_conj (const T &v)
+{
+    return v;
+}
+
+template <typename T>
+static inline std::complex<T>
+vmc_conj (const std::complex<T> &v)
+{
+    using std::conj;
+    return conj(v);
 }
 
 #endif

@@ -1,6 +1,7 @@
 #include <boost/noncopyable.hpp>
 
 #include "BasicOperatorEvaluator.hpp"
+#include "vmc-math-utils.hpp"
 
 namespace BasicOperatorEvaluatorLocal
 {
@@ -43,7 +44,6 @@ BasicOperatorEvaluator::BasicOperatorEvaluator (const BasicOperator &operator_)
 template <typename AmplitudeType>
 AmplitudeType BasicOperatorEvaluator::evaluate (const typename Wavefunction<AmplitudeType>::Amplitude &wfa, const BoundaryConditions<AmplitudeType> &bcs) const
 {
-    using std::conj;
     typedef AmplitudeType PhaseType;
 
     BOOST_ASSERT(&wfa.get_lattice() == m_operator.lattice.get());
@@ -101,7 +101,7 @@ AmplitudeType BasicOperatorEvaluator::evaluate (const typename Wavefunction<Ampl
             BasicOperatorEvaluatorLocal::TemporaryMove<AmplitudeType> temp_move(wfa, move);
             // fixme: check logic of multiplying by phase (c.f. above), as
             // well as logic of source and destination
-            meas += conj(phase * wfa.psi().ratio(old_psi));
+            meas += vmc_conj(phase * wfa.psi().ratio(old_psi));
         } else {
             meas += 1;
         }

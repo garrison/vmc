@@ -4,6 +4,7 @@ solution "vmc-core-tests"
   configurations { "Local" }
 
   buildoptions { "-g", "-Wall", "-Wextra", "-std=c++11" }
+  includedirs { gtest_root .. "/include" }
   defines { "GTEST_HAS_PTHREAD=0" }
 
   configuration "Local"

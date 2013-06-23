@@ -1,4 +1,10 @@
-gtest_root = os.getenv("GTEST_DIR") or "/usr/src/gtest"
+newoption {
+  trigger = "gtest",
+  description = "googletest source root directory (default /usr/src/gtest)",
+  value = "path",
+}
+
+local gtest_root = _OPTIONS["gtest"] or "/usr/src/gtest"
 
 solution "vmc-core-tests"
   configurations { "Local" }

@@ -121,6 +121,29 @@ cdef class NoDoubleOccupancyProjector(JastrowFactor):
 # for compatibility with previous versions
 SingleOccupancyProjector = NoDoubleOccupancyProjector
 
+cdef class JordanWignerJastrowFactor(JastrowFactor):
+    def __init__(self):
+        self.sharedptr.reset(new CppJordanWignerJastrowFactor())
+
+    def to_json(self):
+        return collections.OrderedDict([
+            ('type', self.__class__.__name__),
+        ])
+
+    def __richcmp__(self, other, int op):
+        if op == 2:  # ==
+            return (self.__class__ == other.__class__)
+        elif op == 3:  # !=
+            return (self.__class__ != other.__class__)
+        # we don't implement <, <=, >, >=
+        raise NotImplementedError
+
+    def __hash__(self):
+        return hash(self.__class__.__name__)
+
+    def __repr__(self):
+        return "{}()".format(self.__class__.__name__)
+
 cdef class TwoBodyJastrowFactor(JastrowFactor):
     """$\exp ( -\frac{1}{2} \sum_{ij} u_{ij} n_i n_j )$
 

@@ -30,6 +30,10 @@ cdef extern from "NoDoubleOccupancyProjector.hpp":
     cdef cppclass CppNoDoubleOccupancyProjector "NoDoubleOccupancyProjector<amplitude_t>" (CppJastrowFactor):
         CppNoDoubleOccupancyProjector()
 
+cdef extern from "JordanWignerJastrowFactor.hpp":
+    cdef cppclass CppJordanWignerJastrowFactor "JordanWignerJastrowFactor<amplitude_t>" (CppJastrowFactor):
+        CppJordanWignerJastrowFactor()
+
 cdef extern from "TwoBodyJastrowFactor.hpp":
     cdef cppclass CppTwoBodyJastrowMatrix "Eigen::Matrix<real_t, Eigen::Dynamic, Eigen::Dynamic>":
         CppTwoBodyJastrowMatrix(unsigned int, unsigned int)

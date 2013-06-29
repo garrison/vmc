@@ -1,12 +1,13 @@
 #include <boost/assert.hpp>
 
 #include "JordanWignerJastrowFactor.hpp"
+#include "vmc-not-implemented.hpp"
 
 template <typename AmplitudeType>
 Big<AmplitudeType> JordanWignerJastrowFactor<AmplitudeType>::compute_jastrow (const PositionArguments &r) const
 {
-    // FIXME: we should relax this
-    BOOST_ASSERT(r.get_N_species() == 1);
+    if (r.get_N_species() != 1)
+        throw vmc_not_implemented("currently the JordanWignerJastrowFactor supports only single-species wavefunctions.");
 
     unsigned int c = 0;
     for (unsigned int i = 0; i < r.get_N_filled(0); ++i) {

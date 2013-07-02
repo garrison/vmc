@@ -86,10 +86,12 @@ coming soon.
 Compiling ``pyvmc``
 -------------------
 
-First make sure a recent ``python2`` is installed, along with
-``virtualenv``.  The following uses ``clang++`` for both compiling
-(``CC``) and linking (``CXX``), and assumes certain (typical)
-directories for ``boost`` and ``eigen``.
+First make sure a recent ``python`` is installed, along with
+``virtualenv``.  (The primary author of this code has been using
+Python 3.3 lately, but the code should still work on Python 2.7.)  The
+following uses ``clang++`` for both compiling (``CC``) and linking
+(``CXX``), and assumes certain (typical) directories for ``boost`` and
+``eigen``.
 
 The ``pip`` command below compiles all the python dependencies given in
 ``requirements.txt``.  Some of these have their own dependencies, which

@@ -186,3 +186,9 @@ Research based on results of this code
    Fisher, Nature 493, 39-44 (2013)
    [`arXiv:1207.6608 <http://arxiv.org/abs/1207.6608>`_\ ].  (used for
    Renyi entropy calculations)
+
+-  "Theory of a competitive spin liquid state for κ-(BEDT-TTF)2Cu2(CN)3
+   and EtMe3Sb[Pd(dmit)2]2," Ryan V. Mishmash, James R. Garrison,
+   Samuel Bieri and Cenke Xu
+   [`arXiv:1307.0829 <http://arxiv.org/abs/1307.0829>`_\ ].  (used for
+   roughly half of the VMC calculations)

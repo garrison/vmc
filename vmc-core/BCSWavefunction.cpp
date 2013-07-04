@@ -135,6 +135,12 @@ void BCSWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigned int pa
         BOOST_ASSERT(species == 1);
         m_cmat.swap_columns(particle1_index, particle2_index);
     }
+
+    const BCSWavefunction *wf_ = boost::polymorphic_downcast<const BCSWavefunction *>(this->wf.get());
+
+    if (wf_->jastrow) {
+        m_current_jastrow = wf_->jastrow->compute_jastrow(this->r);
+    }
 }
 
 template <typename AmplitudeType>

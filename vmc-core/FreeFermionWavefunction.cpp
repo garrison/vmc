@@ -129,6 +129,12 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigne
 {
     BOOST_ASSERT(species < m_cmat.size());
     m_cmat[species].swap_columns(particle1_index, particle2_index);
+
+    const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction<AmplitudeType> *>(this->wf.get());
+
+    if (wf_->jastrow) {
+        m_current_jastrow = wf_->jastrow->compute_jastrow(this->r);
+    }
 }
 
 template <typename AmplitudeType>

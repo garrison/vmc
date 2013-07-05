@@ -6,13 +6,13 @@ that are of interest to the authors of this code.
 
 This package is made up of two distinct components:
 
--  ``vmc-core`` is the heart of the Monte Carlo calculation, and is
-   written in C++ for speed
+* ``vmc-core`` is the heart of the Monte Carlo calculation, and is
+  written in C++ for speed
 
--  ``pyvmc`` is a higher-level package that allows setting up,
-   controlling, and analysis of calculations.  It is written in python
-   for ease-of-programming/use and flexibility, and communicates with
-   the C++ code by using `Cython <http://cython.org/>`_.
+* ``pyvmc`` is a higher-level package that allows setting up,
+  controlling, and analysis of calculations.  It is written in python
+  for ease-of-programming/use and flexibility, and communicates with
+  the C++ code by using `Cython <http://cython.org/>`_.
 
 Compiling ``vmc-core``
 ----------------------
@@ -167,31 +167,31 @@ Ways in which things are currently in flux
 
 At the moment the following things are broken:
 
--  Renyi stuff uses only single particle moves, even on wavefunctions
-   where that doesn't work well.
+* Renyi stuff uses only single particle moves, even on wavefunctions
+  where that doesn't work well.
 
--  Projected Fermi sea does not yet use multi-particle moves so does not
-   work at half filling.
+* Projected Fermi sea does not yet use multi-particle moves so does not
+  work at half filling.
 
--  Non-Bravais lattices have never been tested.
+* Non-Bravais lattices have never been tested.
 
--  Cylindrical boundary conditions have not yet been fully tested.
+* Cylindrical boundary conditions have not yet been fully tested.
 
 Research based on results of this code
 --------------------------------------
 
--  “Non-Fermi-liquid d-wave metal phase of strongly interacting
-   electrons,” Hong-Chen Jiang, Matthew S. Block, Ryan V. Mishmash,
-   James R. Garrison, D. N. Sheng, Olexei I. Motrunich and Matthew P. A.
-   Fisher, Nature 493, 39-44 (2013)
-   [`arXiv:1207.6608 <http://arxiv.org/abs/1207.6608>`_].  (used for
-   Renyi entropy calculations)
+* “Non-Fermi-liquid d-wave metal phase of strongly interacting
+  electrons,” Hong-Chen Jiang, Matthew S. Block, Ryan V. Mishmash,
+  James R. Garrison, D. N. Sheng, Olexei I. Motrunich and Matthew P. A.
+  Fisher, Nature 493, 39-44 (2013)
+  [`arXiv:1207.6608 <http://arxiv.org/abs/1207.6608>`_].  (used for
+  Renyi entropy calculations)
 
--  “Theory of a competitive spin liquid state for |κ-(BEDT-TTF)2Cu2(CN)3|
-   and |EtMe3Sb[Pd(dmit)2]2|,” Ryan V. Mishmash, James R. Garrison,
-   Samuel Bieri and Cenke Xu
-   [`arXiv:1307.0829 <http://arxiv.org/abs/1307.0829>`_].  (used for
-   roughly half of the VMC calculations)
+* “Theory of a competitive spin liquid state for |κ-(BEDT-TTF)2Cu2(CN)3|
+  and |EtMe3Sb[Pd(dmit)2]2|,” Ryan V. Mishmash, James R. Garrison,
+  Samuel Bieri and Cenke Xu
+  [`arXiv:1307.0829 <http://arxiv.org/abs/1307.0829>`_].  (used for
+  roughly half of the VMC calculations)
 
 .. |κ-(BEDT-TTF)2Cu2(CN)3| replace:: κ-(BEDT-TTF)\ :sub:`2`\ Cu\ :sub:`2`\ (CN)\ :sub:`3`
 .. |EtMe3Sb[Pd(dmit)2]2| replace:: EtMe\ :sub:`3`\ Sb[Pd(dmit)\ :sub:`2`\ ]\ :sub:`2`

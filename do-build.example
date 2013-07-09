@@ -15,7 +15,7 @@ export COMPILE_NTHREADS=4
 #export CXX="clang++"
 
 # Set here any flags that should be sent to the vmc-core compilation
-#VMC_CORE_CFLAGS="-DVMC_METROPOLIS_SIMULATION_LOGGING"
+#VMC_CORE_CFLAGS="-march=native"
 
 # Optionally, use ccache (requires separate installation) to speed up
 # the build.  In particular, this allows us to use ``--force`` in the

@@ -10,10 +10,10 @@ Big<AmplitudeType> JordanWignerJastrowFactor<AmplitudeType>::compute_jastrow (co
         throw vmc_not_implemented("currently the JordanWignerJastrowFactor supports only single-species wavefunctions.");
 
     unsigned int c = 0;
-    for (unsigned int i = 0; i < r.get_N_filled(0); ++i) {
-        const Particle pi(i, 0);
-        for (unsigned int j = i + 1; j < r.get_N_filled(0); ++j) {
-            const Particle pj(j, 0);
+    for (unsigned int j = 1; j < r.get_N_filled(0); ++j) {
+        const Particle pj(j, 0);
+        for (unsigned int i = 0; i < j; ++i) {
+            const Particle pi(i, 0);
             BOOST_ASSERT(r[pi] != r[pj]);
             if (r[pi] < r[pj])
                 ++c;

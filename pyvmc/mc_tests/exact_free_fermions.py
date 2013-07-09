@@ -6,7 +6,7 @@ import numpy
 
 from pyvmc.core import Lattice, Bands, FreeFermionWavefunction, SimpleSubsystem, periodic
 from pyvmc.core.universe import SimulationUniverse
-from pyvmc.library.renyi import RenyiEntropyMeasurementPlan # RenyiLengthScalingMeasurementPlan
+from pyvmc.library.renyi import RenyiEntropyMeasurementPlan
 from pyvmc.exact import free_fermions
 
 logger = logging.getLogger(__name__)

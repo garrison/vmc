@@ -5,6 +5,11 @@ from math import isinf
 
 import numpy
 
+def conformal_length(x, L):
+    from math import pi, sin
+    assert 0 <= x <= L
+    return L / pi * sin(pi * x / L)
+
 def ensure_real(x):
     """Returns a real number as a real data type
 

@@ -29,6 +29,21 @@ cdef extern from "MetropolisSimulation.hpp":
 
 logger = logging.getLogger(__name__)
 
+class disable_keyboardinterrupt(object):
+    """Context manager to disable KeyboardInterrupt for a block of code
+
+    The current implementation does not work on Windows.
+    """
+
+    def __enter__(self):
+        # http://stackoverflow.com/questions/842557/how-to-prevent-a-block-of-code-from-being-interrupted-by-keyboardinterrupt-in-py
+        import signal
+        self.s = signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        import signal
+        signal.signal(signal.SIGINT, self.s)
+
 cdef class MetropolisSimulation(object):
     cdef unique_ptr[CppMetropolisSimulation] autoptr
 
@@ -84,11 +99,12 @@ cdef class MetropolisSimulation(object):
 
         cdef bint check_for_numerical_error_ = bool(check_for_numerical_error)
         try:
-            with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):
-                with nogil:
-                    self.autoptr.get().iterate(sweeps)
-                    if check_for_numerical_error_:
-                        self.autoptr.get().check_for_numerical_error()
+            with disable_keyboardinterrupt():
+                with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):
+                    with nogil:
+                        self.autoptr.get().iterate(sweeps)
+                        if check_for_numerical_error_:
+                            self.autoptr.get().check_for_numerical_error()
         except Exception:
             self._unrecoverable_error_has_occurred = True
             raise

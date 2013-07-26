@@ -37,8 +37,8 @@ public:
 
     lw_vector (const std::initializer_list<T> &l)
         {
-            for (auto i = l.begin(); i != l.end(); ++i)
-                this->push_back(*i);
+            for (const T & x : l)
+                this->push_back(x);
         }
 
     std::size_t size (void) const

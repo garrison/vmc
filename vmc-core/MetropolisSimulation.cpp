@@ -39,8 +39,8 @@ MetropolisSimulation<ProbabilityType>::MetropolisSimulation (std::unique_ptr<Wal
     BOOST_ASSERT(walk != nullptr);
     BOOST_ASSERT(rng != nullptr);
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-    for (auto m = measurements.begin(); m != measurements.end(); ++m)
-        BOOST_ASSERT((*m)->is_valid_walk(*walk));
+    for (const std::shared_ptr<BaseMeasurementType> & m : measurements)
+        BOOST_ASSERT(m->is_valid_walk(*walk));
 #endif
 
     perform_initialization(initialization_sweeps);
@@ -55,12 +55,12 @@ void MetropolisSimulation<ProbabilityType>::iterate (unsigned int sweeps)
 
         // perform the measurement(s)
         if (accepted || measurement_not_yet_updated) {
-            for (auto m = measurements.begin(); m != measurements.end(); ++m)
-                (*m)->step_advanced(*walk);
+            for (const std::shared_ptr<BaseMeasurementType> & m : measurements)
+                m->step_advanced(*walk);
             measurement_not_yet_updated = false;
         } else {
-            for (auto m = measurements.begin(); m != measurements.end(); ++m)
-                (*m)->step_repeated(*walk);
+            for (const std::shared_ptr<BaseMeasurementType> & m : measurements)
+                m->step_repeated(*walk);
         }
     }
 }
@@ -114,8 +114,8 @@ void MetropolisSimulation<ProbabilityType>::perform_initialization (unsigned int
     for (unsigned int i = 0; i < initialization_sweeps; ++i)
         perform_single_step();
     // initialize the measurements
-    for (auto m = measurements.begin(); m != measurements.end(); ++m)
-        (*m)->initialize(*walk);
+    for (const std::shared_ptr<BaseMeasurementType> & m : measurements)
+        m->initialize(*walk);
 }
 
 #define VMC_SUPPORTED_REAL_TYPE(type) template class MetropolisSimulation<type>

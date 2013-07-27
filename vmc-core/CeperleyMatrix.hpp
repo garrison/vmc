@@ -275,7 +275,7 @@ public:
             if (nullity_lower_bound == 0) {
                 // The matrix is not singular, so we calculate the new
                 // determinant using the Sherman-Morrison-Woodbury formula.
-                detrat = (mat.row(pending_index) * invmat.col(pending_index))[0];
+                detrat = (mat.row(pending_index) * invmat.col(pending_index)).value();
                 det *= detrat;
 
                 if (det.is_nonzero()) {
@@ -321,7 +321,7 @@ public:
             if (nullity_lower_bound == 0) {
                 // The matrix is not singular, so we calculate the new
                 // determinant using the Sherman-Morrison-Woodbury formula.
-                detrat = (invmat.row(pending_index) * mat.col(pending_index))[0];
+                detrat = (invmat.row(pending_index) * mat.col(pending_index)).value();
                 det *= detrat;
 
                 if (det.is_nonzero()) {
@@ -392,7 +392,7 @@ public:
                 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_m(cols.size(), cols.size());
                 for (unsigned int i = 0; i < cols.size(); ++i) {
                     for (unsigned int j = 0; j < cols.size(); ++j) {
-                        detrat_m(i, j) = (invmat.row(cols[i].first) * cols_offset_m.col(j))[0];
+                        detrat_m(i, j) = (invmat.row(cols[i].first) * cols_offset_m.col(j)).value();
                     }
                     detrat_m(i, i) += 1; // add the identity matrix
                 }
@@ -510,7 +510,7 @@ public:
                 Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> detrat_m(nc + nr, nc + nr);
                 for (unsigned int i = 0; i < nc; ++i) {
                     for (unsigned int j = 0; j < nc; ++j)
-                        detrat_m(i, j) = (invmat.row(cols[i]) * cols_offset_m.col(j))[0];
+                        detrat_m(i, j) = (invmat.row(cols[i]) * cols_offset_m.col(j)).value();
                     for (unsigned int j = 0; j < nr; ++j)
                         detrat_m(i, j + nc) = invmat(cols[i], rows[j]);
                     detrat_m(i, i) += 1; // add the identity matrix
@@ -518,9 +518,9 @@ public:
                 for (unsigned int i = 0; i < nr; ++i) {
                     for (unsigned int j = 0; j < nc; ++j)
                         // the following line requires O(N^2) steps
-                        detrat_m(i + nc, j) = (rows_offset_m.row(i) * invmat * cols_offset_m.col(j))[0];
+                        detrat_m(i + nc, j) = (rows_offset_m.row(i) * invmat * cols_offset_m.col(j)).value();
                     for (unsigned int j = 0; j < nr; ++j)
-                        detrat_m(i + nc, j + nc) = (rows_offset_m.row(i) * invmat.col(rows[j]))[0];
+                        detrat_m(i + nc, j + nc) = (rows_offset_m.row(i) * invmat.col(rows[j])).value();
                     detrat_m(i + nc, i + nc) += 1; // add the identity matrix
                 }
                 // we need the determinant and inverse of detrat_m

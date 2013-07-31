@@ -115,7 +115,8 @@ public:
      */
     T get_value (void) const
         {
-            return m_base * std::exp(m_exponent);
+            using std::exp;
+            return m_base * exp(m_exponent);
         }
 
 private:

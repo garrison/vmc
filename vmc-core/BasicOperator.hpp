@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <utility>
 
 #include "Lattice.hpp"
 
@@ -57,6 +58,11 @@ class BasicOperator
 {
 public:
     BasicOperator (const std::vector<SiteHop> &hopv_, const std::shared_ptr<const Lattice> &lattice_);
+
+    BasicOperator (const std::initializer_list<SiteHop> &hops, const std::shared_ptr<const Lattice> &lattice_)
+        : BasicOperator(std::vector<SiteHop>(hops), lattice_)
+        {
+        }
 
     /**
      * Tests whether the sitehops are valid on a lattice with a given number of species

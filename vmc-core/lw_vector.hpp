@@ -18,6 +18,16 @@ template <typename T, unsigned int MAX_SIZE>
 class lw_vector
 {
 public:
+    typedef T value_type;
+    typedef value_type& reference;
+    typedef const value_type& const_reference;
+    typedef value_type* pointer;
+    typedef const value_type* const_pointer;
+    typedef pointer iterator;
+    typedef const_pointer const_iterator;
+    typedef unsigned int size_type;
+    typedef std::ptrdiff_t difference_type;
+
     lw_vector (void)
         {
         }
@@ -28,7 +38,7 @@ public:
         {
         }
 
-    lw_vector (unsigned int initial_size, const T &value=T())
+    lw_vector (size_type initial_size, const T &value=T())
     : n(initial_size)
         {
             BOOST_ASSERT(n <= MAX_SIZE);
@@ -41,9 +51,19 @@ public:
                 this->push_back(x);
         }
 
-    std::size_t size (void) const
+    size_type size (void) const
         {
             return n;
+        }
+
+    size_type max_size (void) const
+        {
+            return MAX_SIZE;
+        }
+
+    bool empty (void) const
+        {
+            return n == 0;
         }
 
     void push_back (const T &value)
@@ -53,7 +73,7 @@ public:
             v[n - 1] = value;
         }
 
-    void resize (unsigned int new_size, const T &value=T())
+    void resize (size_type new_size, const T &value=T())
         {
             BOOST_ASSERT(new_size <= MAX_SIZE);
             while (new_size > n) {
@@ -64,13 +84,13 @@ public:
             n = new_size;
         }
 
-    T & operator[] (std::size_t index)
+    reference operator[] (size_type index)
         {
             BOOST_ASSERT(index < n);
             return v[index];
         }
 
-    const T & operator[] (std::size_t index) const
+    const_reference operator[] (size_type index) const
         {
             BOOST_ASSERT(index < n);
             return v[index];
@@ -92,18 +112,26 @@ public:
         {
             if (n != other.n)
                 return n < other.n;
-            for (unsigned int i = 0; i < n; ++i) {
+            for (size_type i = 0; i < n; ++i) {
                 if (v[i] != other.v[i])
                     return v[i] < other.v[i];
             }
             return false;
         }
 
-    typedef const T *const_iterator;
+    iterator begin (void)
+        {
+            return v.data();
+        }
 
     const_iterator begin (void) const
         {
             return v.data();
+        }
+
+    iterator end (void)
+        {
+            return v.data() + n;
         }
 
     const_iterator end (void) const
@@ -111,9 +139,19 @@ public:
             return v.data() + n;
         }
 
+    const_iterator cbegin (void) const
+        {
+            return begin();
+        }
+
+    const_iterator cend (void) const
+        {
+            return end();
+        }
+
 private:
     boost::array<T, MAX_SIZE> v;
-    unsigned int n = 0;
+    size_type n = 0;
 };
 
 #else // VMC_LW_VECTOR_IS_STD_VECTOR

@@ -20,12 +20,17 @@ from pyvmc.core import get_vmc_version
 
 cdef extern from "MetropolisSimulation.hpp":
     cdef cppclass CppMetropolisSimulation "MetropolisSimulation<probability_t>":
-        CppMetropolisSimulation(unique_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, unique_ptr[CppRandomNumberGenerator]&) nogil except +
+        CppMetropolisSimulation(unique_ptr[CppWalk], stdlist[shared_ptr[CppBaseMeasurement]], unsigned int, unique_ptr[CppRandomNumberGenerator]) nogil except +
         void iterate(unsigned int) nogil except +
         void check_for_numerical_error() nogil except +
         unsigned int steps_completed()
         unsigned int steps_accepted()
         unsigned int steps_fully_rejected()
+
+cdef extern from "<utility>" namespace "std":
+    # CYTHON-LIMITATION: no function templates
+    cdef unique_ptr[CppWalk] std_move_walk "std::move" (unique_ptr[CppWalk]) nogil
+    cdef unique_ptr[CppRandomNumberGenerator] std_move_rng "std::move" (unique_ptr[CppRandomNumberGenerator]) nogil
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +90,7 @@ cdef class MetropolisSimulation(object):
 
         with log_rusage(logger, "Equilibrated walk using {} steps.".format(equilibrium_steps)):
             with nogil:
-                self.autoptr.reset(new CppMetropolisSimulation(walk.autoptr, measurement_list, equilibrium_steps, rng.autoptr))
+                self.autoptr.reset(new CppMetropolisSimulation(std_move_walk(walk.autoptr), measurement_list, equilibrium_steps, std_move_rng(rng.autoptr)))
                 # this is optional here, but we might as well before taking measurements
                 self.autoptr.get().check_for_numerical_error()
 

@@ -51,8 +51,8 @@ public:
      *
      * @see Walk
      */
-    MetropolisSimulation (std::unique_ptr<WalkType> &walk_, const std::list<std::shared_ptr<BaseMeasurementType> > &measurements_,
-                          unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> &rng_);
+    MetropolisSimulation (std::unique_ptr<WalkType> walk_, const std::list<std::shared_ptr<BaseMeasurementType> > &measurements_,
+                          unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> rng_);
 
     /**
      * Perform some number of steps on the system, taking a measurement each

@@ -26,8 +26,7 @@ invalid_probability_error<ProbabilityType>::invalid_probability_error (const Pro
 }
 
 template <typename ProbabilityType>
-MetropolisSimulation<ProbabilityType>::MetropolisSimulation (std::unique_ptr<Walk<ProbabilityType> > &walk_, const std::list<std::shared_ptr<BaseMeasurement<ProbabilityType> > > &measurements_,
-                                            unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> &rng_)
+MetropolisSimulation<ProbabilityType>::MetropolisSimulation (std::unique_ptr<Walk<ProbabilityType> > walk_, const std::list<std::shared_ptr<BaseMeasurement<ProbabilityType> > > &measurements_, unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> rng_)
     : m_steps(0),
       m_steps_accepted(0),
       m_steps_fully_rejected(0),

@@ -12,4 +12,4 @@ cdef extern from "StandardWalk.hpp":
 
 cdef class Walk(object):
     # since it's stored as a unique_ptr, be careful to check that it's not null
-    cdef unique_ptr[CppWalk] autoptr
+    cdef unique_ptr[CppWalk] uniqueptr

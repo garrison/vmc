@@ -60,5 +60,5 @@ class StandardWalkPlan(WalkPlan):
         assert rng.is_good()
         cdef WavefunctionWrapper ww = self.wavefunction.to_wavefunction()
         cdef Walk walk = Walk()
-        walk.autoptr.reset(new CppStandardWalk(std_move_wfa(ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.autoptr.get())))))
+        walk.uniqueptr.reset(new CppStandardWalk(std_move_wfa(ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.uniqueptr.get())))))
         return walk

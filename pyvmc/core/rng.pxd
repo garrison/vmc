@@ -8,6 +8,6 @@ cdef extern from "RandomNumberGenerator.hpp":
     unique_ptr[CppRandomNumberGenerator] create_rng "RandomNumberGenerator::create" (const char*, unsigned long)
 
 cdef class RandomNumberGenerator(object):
-    cdef unique_ptr[CppRandomNumberGenerator] autoptr
+    cdef unique_ptr[CppRandomNumberGenerator] uniqueptr
     cdef str _name
     cdef unsigned long _seed

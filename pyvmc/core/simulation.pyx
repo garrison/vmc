@@ -50,7 +50,7 @@ class disable_keyboardinterrupt(object):
         signal.signal(signal.SIGINT, self.s)
 
 cdef class MetropolisSimulation(object):
-    cdef unique_ptr[CppMetropolisSimulation] autoptr
+    cdef unique_ptr[CppMetropolisSimulation] uniqueptr
 
     cdef object _walk_plan
     cdef object _measurement_dict
@@ -72,7 +72,7 @@ cdef class MetropolisSimulation(object):
         assert isinstance(walk_plan, WalkPlan)
         self._walk_plan = walk_plan
         cdef Walk walk = walk_plan.create_walk(rng)
-        assert walk.autoptr.get() is not NULL
+        assert walk.uniqueptr.get() is not NULL
 
         assert isinstance(measurement_plans, collections.Sequence)
         assert all(isinstance(mp, BasicMeasurementPlan) for mp in measurement_plans)
@@ -84,15 +84,15 @@ cdef class MetropolisSimulation(object):
         cdef BaseMeasurement measurement_
         for measurement in self._measurement_dict.values():
             measurement_ = measurement
-            if not measurement_.sharedptr.get().is_valid_walk(deref(walk.autoptr)):
+            if not measurement_.sharedptr.get().is_valid_walk(deref(walk.uniqueptr)):
                 raise ValueError("invalid walk/measurement/wavefunction combination")
             measurement_list.push_back(measurement_.sharedptr)
 
         with log_rusage(logger, "Equilibrated walk using {} steps.".format(equilibrium_steps)):
             with nogil:
-                self.autoptr.reset(new CppMetropolisSimulation(std_move_walk(walk.autoptr), measurement_list, equilibrium_steps, std_move_rng(rng.autoptr)))
+                self.uniqueptr.reset(new CppMetropolisSimulation(std_move_walk(walk.uniqueptr), measurement_list, equilibrium_steps, std_move_rng(rng.uniqueptr)))
                 # this is optional here, but we might as well before taking measurements
-                self.autoptr.get().check_for_numerical_error()
+                self.uniqueptr.get().check_for_numerical_error()
 
         self._unrecoverable_error_has_occurred = False
 
@@ -107,9 +107,9 @@ cdef class MetropolisSimulation(object):
             with disable_keyboardinterrupt():
                 with log_rusage(logger, "Performed {} sweeps on walk.".format(sweeps)):
                     with nogil:
-                        self.autoptr.get().iterate(sweeps)
+                        self.uniqueptr.get().iterate(sweeps)
                         if check_for_numerical_error_:
-                            self.autoptr.get().check_for_numerical_error()
+                            self.uniqueptr.get().check_for_numerical_error()
         except Exception:
             self._unrecoverable_error_has_occurred = True
             raise
@@ -141,15 +141,15 @@ cdef class MetropolisSimulation(object):
 
     property steps_completed:
         def __get__(self):
-            return self.autoptr.get().steps_completed()
+            return self.uniqueptr.get().steps_completed()
 
     property steps_accepted:
         def __get__(self):
-            return self.autoptr.get().steps_accepted()
+            return self.uniqueptr.get().steps_accepted()
 
     property steps_fully_rejected:
         def __get__(self):
-            return self.autoptr.get().steps_fully_rejected()
+            return self.uniqueptr.get().steps_fully_rejected()
 
     property run_information:
         def __get__(self):

@@ -42,7 +42,7 @@ class RenyiModPossibleWalkPlan(WalkPlan):
         # We need two copies of the system, each of which has the same number
         # of particles in the subsystem.  So for now we just initialize both
         # copies with the same exact positions.
-        walk.autoptr.reset(new CppRenyiModPossibleWalk(std_move_wfa(ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.autoptr.get()))), subsystem.sharedptr))
+        walk.uniqueptr.reset(new CppRenyiModPossibleWalk(std_move_wfa(ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.uniqueptr.get()))), subsystem.sharedptr))
         return walk
 
 class RenyiModPossibleMeasurementPlan(BasicMeasurementPlan):
@@ -106,7 +106,7 @@ class RenyiSignWalkPlan(WalkPlan):
         # We need two copies of the system, each of which has the same number
         # of particles in the subsystem.  So for now we just initialize both
         # copies with the same exact positions.
-        walk.autoptr.reset(new CppRenyiSignWalk(std_move_wfa(ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.autoptr.get()))), subsystem.sharedptr))
+        walk.uniqueptr.reset(new CppRenyiSignWalk(std_move_wfa(ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.uniqueptr.get()))), subsystem.sharedptr))
         return walk
 
 class RenyiSignMeasurementPlan(BasicMeasurementPlan):

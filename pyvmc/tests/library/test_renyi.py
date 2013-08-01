@@ -11,7 +11,7 @@ from pyvmc.library.renyi import RenyiModPossibleWalkPlan, RenyiSignWalkPlan, Ren
 
 def test_walk_plan_json():
     lattice = Lattice([24, 2])
-    wf = FreeFermionWavefunction(lattice=lattice, orbitals=[Bands([8, 4], [periodic_bc, periodic_bc])])
+    wf = FreeFermionWavefunction(lattice=lattice, orbitals=[Bands([9, 3], [periodic_bc, periodic_bc])])
     subsystem = SimpleSubsystem([8, 2], lattice)
 
     renyi_modpossible_plan = RenyiModPossibleWalkPlan(wf, subsystem)
@@ -27,7 +27,7 @@ def test_walk_plan_json():
 
 def test_measurement_plan_json():
     lattice = Lattice([24, 2])
-    wf = FreeFermionWavefunction(lattice=lattice, orbitals=[Bands([8, 4], [periodic_bc, periodic_bc])])
+    wf = FreeFermionWavefunction(lattice=lattice, orbitals=[Bands([9, 3], [periodic_bc, periodic_bc])])
     subsystem = SimpleSubsystem([8, 2], lattice)
 
     renyi_modpossible_plan = RenyiModPossibleMeasurementPlan(wf, subsystem)

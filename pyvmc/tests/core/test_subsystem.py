@@ -105,3 +105,14 @@ class TestCustomSubsystem:
         lattice = Lattice([24, 4])
         for subsystem in CustomSubsystem(lambda site: site.bs == (4, 3), lattice), CustomSubsystem(lambda site: site.bs[0] % 2 == 0, lattice):
             assert subsystem == eval(repr(subsystem))
+
+def simple_custom_subsystem_equality():
+    lattice = Lattice([4, 4])
+
+    subsystem1 = SimpleSubsystem([4, 1], lattice)
+    subsystem2 = CustomSubsystem(lambda site: site.bs[0] == 0, lattice)
+    subsystem3 = SimpleSubsystem([4, 2], lattice)
+
+    assert subsystem1 == subsystem2
+    assert subsystem1 != subsystem3
+    assert subsystem2 != subsystem3

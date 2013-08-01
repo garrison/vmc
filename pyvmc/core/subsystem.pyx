@@ -58,6 +58,21 @@ cdef class Subsystem(object):
                 count += 1
         return count
 
+    def __hash__(self):
+        return hash(tuple(self)) | hash(self.lattice)
+
+    def __richcmp__(self, other, int op):
+        if op == 2:  # ==
+            return (isinstance(other, Subsystem) and
+                    tuple(self) == tuple(other) and
+                    self.lattice == other.lattice)
+        elif op == 3:  # !=
+            return (not isinstance(other, Subsystem) or
+                    tuple(self) != tuple(other) or
+                    self.lattice != other.lattice)
+        # we don't implement <, <=, >, >=
+        raise NotImplementedError
+
 # NOTE: each subclass of Subsystem should implement all the Hashable and
 # Sequence methods.
 collections.Hashable.register(Subsystem)
@@ -138,21 +153,6 @@ cdef class SimpleSubsystem(Subsystem):
     def count(self, site):
         return 1 if site in self else 0
 
-    def __hash__(self):
-        return hash(self.dimensions) | hash(self.lattice)
-
-    def __richcmp__(self, other, int op):
-        if op == 2:  # ==
-            return (self.__class__ == other.__class__ and
-                    self.dimensions == other.dimensions and
-                    self.lattice == other.lattice)
-        elif op == 3:  # !=
-            return (self.__class__ != other.__class__ or
-                    self.dimensions != other.dimensions or
-                    self.lattice != other.lattice)
-        # we don't implement <, <=, >, >=
-        raise NotImplementedError
-
     def __repr__(self):
         return "{}({}, {})".format(self.__class__.__name__,
                                    repr(self.dimensions),
@@ -202,10 +202,6 @@ cdef class CustomSubsystem(Subsystem):
         self._sites = tuple(_sites)
         self._site_indices = tuple(_site_indices)
 
-    property _sites:
-        def __get__(self):
-            return self._sites
-
     def __len__(self):
         return len(self._sites)
 
@@ -223,21 +219,6 @@ cdef class CustomSubsystem(Subsystem):
 
     def count(self, site):
         return 1 if site in self else 0
-
-    def __hash__(self):
-        return hash(self._sites) | hash(self.lattice)
-
-    def __richcmp__(self, other, int op):
-        if op == 2:  # ==
-            return (self.__class__ == other.__class__ and
-                    self._sites == other._sites and
-                    self.lattice == other.lattice)
-        elif op == 3:  # !=
-            return (self.__class__ != other.__class__ or
-                    self._sites != other._sites or
-                    self.lattice != other.lattice)
-        # we don't implement <, <=, >, >=
-        raise NotImplementedError
 
     def __repr__(self):
         return "{}(lambda s: {lattice}.index(s) in {site_indices}, {lattice})".format(self.__class__.__name__,

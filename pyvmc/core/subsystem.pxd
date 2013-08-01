@@ -1,4 +1,5 @@
 from pyvmc.includes.libcpp.memory cimport shared_ptr
+from pyvmc.includes.boost.dynamic_bitset cimport dynamic_bitset
 
 from pyvmc.core cimport lw_vector
 from pyvmc.core.lattice cimport CppLattice
@@ -17,6 +18,10 @@ cdef extern from "SimpleSubsystem.hpp":
         CppSimpleSubsystem(CppSimpleSubsystemDimensionVector)
 
         CppSimpleSubsystemDimensionVector subsystem_length
+
+cdef extern from "CustomSubsystem.hpp":
+    cdef cppclass CppCustomSubsystem "CustomSubsystem" (CppSubsystem):
+        CppCustomSubsystem(const dynamic_bitset &)
 
 cdef class Subsystem(object):
     cdef object lattice_

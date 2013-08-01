@@ -170,3 +170,89 @@ cdef class SimpleSubsystem(Subsystem):
         return SimpleSubsystem(json_repr["dimensions"], lattice)
 
 __subsystem_registry["SimpleSubsystem"] = SimpleSubsystem
+
+cdef class CustomSubsystem(Subsystem):
+    """Subsystem built from a function that tests site membership
+
+    >>> subsystem = CustomSubsystem(lambda site: sum(site.bs) % 2 == 0, Lattice([4, 4]))
+    """
+
+    cdef tuple _sites
+    cdef tuple _site_indices
+
+    def __init__(self, contains_lambda, lattice):
+        super(CustomSubsystem, self).__init__(lattice)
+
+        cdef unsigned int i
+        cdef bint b
+        cdef dynamic_bitset site_status_array
+
+        site_status_array.resize(len(lattice))
+        _sites = []
+        _site_indices = []
+
+        for i, site in enumerate(lattice):
+            b = bool(contains_lambda(site))
+            site_status_array[i] = b
+            if b:
+                _sites.append(lattice[i])
+                _site_indices.append(i)
+
+        self.sharedptr.reset(new CppCustomSubsystem(site_status_array))
+        self._sites = tuple(_sites)
+        self._site_indices = tuple(_site_indices)
+
+    property _sites:
+        def __get__(self):
+            return self._sites
+
+    def __len__(self):
+        return len(self._sites)
+
+    def __iter__(self):
+        return iter(self._sites)
+
+    def __getitem__(self, index):
+        return self._sites[index]
+
+    def index(self, site):
+        return self._sites.index(site)
+
+    def __contains__(self, site):
+        return site in self._sites
+
+    def count(self, site):
+        return 1 if site in self else 0
+
+    def __hash__(self):
+        return hash(self._sites) | hash(self.lattice)
+
+    def __richcmp__(self, other, int op):
+        if op == 2:  # ==
+            return (self.__class__ == other.__class__ and
+                    self._sites == other._sites and
+                    self.lattice == other.lattice)
+        elif op == 3:  # !=
+            return (self.__class__ != other.__class__ or
+                    self._sites != other._sites or
+                    self.lattice != other.lattice)
+        # we don't implement <, <=, >, >=
+        raise NotImplementedError
+
+    def __repr__(self):
+        return "{}(lambda s: {lattice}.index(s) in {site_indices}, {lattice})".format(self.__class__.__name__,
+                                   site_indices=repr(self._site_indices),
+                                   lattice=repr(self.lattice))
+
+    def to_json(self):
+        return collections.OrderedDict([
+            ("type", self.__class__.__name__),
+            ("_site_indices", self._site_indices),
+        ])
+
+    @staticmethod
+    def _from_json(json_repr, lattice):
+        assert json_repr["type"] == "CustomSubsystem"
+        return CustomSubsystem(lambda s: lattice.index(s) in json_repr["_site_indices"], lattice)
+
+__subsystem_registry["CustomSubsystem"] = CustomSubsystem

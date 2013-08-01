@@ -22,12 +22,13 @@ public:
     /**
      * Constructor
      *
-     * @param wfa_ initial wavefunction
+     * @param wfa_ initial wavefunctionamplitude
      */
-    StandardWalk (const std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_);
+    StandardWalk (std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa_);
 
     /**
-     * Returns the current wavefunction
+     * Returns the wavefunctionamplitude of this walk.  The returned object
+     * will be updated as the walk is performed.
      */
     const typename Wavefunction<AmplitudeType>::Amplitude & get_wavefunctionamplitude (void) const
         {
@@ -54,7 +55,7 @@ private:
 
     virtual void check_for_numerical_error (void) const override;
 
-    std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa; // treat this as copy on write
+    std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa;
     bool autoreject_in_progress;
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)

@@ -243,13 +243,13 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (vo
 }
 
 template <typename AmplitudeType>
-std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
+std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return std::make_shared<DMetalWavefunction<AmplitudeType>::Amplitude>(*this);
+    return std::make_unique<DMetalWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
 template <typename AmplitudeType>
-std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
+std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
     const unsigned int N = orbital_d1->get_N_filled();
     const unsigned int M = orbital_f_up->get_N_filled();
@@ -261,7 +261,7 @@ std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunct
         for (unsigned int i = M; i < N; ++i)
             vv[1].push_back(vv[0][i]);
         vv[0].resize(M);
-        std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, this->lattice->total_sites())));
+        std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, this->lattice->total_sites())));
         if (wfa->is_nonzero())
             return wfa;
     }

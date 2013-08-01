@@ -1,4 +1,4 @@
-from pyvmc.includes.libcpp.memory cimport unique_ptr, shared_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr
 
 from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude
 
@@ -8,7 +8,7 @@ cdef extern from "Walk.hpp":
 
 cdef extern from "StandardWalk.hpp":
     cdef cppclass CppStandardWalk "StandardWalk<amplitude_t>" (CppWalk):
-        CppStandardWalk(shared_ptr[CppWavefunctionAmplitude]&)
+        CppStandardWalk(unique_ptr[CppWavefunctionAmplitude])
 
 cdef class Walk(object):
     # since it's stored as a unique_ptr, be careful to check that it's not null

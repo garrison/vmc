@@ -13,8 +13,14 @@
 class RenyiModPossibleWalk : public BaseSwapPossibleWalk
 {
 public:
-    RenyiModPossibleWalk (const std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf, const std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf_copy, const std::shared_ptr<const Subsystem> &subsystem)
-        : BaseSwapPossibleWalk(wf, wf_copy, subsystem, false)
+    RenyiModPossibleWalk (std::unique_ptr<Wavefunction<amplitude_t>::Amplitude> wfa1, std::unique_ptr<Wavefunction<amplitude_t>::Amplitude> wfa2, const std::shared_ptr<const Subsystem> &subsystem)
+        : BaseSwapPossibleWalk(std::move(wfa1), std::move(wfa2), subsystem, false)
+        {
+        }
+
+    // CYTHON-LIMITATION: this alternative constructor exists due to poor unique_ptr support
+    RenyiModPossibleWalk (std::unique_ptr<Wavefunction<amplitude_t>::Amplitude> wfa, const std::shared_ptr<const Subsystem> &subsystem)
+        : BaseSwapPossibleWalk(wfa->clone(), wfa->clone(), subsystem, false)
         {
         }
 

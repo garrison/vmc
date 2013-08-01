@@ -67,19 +67,19 @@ public:
 
         virtual void reset_ (const PositionArguments &r_) override;
 
-        virtual std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> clone_ (void) const override;
+        virtual std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> clone_ (void) const override;
 
         void reinitialize (void);
 
         virtual void check_for_numerical_error (void) const override;
     };
 
-    virtual std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const override;
+    virtual std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const override;
 
-    virtual std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
+    virtual std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
         {
             BOOST_ASSERT(this == this_ptr.get());
-            return std::make_shared<Amplitude>(std::dynamic_pointer_cast<const BCSWavefunction>(this_ptr), r);
+            return std::make_unique<Amplitude>(std::dynamic_pointer_cast<const BCSWavefunction>(this_ptr), r);
         }
 
     virtual unsigned int get_N_species (void) const override

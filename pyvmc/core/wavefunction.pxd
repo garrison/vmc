@@ -1,5 +1,5 @@
 from libcpp.vector cimport vector
-from pyvmc.includes.libcpp.memory cimport shared_ptr
+from pyvmc.includes.libcpp.memory cimport unique_ptr, shared_ptr
 
 from pyvmc.core.rng cimport RandomNumberGenerator, CppRandomNumberGenerator
 from pyvmc.core.lattice cimport Lattice, CppLattice
@@ -7,13 +7,11 @@ from pyvmc.core.orbitals cimport CppOrbitalDefinitions, const_CppOrbitalDefiniti
 
 cdef extern from "Wavefunction.hpp":
     cdef cppclass CppWavefunctionAmplitude "Wavefunction<amplitude_t>::Amplitude":
-        shared_ptr[CppWavefunctionAmplitude] clone()
+        unique_ptr[CppWavefunctionAmplitude] clone()
 
     cdef cppclass CppWavefunction "Wavefunction<amplitude_t>":
-        shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&) except +
-        shared_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&, unsigned int) except +
-
-cdef shared_ptr[CppWavefunctionAmplitude] create_nonzero_wfa(wf, RandomNumberGenerator rng) except *
+        unique_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&) except +
+        unique_ptr[CppWavefunctionAmplitude] create_nonzero_wavefunctionamplitude(shared_ptr[CppWavefunction]&, CppRandomNumberGenerator&, unsigned int) except +
 
 cdef extern from "FreeFermionWavefunction.hpp":
     cdef cppclass CppFreeFermionWavefunction "FreeFermionWavefunction<amplitude_t>" (CppWavefunction):
@@ -21,6 +19,10 @@ cdef extern from "FreeFermionWavefunction.hpp":
 
 cdef class WavefunctionWrapper(object):
     cdef shared_ptr[CppWavefunction] sharedptr
+
+cdef extern from "<utility>" namespace "std":
+    # CYTHON-LIMITATION: no function templates
+    cdef unique_ptr[CppWavefunctionAmplitude] std_move_wfa "std::move" (unique_ptr[CppWavefunctionAmplitude]) nogil
 
 cdef extern from "JastrowFactor.hpp":
     cdef cppclass CppJastrowFactor "JastrowFactor<amplitude_t>":

@@ -7,10 +7,10 @@
 #include "BaseSwapPossibleWalk.hpp"
 #include "random-move.hpp"
 
-BaseSwapPossibleWalk::BaseSwapPossibleWalk (const std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf, const std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &wf_copy, const std::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_)
-    : phialpha1(wf),
-      phialpha2(wf_copy),
-      swapped_system(new SwappedSystem(subsystem)),
+BaseSwapPossibleWalk::BaseSwapPossibleWalk (std::unique_ptr<Wavefunction<amplitude_t>::Amplitude> wfa1, std::unique_ptr<Wavefunction<amplitude_t>::Amplitude> wfa2, const std::shared_ptr<const Subsystem> &subsystem, bool update_swapped_system_before_accepting_)
+    : phialpha1(std::move(wfa1)),
+      phialpha2(std::move(wfa2)),
+      swapped_system(subsystem),
       N_subsystem_sites(count_subsystem_sites(*subsystem, phialpha1->get_lattice())),
       update_swapped_system_before_accepting(update_swapped_system_before_accepting_),
       autoreject_in_progress(false),
@@ -28,7 +28,7 @@ BaseSwapPossibleWalk::BaseSwapPossibleWalk (const std::shared_ptr<Wavefunction<a
     // positions ...
 #endif
 
-    swapped_system->initialize(*phialpha1, *phialpha2);
+    swapped_system.initialize(*phialpha1, *phialpha2);
 }
 
 unsigned int BaseSwapPossibleWalk::count_subsystem_sites (const Subsystem &subsystem, const Lattice &lattice)
@@ -48,7 +48,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
     transition_in_progress = true;
 
     const Lattice &lattice = phialpha1->get_lattice();
-    const Subsystem &subsystem = swapped_system->get_subsystem();
+    const Subsystem &subsystem = swapped_system.get_subsystem();
 
     // decide which (zero-indexed) copy of the system to base this move around.
     // We call the chosen copy "copy A."
@@ -76,7 +76,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
     unsigned int particle_B_destination = -1; // uninitialized
     real_t transition_ratio(1);
 
-    const int copy_A_subsystem_particle_change = calculate_subsystem_particle_change(swapped_system->get_subsystem(), r_A[chosen_particle_A], particle_A_destination, lattice);
+    const int copy_A_subsystem_particle_change = calculate_subsystem_particle_change(swapped_system.get_subsystem(), r_A[chosen_particle_A], particle_A_destination, lattice);
     const unsigned int species = chosen_particle_A.species;
     if (copy_A_subsystem_particle_change != 0) {
         const bool candidate_particle_B_subsystem_status = (copy_A_subsystem_particle_change == -1);
@@ -84,7 +84,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
         // determine reverse/forward transition attempt probability ratios
         const unsigned int N_sites = r_A.get_N_sites();
         const unsigned int N_filled = r_A.get_N_filled(species);
-        const unsigned int N_within_subsystem = swapped_system->get_N_subsystem(species);
+        const unsigned int N_within_subsystem = swapped_system.get_N_subsystem(species);
         const unsigned int N_outside_subsystem = N_filled - N_within_subsystem;
         const unsigned int N_vacant_within_subsystem = N_subsystem_sites - N_within_subsystem;
         const unsigned int N_vacant_outside_subsystem = (N_sites - N_filled) - N_vacant_within_subsystem;
@@ -141,8 +141,6 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
     amplitude_t phialpha1_ratio(1), phialpha2_ratio(1);
     if (chosen_particle1) {
         const Big<amplitude_t> old_phialpha1_psi(phialpha1->psi());
-        if (!phialpha1.unique()) // copy-on-write
-            phialpha1 = phialpha1->clone();
         Move move;
         move.push_back(SingleParticleMove(*chosen_particle1, (copy_A == 0) ? particle_A_destination : particle_B_destination));
         phialpha1->perform_move(move);
@@ -150,8 +148,6 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
     }
     if (chosen_particle2) {
         const Big<amplitude_t> old_phialpha2_psi(phialpha2->psi());
-        if (!phialpha2.unique()) // copy-on-write
-            phialpha2 = phialpha2->clone();
         Move move;
         move.push_back(SingleParticleMove(*chosen_particle2, (copy_A == 0) ? particle_B_destination : particle_A_destination));
         phialpha2->perform_move(move);
@@ -162,16 +158,13 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
 
     if (update_swapped_system_before_accepting) {
         // remember old phibeta's
-        const Big<amplitude_t> old_phibeta1_psi(swapped_system->get_phibeta1().psi());
-        const Big<amplitude_t> old_phibeta2_psi(swapped_system->get_phibeta2().psi());
-        // implement copy-on-write
-        if (!swapped_system.unique())
-            swapped_system = std::make_shared<SwappedSystem>(*swapped_system);
+        const Big<amplitude_t> old_phibeta1_psi(swapped_system.get_phibeta1().psi());
+        const Big<amplitude_t> old_phibeta2_psi(swapped_system.get_phibeta2().psi());
         // update phibeta's
-        swapped_system->update(chosen_particle1, chosen_particle2, *phialpha1, *phialpha2);
+        swapped_system.update(chosen_particle1, chosen_particle2, *phialpha1, *phialpha2);
         // determine probability ratios
-        phibeta1_ratio = swapped_system->get_phibeta1().psi().ratio(old_phibeta1_psi);
-        phibeta2_ratio = swapped_system->get_phibeta2().psi().ratio(old_phibeta2_psi);
+        phibeta1_ratio = swapped_system.get_phibeta1().psi().ratio(old_phibeta1_psi);
+        phibeta2_ratio = swapped_system.get_phibeta2().psi().ratio(old_phibeta2_psi);
     }
 
     // return a probability
@@ -186,11 +179,8 @@ void BaseSwapPossibleWalk::accept_transition (void)
     BOOST_ASSERT(!autoreject_in_progress);
 
     if (!update_swapped_system_before_accepting) {
-        // implement copy-on-write
-        if (!swapped_system.unique())
-            swapped_system = std::make_shared<SwappedSystem>(*swapped_system);
         // update phibeta's
-        swapped_system->update(chosen_particle1, chosen_particle2, *phialpha1, *phialpha2);
+        swapped_system.update(chosen_particle1, chosen_particle2, *phialpha1, *phialpha2);
     }
 
 #if defined(DEBUG_VMC_BASE_SWAP_POSSIBLE_WALK) || defined(DEBUG_VMC_ALL)
@@ -214,16 +204,13 @@ void BaseSwapPossibleWalk::accept_transition (void)
 #endif
 
     if (chosen_particle1) {
-        BOOST_ASSERT(phialpha1.unique());
         phialpha1->finish_move();
     }
     if (chosen_particle2) {
-        BOOST_ASSERT(phialpha2.unique());
         phialpha2->finish_move();
     }
 
-    BOOST_ASSERT(swapped_system.unique());
-    swapped_system->finish_update(*phialpha1, *phialpha2);
+    swapped_system.finish_update(*phialpha1, *phialpha2);
 }
 
 void BaseSwapPossibleWalk::reject_transition (void)
@@ -239,19 +226,15 @@ void BaseSwapPossibleWalk::reject_transition (void)
     // as usual, we modify (restore, in this case) the phialpha's before
     // telling the swapped_system to restore itself
     if (chosen_particle1) {
-        BOOST_ASSERT(phialpha1.unique());
         phialpha1->cancel_move();
     }
     if (chosen_particle2) {
-        BOOST_ASSERT(phialpha2.unique());
         phialpha2->cancel_move();
     }
 
     if (update_swapped_system_before_accepting) {
-        // ensure copy-on-write was implemented
-        BOOST_ASSERT(swapped_system.unique());
         // cancel the phibeta updates
-        swapped_system->cancel_update(*phialpha1, *phialpha2);
+        swapped_system.cancel_update(*phialpha1, *phialpha2);
     }
 }
 

@@ -63,13 +63,13 @@ void Wavefunction<AmplitudeType>::Amplitude::cancel_move (void)
 }
 
 template <typename AmplitudeType>
-std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> Wavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
+std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> Wavefunction<AmplitudeType>::create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts) const
 {
     for (unsigned int j = 0; j < n_attempts; ++j) {
         std::vector<std::vector<unsigned int> > vv;
         for (unsigned int i = 0; i < get_N_species(); ++i)
             vv.push_back(some_random_configuration(get_N_filled(i), *lattice, rng));
-        std::shared_ptr<Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
+        std::unique_ptr<Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, lattice->total_sites())));
         if (wfa->is_nonzero())
             return wfa;
     }

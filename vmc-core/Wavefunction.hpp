@@ -121,7 +121,7 @@ public:
         /**
          * Returns a clone of the current object
          */
-        std::shared_ptr<Wavefunction::Amplitude> clone (void) const
+        std::unique_ptr<Wavefunction::Amplitude> clone (void) const
             {
                 return clone_();
             }
@@ -198,7 +198,7 @@ public:
 
         virtual void reset_ (const PositionArguments &r_) = 0;
 
-        virtual std::shared_ptr<Wavefunction::Amplitude> clone_ (void) const = 0;
+        virtual std::unique_ptr<Wavefunction::Amplitude> clone_ (void) const = 0;
 
     protected:
         Amplitude (const std::shared_ptr<const Wavefunction> &wf_, const PositionArguments &r_)
@@ -239,9 +239,9 @@ public:
      * projection properties, e.g., no spin-up and spin-down particle allowed
      * on the same site.
      */
-    virtual std::shared_ptr<Wavefunction::Amplitude> create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts=1000000) const;
+    virtual std::unique_ptr<Wavefunction::Amplitude> create_nonzero_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, RandomNumberGenerator &rng, unsigned int n_attempts=1000000) const;
 
-    virtual std::shared_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const = 0;
+    virtual std::unique_ptr<Wavefunction::Amplitude> create_wavefunctionamplitude (const std::shared_ptr<const Wavefunction> &this_ptr, const PositionArguments &r) const = 0;
 
     virtual unsigned int get_N_species (void) const = 0;
 

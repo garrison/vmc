@@ -43,14 +43,6 @@ class Wavefunction(Immutable):
         """should return a tuple with the filling of each species"""
         raise NotImplementedError
 
-cdef shared_ptr[CppWavefunctionAmplitude] create_nonzero_wfa(wf, RandomNumberGenerator rng) except *:
-    assert rng.is_good()
-    cdef Lattice lattice = wf.lattice
-    cdef WavefunctionWrapper ww = wf.to_wavefunction()
-    cdef shared_ptr[CppWavefunctionAmplitude] wfa = ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.autoptr.get()))
-    assert wfa.get() is not NULL
-    return wfa
-
 class FreeFermionWavefunction(Wavefunction):
     """Free fermion wavefunction, consists of a single determinant"""
 

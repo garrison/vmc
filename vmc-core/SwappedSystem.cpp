@@ -3,8 +3,6 @@
 #include "SwappedSystem.hpp"
 #include "Lattice.hpp"
 
-// REMEMBER: make sure phibeta's are always updated with copy-on-write
-
 template <typename T>
 static int vector_find (const std::vector<T> &vec, const T &val)
 {
@@ -137,12 +135,6 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         std::vector<unsigned int> &c1_s = copy1_subsystem_indices[species];
         std::vector<unsigned int> &c2_s = copy2_subsystem_indices[species];
 
-        // copy-on-write for the phibeta's
-        if (!phibeta1.unique())
-            phibeta1 = phibeta1->clone();
-        if (!phibeta2.unique())
-            phibeta2 = phibeta2->clone();
-
         if (pairing_index1 != pairing_index2) {
             // in order to re-pair the particles left behind, we move the pair
             // that is leaving the subsystem to the max_pairing_index, and move
@@ -196,13 +188,11 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 
         BOOST_ASSERT(subsystem_particle_counts_match());
 
-        // update the phibeta's, performing copy-on-write
+        // update the phibeta's
         if (particle1) {
-            std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
+            std::unique_ptr<Wavefunction<amplitude_t>::Amplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
             bool &phibeta_dirty = particle1_now_in_subsystem ? phibeta2_dirty : phibeta1_dirty;
             const Particle phibeta_particle = particle1_now_in_subsystem ? Particle(copy2_subsystem_indices[particle1->species][pairing_index1], particle1->species) : *particle1;
-            if (!phibeta.unique())
-                phibeta = phibeta->clone();
             BOOST_ASSERT(!phibeta_dirty);
             Move move;
             move.push_back(SingleParticleMove(phibeta_particle, r1[*particle1]));
@@ -211,11 +201,9 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         }
 
         if (particle2) {
-            std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
+            std::unique_ptr<Wavefunction<amplitude_t>::Amplitude> &phibeta = particle2_now_in_subsystem ? phibeta1 : phibeta2;
             bool &phibeta_dirty = particle2_now_in_subsystem ? phibeta1_dirty : phibeta2_dirty;
             const Particle phibeta_particle = particle2_now_in_subsystem ? Particle(copy1_subsystem_indices[particle2->species][pairing_index2], particle2->species) : *particle2;
-            if (!phibeta.unique())
-                phibeta = phibeta->clone();
             // the only time both particles will move here is when delta == 1,
             // in which case this phibeta and the phibeta above will be
             // different, so we know that phibeta_dirty will never be true

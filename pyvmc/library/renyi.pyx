@@ -1,3 +1,5 @@
+from cython.operator cimport dereference as deref
+
 from collections import OrderedDict
 
 from pyvmc.core.walk import WalkPlan
@@ -5,7 +7,7 @@ from pyvmc.core.walk cimport Walk
 from pyvmc.core.measurement import BasicMeasurementPlan, CompositeMeasurementPlan
 from pyvmc.core.measurement cimport BaseMeasurement
 from pyvmc.core.wavefunction import Wavefunction
-from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, create_nonzero_wfa
+from pyvmc.core.wavefunction cimport CppWavefunctionAmplitude, WavefunctionWrapper, std_move_wfa
 from pyvmc.core.estimate cimport Estimate_from_CppRealBlockedEstimate, Estimate_from_CppComplexBlockedEstimate
 from pyvmc.core.subsystem cimport Subsystem
 from pyvmc.core.rng cimport RandomNumberGenerator
@@ -33,13 +35,14 @@ class RenyiModPossibleWalkPlan(WalkPlan):
         return RenyiModPossibleWalkPlan(wavefunction, Subsystem.from_json(json_repr["subsystem"], wavefunction.lattice))
 
     def create_walk(self, RandomNumberGenerator rng not None):
+        assert rng.is_good()
         cdef Subsystem subsystem = self.subsystem
-        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_nonzero_wfa(self.wavefunction, rng)
+        cdef WavefunctionWrapper ww = self.wavefunction.to_wavefunction()
         cdef Walk walk = Walk()
         # We need two copies of the system, each of which has the same number
         # of particles in the subsystem.  So for now we just initialize both
         # copies with the same exact positions.
-        walk.autoptr.reset(new CppRenyiModPossibleWalk(wfa, wfa.get().clone(), subsystem.sharedptr))
+        walk.autoptr.reset(new CppRenyiModPossibleWalk(std_move_wfa(ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.autoptr.get()))), subsystem.sharedptr))
         return walk
 
 class RenyiModPossibleMeasurementPlan(BasicMeasurementPlan):
@@ -96,13 +99,14 @@ class RenyiSignWalkPlan(WalkPlan):
         return RenyiSignWalkPlan(wavefunction, Subsystem.from_json(json_repr["subsystem"], wavefunction.lattice))
 
     def create_walk(self, RandomNumberGenerator rng not None):
+        assert rng.is_good()
         cdef Subsystem subsystem = self.subsystem
-        cdef shared_ptr[CppWavefunctionAmplitude] wfa = create_nonzero_wfa(self.wavefunction, rng)
+        cdef WavefunctionWrapper ww = self.wavefunction.to_wavefunction()
         cdef Walk walk = Walk()
         # We need two copies of the system, each of which has the same number
         # of particles in the subsystem.  So for now we just initialize both
         # copies with the same exact positions.
-        walk.autoptr.reset(new CppRenyiSignWalk(wfa, wfa.get().clone(), subsystem.sharedptr))
+        walk.autoptr.reset(new CppRenyiSignWalk(std_move_wfa(ww.sharedptr.get().create_nonzero_wavefunctionamplitude(ww.sharedptr, deref(rng.autoptr.get()))), subsystem.sharedptr))
         return walk
 
 class RenyiSignMeasurementPlan(BasicMeasurementPlan):

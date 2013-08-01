@@ -95,7 +95,7 @@ private:
     void verify_phibetas (const Wavefunction<amplitude_t>::Amplitude &phialpha1, const Wavefunction<amplitude_t>::Amplitude &phialpha2) const;
     void swap_positions (PositionArguments &r1, PositionArguments &r2) const;
 
-    std::shared_ptr<Wavefunction<amplitude_t>::Amplitude> phibeta1, phibeta2; // copy on write
+    std::unique_ptr<Wavefunction<amplitude_t>::Amplitude> phibeta1, phibeta2;
     const std::shared_ptr<const Subsystem> subsystem;
     std::vector<std::vector<unsigned int> > copy1_subsystem_indices, copy2_subsystem_indices;
     bool phibeta1_dirty, phibeta2_dirty;

@@ -1,10 +1,12 @@
+#include <utility>
+
 #include "StandardWalk.hpp"
 #include "Wavefunction.hpp"
 #include "PositionArguments.hpp"
 
 template <typename AmplitudeType>
-StandardWalk<AmplitudeType>::StandardWalk (const std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> &wfa_)
-    : wfa(wfa_),
+StandardWalk<AmplitudeType>::StandardWalk (std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa_)
+    : wfa(std::move(wfa_)),
       autoreject_in_progress(false)
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
     , transition_in_progress(false)
@@ -33,8 +35,6 @@ typename StandardWalk<AmplitudeType>::ProbabilityType StandardWalk<AmplitudeType
         autoreject_in_progress = true;
         return 0;
     }
-    if (!wfa.unique()) // implement copy on write
-        wfa = wfa->clone();
     wfa->perform_move(move);
 
     // calculate and return a probability
@@ -52,7 +52,6 @@ void StandardWalk<AmplitudeType>::accept_transition (void)
     BOOST_ASSERT(transition_in_progress);
     BOOST_ASSERT(!autoreject_in_progress);
 
-    BOOST_ASSERT(wfa.unique()); // ensure copy-on-write is implemented correctly
     wfa->finish_move();
 
     // finish_move() may recalculate the inverse from scratch, so for sanity
@@ -69,10 +68,8 @@ void StandardWalk<AmplitudeType>::reject_transition (void)
 {
     BOOST_ASSERT(transition_in_progress);
 
-    if (!autoreject_in_progress) {
-        BOOST_ASSERT(wfa.unique()); // ensure copy-on-write is implemented correctly
+    if (!autoreject_in_progress)
         wfa->cancel_move();
-    }
     autoreject_in_progress = false;
 
 #if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)

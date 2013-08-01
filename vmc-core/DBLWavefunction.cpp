@@ -153,9 +153,9 @@ void DBLWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (void)
 }
 
 template <typename AmplitudeType>
-std::shared_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DBLWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
+std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DBLWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return std::make_shared<DBLWavefunction<AmplitudeType>::Amplitude>(*this);
+    return std::make_unique<DBLWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
 #define VMC_SUPPORTED_AMPLITUDE_TYPE(type) template class DBLWavefunction<type>

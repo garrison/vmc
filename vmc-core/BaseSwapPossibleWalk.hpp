@@ -68,8 +68,8 @@ private:
     SwappedSystem swapped_system;
     Particle chosen_particle_A, chosen_particle_B;
     const Particle *chosen_particle1, *chosen_particle2;
-    unsigned int N_subsystem_sites; // remains constant after initialization
-    bool update_swapped_system_before_accepting; // remains constant after initialization
+    const unsigned int N_subsystem_sites;
+    const bool update_swapped_system_before_accepting;
     bool autoreject_in_progress;
     bool transition_in_progress;
 };

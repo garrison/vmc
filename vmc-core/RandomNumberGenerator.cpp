@@ -8,6 +8,7 @@
 #include <boost/random/uniform_01.hpp>
 
 #include "RandomNumberGenerator.hpp"
+#include "vmcstd.hpp"
 
 template <class T>
 class RandomNumberGeneratorBoostImpl : public RandomNumberGenerator
@@ -62,9 +63,9 @@ std::unique_ptr<RandomNumberGenerator> RandomNumberGenerator::create (const char
 {
     BOOST_ASSERT(name_is_valid(rng_name));
     if (std::strcmp(rng_name, "boost::mt19937") == 0)
-        return std::unique_ptr<RandomNumberGenerator>(new RandomNumberGeneratorBoostImpl<boost::mt19937>(seed));
+        return vmcstd::make_unique<RandomNumberGeneratorBoostImpl<boost::mt19937> >(seed);
     if (std::strcmp(rng_name, "boost::lagged_fibonacci607") == 0)
-        return std::unique_ptr<RandomNumberGenerator>(new RandomNumberGeneratorBoostImpl<boost::lagged_fibonacci607>(seed));
+        return vmcstd::make_unique<RandomNumberGeneratorBoostImpl<boost::lagged_fibonacci607> >(seed);
 
     BOOST_ASSERT(false); // invalid rng specified
     return std::unique_ptr<RandomNumberGenerator>(); // suppress non-void return warning

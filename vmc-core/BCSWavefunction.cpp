@@ -187,7 +187,7 @@ void BCSWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (void)
 template <typename AmplitudeType>
 std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return std::make_unique<BCSWavefunction<AmplitudeType>::Amplitude>(*this);
+    return vmcstd::make_unique<BCSWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
 template <typename AmplitudeType>

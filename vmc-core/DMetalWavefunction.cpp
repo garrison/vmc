@@ -245,7 +245,7 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::check_for_numerical_error (vo
 template <typename AmplitudeType>
 std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> DMetalWavefunction<AmplitudeType>::Amplitude::clone_ (void) const
 {
-    return std::make_unique<DMetalWavefunction<AmplitudeType>::Amplitude>(*this);
+    return vmcstd::make_unique<DMetalWavefunction<AmplitudeType>::Amplitude>(*this);
 }
 
 template <typename AmplitudeType>

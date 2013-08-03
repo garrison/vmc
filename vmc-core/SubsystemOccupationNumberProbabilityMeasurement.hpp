@@ -42,14 +42,14 @@ public:
      */
     const BlockedEstimate<unsigned int> & get_estimate (const std::vector<unsigned int> &occupation) const
         {
-            BOOST_ASSERT(occupation.size() == offsets.size());
+            BOOST_ASSERT(occupation.size() == strides.size());
 
             // find the "offset" for the value we are looking for.  this is
             // really just a way of doing dynamic multi-dimensional arrays in
             // C++ without a bunch of overhead.
             unsigned int offset = 0;
-            for (unsigned int i = 0; i < offsets.size(); ++i)
-                offset += occupation[i] * offsets[i];
+            for (unsigned int i = 0; i < strides.size(); ++i)
+                offset += occupation[i] * strides[i];
 
             // if the following assertion fails, the occupation must contain an
             // invalid value that is greater than the respective
@@ -71,12 +71,12 @@ private:
 
             const PositionArguments &r = walk.get_wavefunctionamplitude().get_positions();
 
-            // set up the `offsets`, `bounds`, and `estimate` vectors
-            offsets.resize(r.get_N_species());
+            // set up the `strides`, `bounds`, and `estimate` vectors
+            strides.resize(r.get_N_species());
             bounds.resize(r.get_N_species());
             unsigned int n = 1;
             for (unsigned int i = 0; i < r.get_N_species(); ++i) {
-                offsets[i] = n;
+                strides[i] = n;
                 // we need (N_filled + 1) slots since the number in the
                 // subsystem will be in the range 0 .. N_filled
                 n *= r.get_N_filled(i) + 1;
@@ -91,8 +91,8 @@ private:
 
             // calculate the "offset" (see above)
             unsigned int offset = 0;
-            for (unsigned int i = 0; i < offsets.size(); ++i)
-                offset += do_subsystem_particle_count(wfa, i) * offsets[i];
+            for (unsigned int i = 0; i < strides.size(); ++i)
+                offset += do_subsystem_particle_count(wfa, i) * strides[i];
             BOOST_ASSERT(offset < estimate.size());
 
             last_offset = offset;
@@ -125,7 +125,7 @@ private:
 
     const std::shared_ptr<const Subsystem> subsystem;
     std::vector<BlockedEstimate<unsigned int> > estimate;
-    std::vector<unsigned int> offsets, bounds;
+    std::vector<unsigned int> strides, bounds;
     unsigned int last_offset; // saves us from recalculating the offset on repeat measurements
 };
 

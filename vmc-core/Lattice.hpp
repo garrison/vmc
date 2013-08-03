@@ -305,8 +305,8 @@ public:
 private:
     // these all remain constant after initialization as well
     const unsigned int m_total_sites;
-    DimensionVector offset;
-    int basis_offset;
+    DimensionVector stride;
+    int basis_stride;
 
 protected:
     // this can be modified at will until the object is fully instantiated, but

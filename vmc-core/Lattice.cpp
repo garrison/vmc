@@ -21,18 +21,18 @@ Lattice::Lattice (const Lattice::DimensionVector &dimensions_, int basis_indices
     : dimensions(dimensions_),
       basis_indices(basis_indices_),
       m_total_sites(count_total_sites(dimensions_, basis_indices_)),
-      offset(dimensions_.size())
+      stride(dimensions_.size())
 {
     BOOST_ASSERT(dimensions.size() > 0);
     BOOST_ASSERT(basis_indices > 0);
 
-    // set up offsets
+    // set up strides
     unsigned int c = 1;
     for (unsigned int i = 0; i < dimensions.size(); ++i) {
-        offset[i] = c;
+        stride[i] = c;
         c *= dimensions[i];
     }
-    basis_offset = c;
+    basis_stride = c;
 
     // set up default move axes
     for (unsigned int i = 0; i < dimensions.size(); ++i) {
@@ -76,9 +76,9 @@ unsigned int Lattice::index (const LatticeSite &site) const
 
     unsigned int n = 0;
     for (unsigned int i = 0; i < n_dimensions(); ++i) {
-        n += site[i] * offset[i];
+        n += site[i] * stride[i];
     }
-    n += site.basis_index * basis_offset;
+    n += site.basis_index * basis_stride;
 #ifdef VMC_CAREFUL
     BOOST_ASSERT(site == this->index(n));
 #endif

@@ -4,9 +4,10 @@
 #ifndef VMC_LW_VECTOR_IS_STD_VECTOR
 
 #include <cstddef>
+#include <array>
 #include <utility>
 
-#include <boost/array.hpp>
+#include <boost/assert.hpp>
 
 /**
  * Lightweight vector (no dynamic allocation) with a maximum size
@@ -42,7 +43,7 @@ public:
     : n(initial_size)
         {
             BOOST_ASSERT(n <= MAX_SIZE);
-            v.assign(value);
+            v.fill(value);
         }
 
     lw_vector (const std::initializer_list<T> &l)
@@ -150,7 +151,7 @@ public:
         }
 
 private:
-    boost::array<T, MAX_SIZE> v;
+    std::array<T, MAX_SIZE> v;
     size_type n = 0;
 };
 

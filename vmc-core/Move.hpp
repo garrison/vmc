@@ -16,7 +16,7 @@ struct SingleParticleMove
         {
         }
 
-    // default constructor is needed so lw_vector can work using boost::array
+    // default constructor is needed so lw_vector can work using std::array
     SingleParticleMove (void)
         {
         }

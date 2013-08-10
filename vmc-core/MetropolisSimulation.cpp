@@ -25,8 +25,8 @@ invalid_probability_error<ProbabilityType>::invalid_probability_error (const Pro
 {
 }
 
-template <typename ProbabilityType>
-MetropolisSimulation<ProbabilityType>::MetropolisSimulation (std::unique_ptr<Walk<ProbabilityType> > walk_, const std::list<std::shared_ptr<BaseMeasurement<ProbabilityType> > > &measurements_, unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> rng_)
+template <typename ProbabilityType, typename CounterType>
+MetropolisSimulation<ProbabilityType, CounterType>::MetropolisSimulation (std::unique_ptr<Walk<ProbabilityType> > walk_, const std::list<std::shared_ptr<BaseMeasurement<ProbabilityType> > > &measurements_, CounterType initialization_sweeps, std::unique_ptr<RandomNumberGenerator> rng_)
     : m_steps(0),
       m_steps_accepted(0),
       m_steps_fully_rejected(0),
@@ -45,10 +45,10 @@ MetropolisSimulation<ProbabilityType>::MetropolisSimulation (std::unique_ptr<Wal
     perform_initialization(initialization_sweeps);
 }
 
-template <typename ProbabilityType>
-void MetropolisSimulation<ProbabilityType>::iterate (unsigned int sweeps)
+template <typename ProbabilityType, typename CounterType>
+void MetropolisSimulation<ProbabilityType, CounterType>::iterate (CounterType sweeps)
 {
-    for (unsigned int i = 0; i < sweeps; ++i) {
+    for (CounterType i = 0; i < sweeps; ++i) {
         // perform a single step
         const bool accepted = perform_single_step();
 
@@ -64,8 +64,8 @@ void MetropolisSimulation<ProbabilityType>::iterate (unsigned int sweeps)
     }
 }
 
-template <typename ProbabilityType>
-bool MetropolisSimulation<ProbabilityType>::perform_single_step (void)
+template <typename ProbabilityType, typename CounterType>
+bool MetropolisSimulation<ProbabilityType, CounterType>::perform_single_step (void)
 {
     const ProbabilityType probability_ratio = walk->compute_probability_ratio_of_random_transition(*rng);
 
@@ -106,11 +106,11 @@ bool MetropolisSimulation<ProbabilityType>::perform_single_step (void)
     }
 }
 
-template <typename ProbabilityType>
-void MetropolisSimulation<ProbabilityType>::perform_initialization (unsigned int initialization_sweeps)
+template <typename ProbabilityType, typename CounterType>
+void MetropolisSimulation<ProbabilityType, CounterType>::perform_initialization (CounterType initialization_sweeps)
 {
     // do initialization sweeps
-    for (unsigned int i = 0; i < initialization_sweeps; ++i)
+    for (CounterType i = 0; i < initialization_sweeps; ++i)
         perform_single_step();
     // initialize the measurements
     for (const std::shared_ptr<BaseMeasurementType> & m : measurements)

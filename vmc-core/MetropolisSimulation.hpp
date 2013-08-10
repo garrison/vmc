@@ -24,11 +24,12 @@ class Walk;
  * "equilibrium," and after that it does some more steps, taking a measurement
  * after each move.
  */
-template <typename _ProbabilityType>
+template <typename _ProbabilityType, typename _CounterType=unsigned long long>
 class MetropolisSimulation : boost::noncopyable
 {
 public:
     typedef _ProbabilityType ProbabilityType;
+    typedef _CounterType CounterType;
     typedef Walk<ProbabilityType> WalkType;
     typedef BaseMeasurement<ProbabilityType> BaseMeasurementType;
 
@@ -52,13 +53,13 @@ public:
      * @see Walk
      */
     MetropolisSimulation (std::unique_ptr<WalkType> walk_, const std::list<std::shared_ptr<BaseMeasurementType> > &measurements_,
-                          unsigned int initialization_sweeps, std::unique_ptr<RandomNumberGenerator> rng_);
+                          CounterType initialization_sweeps, std::unique_ptr<RandomNumberGenerator> rng_);
 
     /**
      * Perform some number of steps on the system, taking a measurement each
      * time
      */
-    void iterate (unsigned int sweeps);
+    void iterate (CounterType sweeps);
 
     /**
      * Returns the walk object
@@ -71,7 +72,7 @@ public:
     /**
      * Returns the number of steps completed so far
      */
-    unsigned int steps_completed (void) const
+    CounterType steps_completed (void) const
         {
             return m_steps;
         }
@@ -79,7 +80,7 @@ public:
     /**
      * Returns the number of rejected moves so far
      */
-    unsigned int steps_rejected (void) const
+    CounterType steps_rejected (void) const
         {
             return m_steps - m_steps_accepted;
         }
@@ -98,7 +99,7 @@ public:
      * would be smart for us not to even attempt moves that would lead to
      * states with zero amplitude.
      */
-    unsigned int steps_fully_rejected (void) const
+    CounterType steps_fully_rejected (void) const
         {
             return m_steps_fully_rejected;
         }
@@ -106,7 +107,7 @@ public:
     /**
      * Returns the number of accepted moves so far
      */
-    unsigned int steps_accepted (void) const
+    CounterType steps_accepted (void) const
         {
             return m_steps_accepted;
         }
@@ -131,7 +132,7 @@ public:
         }
 
 protected:
-    unsigned int m_steps, m_steps_accepted, m_steps_fully_rejected;
+    CounterType m_steps, m_steps_accepted, m_steps_fully_rejected;
 
 private:
     std::unique_ptr<WalkType> walk;
@@ -142,7 +143,7 @@ private:
 
     bool perform_single_step (void);
 
-    void perform_initialization (unsigned int initialization_sweeps);
+    void perform_initialization (CounterType initialization_sweeps);
 };
 
 #define VMC_SUPPORTED_REAL_TYPE(type) extern template class MetropolisSimulation<type>

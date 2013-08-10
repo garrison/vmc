@@ -30,6 +30,17 @@ static inline int safe_modulus (int n, int d)
     return n;
 }
 
+template <typename T>
+static inline T safe_fmod (const T &n, const T &d)
+{
+    BOOST_ASSERT(d > 0);
+    using std::fmod;
+    T rv = fmod(n, d);
+    if (rv < 0)
+        rv += d;
+    return rv;
+}
+
 /**
  * Same as std::pow(), but returns zero instead of domain error for 0 ^ z when z < 0
  */

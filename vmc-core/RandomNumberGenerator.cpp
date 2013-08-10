@@ -5,6 +5,7 @@
 #include <boost/random/lagged_fibonacci.hpp>
 #include <boost/random/uniform_smallint.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_01.hpp>
 
 #include "RandomNumberGenerator.hpp"
@@ -34,6 +35,13 @@ protected:
     virtual double random_uniform01 (void) override
         {
             return uniform01_distribution();
+        }
+
+    virtual double random_gaussian (void) override
+        {
+            boost::normal_distribution<> distribution;
+            boost::variate_generator<T&, boost::normal_distribution<> > generator(rng, distribution);
+            return generator();
         }
 
 private:

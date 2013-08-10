@@ -36,6 +36,12 @@ public:
     virtual double random_uniform01 (void) = 0;
 
     /**
+     * Returns a number from the Gaussian distribution centered at 0 with
+     * $\sigma=1$
+     */
+    virtual double random_gaussian (void) = 0;
+
+    /**
      * Returns true if the given name represents a valid random number
      * generator
      */

@@ -4,9 +4,8 @@
 #include <cmath>
 #include <complex>
 #include <cassert>
+#include <type_traits>
 
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_convertible.hpp>
 #include <boost/type_traits/is_complex.hpp>
 
 #include "vmc-real-part.hpp"
@@ -69,7 +68,7 @@ static inline T complex_pow (const T &base, const typename RealPart<T>::type &ex
 }
 
 template <typename T, typename T2>
-static inline typename boost::enable_if<boost::is_convertible<T2, typename RealPart<T>::type>, Big<T> >::type
+static inline typename std::enable_if<std::is_convertible<T2, typename RealPart<T>::type>::value, Big<T> >::type
 complex_pow (const Big<T> &base, const T2 &exponent)
 {
     return Big<T>(complex_pow(base.get_base(), exponent), base.get_exponent() * exponent);

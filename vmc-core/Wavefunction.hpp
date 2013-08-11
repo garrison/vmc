@@ -3,8 +3,7 @@
 
 #include <memory>
 #include <stdexcept>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "PositionArguments.hpp"
 #include "Lattice.hpp"
@@ -86,9 +85,9 @@ public:
          */
         inline void finish_move (void)
             {
-                BOOST_ASSERT(move_in_progress);
+                assert(move_in_progress);
                 finish_move_();
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
                 move_in_progress = false;
 #endif
             }
@@ -100,11 +99,11 @@ public:
 
         void swap_particles (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
             {
-                BOOST_ASSERT(!move_in_progress);
-                BOOST_ASSERT(species < r.get_N_species());
-                BOOST_ASSERT(particle1_index < r.get_N_filled(species));
-                BOOST_ASSERT(particle2_index < r.get_N_filled(species));
-                BOOST_ASSERT(particle1_index != particle2_index);
+                assert(!move_in_progress);
+                assert(species < r.get_N_species());
+                assert(particle1_index < r.get_N_filled(species));
+                assert(particle2_index < r.get_N_filled(species));
+                assert(particle1_index != particle2_index);
                 r.swap_particles(particle1_index, particle2_index, species);
                 swap_particles_(particle1_index, particle2_index, species);
             }
@@ -114,7 +113,7 @@ public:
          */
         inline void reset (const PositionArguments &r_)
             {
-                BOOST_ASSERT(!move_in_progress);
+                assert(!move_in_progress);
                 reset_(r_);
             }
 
@@ -204,11 +203,11 @@ public:
         Amplitude (const std::shared_ptr<const Wavefunction> &wf_, const PositionArguments &r_)
             : wf(wf_),
               r(r_)
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
         , move_in_progress(false)
 #endif
             {
-                BOOST_ASSERT(wf_); // check that it is not null
+                assert(wf_); // check that it is not null
             }
 
         inline const Move & get_reverse_move (void) const
@@ -223,7 +222,7 @@ public:
         // for when we need to cancel a move
         Move reverse_move;
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
         bool move_in_progress;
 #endif
     };

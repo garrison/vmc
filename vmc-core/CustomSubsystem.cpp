@@ -1,12 +1,12 @@
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "CustomSubsystem.hpp"
 #include "Lattice.hpp"
 
 bool CustomSubsystem::position_is_within (unsigned int site_index, const Lattice &lattice) const
 {
-    BOOST_ASSERT(lattice_makes_sense(lattice));
-    BOOST_ASSERT(site_index < lattice.size());
+    assert(lattice_makes_sense(lattice));
+    assert(site_index < lattice.size());
 
     return this->site_status[site_index];
 }

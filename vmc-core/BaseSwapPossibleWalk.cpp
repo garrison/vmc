@@ -1,7 +1,6 @@
 #include <cmath>
 #include <vector>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "RandomNumberGenerator.hpp"
 #include "BaseSwapPossibleWalk.hpp"
@@ -16,12 +15,12 @@ BaseSwapPossibleWalk::BaseSwapPossibleWalk (std::unique_ptr<Wavefunction<amplitu
       autoreject_in_progress(false),
       transition_in_progress(false)
 {
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-    BOOST_ASSERT(&phialpha1->get_lattice() == &phialpha2->get_lattice());
-    BOOST_ASSERT(phialpha1->get_positions().get_N_species() == phialpha2->get_positions().get_N_species());
+#ifndef NDEBUG
+    assert(&phialpha1->get_lattice() == &phialpha2->get_lattice());
+    assert(phialpha1->get_positions().get_N_species() == phialpha2->get_positions().get_N_species());
     for (unsigned int i = 0; i < phialpha1->get_positions().get_N_species(); ++i)
-        BOOST_ASSERT(phialpha1->get_positions().get_N_filled(i) == phialpha2->get_positions().get_N_filled(i));
-    BOOST_ASSERT(phialpha1->get_positions().get_N_sites() == phialpha2->get_positions().get_N_sites());
+        assert(phialpha1->get_positions().get_N_filled(i) == phialpha2->get_positions().get_N_filled(i));
+    assert(phialpha1->get_positions().get_N_sites() == phialpha2->get_positions().get_N_sites());
     // there's no way to assert it, but we also assume they have precisely the
     // same orbitals too.  In fact, it might be useful to make a function that
     // asserts two wave functions are identical except for the particle
@@ -44,7 +43,7 @@ unsigned int BaseSwapPossibleWalk::count_subsystem_sites (const Subsystem &subsy
 
 probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng)
 {
-    BOOST_ASSERT(!transition_in_progress);
+    assert(!transition_in_progress);
     transition_in_progress = true;
 
     const Lattice &lattice = phialpha1->get_lattice();
@@ -96,7 +95,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
             reverse_particle_possibilities = N_within_subsystem + 1;
             reverse_vacant_possibilities = N_vacant_outside_subsystem + 1;
         } else {
-            BOOST_ASSERT(copy_A_subsystem_particle_change == -1);
+            assert(copy_A_subsystem_particle_change == -1);
             forward_particle_possibilities = N_within_subsystem;
             forward_vacant_possibilities = N_vacant_outside_subsystem;
             reverse_particle_possibilities = N_outside_subsystem + 1;
@@ -116,7 +115,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
             if (subsystem.position_is_within(r_B[Particle(i, species)], lattice) == candidate_particle_B_subsystem_status)
                 candidate_particle_B_array.push_back(i);
         }
-        BOOST_ASSERT(forward_particle_possibilities == candidate_particle_B_array.size());
+        assert(forward_particle_possibilities == candidate_particle_B_array.size());
         chosen_particle_B = Particle(candidate_particle_B_array[rng.random_small_uint(candidate_particle_B_array.size())], species);
 
         // choose a destination such that the particle in copy B will change its
@@ -128,7 +127,7 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
             if (!r_B.is_occupied(i, species) && subsystem.position_is_within(i, lattice) == destination_B_in_subsystem)
             candidate_destination_B_array.push_back(i);
         }
-        BOOST_ASSERT(forward_vacant_possibilities == candidate_destination_B_array.size());
+        assert(forward_vacant_possibilities == candidate_destination_B_array.size());
         particle_B_destination = candidate_destination_B_array[rng.random_small_uint(candidate_destination_B_array.size())];
     }
 
@@ -173,10 +172,10 @@ probability_t BaseSwapPossibleWalk::compute_probability_ratio_of_random_transiti
 
 void BaseSwapPossibleWalk::accept_transition (void)
 {
-    BOOST_ASSERT(transition_in_progress);
+    assert(transition_in_progress);
     transition_in_progress = false;
 
-    BOOST_ASSERT(!autoreject_in_progress);
+    assert(!autoreject_in_progress);
 
     if (!update_swapped_system_before_accepting) {
         // update phibeta's
@@ -215,7 +214,7 @@ void BaseSwapPossibleWalk::accept_transition (void)
 
 void BaseSwapPossibleWalk::reject_transition (void)
 {
-    BOOST_ASSERT(transition_in_progress);
+    assert(transition_in_progress);
     transition_in_progress = false;
 
     if (autoreject_in_progress) {

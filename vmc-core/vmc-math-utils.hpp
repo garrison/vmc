@@ -3,8 +3,8 @@
 
 #include <cmath>
 #include <complex>
+#include <cassert>
 
-#include <boost/assert.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 #include <boost/type_traits/is_complex.hpp>
@@ -18,7 +18,7 @@
 // from http://stackoverflow.com/a/4003287/1558890
 static inline void do_safe_modulus (int &n, int d)
 {
-    BOOST_ASSERT(d > 0);
+    assert(d > 0);
     n %= d;
     if (n < 0)
         n += d;
@@ -33,7 +33,7 @@ static inline int safe_modulus (int n, int d)
 template <typename T>
 static inline T safe_fmod (const T &n, const T &d)
 {
-    BOOST_ASSERT(d > 0);
+    assert(d > 0);
     using std::fmod;
     T rv = fmod(n, d);
     if (rv < 0)

@@ -1,14 +1,13 @@
 #include <set>
 #include <algorithm>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "random-configuration.hpp"
 #include "RandomNumberGenerator.hpp"
 
 std::vector<unsigned int> some_random_configuration (unsigned int N_filled, const Lattice &lattice, RandomNumberGenerator &rng)
 {
-    BOOST_ASSERT(N_filled <= lattice.total_sites());
+    assert(N_filled <= lattice.total_sites());
 
     const unsigned int n_dimensions = lattice.n_dimensions();
 

@@ -23,8 +23,8 @@ Lattice::Lattice (const Lattice::DimensionVector &dimensions_, int basis_indices
       m_total_sites(count_total_sites(dimensions_, basis_indices_)),
       stride(dimensions_.size())
 {
-    BOOST_ASSERT(dimensions.size() > 0);
-    BOOST_ASSERT(basis_indices > 0);
+    assert(dimensions.size() > 0);
+    assert(basis_indices > 0);
 
     // set up strides
     unsigned int c = 1;
@@ -57,7 +57,7 @@ Lattice::Lattice (const std::initializer_list<int> &dimensions_, int basis_indic
 
 LatticeSite Lattice::operator[] (unsigned int n) const
 {
-    BOOST_ASSERT(n < total_sites());
+    assert(n < total_sites());
     LatticeSite rv(this->n_dimensions());
     for (unsigned int i = 0; i < n_dimensions(); ++i) {
         rv[i] = n % dimensions[i];
@@ -65,14 +65,14 @@ LatticeSite Lattice::operator[] (unsigned int n) const
     }
     rv.basis_index = n;
 #ifdef VMC_CAREFUL
-    BOOST_ASSERT(site_is_valid(rv));
+    assert(site_is_valid(rv));
 #endif
     return rv;
 }
 
 unsigned int Lattice::index (const LatticeSite &site) const
 {
-    BOOST_ASSERT(site_is_valid(site));
+    assert(site_is_valid(site));
 
     unsigned int n = 0;
     for (unsigned int i = 0; i < n_dimensions(); ++i) {
@@ -80,14 +80,14 @@ unsigned int Lattice::index (const LatticeSite &site) const
     }
     n += site.basis_index * basis_stride;
 #ifdef VMC_CAREFUL
-    BOOST_ASSERT(site == this->index(n));
+    assert(site == this->index(n));
 #endif
     return n;
 }
 
 bool Lattice::site_is_valid (const LatticeSite &site) const
 {
-    BOOST_ASSERT(site.n_dimensions() == n_dimensions());
+    assert(site.n_dimensions() == n_dimensions());
     for (unsigned int i = 0; i < n_dimensions(); ++i) {
         if (site[i] >= dimensions[i] || site[i] < 0)
             return false;
@@ -99,25 +99,25 @@ bool Lattice::site_is_valid (const LatticeSite &site) const
 
 void Lattice::asm_add_site_vector (LatticeSite &site, const BravaisSite &other) const
 {
-    BOOST_ASSERT(site.n_dimensions() == n_dimensions());
-    BOOST_ASSERT(site.basis_index < basis_indices);
-    BOOST_ASSERT(other.size() == n_dimensions());
+    assert(site.n_dimensions() == n_dimensions());
+    assert(site.basis_index < basis_indices);
+    assert(other.size() == n_dimensions());
     for (unsigned int i = 0; i < n_dimensions(); ++i)
         site[i] += other[i];
 }
 
 void Lattice::asm_subtract_site_vector (LatticeSite &site, const BravaisSite &other) const
 {
-    BOOST_ASSERT(site.n_dimensions() == n_dimensions());
-    BOOST_ASSERT(site.basis_index < basis_indices);
-    BOOST_ASSERT(other.size() == n_dimensions());
+    assert(site.n_dimensions() == n_dimensions());
+    assert(site.basis_index < basis_indices);
+    assert(other.size() == n_dimensions());
     for (unsigned int i = 0; i < n_dimensions(); ++i)
         site[i] -= other[i];
 }
 
 void Lattice::enforce_periodic_boundary (LatticeSite &site) const
 {
-    BOOST_ASSERT(site.n_dimensions() == n_dimensions());
+    assert(site.n_dimensions() == n_dimensions());
     for (unsigned int dim = 0; dim < n_dimensions(); ++dim) {
         do_safe_modulus(site[dim], dimensions[dim]);
     }
@@ -126,5 +126,5 @@ void Lattice::enforce_periodic_boundary (LatticeSite &site) const
     // function to be called before this one when needed?
     do_safe_modulus(site.basis_index, basis_indices);
 
-    BOOST_ASSERT(site_is_valid(site));
+    assert(site_is_valid(site));
 }

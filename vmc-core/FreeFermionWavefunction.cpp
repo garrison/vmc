@@ -1,4 +1,5 @@
-#include <boost/assert.hpp>
+#include <cassert>
+
 #include <boost/cast.hpp>
 
 #include "FreeFermionWavefunction.hpp"
@@ -9,10 +10,10 @@ FreeFermionWavefunction<AmplitudeType>::FreeFermionWavefunction (const std::vect
       orbital_def(orbital_def_),
       jastrow(jastrow_)
 {
-    BOOST_ASSERT(orbital_def.size() > 0);
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+    assert(orbital_def.size() > 0);
+#ifndef NDEBUG
     for (unsigned int i = 1; i < get_N_species(); ++i) {
-        BOOST_ASSERT(orbital_def[0]->get_N_sites() == orbital_def[i]->get_N_sites());
+        assert(orbital_def[0]->get_N_sites() == orbital_def[i]->get_N_sites());
     }
 #endif
 }
@@ -32,7 +33,7 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::perform_move_ (const Mov
 {
     // we require that m_partial_update_step == 0 between moves; otherwise,
     // psi_() will return zero when it shouldn't.
-    BOOST_ASSERT(m_partial_update_step == 0);
+    assert(m_partial_update_step == 0);
 
     // determine which species are being moved
     for (unsigned int i = 0; i < get_N_species(); ++i)
@@ -66,7 +67,7 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::do_perform_move (const M
                 return;
             }
         } else {
-            BOOST_ASSERT(m_current_jastrow.get_base() == 1. && m_current_jastrow.get_exponent() == 0.);
+            assert(m_current_jastrow.get_base() == 1. && m_current_jastrow.get_exponent() == 0.);
         }
     }
 
@@ -77,7 +78,7 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::do_perform_move (const M
                 if (move[j].particle.species == i)
                     cols.push_back(std::make_pair(move[j].particle.index, move[j].destination));
             }
-            BOOST_ASSERT(cols.size() != 0);
+            assert(cols.size() != 0);
             m_cmat[i].update_columns(cols, wf_->orbital_def[i]->get_orbitals());
             if (first_pass && m_cmat[i].is_singular()) {
                 m_partial_update_step = get_N_species() - i - 1;
@@ -127,7 +128,7 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::cancel_move_ (void)
 template <typename AmplitudeType>
 void FreeFermionWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
 {
-    BOOST_ASSERT(species < m_cmat.size());
+    assert(species < m_cmat.size());
     m_cmat[species].swap_columns(particle1_index, particle2_index);
 
     const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction<AmplitudeType> *>(this->wf.get());
@@ -150,18 +151,18 @@ void FreeFermionWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
 {
     const FreeFermionWavefunction *wf_ = boost::polymorphic_downcast<const FreeFermionWavefunction *>(this->wf.get());
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-    BOOST_ASSERT(this->r.get_N_species() == get_N_species());
-    BOOST_ASSERT(this->r.get_N_sites() == wf_->orbital_def[0]->get_N_sites());
+#ifndef NDEBUG
+    assert(this->r.get_N_species() == get_N_species());
+    assert(this->r.get_N_sites() == wf_->orbital_def[0]->get_N_sites());
     for (unsigned int i = 0; i < get_N_species(); ++i)
-        BOOST_ASSERT(this->r.get_N_filled(i) == wf_->orbital_def[i]->get_N_filled());
+        assert(this->r.get_N_filled(i) == wf_->orbital_def[i]->get_N_filled());
 #endif
 
     if (wf_->jastrow) {
         m_current_jastrow = wf_->jastrow->compute_jastrow(this->r);
     }
 
-    BOOST_ASSERT(m_cmat.size() == 0);
+    assert(m_cmat.size() == 0);
     for (unsigned int j = 0; j < wf_->orbital_def.size(); ++j) {
         const unsigned int N = this->r.get_N_filled(j);
         Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic> mat(N, N);

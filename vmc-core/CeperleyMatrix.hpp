@@ -6,8 +6,7 @@
 #include <utility>
 #include <stdexcept>
 #include <limits>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 // we always want to include vmc-typedefs.hpp before including Eigen
 #include "vmc-typedefs.hpp"
@@ -175,7 +174,7 @@ public:
           n_smw_updates(0),
           smallest_detrat(std::numeric_limits<typename RealPart<T>::type>::infinity())
         {
-            BOOST_ASSERT(initial_mat.rows() == initial_mat.cols());
+            assert(initial_mat.rows() == initial_mat.cols());
 
             calculate_inverse(false);
         }
@@ -198,10 +197,10 @@ public:
      */
     void swap_rows (unsigned int r1, unsigned int r2)
         {
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-            BOOST_ASSERT(r1 < mat.rows());
-            BOOST_ASSERT(r2 < mat.rows());
-            BOOST_ASSERT(r1 != r2);
+            assert(current_state == READY_FOR_UPDATE);
+            assert(r1 < mat.rows());
+            assert(r2 < mat.rows());
+            assert(r1 != r2);
 
             mat.row(r1).swap(mat.row(r2));
             if (nullity_lower_bound == 0)
@@ -221,10 +220,10 @@ public:
      */
     void swap_columns (unsigned int c1, unsigned int c2)
         {
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-            BOOST_ASSERT(c1 < mat.cols());
-            BOOST_ASSERT(c2 < mat.cols());
-            BOOST_ASSERT(c1 != c2);
+            assert(current_state == READY_FOR_UPDATE);
+            assert(c1 < mat.cols());
+            assert(c2 < mat.cols());
+            assert(c1 != c2);
 
             mat.col(c1).swap(mat.col(c2));
             if (nullity_lower_bound == 0)
@@ -257,10 +256,10 @@ public:
      */
     void update_row (unsigned int r, const Eigen::Matrix<T, Eigen::Dynamic, 1> &row)
         {
-            BOOST_ASSERT(r < mat.rows());
-            BOOST_ASSERT(row.rows() == mat.cols());
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-            BOOST_ASSERT(!inverse_recalculated_for_current_update);
+            assert(r < mat.rows());
+            assert(row.rows() == mat.cols());
+            assert(current_state == READY_FOR_UPDATE);
+            assert(!inverse_recalculated_for_current_update);
 
             // remember some things in case we decide to cancel the update
             old_cols_m.resize(mat.rows(), 1);
@@ -303,10 +302,10 @@ public:
      */
     void update_column (unsigned int c, const Eigen::Matrix<T, Eigen::Dynamic, 1> &col)
         {
-            BOOST_ASSERT(c < mat.cols());
-            BOOST_ASSERT(col.rows() == mat.rows());
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-            BOOST_ASSERT(!inverse_recalculated_for_current_update);
+            assert(c < mat.cols());
+            assert(col.rows() == mat.rows());
+            assert(current_state == READY_FOR_UPDATE);
+            assert(!inverse_recalculated_for_current_update);
 
             // remember some things in case we decide to cancel the update
             old_cols_m.resize(mat.rows(), 1);
@@ -353,23 +352,23 @@ public:
      */
     void update_columns (const lw_vector<std::pair<unsigned int, unsigned int>, MAX_MOVE_SIZE> &cols, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &srcmat)
         {
-            BOOST_ASSERT(cols.size() > 0);
-            BOOST_ASSERT(cols.size() <= (unsigned int) mat.cols());
-            BOOST_ASSERT(srcmat.rows() == mat.rows());
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-            BOOST_ASSERT(!inverse_recalculated_for_current_update);
-            BOOST_ASSERT(nullity_lower_bound >= 0);
+            assert(cols.size() > 0);
+            assert(cols.size() <= (unsigned int) mat.cols());
+            assert(srcmat.rows() == mat.rows());
+            assert(current_state == READY_FOR_UPDATE);
+            assert(!inverse_recalculated_for_current_update);
+            assert(nullity_lower_bound >= 0);
 
             // remember some things in case we decide to cancel the update
             old_cols_m.resize(mat.rows(), cols.size());
             cols_offset_m.resize(mat.rows(), cols.size());
             pending_col_indices.resize(0);
             for (unsigned int i = 0; i < cols.size(); ++i) {
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-                BOOST_ASSERT(cols[i].second < srcmat.cols());
-                BOOST_ASSERT(cols[i].first < mat.cols());
+#ifndef NDEBUG
+                assert(cols[i].second < srcmat.cols());
+                assert(cols[i].first < mat.cols());
                 for (unsigned int j = 0; j < i; ++j)
-                    BOOST_ASSERT(cols[i].first != cols[j].first);
+                    assert(cols[i].first != cols[j].first);
 #endif
                 old_cols_m.col(i) = mat.col(cols[i].first);
                 pending_col_indices.push_back(cols[i].first);
@@ -450,24 +449,24 @@ public:
      */
     void update_rows_and_columns (const lw_vector<unsigned int, MAX_MOVE_SIZE> &rows, const lw_vector<unsigned int, MAX_MOVE_SIZE> &cols, const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &srcmat)
         {
-            BOOST_ASSERT(cols.size() > 0 || rows.size() > 0);
-            BOOST_ASSERT(cols.size() <= (unsigned int) mat.cols());
-            BOOST_ASSERT(rows.size() <= (unsigned int) mat.rows());
-            BOOST_ASSERT(srcmat.rows() == mat.rows());
-            BOOST_ASSERT(srcmat.cols() == mat.cols());
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-            BOOST_ASSERT(!inverse_recalculated_for_current_update);
-            BOOST_ASSERT(nullity_lower_bound >= 0);
+            assert(cols.size() > 0 || rows.size() > 0);
+            assert(cols.size() <= (unsigned int) mat.cols());
+            assert(rows.size() <= (unsigned int) mat.rows());
+            assert(srcmat.rows() == mat.rows());
+            assert(srcmat.cols() == mat.cols());
+            assert(current_state == READY_FOR_UPDATE);
+            assert(!inverse_recalculated_for_current_update);
+            assert(nullity_lower_bound >= 0);
 
             // remember and update rows
             old_rows_m.resize(rows.size(), mat.cols());
             rows_offset_m.resizeLike(old_rows_m);
             pending_row_indices = rows;
             for (unsigned int i = 0; i < rows.size(); ++i) {
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-                BOOST_ASSERT(rows[i] < mat.rows());
+#ifndef NDEBUG
+                assert(rows[i] < mat.rows());
                 for (unsigned int j = 0; j < i; ++j)
-                    BOOST_ASSERT(rows[i] != rows[j]);
+                    assert(rows[i] != rows[j]);
 #endif
                 // remember old row
                 old_rows_m.row(i) = mat.row(rows[i]);
@@ -483,10 +482,10 @@ public:
             cols_offset_m.resizeLike(old_cols_m);
             pending_col_indices = cols;
             for (unsigned int i = 0; i < cols.size(); ++i) {
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-                BOOST_ASSERT(cols[i] < mat.cols());
+#ifndef NDEBUG
+                assert(cols[i] < mat.cols());
                 for (unsigned int j = 0; j < i; ++j)
-                    BOOST_ASSERT(cols[i] != cols[j]);
+                    assert(cols[i] != cols[j]);
 #endif
                 // remember old column
                 old_cols_m.col(i) = mat.col(cols[i]);
@@ -574,7 +573,7 @@ public:
      */
     void finish_row_update (void)
         {
-            BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
+            assert(current_state == ROW_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
                 if (determinant_is_uncomfortable_while_finishing_update()) {
@@ -601,7 +600,7 @@ public:
      */
     void finish_column_update (void)
         {
-            BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
+            assert(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
                 if (determinant_is_uncomfortable_while_finishing_update()) {
@@ -626,7 +625,7 @@ public:
      */
     void finish_columns_update (void)
         {
-            BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
+            assert(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
                 if (determinant_is_uncomfortable_while_finishing_update()) {
@@ -657,7 +656,7 @@ public:
      */
     void finish_rows_and_columns_update (void)
         {
-            BOOST_ASSERT(current_state == ROWCOL_UPDATE_IN_PROGRESS);
+            assert(current_state == ROWCOL_UPDATE_IN_PROGRESS);
 
             if (new_nullity_lower_bound == 0 && !inverse_recalculated_for_current_update) {
                 if (determinant_is_uncomfortable_while_finishing_update()) {
@@ -685,7 +684,7 @@ public:
 
     void cancel_row_update (void)
         {
-            BOOST_ASSERT(current_state == ROW_UPDATE_IN_PROGRESS);
+            assert(current_state == ROW_UPDATE_IN_PROGRESS);
 
             revert_mat_for_row_update(mat);
             det = old_det;
@@ -700,7 +699,7 @@ public:
 
     void cancel_column_update (void)
         {
-            BOOST_ASSERT(current_state == COLUMN_UPDATE_IN_PROGRESS);
+            assert(current_state == COLUMN_UPDATE_IN_PROGRESS);
 
             revert_mat_for_column_update(mat);
             det = old_det;
@@ -715,7 +714,7 @@ public:
 
     void cancel_columns_update (void)
         {
-            BOOST_ASSERT(current_state == COLUMNS_UPDATE_IN_PROGRESS);
+            assert(current_state == COLUMNS_UPDATE_IN_PROGRESS);
 
             revert_mat_for_columns_update(mat);
             det = old_det;
@@ -730,7 +729,7 @@ public:
 
     void cancel_rows_and_columns_update (void)
         {
-            BOOST_ASSERT(current_state == ROWCOL_UPDATE_IN_PROGRESS);
+            assert(current_state == ROWCOL_UPDATE_IN_PROGRESS);
 
             revert_mat_for_rows_and_columns_update(mat);
             det = old_det;
@@ -749,7 +748,7 @@ public:
      */
     void refresh_state (void)
         {
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
+            assert(current_state == READY_FOR_UPDATE);
             check_for_numerical_error();
             calculate_inverse(false);
             n_smw_updates = 0;
@@ -762,7 +761,7 @@ public:
      */
     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_matrix (void) const
         {
-            BOOST_ASSERT(current_state != UNINITIALIZED);
+            assert(current_state != UNINITIALIZED);
             return mat;
         }
 
@@ -771,8 +770,8 @@ public:
      */
     const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> & get_inverse (void) const
         {
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
-            BOOST_ASSERT(nullity_lower_bound == 0);
+            assert(current_state == READY_FOR_UPDATE);
+            assert(nullity_lower_bound == 0);
             return invmat;
         }
 
@@ -783,7 +782,7 @@ public:
      */
     const Big<T> & get_determinant (void) const
         {
-            BOOST_ASSERT(current_state != UNINITIALIZED);
+            assert(current_state != UNINITIALIZED);
             return det;
         }
 
@@ -792,7 +791,7 @@ public:
      */
     bool is_singular (void) const
         {
-            BOOST_ASSERT(current_state != UNINITIALIZED);
+            assert(current_state != UNINITIALIZED);
             return det.is_zero();
         }
 
@@ -804,7 +803,7 @@ public:
      */
     typename RealPart<T>::type compute_relative_determinant_error (void) const
         {
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
+            assert(current_state == READY_FOR_UPDATE);
             using std::abs;
             Eigen::FullPivLU<Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> > lu_decomposition(mat);
             if (lu_decomposition.isInvertible()) {
@@ -825,7 +824,7 @@ public:
      */
     unsigned int rows (void) const
         {
-            BOOST_ASSERT(current_state != UNINITIALIZED);
+            assert(current_state != UNINITIALIZED);
             return mat.rows();
         }
 
@@ -839,7 +838,7 @@ public:
      */
     unsigned int cols (void) const
         {
-            BOOST_ASSERT(current_state != UNINITIALIZED);
+            assert(current_state != UNINITIALIZED);
             return rows();
         }
 
@@ -851,9 +850,9 @@ public:
      */
     void check_for_numerical_error (void) const
         {
-            BOOST_ASSERT(current_state == READY_FOR_UPDATE);
+            assert(current_state == READY_FOR_UPDATE);
             if (n_smw_updates > 0) {
-                BOOST_ASSERT(!is_singular());
+                assert(!is_singular());
                 check_inverse_matrix_error(mat);
             }
         }
@@ -1007,9 +1006,9 @@ private:
 #if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
             std::cerr << "DEBUG INFO: matrix was singular!" << std::endl;
 #endif
-            BOOST_ASSERT(det.is_zero());
-            BOOST_ASSERT(new_nullity_lower_bound == nullity_lower_bound);
-            BOOST_ASSERT(new_nullity_lower_bound > 0);
+            assert(det.is_zero());
+            assert(new_nullity_lower_bound == nullity_lower_bound);
+            assert(new_nullity_lower_bound > 0);
             new_nullity_lower_bound -= update_rank;
             if (new_nullity_lower_bound <= 0)
                 calculate_inverse(true);

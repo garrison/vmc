@@ -3,8 +3,7 @@
 
 #include <vector>
 #include <algorithm>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 /**
  * Represents a particle in a system
@@ -53,7 +52,7 @@ public:
      */
     unsigned int operator[] (Particle particle) const
         {
-            BOOST_ASSERT(particle_is_valid(particle));
+            assert(particle_is_valid(particle));
             return r[particle.species][particle.index];
         }
 
@@ -62,7 +61,7 @@ public:
      */
     const std::vector<unsigned int> & r_vector (unsigned int species) const
         {
-            BOOST_ASSERT(species < get_N_species());
+            assert(species < get_N_species());
             return r[species];
         }
 
@@ -82,14 +81,14 @@ public:
      */
     void update_position (Particle particle, unsigned int position)
         {
-            BOOST_ASSERT(particle_is_valid(particle));
-            BOOST_ASSERT(position < get_N_sites());
+            assert(particle_is_valid(particle));
+            assert(position < get_N_sites());
 
             const unsigned int old_position = (*this)[particle];
 
-            BOOST_ASSERT(is_occupied(old_position, particle.species));
+            assert(is_occupied(old_position, particle.species));
             // enforce pauli exclusion
-            BOOST_ASSERT(!is_occupied(position, particle.species)
+            assert(!is_occupied(position, particle.species)
                          || r[particle.species][particle.index] == position);
 
             --positions[particle.species][old_position];
@@ -99,10 +98,10 @@ public:
 
     void swap_particles (unsigned int particle1_index, unsigned int particle2_index, unsigned int species)
         {
-            BOOST_ASSERT(species < get_N_species());
-            BOOST_ASSERT(particle1_index < get_N_filled(species));
-            BOOST_ASSERT(particle2_index < get_N_filled(species));
-            BOOST_ASSERT(particle1_index != particle2_index);
+            assert(species < get_N_species());
+            assert(particle1_index < get_N_filled(species));
+            assert(particle2_index < get_N_filled(species));
+            assert(particle1_index != particle2_index);
             std::swap(r[species][particle1_index], r[species][particle2_index]);
         }
 
@@ -112,8 +111,8 @@ public:
      */
     bool is_occupied (unsigned int position, unsigned int species) const
         {
-            BOOST_ASSERT(position < get_N_sites());
-            BOOST_ASSERT(species < get_N_species());
+            assert(position < get_N_sites());
+            assert(species < get_N_species());
             return bool(positions[species][position] != 0);
         }
 
@@ -128,7 +127,7 @@ public:
      */
     unsigned int get_N_sites (void) const
         {
-            BOOST_ASSERT(positions.size() != 0);
+            assert(positions.size() != 0);
             return positions[0].size();
         }
 
@@ -137,7 +136,7 @@ public:
      */
     unsigned int get_N_filled (unsigned int species) const
         {
-            BOOST_ASSERT(species < get_N_species());
+            assert(species < get_N_species());
             return r[species].size();
         }
 

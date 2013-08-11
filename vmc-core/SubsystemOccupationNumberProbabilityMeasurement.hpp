@@ -3,8 +3,7 @@
 
 #include <vector>
 #include <memory>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "Measurement.hpp"
 #include "BlockedEstimate.hpp"
@@ -42,7 +41,7 @@ public:
      */
     const BlockedEstimate<unsigned int> & get_estimate (const std::vector<unsigned int> &occupation) const
         {
-            BOOST_ASSERT(occupation.size() == strides.size());
+            assert(occupation.size() == strides.size());
 
             // find the "offset" for the value we are looking for.  this is
             // really just a way of doing dynamic multi-dimensional arrays in
@@ -54,7 +53,7 @@ public:
             // if the following assertion fails, the occupation must contain an
             // invalid value that is greater than the respective
             // r.get_N_filled(species)
-            BOOST_ASSERT(offset < estimate.size());
+            assert(offset < estimate.size());
 
             return estimate[offset];
         }
@@ -67,7 +66,7 @@ public:
 private:
     virtual void initialize_ (const StandardWalk<amplitude_t> &walk) override
         {
-            BOOST_ASSERT(estimate.size() == 0);
+            assert(estimate.size() == 0);
 
             const PositionArguments &r = walk.get_wavefunctionamplitude().get_positions();
 
@@ -93,7 +92,7 @@ private:
             unsigned int offset = 0;
             for (unsigned int i = 0; i < strides.size(); ++i)
                 offset += do_subsystem_particle_count(wfa, i) * strides[i];
-            BOOST_ASSERT(offset < estimate.size());
+            assert(offset < estimate.size());
 
             last_offset = offset;
             repeat_measurement_(walk);

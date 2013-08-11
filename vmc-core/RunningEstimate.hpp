@@ -5,7 +5,8 @@
 #define BOOST_NUMERIC_FUNCTIONAL_STD_COMPLEX_SUPPORT
 #endif
 
-#include <boost/assert.hpp>
+#include <cassert>
+
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
@@ -34,7 +35,7 @@ public:
      */
     result_t get_cumulative_result (void) const
         {
-            BOOST_ASSERT(boost::accumulators::count(m_cumulative_acc) > 0);
+            assert(boost::accumulators::count(m_cumulative_acc) > 0);
             return boost::accumulators::mean(m_cumulative_acc);
         }
 

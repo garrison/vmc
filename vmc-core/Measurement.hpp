@@ -1,8 +1,9 @@
 #ifndef _VMC_MEASUREMENT_HPP
 #define _VMC_MEASUREMENT_HPP
 
+#include <cassert>
+
 #include <boost/cast.hpp>
-#include <boost/assert.hpp>
 #include <boost/noncopyable.hpp>
 
 #include "Walk.hpp"
@@ -45,8 +46,8 @@ public:
      */
     virtual void initialize (const BaseWalkType &walk) override final
         {
-            BOOST_ASSERT(!initialized);
-            BOOST_ASSERT(this->is_valid_walk(walk));
+            assert(!initialized);
+            assert(this->is_valid_walk(walk));
             initialize_(*boost::polymorphic_downcast<const WalkType *>(&walk));
             initialized = true;
         }
@@ -70,7 +71,7 @@ public:
      */
     virtual void step_repeated (const BaseWalkType &walk) override final
         {
-            BOOST_ASSERT(first_step_has_been_completed);
+            assert(first_step_has_been_completed);
             step_completed(walk);
         }
 
@@ -89,7 +90,7 @@ protected:
           first_step_has_been_completed(false),
           measurement_in_progress(false)
         {
-            BOOST_ASSERT(steps_per_measurement > 0);
+            assert(steps_per_measurement > 0);
         }
 
     /**
@@ -127,8 +128,8 @@ private:
      */
     void step_completed (const BaseWalkType &walk_)
         {
-            BOOST_ASSERT(initialized);
-            BOOST_ASSERT(!measurement_in_progress);
+            assert(initialized);
+            assert(!measurement_in_progress);
             const WalkType &walk = *boost::polymorphic_downcast<const WalkType *>(&walk_);
             ++m_steps_since_last_measurement;
             if (m_steps_since_last_measurement % m_steps_per_measurement == 0) {

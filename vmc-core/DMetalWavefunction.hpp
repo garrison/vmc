@@ -80,7 +80,7 @@ public:
 
     virtual std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
         {
-            BOOST_ASSERT(this == this_ptr.get());
+            assert(this == this_ptr.get());
             return vmcstd::make_unique<Amplitude>(std::dynamic_pointer_cast<const DMetalWavefunction>(this_ptr), r);
         }
 
@@ -91,7 +91,7 @@ public:
 
     virtual unsigned int get_N_filled (unsigned int species) const override
         {
-            BOOST_ASSERT(species < 2);
+            assert(species < 2);
             return (species == 0 ? orbital_d1 : orbital_d2)->get_N_filled();
         }
 };

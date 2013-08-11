@@ -23,7 +23,7 @@ void BCSWavefunction<AmplitudeType>::Amplitude::perform_move_ (const Move &move)
 {
     // we require that m_partial_update_step == 0 between moves; otherwise,
     // psi_() will return zero when it shouldn't.
-    BOOST_ASSERT(m_partial_update_step == 0);
+    assert(m_partial_update_step == 0);
 
     m_current_move = move;
 
@@ -63,7 +63,7 @@ void BCSWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &mov
                 return;
             }
         } else {
-            BOOST_ASSERT(m_current_jastrow.get_base() == 1. && m_current_jastrow.get_exponent() == 0.);
+            assert(m_current_jastrow.get_base() == 1. && m_current_jastrow.get_exponent() == 0.);
         }
 
     case 1:
@@ -81,7 +81,7 @@ void BCSWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &mov
                         srcmat(particle_index, i) = wf_->phi(destination, dn_pos[i]);
                     rows.push_back(particle_index);
                 } else {
-                    BOOST_ASSERT(move[j].particle.species == 1);
+                    assert(move[j].particle.species == 1);
                     const std::vector<unsigned int> & up_pos = this->r.r_vector(0);
                     for (unsigned int i = 0; i < M; ++i)
                         srcmat(i, particle_index) = wf_->phi(up_pos[i], destination);
@@ -132,7 +132,7 @@ void BCSWavefunction<AmplitudeType>::Amplitude::swap_particles_ (unsigned int pa
     if (species == 0) {
         m_cmat.swap_rows(particle1_index, particle2_index);
     } else {
-        BOOST_ASSERT(species == 1);
+        assert(species == 1);
         m_cmat.swap_columns(particle1_index, particle2_index);
     }
 
@@ -157,10 +157,10 @@ void BCSWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
     const std::shared_ptr<const Lattice> &lattice = this->wf->lattice;
     const unsigned int M = wf_->M;
 
-    BOOST_ASSERT(this->r.get_N_sites() == lattice->total_sites());
-    BOOST_ASSERT(this->r.get_N_species() == 2);
-    BOOST_ASSERT(this->r.get_N_filled(0) == M);
-    BOOST_ASSERT(this->r.get_N_filled(1) == M);
+    assert(this->r.get_N_sites() == lattice->total_sites());
+    assert(this->r.get_N_species() == 2);
+    assert(this->r.get_N_filled(0) == M);
+    assert(this->r.get_N_filled(1) == M);
 
     if (wf_->jastrow) {
         m_current_jastrow = wf_->jastrow->compute_jastrow(this->r);
@@ -196,7 +196,7 @@ std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction
     const unsigned int M = get_N_filled(0);
     const unsigned int N = this->lattice->total_sites();
 
-    BOOST_ASSERT(2 * M <= N);
+    assert(2 * M <= N);
 
     for (unsigned int j = 0; j < n_attempts; ++j) {
         // Take into account Gutzwiller projection [at most one spinon ("particle") per site]
@@ -204,8 +204,8 @@ std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction
         vv[0] = some_random_configuration(M, *this->lattice, rng);
         std::vector<unsigned int> occupied_sites(N);
         for (unsigned int i = 0; i < vv[0].size(); ++i) {
-            BOOST_ASSERT(vv[0][i] < N);
-            BOOST_ASSERT(occupied_sites[vv[0][i]] == 0);
+            assert(vv[0][i] < N);
+            assert(occupied_sites[vv[0][i]] == 0);
             ++occupied_sites[vv[0][i]];
         }
         std::vector<unsigned int> unoccupied_site_indices; // unoccupied by the first species, that is
@@ -214,14 +214,14 @@ std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> BCSWavefunction
             if (occupied_sites[i] == 0)
                 unoccupied_site_indices.push_back(i);
         }
-        BOOST_ASSERT(unoccupied_site_indices.size() == N - M);
+        assert(unoccupied_site_indices.size() == N - M);
         std::vector<unsigned int> choices;
         random_combination(choices, M, N - M, rng);
         for (unsigned int i = 0; i < choices.size(); ++i)
             vv[1].push_back(unoccupied_site_indices[i]);
 
-        BOOST_ASSERT(vv[0].size() == M);
-        BOOST_ASSERT(vv[1].size() == M);
+        assert(vv[0].size() == M);
+        assert(vv[1].size() == M);
 
         std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa(create_wavefunctionamplitude(this_ptr, PositionArguments(vv, this->lattice->total_sites())));
         if (wfa->is_nonzero())
@@ -245,11 +245,11 @@ Move BCSWavefunction<AmplitudeType>::Amplitude::propose_move (RandomNumberGenera
 
     // if the target site has a particle of opposite spin, we want it to swap
     // positions with our original particle
-    BOOST_ASSERT(this->wf->get_N_species() == 2);
+    assert(this->wf->get_N_species() == 2);
     const unsigned int other_species = particle.species ^ 1;
     if (this->r.is_occupied(target_site_index, other_species)) {
         const int target_particle_index = this->r.particle_index_at_position(target_site_index, other_species);
-        BOOST_ASSERT(target_particle_index >= 0);
+        assert(target_particle_index >= 0);
         move.push_back(SingleParticleMove(Particle(target_particle_index, other_species), this->r[particle]));
     }
 

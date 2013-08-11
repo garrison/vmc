@@ -2,8 +2,7 @@
 #define _VMC_BCS_WAVEFUNCTION_HPP
 
 #include <vector>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 // we always want to include vmc-typedefs.hpp before including Eigen
 #include "vmc-typedefs.hpp"
@@ -33,10 +32,10 @@ public:
           M(M_),
           jastrow(jastrow_)
         {
-            BOOST_ASSERT(M > 0);
-            BOOST_ASSERT(2 * M <= this->lattice->total_sites());
-            BOOST_ASSERT(this->lattice->total_sites() == phi.rows());
-            BOOST_ASSERT(this->lattice->total_sites() == phi.cols());
+            assert(M > 0);
+            assert(2 * M <= this->lattice->total_sites());
+            assert(this->lattice->total_sites() == phi.rows());
+            assert(this->lattice->total_sites() == phi.cols());
         }
 
     class Amplitude : public Wavefunction<AmplitudeType>::Amplitude
@@ -79,7 +78,7 @@ public:
 
     virtual std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> create_wavefunctionamplitude (const std::shared_ptr<const Wavefunction<AmplitudeType> > &this_ptr, const PositionArguments &r) const override
         {
-            BOOST_ASSERT(this == this_ptr.get());
+            assert(this == this_ptr.get());
             return vmcstd::make_unique<Amplitude>(std::dynamic_pointer_cast<const BCSWavefunction>(this_ptr), r);
         }
 
@@ -90,7 +89,7 @@ public:
 
     virtual unsigned int get_N_filled (unsigned int species) const override
         {
-            BOOST_ASSERT(species < 2);
+            assert(species < 2);
             // assumes half filling
             return M;
         }

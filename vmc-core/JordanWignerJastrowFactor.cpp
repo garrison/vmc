@@ -1,4 +1,4 @@
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "JordanWignerJastrowFactor.hpp"
 #include "vmc-not-implemented.hpp"
@@ -14,7 +14,7 @@ Big<AmplitudeType> JordanWignerJastrowFactor<AmplitudeType>::compute_jastrow (co
         const Particle pj(j, 0);
         for (unsigned int i = 0; i < j; ++i) {
             const Particle pi(i, 0);
-            BOOST_ASSERT(r[pi] != r[pj]);
+            assert(r[pi] != r[pj]);
             if (r[pi] < r[pj])
                 ++c;
         }

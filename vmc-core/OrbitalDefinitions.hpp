@@ -2,8 +2,7 @@
 #define _VMC_ORBITAL_DEFINITIONS_HPP
 
 #include <memory>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 // we always want to include vmc-typedefs.hpp before including Eigen
 #include "vmc-typedefs.hpp"
@@ -22,7 +21,7 @@ public:
         : orbitals(orbitals_),
           lattice(lattice_)
         {
-            BOOST_ASSERT(orbitals.cols() == lattice_->total_sites());
+            assert(orbitals.cols() == lattice_->total_sites());
         }
 
 #if 0
@@ -36,7 +35,7 @@ public:
      */
     typename Eigen::Matrix<AmplitudeType, Eigen::Dynamic, Eigen::Dynamic>::ConstColXpr at_position (unsigned int site_index) const
         {
-            BOOST_ASSERT(site_index < orbitals.cols());
+            assert(site_index < orbitals.cols());
             return orbitals.col(site_index);
         }
 

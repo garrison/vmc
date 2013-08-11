@@ -35,11 +35,11 @@ MetropolisSimulation<ProbabilityType, CounterType>::MetropolisSimulation (std::u
       measurement_not_yet_updated(true),
       rng(std::move(rng_))
 {
-    BOOST_ASSERT(walk != nullptr);
-    BOOST_ASSERT(rng != nullptr);
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+    assert(walk != nullptr);
+    assert(rng != nullptr);
+#ifndef NDEBUG
     for (const std::shared_ptr<BaseMeasurementType> & m : measurements)
-        BOOST_ASSERT(m->is_valid_walk(*walk));
+        assert(m->is_valid_walk(*walk));
 #endif
 
     perform_initialization(initialization_sweeps);

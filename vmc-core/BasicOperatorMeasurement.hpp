@@ -3,8 +3,6 @@
 
 #include <memory>
 
-#include <boost/assert.hpp>
-
 #include "Measurement.hpp"
 #include "StandardWalk.hpp"
 #include "Wavefunction.hpp"

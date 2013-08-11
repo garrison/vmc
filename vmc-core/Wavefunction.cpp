@@ -16,13 +16,13 @@ could_not_find_nonzero_wavefunctionamplitude_error::could_not_find_nonzero_wavef
 template <typename AmplitudeType>
 void Wavefunction<AmplitudeType>::Amplitude::perform_move (const Move &move)
 {
-    BOOST_ASSERT(!move_in_progress);
+    assert(!move_in_progress);
 
     // there's no reason to be making null moves, and if we explicitly disallow
     // them the subclasses can be cleaner.
-    BOOST_ASSERT(move.size() != 0);
+    assert(move.size() != 0);
 
-    BOOST_ASSERT(move.is_valid_for(r));
+    assert(move.is_valid_for(r));
 
     // perform the move in the PositionArguments r while remembering the
     // reverse move
@@ -32,13 +32,13 @@ void Wavefunction<AmplitudeType>::Amplitude::perform_move (const Move &move)
         r.update_position(move[i].particle, move[i].destination);
     }
 
-    BOOST_ASSERT(reverse_move.is_valid_for(r));
+    assert(reverse_move.is_valid_for(r));
 
     // have the subclass update things such that psi_() returns the new
     // amplitude
     perform_move_(move);
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
     move_in_progress = true;
 #endif
 }
@@ -46,7 +46,7 @@ void Wavefunction<AmplitudeType>::Amplitude::perform_move (const Move &move)
 template <typename AmplitudeType>
 void Wavefunction<AmplitudeType>::Amplitude::cancel_move (void)
 {
-    BOOST_ASSERT(move_in_progress);
+    assert(move_in_progress);
 
     // have the subclass cancel the move so psi_() returns the same value as
     // before the attempted move
@@ -57,7 +57,7 @@ void Wavefunction<AmplitudeType>::Amplitude::cancel_move (void)
     for (unsigned int i = 0; i < move.size(); ++i)
         r.update_position(move[i].particle, move[i].destination);
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
     move_in_progress = false;
 #endif
 }

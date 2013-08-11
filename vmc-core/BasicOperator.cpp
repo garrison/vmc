@@ -1,8 +1,7 @@
 #include <set>
 #include <utility>
 #include <algorithm>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "BasicOperator.hpp"
 
@@ -11,7 +10,7 @@ BasicOperator::BasicOperator (const std::vector<SiteHop> &hopv_, const std::shar
       lattice(lattice_)
 {
     // validate everything except N_species
-    BOOST_ASSERT(is_valid(hopv, *lattice, -1));
+    assert(is_valid(hopv, *lattice, -1));
 }
 
 static inline LatticeSite inline_enforce_boundary (const LatticeSite &site, const Lattice &lattice)

@@ -1,4 +1,5 @@
-#include <boost/assert.hpp>
+#include <cassert>
+
 #include <boost/cast.hpp>
 
 #include "DBLWavefunction.hpp"
@@ -9,12 +10,12 @@ DBLWavefunction<AmplitudeType>::Amplitude::Amplitude (const std::shared_ptr<cons
     : Wavefunction<AmplitudeType>::Amplitude(wf_, r_),
       m_partial_update_step(0)
 {
-    BOOST_ASSERT(this->r.get_N_species() == 1);
-    BOOST_ASSERT(this->r.get_N_sites() == wf_->orbital_def1->get_N_sites());
-    BOOST_ASSERT(this->r.get_N_sites() == wf_->orbital_def2->get_N_sites());
-    BOOST_ASSERT(this->r.get_N_filled(0) == wf_->orbital_def1->get_N_filled());
-    BOOST_ASSERT(this->r.get_N_filled(0) == wf_->orbital_def2->get_N_filled());
-    BOOST_ASSERT(wf_->orbital_def1->get_lattice_ptr() == wf_->orbital_def2->get_lattice_ptr());
+    assert(this->r.get_N_species() == 1);
+    assert(this->r.get_N_sites() == wf_->orbital_def1->get_N_sites());
+    assert(this->r.get_N_sites() == wf_->orbital_def2->get_N_sites());
+    assert(this->r.get_N_filled(0) == wf_->orbital_def1->get_N_filled());
+    assert(this->r.get_N_filled(0) == wf_->orbital_def2->get_N_filled());
+    assert(wf_->orbital_def1->get_lattice_ptr() == wf_->orbital_def2->get_lattice_ptr());
 
     reinitialize();
 }
@@ -24,7 +25,7 @@ void DBLWavefunction<AmplitudeType>::Amplitude::perform_move_ (const Move &move)
 {
     // we require that m_partial_update_step == 0 between moves; otherwise, psi_() will
     // return zero when it shouldn't.
-    BOOST_ASSERT(m_partial_update_step == 0);
+    assert(m_partial_update_step == 0);
 
     m_current_move = move;
 
@@ -121,9 +122,9 @@ void DBLWavefunction<AmplitudeType>::Amplitude::reset_ (const PositionArguments 
 {
     const DBLWavefunction *wf_ = boost::polymorphic_downcast<const DBLWavefunction *>(this->wf.get());
 
-    BOOST_ASSERT(r_.get_N_species() == 1);
-    BOOST_ASSERT(r_.get_N_sites() == wf_->orbital_def1->get_N_sites());
-    BOOST_ASSERT(r_.get_N_filled(0) == wf_->orbital_def1->get_N_filled());
+    assert(r_.get_N_species() == 1);
+    assert(r_.get_N_sites() == wf_->orbital_def1->get_N_sites());
+    assert(r_.get_N_filled(0) == wf_->orbital_def1->get_N_filled());
 
     this->r = r_;
     reinitialize();

@@ -1,11 +1,10 @@
 #ifndef _VMC_LATTICE_HPP
 #define _VMC_LATTICE_HPP
 
+#include <cassert>
 #include <cstddef>
 #include <utility>
 #include <vector>
-
-#include <boost/assert.hpp>
 
 #include "PositionArguments.hpp"
 #include "vmc-typedefs.hpp"
@@ -273,11 +272,11 @@ public:
      */
     void move_site (LatticeSite &site, unsigned int move_axis, int step_direction) const
         {
-            BOOST_ASSERT(site_is_valid(site));
-            BOOST_ASSERT(move_axis < move_axes.size());
-            BOOST_ASSERT(step_direction == -1 || step_direction == 1);
+            assert(site_is_valid(site));
+            assert(move_axis < move_axes.size());
+            assert(step_direction == -1 || step_direction == 1);
             const MoveAxis &m = move_axes[move_axis];
-            BOOST_ASSERT(m.bravais_site.size() == n_dimensions());
+            assert(m.bravais_site.size() == n_dimensions());
             for (unsigned int i = 0; i < n_dimensions(); ++i)
                 site[i] += step_direction * m.bravais_site[i];
             site.basis_index += step_direction * m.basis_index;
@@ -287,13 +286,13 @@ public:
 private:
     static inline unsigned int count_total_sites (const DimensionVector &dimensions, int basis_indices)
         {
-            BOOST_ASSERT(dimensions.size() > 0);
+            assert(dimensions.size() > 0);
             unsigned int rv = 1;
             for (unsigned int i = 0; i < dimensions.size(); ++i) {
-                BOOST_ASSERT(dimensions[i] > 0);
+                assert(dimensions[i] > 0);
                 rv *= dimensions[i];
             }
-            BOOST_ASSERT(basis_indices > 0);
+            assert(basis_indices > 0);
             rv *= basis_indices;
             return rv;
         }
@@ -317,8 +316,8 @@ protected:
 template <typename PhaseType>
 PhaseType Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions<PhaseType> &bcs) const
 {
-    BOOST_ASSERT(site.n_dimensions() == n_dimensions());
-    BOOST_ASSERT(bcs.size() == 0 || bcs.size() == n_dimensions());
+    assert(site.n_dimensions() == n_dimensions());
+    assert(bcs.size() == 0 || bcs.size() == n_dimensions());
     PhaseType phase_change = 1;
     for (unsigned int dim = 0; dim < n_dimensions(); ++dim) {
         while (site[dim] >= dimensions[dim]) {
@@ -337,7 +336,7 @@ PhaseType Lattice::enforce_boundary (LatticeSite &site, const BoundaryConditions
     // function to be called before this one when needed?
     do_safe_modulus(site.basis_index, basis_indices);
 
-    BOOST_ASSERT(site_is_valid(site));
+    assert(site_is_valid(site));
     return phase_change;
 }
 

@@ -1,6 +1,6 @@
+#include <cassert>
 #include <cstring>
 
-#include <boost/assert.hpp>
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/lagged_fibonacci.hpp>
 #include <boost/random/uniform_smallint.hpp>
@@ -24,7 +24,7 @@ public:
 protected:
     virtual unsigned int random_small_uint (unsigned int lower_bound, unsigned int upper_cutoff) override
         {
-            BOOST_ASSERT(lower_bound < upper_cutoff);
+            assert(lower_bound < upper_cutoff);
             if (lower_bound == upper_cutoff - 1)
                 return lower_bound; // there's only one possibility, so we don't need randomness
             boost::uniform_smallint<> distribution(lower_bound, upper_cutoff - 1);
@@ -69,12 +69,12 @@ bool RandomNumberGenerator::name_is_valid (const char *rng_name)
 
 std::unique_ptr<RandomNumberGenerator> RandomNumberGenerator::create (const char *rng_name, RandomNumberGenerator::rng_seed_t seed)
 {
-    BOOST_ASSERT(name_is_valid(rng_name));
+    assert(name_is_valid(rng_name));
     if (std::strcmp(rng_name, "boost::mt19937") == 0)
         return vmcstd::make_unique<RandomNumberGeneratorBoostImpl<boost::mt19937> >(seed);
     if (std::strcmp(rng_name, "boost::lagged_fibonacci607") == 0)
         return vmcstd::make_unique<RandomNumberGeneratorBoostImpl<boost::lagged_fibonacci607> >(seed);
 
-    BOOST_ASSERT(false); // invalid rng specified
+    assert(false); // invalid rng specified
     return std::unique_ptr<RandomNumberGenerator>(); // suppress non-void return warning
 }

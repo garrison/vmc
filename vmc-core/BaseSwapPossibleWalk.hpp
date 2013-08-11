@@ -4,8 +4,6 @@
 #include <memory>
 #include <utility>
 
-#include <boost/assert.hpp>
-
 #include "vmc-typedefs.hpp"
 #include "Subsystem.hpp"
 #include "SwappedSystem.hpp"

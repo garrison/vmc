@@ -2,8 +2,8 @@
 #define _VMC_BOUNDARY_CONDITION_HPP
 
 #include <cmath>
+#include <cassert>
 
-#include <boost/assert.hpp>
 #include <boost/rational.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -35,7 +35,7 @@ public:
         : m_p(p_),
           m_phase(calculate_phase<PhaseType>(p_))
         {
-            BOOST_ASSERT(p_ >= 0 && p_ <= 1);
+            assert(p_ >= 0 && p_ <= 1);
         }
 
     /**
@@ -52,7 +52,7 @@ public:
      */
     boost::rational<int> p (void) const
         {
-            BOOST_ASSERT(m_p != -1); // otherwise it is uninitialized
+            assert(m_p != -1); // otherwise it is uninitialized
             return m_p;
         }
 
@@ -63,7 +63,7 @@ public:
      */
     PhaseType phase (void) const
         {
-            BOOST_ASSERT(m_p != -1); // otherwise it is uninitialized
+            assert(m_p != -1); // otherwise it is uninitialized
             return m_phase;
         }
 
@@ -118,7 +118,7 @@ private:
 
             // the only remaining possibility for a real PhaseType is open boundary
             // conditions
-            BOOST_ASSERT(p == 0);
+            assert(p == 0);
             return RealPhaseType(0);
         }
 

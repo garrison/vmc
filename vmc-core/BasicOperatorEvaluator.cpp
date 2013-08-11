@@ -38,7 +38,7 @@ BasicOperatorEvaluator::BasicOperatorEvaluator (const BasicOperator &operator_)
     : m_operator(operator_),
       min_required_species(BasicOperator::min_required_species(operator_.hopv, *operator_.lattice))
 {
-    BOOST_ASSERT(min_required_species != 0); // otherwise the operator is not valid
+    assert(min_required_species != 0); // otherwise the operator is not valid
 }
 
 template <typename AmplitudeType>
@@ -46,8 +46,8 @@ AmplitudeType BasicOperatorEvaluator::evaluate (const typename Wavefunction<Ampl
 {
     typedef AmplitudeType PhaseType;
 
-    BOOST_ASSERT(&wfa.get_lattice() == m_operator.lattice.get());
-    BOOST_ASSERT(wfa.get_positions().get_N_species() >= min_required_species);
+    assert(&wfa.get_lattice() == m_operator.lattice.get());
+    assert(wfa.get_positions().get_N_species() >= min_required_species);
 
     const PositionArguments &r = wfa.get_positions();
     const Lattice &lattice = wfa.get_lattice();
@@ -65,7 +65,7 @@ AmplitudeType BasicOperatorEvaluator::evaluate (const typename Wavefunction<Ampl
     for (unsigned int i = 0; i < n_iterations; ++i) {
         const LatticeSite site_offset(lattice[i]);
         // we only want to iterate over BravaisSite's
-        BOOST_ASSERT(site_offset.basis_index == 0);
+        assert(site_offset.basis_index == 0);
 
         PhaseType phase = 1;
 
@@ -75,7 +75,7 @@ AmplitudeType BasicOperatorEvaluator::evaluate (const typename Wavefunction<Ampl
             const unsigned int species = m_operator.hopv[j].get_species();
             LatticeSite src(m_operator.hopv[j].get_source());
             lattice.asm_add_site_vector(src, site_offset.bravais_site());
-            BOOST_ASSERT(is_sum_over_sites || lattice.site_is_valid(src));
+            assert(is_sum_over_sites || lattice.site_is_valid(src));
             srcphase = lattice.enforce_boundary(src, bcs);
             if (srcphase == PhaseType(0))
                 goto current_measurement_is_zero;
@@ -85,7 +85,7 @@ AmplitudeType BasicOperatorEvaluator::evaluate (const typename Wavefunction<Ampl
             if (m_operator.hopv[j].get_source() != m_operator.hopv[j].get_destination()) {
                 LatticeSite dest(m_operator.hopv[j].get_destination());
                 lattice.asm_add_site_vector(dest, site_offset.bravais_site());
-                BOOST_ASSERT(is_sum_over_sites || lattice.site_is_valid(dest));
+                assert(is_sum_over_sites || lattice.site_is_valid(dest));
                 phase *= lattice.enforce_boundary(dest, bcs) / srcphase;
                 if (phase == PhaseType(0))
                     goto current_measurement_is_zero;

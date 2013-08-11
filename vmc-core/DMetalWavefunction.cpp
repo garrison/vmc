@@ -1,6 +1,6 @@
+#include <cassert>
 #include <vector>
 
-#include <boost/assert.hpp>
 #include <boost/cast.hpp>
 
 #include "DMetalWavefunction.hpp"
@@ -20,11 +20,11 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::perform_move_ (const Move &mo
 {
     // we require that m_partial_update_step == 0 between moves; otherwise, psi_() will
     // return zero when it shouldn't.
-    BOOST_ASSERT(m_partial_update_step == 0);
+    assert(m_partial_update_step == 0);
 
     m_down_particles_in_progress = 0;
     for (unsigned int i = 0; i < move.size(); ++i) {
-        BOOST_ASSERT(move[i].particle.species < 2);
+        assert(move[i].particle.species < 2);
         m_down_particles_in_progress += move[i].particle.species;
     }
     m_up_particles_in_progress = move.size() - m_down_particles_in_progress;
@@ -95,7 +95,7 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &
                 if (move[i].particle.species == 0)
                     f_up_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
             }
-            BOOST_ASSERT(f_up_cols.size() == m_up_particles_in_progress);
+            assert(f_up_cols.size() == m_up_particles_in_progress);
             if (m_up_particles_in_progress)
                 m_cmat_f_up.update_columns(f_up_cols, wf_->orbital_f_up->get_orbitals());
         }
@@ -111,7 +111,7 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::do_perform_move (const Move &
                 if (move[i].particle.species != 0)
                     f_dn_cols.push_back(std::make_pair(move[i].particle.index, move[i].destination));
             }
-            BOOST_ASSERT(f_dn_cols.size() == m_down_particles_in_progress);
+            assert(f_dn_cols.size() == m_down_particles_in_progress);
             if (m_down_particles_in_progress)
                 m_cmat_f_dn.update_columns(f_dn_cols, wf_->orbital_f_dn->get_orbitals());
         }
@@ -193,17 +193,17 @@ void DMetalWavefunction<AmplitudeType>::Amplitude::reinitialize (void)
 {
     const DMetalWavefunction *wf_ = boost::polymorphic_downcast<const DMetalWavefunction *>(this->wf.get());
 
-    BOOST_ASSERT(this->r.get_N_species() == 2);
+    assert(this->r.get_N_species() == 2);
 
-    BOOST_ASSERT(this->r.get_N_sites() == wf_->orbital_d1->get_N_sites());
-    BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_d2->get_lattice_ptr());
-    BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_f_up->get_lattice_ptr());
-    BOOST_ASSERT(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_f_dn->get_lattice_ptr());
+    assert(this->r.get_N_sites() == wf_->orbital_d1->get_N_sites());
+    assert(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_d2->get_lattice_ptr());
+    assert(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_f_up->get_lattice_ptr());
+    assert(wf_->orbital_d1->get_lattice_ptr() == wf_->orbital_f_dn->get_lattice_ptr());
 
-    BOOST_ASSERT(this->r.get_N_filled(0) + this->r.get_N_filled(1) == wf_->orbital_d1->get_N_filled());
-    BOOST_ASSERT(this->r.get_N_filled(0) + this->r.get_N_filled(1) == wf_->orbital_d2->get_N_filled());
-    BOOST_ASSERT(this->r.get_N_filled(0) == wf_->orbital_f_up->get_N_filled());
-    BOOST_ASSERT(this->r.get_N_filled(1) == wf_->orbital_f_dn->get_N_filled());
+    assert(this->r.get_N_filled(0) + this->r.get_N_filled(1) == wf_->orbital_d1->get_N_filled());
+    assert(this->r.get_N_filled(0) + this->r.get_N_filled(1) == wf_->orbital_d2->get_N_filled());
+    assert(this->r.get_N_filled(0) == wf_->orbital_f_up->get_N_filled());
+    assert(this->r.get_N_filled(1) == wf_->orbital_f_dn->get_N_filled());
 
     const unsigned int N = wf_->orbital_d1->get_N_filled();
     const unsigned int M = wf_->orbital_f_up->get_N_filled();

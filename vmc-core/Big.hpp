@@ -2,8 +2,7 @@
 #define _VMC_BIG_HPP
 
 #include <cmath>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "vmc-real-part.hpp"
 
@@ -30,7 +29,7 @@ public:
         : m_base(base),
           m_exponent(exponent)
         {
-            BOOST_ASSERT(exponent == exponent);
+            assert(exponent == exponent);
         }
 
     /*

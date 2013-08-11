@@ -23,7 +23,7 @@ SwappedSystem::SwappedSystem (const std::shared_ptr<const Subsystem> &subsystem_
 
 void SwappedSystem::initialize (const Wavefunction<amplitude_t>::Amplitude &phialpha1, const Wavefunction<amplitude_t>::Amplitude &phialpha2)
 {
-    BOOST_ASSERT(current_state == UNINITIALIZED);
+    assert(current_state == UNINITIALIZED);
 
     const PositionArguments &r1 = phialpha1.get_positions();
     const PositionArguments &r2 = phialpha2.get_positions();
@@ -33,15 +33,15 @@ void SwappedSystem::initialize (const Wavefunction<amplitude_t>::Amplitude &phia
     // we're only calling this function from two places in the code where this
     // can be easily verified ...
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-    BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
+#ifndef NDEBUG
+    assert(r1.get_N_species() == r2.get_N_species());
     for (unsigned int i = 0; i < r1.get_N_species(); ++i)
-        BOOST_ASSERT(r1.get_N_filled(i) == r2.get_N_filled(i));
+        assert(r1.get_N_filled(i) == r2.get_N_filled(i));
 #endif
-    BOOST_ASSERT(r1.get_N_sites() == r2.get_N_sites());
-    BOOST_ASSERT(subsystem->lattice_makes_sense(phialpha1.get_lattice()));
-    BOOST_ASSERT(subsystem->lattice_makes_sense(phialpha2.get_lattice()));
-    BOOST_ASSERT(&phialpha1.get_lattice() == &phialpha2.get_lattice());
+    assert(r1.get_N_sites() == r2.get_N_sites());
+    assert(subsystem->lattice_makes_sense(phialpha1.get_lattice()));
+    assert(subsystem->lattice_makes_sense(phialpha2.get_lattice()));
+    assert(&phialpha1.get_lattice() == &phialpha2.get_lattice());
 
     const unsigned int N_species = r1.get_N_species();
     copy1_subsystem_indices.resize(N_species);
@@ -57,7 +57,7 @@ void SwappedSystem::initialize (const Wavefunction<amplitude_t>::Amplitude &phia
         }
     }
 
-    BOOST_ASSERT(subsystem_particle_counts_match());
+    assert(subsystem_particle_counts_match());
     reinitialize_phibetas(phialpha1, phialpha2);
 
     current_state = READY;
@@ -67,20 +67,20 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 {
     // this function should be called *after* the phialpha's have been updated
 
-    BOOST_ASSERT(current_state == READY);
+    assert(current_state == READY);
     current_state = UPDATE_IN_PROGRESS;
 
     const PositionArguments &r1 = phialpha1.get_positions();
     const PositionArguments &r2 = phialpha2.get_positions();
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-    BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
+#ifndef NDEBUG
+    assert(r1.get_N_species() == r2.get_N_species());
     for (unsigned int i = 0; i < r1.get_N_species(); ++i)
-        BOOST_ASSERT(r1.get_N_filled(i) == r2.get_N_filled(i));
+        assert(r1.get_N_filled(i) == r2.get_N_filled(i));
 #endif
 
-    BOOST_ASSERT(!particle1 || r1.particle_is_valid(*particle1));
-    BOOST_ASSERT(!particle2 || r2.particle_is_valid(*particle2));
+    assert(!particle1 || r1.particle_is_valid(*particle1));
+    assert(!particle2 || r2.particle_is_valid(*particle2));
 
     const Lattice &lattice = phialpha1.get_lattice();
 
@@ -94,23 +94,23 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
     const bool particle2_now_in_subsystem = (particle2 && subsystem->position_is_within(r2[*particle2], lattice));
 
     const int delta1 = (particle1_now_in_subsystem ? 1 : 0) + (pairing_index1 >= 0 ? -1 : 0);
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
     const int delta2 = (particle2_now_in_subsystem ? 1 : 0) + (pairing_index2 >= 0 ? -1 : 0);
 #endif
 
-    BOOST_ASSERT(particle1 || delta1 == 0);
-    BOOST_ASSERT(particle2 || delta2 == 0);
+    assert(particle1 || delta1 == 0);
+    assert(particle2 || delta2 == 0);
 
-    BOOST_ASSERT(delta1 == delta2);
+    assert(delta1 == delta2);
     const int delta = delta1;
 
-    BOOST_ASSERT(delta == 0 || (particle1 && particle2 && particle1->species == particle2->species));
+    assert(delta == 0 || (particle1 && particle2 && particle1->species == particle2->species));
 
-    BOOST_ASSERT(delta == 0 || particle1_now_in_subsystem == particle2_now_in_subsystem);
+    assert(delta == 0 || particle1_now_in_subsystem == particle2_now_in_subsystem);
     // to ensure only a single update is necessary to the phibeta's, we require
     // that a particle only be moved in one copy if the particle number is not
     // changing
-    BOOST_ASSERT(delta != 0 || !(particle1 && particle2));
+    assert(delta != 0 || !(particle1 && particle2));
 
     // remember a few things in case we need to cancel
     recent_delta = delta;
@@ -127,9 +127,9 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 
         // these repeat some logic in the "if" statement, but are a useful
         // sanity check nonetheless (for now)
-        BOOST_ASSERT(pairing_index1 >= 0 && pairing_index2 >= 0);
-        BOOST_ASSERT(!particle1_now_in_subsystem);
-        BOOST_ASSERT(!particle2_now_in_subsystem);
+        assert(pairing_index1 >= 0 && pairing_index2 >= 0);
+        assert(!particle1_now_in_subsystem);
+        assert(!particle2_now_in_subsystem);
 
         const unsigned int species = particle1->species;
         std::vector<unsigned int> &c1_s = copy1_subsystem_indices[species];
@@ -149,7 +149,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 
         // update the phibeta's
         const unsigned int max_pairing_index = std::max(pairing_index1, pairing_index2);
-        BOOST_ASSERT(!phibeta1_dirty && !phibeta2_dirty);
+        assert(!phibeta1_dirty && !phibeta2_dirty);
         {
             Move move;
             move.push_back(SingleParticleMove(Particle(c1_s[max_pairing_index], species), r1[*particle1]));
@@ -170,7 +170,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
         c2_s[max_pairing_index] = c2_s[c2_s.size() - 1];
         c2_s.pop_back();
     } else {
-        BOOST_ASSERT(delta == 0 || delta == 1);
+        assert(delta == 0 || delta == 1);
 
         // either both particles moved within their respective subsystems
         // (if they moved at all), or both entered the subsystem and paired
@@ -186,14 +186,14 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             pairing_index2 = c2_s.size() - 1;
         }
 
-        BOOST_ASSERT(subsystem_particle_counts_match());
+        assert(subsystem_particle_counts_match());
 
         // update the phibeta's
         if (particle1) {
             std::unique_ptr<Wavefunction<amplitude_t>::Amplitude> &phibeta = particle1_now_in_subsystem ? phibeta2 : phibeta1;
             bool &phibeta_dirty = particle1_now_in_subsystem ? phibeta2_dirty : phibeta1_dirty;
             const Particle phibeta_particle = particle1_now_in_subsystem ? Particle(copy2_subsystem_indices[particle1->species][pairing_index1], particle1->species) : *particle1;
-            BOOST_ASSERT(!phibeta_dirty);
+            assert(!phibeta_dirty);
             Move move;
             move.push_back(SingleParticleMove(phibeta_particle, r1[*particle1]));
             phibeta->perform_move(move);
@@ -208,7 +208,7 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
             // in which case this phibeta and the phibeta above will be
             // different, so we know that phibeta_dirty will never be true
             // here.
-            BOOST_ASSERT(!phibeta_dirty);
+            assert(!phibeta_dirty);
             Move move;
             move.push_back(SingleParticleMove(phibeta_particle, r2[*particle2]));
             phibeta->perform_move(move);
@@ -219,10 +219,10 @@ void SwappedSystem::update (const Particle *particle1, const Particle *particle2
 
 void SwappedSystem::finish_update (const Wavefunction<amplitude_t>::Amplitude &phialpha1, const Wavefunction<amplitude_t>::Amplitude &phialpha2)
 {
-    BOOST_ASSERT(current_state == UPDATE_IN_PROGRESS);
+    assert(current_state == UPDATE_IN_PROGRESS);
     current_state = READY;
 
-    BOOST_ASSERT(subsystem_particle_counts_match());
+    assert(subsystem_particle_counts_match());
 
     if (phibeta1_dirty) {
         phibeta1->finish_move();
@@ -244,10 +244,10 @@ void SwappedSystem::finish_update (const Wavefunction<amplitude_t>::Amplitude &p
 
 void SwappedSystem::cancel_update (const Wavefunction<amplitude_t>::Amplitude &phialpha1, const Wavefunction<amplitude_t>::Amplitude &phialpha2)
 {
-    BOOST_ASSERT(current_state == UPDATE_IN_PROGRESS);
+    assert(current_state == UPDATE_IN_PROGRESS);
     current_state = READY;
 
-    BOOST_ASSERT(subsystem_particle_counts_match());
+    assert(subsystem_particle_counts_match());
 
     if (phibeta1_dirty)
         phibeta1->cancel_move();
@@ -259,7 +259,7 @@ void SwappedSystem::cancel_update (const Wavefunction<amplitude_t>::Amplitude &p
 
     if (recent_delta != 0) {
         // we must revert our changes to copy[1|2]_subsystem_indices
-        BOOST_ASSERT(recent_particle1.species == recent_particle2.species);
+        assert(recent_particle1.species == recent_particle2.species);
         const unsigned int species = recent_particle1.species;
         if (recent_delta == 1) {
             // the particles paired with each other immediately, so we get rid
@@ -267,7 +267,7 @@ void SwappedSystem::cancel_update (const Wavefunction<amplitude_t>::Amplitude &p
             copy1_subsystem_indices[species].pop_back();
             copy2_subsystem_indices[species].pop_back();
         } else {
-            BOOST_ASSERT(recent_delta == -1);
+            assert(recent_delta == -1);
             // we must re-pair the particles since they returned to the
             // subsystem
             copy1_subsystem_indices[species].push_back(recent_particle1.index);
@@ -285,7 +285,7 @@ void SwappedSystem::cancel_update (const Wavefunction<amplitude_t>::Amplitude &p
 
 bool SwappedSystem::subsystem_particle_counts_match (void) const
 {
-    BOOST_ASSERT(copy1_subsystem_indices.size() == copy2_subsystem_indices.size());
+    assert(copy1_subsystem_indices.size() == copy2_subsystem_indices.size());
 
     for (unsigned int i = 0; i < copy1_subsystem_indices.size(); ++i) {
         if (copy1_subsystem_indices[i].size() != copy2_subsystem_indices[i].size())
@@ -296,7 +296,7 @@ bool SwappedSystem::subsystem_particle_counts_match (void) const
 
 void SwappedSystem::reinitialize_phibetas (const Wavefunction<amplitude_t>::Amplitude &phialpha1, const Wavefunction<amplitude_t>::Amplitude &phialpha2)
 {
-    BOOST_ASSERT(subsystem_particle_counts_match());
+    assert(subsystem_particle_counts_match());
 
 #if defined(DEBUG_VMC_SWAPPED_SYSTEM) || defined(DEBUG_VMC_ALL)
     for (unsigned int species = 0; species < copy1_subsystem_indices.size(); ++species)
@@ -322,24 +322,24 @@ void SwappedSystem::reinitialize_phibetas (const Wavefunction<amplitude_t>::Ampl
 
 void SwappedSystem::verify_phibetas (const Wavefunction<amplitude_t>::Amplitude &phialpha1, const Wavefunction<amplitude_t>::Amplitude &phialpha2) const
 {
-#if defined(BOOST_DISABLE_ASSERTS) || defined(NDEBUG)
+#ifdef NDEBUG
     (void) phialpha1;
     (void) phialpha2;
 #else
     const PositionArguments &r1 = phialpha1.get_positions();
     const PositionArguments &r2 = phialpha2.get_positions();
 
-    BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
-    BOOST_ASSERT(r1.get_N_sites() == r2.get_N_sites());
+    assert(r1.get_N_species() == r2.get_N_species());
+    assert(r1.get_N_sites() == r2.get_N_sites());
 
-    BOOST_ASSERT(copy1_subsystem_indices.size() == r1.get_N_species());
-    BOOST_ASSERT(copy2_subsystem_indices.size() == r1.get_N_species());
+    assert(copy1_subsystem_indices.size() == r1.get_N_species());
+    assert(copy2_subsystem_indices.size() == r1.get_N_species());
 
     const Lattice &lattice = phialpha1.get_lattice();
 
     for (unsigned int species = 0; species < r1.get_N_species(); ++species) {
         const unsigned int N = r1.get_N_filled(species);
-        BOOST_ASSERT(N == r2.get_N_filled(species));
+        assert(N == r2.get_N_filled(species));
 
         // verify that the subsystem index arrays have everything they need (and no duplicates!)
         unsigned int c1 = 0, c2 = 0;
@@ -351,16 +351,16 @@ void SwappedSystem::verify_phibetas (const Wavefunction<amplitude_t>::Amplitude 
                 ++c1;
             if (b2)
                 ++c2;
-            BOOST_ASSERT(b1 == subsystem->position_is_within(r1[particle], lattice));
-            BOOST_ASSERT(b2 == subsystem->position_is_within(r2[particle], lattice));
+            assert(b1 == subsystem->position_is_within(r1[particle], lattice));
+            assert(b2 == subsystem->position_is_within(r2[particle], lattice));
         }
-        BOOST_ASSERT(c1 == c2);
-        BOOST_ASSERT(c1 == copy1_subsystem_indices[species].size());
-        BOOST_ASSERT(c2 == copy2_subsystem_indices[species].size());
+        assert(c1 == c2);
+        assert(c1 == copy1_subsystem_indices[species].size());
+        assert(c2 == copy2_subsystem_indices[species].size());
     }
 
-    BOOST_ASSERT(phibeta1 != 0);
-    BOOST_ASSERT(phibeta2 != 0);
+    assert(phibeta1 != 0);
+    assert(phibeta2 != 0);
 
     // verify that the positions in the phibeta's are correct
     PositionArguments swapped_r1(phialpha1.get_positions()), swapped_r2(phialpha2.get_positions());
@@ -369,8 +369,8 @@ void SwappedSystem::verify_phibetas (const Wavefunction<amplitude_t>::Amplitude 
     for (unsigned int species = 0; species < r1.get_N_species(); ++species) {
         for (unsigned int i = 0; i < r1.get_N_filled(species); ++i) {
             const Particle particle(i, species);
-            BOOST_ASSERT(swapped_r1[particle] == phibeta1->get_positions()[particle]);
-            BOOST_ASSERT(swapped_r2[particle] == phibeta2->get_positions()[particle]);
+            assert(swapped_r1[particle] == phibeta1->get_positions()[particle]);
+            assert(swapped_r2[particle] == phibeta2->get_positions()[particle]);
         }
     }
 #endif
@@ -380,14 +380,14 @@ void SwappedSystem::verify_phibetas (const Wavefunction<amplitude_t>::Amplitude 
 // and verify_phibetas()
 void SwappedSystem::swap_positions (PositionArguments &r1, PositionArguments &r2) const
 {
-    BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
-    BOOST_ASSERT(r1.get_N_species() == copy1_subsystem_indices.size());
-    BOOST_ASSERT(r1.get_N_species() == copy2_subsystem_indices.size());
+    assert(r1.get_N_species() == r2.get_N_species());
+    assert(r1.get_N_species() == copy1_subsystem_indices.size());
+    assert(r1.get_N_species() == copy2_subsystem_indices.size());
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
-    BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
+#ifndef NDEBUG
+    assert(r1.get_N_species() == r2.get_N_species());
     for (unsigned int i = 0; i < r1.get_N_species(); ++i)
-        BOOST_ASSERT(r1.get_N_filled(i) == r2.get_N_filled(i));
+        assert(r1.get_N_filled(i) == r2.get_N_filled(i));
 #endif
 
     bool some_particles_have_been_swapped = false;
@@ -395,7 +395,7 @@ void SwappedSystem::swap_positions (PositionArguments &r1, PositionArguments &r2
     std::vector<std::vector<unsigned int> > v1, v2;
 
     for (unsigned int species = 0; species < r1.get_N_species(); ++species) {
-        BOOST_ASSERT(copy1_subsystem_indices[species].size() == copy2_subsystem_indices[species].size());
+        assert(copy1_subsystem_indices[species].size() == copy2_subsystem_indices[species].size());
 
         v1.push_back(r1.r_vector(species));
         v2.push_back(r2.r_vector(species));
@@ -426,18 +426,18 @@ void SwappedSystem::swap_positions (PositionArguments &r1, PositionArguments &r2
 bool count_subsystem_particle_counts_for_match (const Wavefunction<amplitude_t>::Amplitude &wf1, const Wavefunction<amplitude_t>::Amplitude &wf2,
                                                 const Subsystem &subsystem)
 {
-    BOOST_ASSERT(subsystem.lattice_makes_sense(wf1.get_lattice()));
-    BOOST_ASSERT(subsystem.lattice_makes_sense(wf2.get_lattice()));
+    assert(subsystem.lattice_makes_sense(wf1.get_lattice()));
+    assert(subsystem.lattice_makes_sense(wf2.get_lattice()));
     // (we are also assuming that the lattices are in fact equivalent)
 
     const PositionArguments &r1 = wf1.get_positions();
     const PositionArguments &r2 = wf2.get_positions();
 
-    BOOST_ASSERT(r1.get_N_species() == r2.get_N_species());
-    BOOST_ASSERT(r1.get_N_sites() == r2.get_N_sites());
+    assert(r1.get_N_species() == r2.get_N_species());
+    assert(r1.get_N_sites() == r2.get_N_sites());
 
     for (unsigned int species = 0; species < r1.get_N_species(); ++species) {
-        BOOST_ASSERT(r1.get_N_filled(species) == r2.get_N_filled(species));
+        assert(r1.get_N_filled(species) == r2.get_N_filled(species));
 
         unsigned int count1 = 0, count2 = 0;
 

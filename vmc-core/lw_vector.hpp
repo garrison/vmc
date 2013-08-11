@@ -3,11 +3,10 @@
 
 #ifndef VMC_LW_VECTOR_IS_STD_VECTOR
 
+#include <cassert>
 #include <cstddef>
 #include <array>
 #include <utility>
-
-#include <boost/assert.hpp>
 
 /**
  * Lightweight vector (no dynamic allocation) with a maximum size
@@ -42,7 +41,7 @@ public:
     lw_vector (size_type initial_size, const T &value=T())
     : n(initial_size)
         {
-            BOOST_ASSERT(n <= MAX_SIZE);
+            assert(n <= MAX_SIZE);
             v.fill(value);
         }
 
@@ -70,13 +69,13 @@ public:
     void push_back (const T &value)
         {
             ++n;
-            BOOST_ASSERT(n <= MAX_SIZE);
+            assert(n <= MAX_SIZE);
             v[n - 1] = value;
         }
 
     void resize (size_type new_size, const T &value=T())
         {
-            BOOST_ASSERT(new_size <= MAX_SIZE);
+            assert(new_size <= MAX_SIZE);
             while (new_size > n) {
                 v[n] = value;
                 ++n;
@@ -87,13 +86,13 @@ public:
 
     reference operator[] (size_type index)
         {
-            BOOST_ASSERT(index < n);
+            assert(index < n);
             return v[index];
         }
 
     const_reference operator[] (size_type index) const
         {
-            BOOST_ASSERT(index < n);
+            assert(index < n);
             return v[index];
         }
 

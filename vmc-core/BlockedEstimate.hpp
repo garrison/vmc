@@ -1,9 +1,8 @@
 #ifndef _VMC_BLOCKED_ESTIMATE_HPP
 #define _VMC_BLOCKED_ESTIMATE_HPP
 
+#include <cassert>
 #include <vector>
-
-#include <boost/assert.hpp>
 
 #include "BinnedEstimate.hpp"
 
@@ -29,7 +28,7 @@ public:
           m_outstanding_measurements_count(0),
           m_outstanding_sum(T(0))
         {
-            BOOST_ASSERT(max_blocks >= 2);
+            assert(max_blocks >= 2);
         }
 
     virtual void add_value (T value) override
@@ -45,7 +44,7 @@ public:
                 m_block_averages.resize(m_half_max_blocks);
                 m_measurements_per_block *= 2;
             }
-            BOOST_ASSERT(m_block_averages.size() < 2 * m_half_max_blocks);
+            assert(m_block_averages.size() < 2 * m_half_max_blocks);
 
             // tally the measurement
             m_outstanding_sum += value;
@@ -57,7 +56,7 @@ public:
                 m_outstanding_sum = T(0);
                 m_outstanding_measurements_count = 0;
             }
-            BOOST_ASSERT(m_outstanding_measurements_count < m_measurements_per_block);
+            assert(m_outstanding_measurements_count < m_measurements_per_block);
         }
 
     const std::vector<result_t> & get_block_averages (void) const

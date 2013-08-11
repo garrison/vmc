@@ -8,7 +8,7 @@ template <typename AmplitudeType>
 StandardWalk<AmplitudeType>::StandardWalk (std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa_)
     : wfa(std::move(wfa_)),
       autoreject_in_progress(false)
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
     , transition_in_progress(false)
 #endif
 {
@@ -17,10 +17,10 @@ StandardWalk<AmplitudeType>::StandardWalk (std::unique_ptr<typename Wavefunction
 template <typename AmplitudeType>
 typename StandardWalk<AmplitudeType>::ProbabilityType StandardWalk<AmplitudeType>::compute_probability_ratio_of_random_transition (RandomNumberGenerator &rng)
 {
-    BOOST_ASSERT(!transition_in_progress);
-    BOOST_ASSERT(wfa != nullptr);
+    assert(!transition_in_progress);
+    assert(wfa != nullptr);
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
     transition_in_progress = true;
 #endif
 
@@ -49,16 +49,16 @@ typename StandardWalk<AmplitudeType>::ProbabilityType StandardWalk<AmplitudeType
 template <typename AmplitudeType>
 void StandardWalk<AmplitudeType>::accept_transition (void)
 {
-    BOOST_ASSERT(transition_in_progress);
-    BOOST_ASSERT(!autoreject_in_progress);
+    assert(transition_in_progress);
+    assert(!autoreject_in_progress);
 
     wfa->finish_move();
 
     // finish_move() may recalculate the inverse from scratch, so for sanity
     // we check that the amplitude here is still nonzero.
-    BOOST_ASSERT(wfa->is_nonzero());
+    assert(wfa->is_nonzero());
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
     transition_in_progress = false;
 #endif
 }
@@ -66,13 +66,13 @@ void StandardWalk<AmplitudeType>::accept_transition (void)
 template <typename AmplitudeType>
 void StandardWalk<AmplitudeType>::reject_transition (void)
 {
-    BOOST_ASSERT(transition_in_progress);
+    assert(transition_in_progress);
 
     if (!autoreject_in_progress)
         wfa->cancel_move();
     autoreject_in_progress = false;
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
     transition_in_progress = false;
 #endif
 }

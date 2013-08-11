@@ -58,7 +58,7 @@ private:
     std::unique_ptr<typename Wavefunction<AmplitudeType>::Amplitude> wfa;
     bool autoreject_in_progress;
 
-#if !defined(BOOST_DISABLE_ASSERTS) && !defined(NDEBUG)
+#ifndef NDEBUG
     bool transition_in_progress;
 #endif
 };

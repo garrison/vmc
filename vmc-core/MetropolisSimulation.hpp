@@ -3,8 +3,8 @@
 
 #include <memory>
 #include <list>
+#include <cassert>
 
-#include <boost/assert.hpp>
 #include <boost/noncopyable.hpp>
 
 #include "vmc-typedefs.hpp"

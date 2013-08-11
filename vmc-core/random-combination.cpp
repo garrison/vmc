@@ -1,6 +1,5 @@
 #include <set>
-
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "RandomNumberGenerator.hpp"
 #include "random-combination.hpp"
@@ -9,11 +8,11 @@
 void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned int n, RandomNumberGenerator &rng, unsigned int keep)
 {
     // per Jon Bentley's article in CACM, September 1987, Volume 30, Number 9
-    BOOST_ASSERT(n > 0);
-    BOOST_ASSERT(r > 0);
-    BOOST_ASSERT(r <= n);
-    BOOST_ASSERT(keep <= n);
-    BOOST_ASSERT(v.size() >= keep);
+    assert(n > 0);
+    assert(r > 0);
+    assert(r <= n);
+    assert(keep <= n);
+    assert(v.size() >= keep);
 
     if (n == r && keep == 0) {
         // the loop below fails if k == 0 is ever true, so here we handle the
@@ -29,15 +28,15 @@ void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned 
     v.reserve(r);
     for (std::vector<unsigned int>::const_iterator i = v.begin(); i != v.end(); ++i)
         vs.insert(*i);
-    BOOST_ASSERT(v.size() == vs.size());
+    assert(v.size() == vs.size());
 
     for (unsigned int k = n - r + keep; k < n; ++k) {
-        BOOST_ASSERT(k > 0);
+        assert(k > 0);
         unsigned int x = rng.random_small_uint(k);
         unsigned int a = (vs.find(x) != vs.end()) ? k : x;
         v.push_back(a);
         vs.insert(a);
     }
 
-    BOOST_ASSERT(v.size() == r);
+    assert(v.size() == r);
 }

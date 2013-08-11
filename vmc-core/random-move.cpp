@@ -1,4 +1,4 @@
-#include <boost/assert.hpp>
+#include <cassert>
 
 #include "RandomNumberGenerator.hpp"
 #include "random-move.hpp"
@@ -13,7 +13,7 @@ Particle choose_random_particle (const PositionArguments &r, RandomNumberGenerat
     // now we need to convert it into a species and particle number, which we
     // return
     for (unsigned int species = 0; ; ++species) {
-        BOOST_ASSERT(species < r.get_N_species());
+        assert(species < r.get_N_species());
         if (particle < r.get_N_filled(species))
             return Particle(particle, species);
         particle -= r.get_N_filled(species);
@@ -23,11 +23,11 @@ Particle choose_random_particle (const PositionArguments &r, RandomNumberGenerat
 unsigned int choose_random_empty_site (const PositionArguments &r, unsigned int species, RandomNumberGenerator &rng)
 {
     const unsigned int empty_sites = r.get_N_sites() - r.get_N_filled(species);
-    BOOST_ASSERT(empty_sites > 0);
+    assert(empty_sites > 0);
 
     int empty_site = rng.random_small_uint(empty_sites);
     for (unsigned int current_site = 0; ; ++current_site) {
-        BOOST_ASSERT(current_site < r.get_N_sites());
+        assert(current_site < r.get_N_sites());
         if (!r.is_occupied(current_site, species)) {
             if (empty_site-- == 0) {
                 return current_site;
@@ -44,7 +44,7 @@ unsigned int plan_particle_move_to_nearby_empty_site (Particle particle, const P
         return choose_random_empty_site(r, particle.species, rng);
 
     // otherwise, we find a "nearby" site
-    BOOST_ASSERT(r.particle_is_valid(particle));
+    assert(r.particle_is_valid(particle));
 
     const unsigned int move_axis = rng.random_small_uint(lattice.move_axes_count());
 

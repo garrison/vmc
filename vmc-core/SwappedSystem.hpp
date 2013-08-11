@@ -65,22 +65,22 @@ public:
 
     const Wavefunction<amplitude_t>::Amplitude & get_phibeta1 (void) const
         {
-            BOOST_ASSERT(current_state != UNINITIALIZED);
-            BOOST_ASSERT(subsystem_particle_counts_match());
+            assert(current_state != UNINITIALIZED);
+            assert(subsystem_particle_counts_match());
             return *phibeta1;
         }
 
     const Wavefunction<amplitude_t>::Amplitude & get_phibeta2 (void) const
         {
-            BOOST_ASSERT(current_state != UNINITIALIZED);
-            BOOST_ASSERT(subsystem_particle_counts_match());
+            assert(current_state != UNINITIALIZED);
+            assert(subsystem_particle_counts_match());
             return *phibeta2;
         }
 
     unsigned int get_N_subsystem (unsigned int species) const
         {
-            BOOST_ASSERT(species < copy1_subsystem_indices.size());
-            BOOST_ASSERT(copy1_subsystem_indices[species].size() == copy2_subsystem_indices[species].size());
+            assert(species < copy1_subsystem_indices.size());
+            assert(copy1_subsystem_indices[species].size() == copy2_subsystem_indices[species].size());
             return copy1_subsystem_indices[species].size();
         }
 

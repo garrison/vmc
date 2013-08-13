@@ -29,8 +29,8 @@ static inline int safe_modulus (int n, int d)
     return n;
 }
 
-template <typename T>
-static inline T safe_fmod (const T &n, const T &d)
+template <typename T, typename T2>
+static inline typename std::enable_if<std::is_convertible<T2, T>::value, T>::type safe_fmod (const T &n, const T2 &d)
 {
     assert(d > 0);
     using std::fmod;

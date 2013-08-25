@@ -161,7 +161,7 @@ public:
      */
     unsigned int total_bravais_sites (void) const
         {
-            return m_total_sites / basis_indices;
+            return m_total_sites / static_cast<unsigned int>(basis_indices);
         }
 
     /**
@@ -290,10 +290,10 @@ private:
             unsigned int rv = 1;
             for (unsigned int i = 0; i < dimensions.size(); ++i) {
                 assert(dimensions[i] > 0);
-                rv *= dimensions[i];
+                rv *= (unsigned int) dimensions[i];
             }
             assert(basis_indices > 0);
-            rv *= basis_indices;
+            rv *= (unsigned int) basis_indices;
             return rv;
         }
 

@@ -3,6 +3,10 @@
 
 #include <complex>
 
+#ifdef VMC_TYPEDEFS_PLUGIN
+#include VMC_TYPEDEFS_PLUGIN
+#endif
+
 typedef double real_t;
 typedef std::complex<real_t> complex_t;
 

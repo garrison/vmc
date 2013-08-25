@@ -55,7 +55,7 @@ private:
 static const char * const rng_names[] = {
     "boost::mt19937",
     "boost::lagged_fibonacci607",
-    0 // a null pointer marks the end of the array
+    nullptr // marks the end of the array
 };
 
 bool RandomNumberGenerator::name_is_valid (const char *rng_name)

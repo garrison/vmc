@@ -19,7 +19,8 @@ template <typename T>
 class RunningEstimate
 {
 public:
-    typedef typename boost::numeric::functional::average<T, std::size_t>::result_type result_t;
+    // NOTE: for boost < 1.55, `fdiv` was called `average`.  See boost ticket #8262.
+    typedef typename boost::numeric::functional::fdiv<T, std::size_t>::result_type result_t;
 
     virtual ~RunningEstimate (void)
         {

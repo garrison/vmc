@@ -20,7 +20,7 @@ Compiling ``vmc-core``
 `premake4 <http://industriousone.com/premake>`_ is required for the
 build.
 
-Requires a recent `boost <http://www.boost.org/>`_ (headers only) and
+Requires `boost <http://www.boost.org/>`_ >= 1.55 (headers only) and
 `eigen3 <http://eigen.tuxfamily.org/>`_.
 
 To compile and run (using e.g. ``clang++``)::

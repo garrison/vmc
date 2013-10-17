@@ -35,6 +35,11 @@ public:
      */
     virtual double random_uniform01 (void) = 0;
 
+    int random_sign (void)
+        {
+            return (random_small_uint(0, 2) << 1) - 1;
+        }
+
     /**
      * Returns a number from the Gaussian distribution centered at 0 with
      * $\sigma=1$

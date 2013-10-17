@@ -16,8 +16,6 @@ from scipy import optimize
 import logging
 logger = logging.getLogger(__name__)
 
-import matplotlib.pyplot as plt
-
 
 ##### General stuff #####
 
@@ -234,6 +232,7 @@ def norm_of_pairing_matrix(phiMat):
 def plot_pairing_matrix(phiMat, callshow=True):
     assert is_square_matrix(phiMat)
 
+    import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
     from matplotlib import cm
     from matplotlib.ticker import LinearLocator, FormatStrFormatter

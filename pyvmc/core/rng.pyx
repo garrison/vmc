@@ -1,7 +1,7 @@
 from random import randint
 
 cdef class RandomNumberGenerator(object):
-    def __init__(self, name="boost::mt19937", seed=None):
+    def __init__(self, name="std::mt19937", seed=None):
         namebytes = name.encode("ascii")
         if not rng_name_is_valid(namebytes):
             raise ValueError("invalid RNG: {}".format(name))

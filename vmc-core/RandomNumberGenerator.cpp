@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstring>
+#include <random>
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/lagged_fibonacci.hpp>
@@ -10,6 +11,44 @@
 
 #include "RandomNumberGenerator.hpp"
 #include "vmcstd.hpp"
+
+template <class RandomEngine>
+class RandomNumberGeneratorStdImpl : public RandomNumberGenerator
+{
+public:
+    RandomNumberGeneratorStdImpl (RandomNumberGenerator::rng_seed_t seed)
+        : engine(seed)
+        {
+        }
+
+protected:
+    virtual unsigned int random_small_uint (unsigned int lower_bound, unsigned int upper_cutoff) override
+        {
+            assert(lower_bound < upper_cutoff);
+            if (lower_bound == upper_cutoff - 1)
+                return lower_bound; // there's only one possibility, so we don't need randomness
+            std::uniform_int_distribution<unsigned int> distribution(lower_bound, upper_cutoff - 1);
+            return distribution(engine);
+        }
+
+    virtual int random_sign (void) override
+        {
+            return std::bernoulli_distribution()(engine) ? 1 : -1;
+        }
+
+    virtual double random_uniform01 (void) override
+        {
+            return std::uniform_real_distribution<>()(engine);
+        }
+
+    virtual double random_gaussian (void) override
+        {
+            return std::normal_distribution<>()(engine);
+        }
+
+private:
+    RandomEngine engine;
+};
 
 template <class T>
 class RandomNumberGeneratorBoostImpl : public RandomNumberGenerator
@@ -30,6 +69,11 @@ protected:
             boost::uniform_smallint<> distribution(lower_bound, upper_cutoff - 1);
             boost::variate_generator<T&, boost::uniform_smallint<> > generator(rng, distribution);
             return generator();
+        }
+
+    virtual int random_sign (void) override
+        {
+            return (random_small_uint(0, 2) << 1) - 1;
         }
 
     virtual double random_uniform01 (void) override
@@ -53,6 +97,7 @@ private:
 };
 
 static const char * const rng_names[] = {
+    "std::mt19937",
     "boost::mt19937",
     "boost::lagged_fibonacci607",
     nullptr // marks the end of the array
@@ -70,6 +115,8 @@ bool RandomNumberGenerator::name_is_valid (const char *rng_name)
 std::unique_ptr<RandomNumberGenerator> RandomNumberGenerator::create (const char *rng_name, RandomNumberGenerator::rng_seed_t seed)
 {
     assert(name_is_valid(rng_name));
+    if (std::strcmp(rng_name, "std::mt19937") == 0)
+        return vmcstd::make_unique<RandomNumberGeneratorStdImpl<std::mt19937> >(seed);
     if (std::strcmp(rng_name, "boost::mt19937") == 0)
         return vmcstd::make_unique<RandomNumberGeneratorBoostImpl<boost::mt19937> >(seed);
     if (std::strcmp(rng_name, "boost::lagged_fibonacci607") == 0)

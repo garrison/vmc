@@ -98,18 +98,29 @@ public:
 
     bool operator== (const lw_vector<T, MAX_SIZE> &other) const
         {
-            return (n == other.n
-                    && v == other.v);
+            if (n != other.n)
+                return false;
+            for (size_type i = 0; i < n; ++i) {
+                if (v[i] != other.v[i])
+                    return false;
+            }
+            return true;
         }
 
     bool operator!= (const lw_vector<T, MAX_SIZE> &other) const
         {
-            return (n != other.n
-                    || v != other.v);
+            if (n != other.n)
+                return true;
+            for (size_type i = 0; i < n; ++i) {
+                if (v[i] != other.v[i])
+                    return true;
+            }
+            return false;
         }
 
     bool operator< (const lw_vector<T, MAX_SIZE> &other) const
         {
+            // NOTE: this may enforce a different order than defined in the STL
             if (n != other.n)
                 return n < other.n;
             for (size_type i = 0; i < n; ++i) {

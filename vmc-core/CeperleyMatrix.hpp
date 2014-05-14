@@ -951,7 +951,7 @@ private:
     void check_inverse_matrix_error (const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> &mat_) const
         {
             const typename RealPart<T>::type inverse_error = compute_inverse_matrix_error(mat_, invmat);
-            if (!(inverse_error < .03))
+            if (!(inverse_error < .1))
                 throw unrecoverable_matrix_inverse_error<T>(inverse_error, n_smw_updates, smallest_detrat);
 #if defined(DEBUG_CEPERLEY_MATRIX) || defined(DEBUG_VMC_ALL)
             std::cerr << "inverse error = " << inverse_error << " after " << n_smw_updates << " updates." << std::endl;
@@ -991,7 +991,7 @@ private:
                 // if there is significant inverse error it probably means our
                 // orbitals are not linearly independent!
                 const typename RealPart<T>::type inverse_error = compute_inverse_matrix_error(mat, update_in_progress ? new_invmat : invmat);
-                if (!(inverse_error < .03))
+                if (!(inverse_error < .1))
                     throw unrecoverable_matrix_inverse_error<T>(inverse_error, 0, std::numeric_limits<typename RealPart<T>::type>::infinity());
 #endif
             }

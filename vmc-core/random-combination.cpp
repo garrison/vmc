@@ -26,8 +26,10 @@ void random_combination (std::vector<unsigned int> &v, unsigned int r, unsigned 
     std::set<int> vs;
     v.resize(keep);
     v.reserve(r);
-    for (std::vector<unsigned int>::const_iterator i = v.begin(); i != v.end(); ++i)
+    for (std::vector<unsigned int>::const_iterator i = v.begin(); i != v.end(); ++i) {
+        assert(*i < n);
         vs.insert(*i);
+    }
     assert(v.size() == vs.size());
 
     for (unsigned int k = n - r + keep; k < n; ++k) {
